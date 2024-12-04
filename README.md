@@ -1,5 +1,3 @@
-
-```markdown
 # Agriculture Investment App
 
 Cette application est conçue pour aider les personnes qui souhaitent investir dans l'agriculture en leur offrant une vue d'ensemble sur les différents aspects de l'agriculture. Grâce à une interface simple et intuitive, elle permet aux utilisateurs de saisir des paramètres agricoles clés et de fournir des prédictions détaillées sur le rendement, les investissements nécessaires et les bénéfices potentiels. Elle utilise des technologies avancées, y compris le Machine Learning, pour offrir des conseils éclairés et aider les investisseurs à prendre des décisions stratégiques et rentables.
@@ -65,7 +63,7 @@ Cette application est conçue pour aider les personnes qui souhaitent investir d
 6. **Lancez le serveur de développement :**
    ```bash
    python manage.py runserver
-   ```
+   
 
 7. **Accédez à l'application :**
    Ouvrez votre navigateur et allez à `http://127.0.0.1:8000/` pour interagir avec l'application.
