@@ -29,7 +29,7 @@ Cette application est conçue pour aider les personnes qui souhaitent investir d
 
 1. **Clonez le repository :**
    ```bash
-   git clone https://github.com/username/agriculture-investment-app.git
+   git clone https://github.com/doloadama/Andd_baay.git
    cd agriculture-investment-app
    ```
 
