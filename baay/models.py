@@ -44,3 +44,13 @@ class Projet(models.Model):
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     investissement_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     benefices_estimes = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+
+# models.py de votre application Django
+from django.db import models
+
+class FruitLegume(models.Model):
+    nom = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.nom
