@@ -3,10 +3,13 @@ from django.shortcuts import render
 
 # Create your views here.
 import streamlit as st
+<<<<<<< HEAD
 #from baay.models import FruitLegume
 # Importer le modèle Django
 
 
+=======
+>>>>>>> 4c304547b1b1802c294a265c3215617c59f894bb
 # Liste statique des fruits et légumes cultivés au Sénégal
 fruits_et_legumes_senegal = [
     "Manguier (Mangue)", "Papaye", "Banane", "Orange", "Citrons et Agrumes", "Goyave", 
