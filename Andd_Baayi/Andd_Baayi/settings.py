@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'myapp',
 ]
 
 MIDDLEWARE = [
@@ -75,10 +76,12 @@ WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': BASE_DIR / 'Projet_Agri',
-        'USER': os.environ['postgres'],
-        'PASSWORD': os.environ['assy98'],
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Projet_Agri',  # Nom de votre base de données
+        'USER': 'postgress',           # Nom d'utilisateur PostgreSQL
+        'PASSWORD': 'assy98',   # Mot de passe PostgreSQL
+        'HOST': 'localhost',           # Adresse du serveur PostgreSQL
+        'PORT': '5432',                # Port PostgreSQL (par défaut : 5432)
     }
 }
 
