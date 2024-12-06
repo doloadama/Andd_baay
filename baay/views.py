@@ -3,12 +3,9 @@ from django.shortcuts import render
 
 # Create your views here.
 import streamlit as st
-<<<<<<< HEAD
 #from baay.models import FruitLegume
 # Importer le modèle Django
-=======
 
->>>>>>> 42d6383252a04e6c4469c68c9e91c1629a7c0244
 
 # Liste statique des fruits et légumes cultivés au Sénégal
 fruits_et_legumes_senegal = [
@@ -22,6 +19,7 @@ def afficher_fruits_et_legumes():
     st.title("Liste des fruits et légumes cultivés au Sénégal")
     
     # Champ de texte pour rechercher par lettre
+    st.write(f"Si ce que vous cherchez n'est pas dans la liste veuillez l'écrire")
     search_term = st.text_input("Rechercher un fruit ou légume (ex : carotte, tomate)")
 
     # Filtrer les fruits et légumes qui contiennent le terme de recherche
