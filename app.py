@@ -23,7 +23,7 @@ Date_de_creation = st.text_input("Date de création")
 Type_utilisateur= st.text_input("Type utilisateur")
 
 if st.button("Créer un utilisateur"):
-    data = {'nom': nom, 'email': email}
+    data = {'nom': nom, 'email': email, 'type_utilisateur': Type_utilisateur}
     response = requests.post(API_URL, json=data)
     if response.status_code == 201:
         st.success("Utilisateur ajouté avec succès")
