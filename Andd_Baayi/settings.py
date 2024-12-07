@@ -100,6 +100,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+INSTALLED_APPS += ['rest_framework']
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

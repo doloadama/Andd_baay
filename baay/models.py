@@ -24,6 +24,8 @@ class Localite(models.Model):
 
 class Utilisateur(models.Model):
     nom = models.CharField(max_length=100, unique=True)
+    email = models.EmailField(unique=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
     mot_de_passe = models.TextField()
     type_utilisateur = models.CharField(max_length=50)
 

@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from baay.views import UtilisateurListCreateAPIView, UtilisateurDetailAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+path('api/utilisateurs/', UtilisateurListCreateAPIView.as_view(), name='utilisateurs-list-create'),
+path('api/utilisateurs/<int:pk>/', UtilisateurDetailAPIView.as_view(), name='utilisateur-detail'),
+
 ]
