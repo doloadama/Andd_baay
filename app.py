@@ -18,7 +18,7 @@ else:
 # Ajouter un utilisateur
 #st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
 st.subheader("Inscrivez-vous et commencez votre aventure agricole")
-prenom= st.text_input("Prenom")
+Prenom= st.text_input("Prenom")
 nom = st.text_input("Nom")
 email = st.text_input("Email")
 Date_de_creation = st.text_input("Date de création")
