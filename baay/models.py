@@ -1,6 +1,7 @@
 
 # myapp/models.py
 
+from datetime import datetime
 from django.db import models
 
 class Culture(models.Model):
@@ -24,8 +25,8 @@ class Localite(models.Model):
 
 class Utilisateur(models.Model):
     nom = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(unique=True)
-    date_creation = models.DateTimeField(auto_now_add=True)
+    email = models.EmailField(unique=True, default="unknown@example.com")
+    date_creation = models.DateTimeField(default=datetime.utcnow)
     mot_de_passe = models.TextField()
     type_utilisateur = models.CharField(max_length=50)
 
