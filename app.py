@@ -18,19 +18,14 @@ else:
 # Ajouter un utilisateur
 #st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
 st.subheader("Inscrivez-vous et commencez votre aventure agricole")
-<<<<<<< HEAD
-Prenom= st.text_input("Prenom")
 nom = st.text_input("Nom")
-=======
 prenom= st.text_input("Prenom")
-Nom = st.text_input("Nom")
->>>>>>> 608b0382ea9619b23426337d3c9cdcfd70232630
 email = st.text_input("Email")
 Date_de_creation = st.text_input("Date de création")
 
 
 if st.button("Créer un utilisateur"):
-    data = {'prenom': prenom, 'nom': Nom, 'email': email}
+    data = {'prenom': prenom, 'nom': nom, 'email': email}
     response = requests.post(API_URL, json=data)
     if response.status_code == 201:
         st.success("Utilisateur ajouté avec succès")
