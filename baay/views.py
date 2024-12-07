@@ -5,8 +5,6 @@ import streamlit as st
 #from baay.models import FruitLegume
 # Importer le modèle Django
 
-
-
 # Liste statique des fruits et légumes cultivés au Sénégal
 fruits_et_legumes_senegal = [
     "Manguier (Mangue)", "Papaye", "Banane", "Orange", "Citrons et Agrumes", "Goyave", 
