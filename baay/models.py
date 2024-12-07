@@ -26,8 +26,8 @@ class Localite(models.Model):
         return self.nom
 
 class Utilisateur(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    prenom = models.CharField(default=" alexandra")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    prenom = models.CharField(max_length=100,default=" alexandra")
     nom = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True, default="unknown@example.com")
     date_creation = models.DateTimeField(default=datetime.utcnow)
