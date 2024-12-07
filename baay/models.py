@@ -3,6 +3,8 @@
 
 from datetime import datetime
 from django.db import models
+import uuid
+
 
 class Culture(models.Model):
     nom = models.CharField(max_length=100, unique=True)
@@ -24,7 +26,8 @@ class Localite(models.Model):
         return self.nom
 
 class Utilisateur(models.Model):
-    prenom = models.CharField(max_length=100, unique=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    prenom = models.CharField(default=" alexandra")
     nom = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True, default="unknown@example.com")
     date_creation = models.DateTimeField(default=datetime.utcnow)
