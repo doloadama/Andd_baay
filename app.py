@@ -11,19 +11,20 @@ response = requests.get(API_URL)
 if response.status_code == 200:
     utilisateurs = response.json()
     for utilisateur in utilisateurs:
-        st.write(f"Nom: {utilisateur['nom']}, Email: {utilisateur['email']}, Date de création: {utilisateur['date_creation']}, Type utilisateur: {utilisateur['type_utilisateur']}")
+        st.write(f" Prenom: {utilisateur['prenom']}, Nom: {utilisateur['nom']}, Email: {utilisateur['email']}, Date de création: {utilisateur['date_creation']}")
 else:
     st.error("Erreur lors de la récupération des utilisateurs")
 
 # Ajouter un utilisateur
 st.subheader("Ajouter un utilisateur")
+prenom= st.text_input("Prenom")
 nom = st.text_input("Nom")
 email = st.text_input("Email")
 Date_de_creation = st.text_input("Date de création")
-Type_utilisateur= st.text_input("Type utilisateur")
+
 
 if st.button("Créer un utilisateur"):
-    data = {'nom': nom, 'email': email, 'type_utilisateur': Type_utilisateur}
+    data = {'prenom': prenom, 'nom': nom, 'email': email}
     response = requests.post(API_URL, json=data)
     if response.status_code == 201:
         st.success("Utilisateur ajouté avec succès")

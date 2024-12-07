@@ -24,11 +24,12 @@ class Localite(models.Model):
         return self.nom
 
 class Utilisateur(models.Model):
+    prenom = models.CharField(max_length=100, unique=True)
     nom = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True, default="unknown@example.com")
     date_creation = models.DateTimeField(default=datetime.utcnow)
     mot_de_passe = models.TextField()
-    type_utilisateur = models.CharField(max_length=50)
+   
 
     def __str__(self):
         return self.nom
