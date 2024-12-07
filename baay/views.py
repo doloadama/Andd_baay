@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+"""
 # Create your views here.
 import streamlit as st
 #from baay.models import FruitLegume
@@ -50,3 +50,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
