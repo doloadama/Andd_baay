@@ -13,22 +13,23 @@ def email_valide(email):
 # Fonction pour changer de page
 def go_to_page(page_name):
     """Fonction pour changer de page."""
-    st.session_state['page'] = page_name
+    st.session_state.page = page_name
+    st.rerun()  # Utilisation de st.rerun() pour recharger la page
 
 # Fonction de la page de connexion
-def login_page(change_page):
+def login_page():
     st.subheader("Page de connexion")
     login_email = st.text_input("Email (Connexion)", placeholder="Entrez votre email", key='login_email')
     login_mdp = st.text_input("Mot de passe (Connexion)", type="password", placeholder="Entrez votre mot de passe", key='login_mdp')
     if st.button("Se connecter", key='login_button'):
         st.write("Fonctionnalité de connexion non implémentée.")
     if st.button("S'inscrire", key='to_signup'):
-        change_page('signup')
+        go_to_page('signup')
     if st.button("Mot de passe oublié?", key='forgot_password'):
-        change_page('forgot_password')
+        go_to_page('forgot_password')
 
 # Fonction de la page d'inscription
-def signup_page(change_page):
+def signup_page():
     st.subheader("Inscrivez-vous et commencez votre aventure agricole")
     nom = st.text_input("Nom", key='signup_nom')
     prenom = st.text_input("Prenom", key='signup_prenom')
@@ -51,16 +52,17 @@ def signup_page(change_page):
                 response = requests.post(API_URL, json=data)
                 if response.status_code == 201:
                     st.success("Utilisateur ajouté avec succès. Redirection vers la page de connexion...")
-                    change_page('login')
+                    go_to_page('login')
                 else:
                     st.error(f"Erreur lors de l'ajout de l'utilisateur : {response.text}")
             except requests.exceptions.RequestException as e:
                 st.error(f"Erreur de connexion à l'API : {e}")
 
     if st.button("Retour", key='back_to_login'):
-        change_page('login')
+        go_to_page('login')
 
 # Fonction de la page de récupération du mot de passe
+<<<<<<< HEAD
 import streamlit as st
 import requests
 import re
@@ -107,13 +109,28 @@ def forgot_password_page(navigate):
 
 # Appelez forgot_password_page quelque part dans votre logique de navigation
 
+=======
+def forgot_password_page():
+    st.subheader("Mot de passe oublié")
+    email = st.text_input("Email", placeholder="Entrez votre email", key='forgot_email')
+    if st.button("Envoyer une demande de réinitialisation", key='send_reset'):
+        if not email or not email_valide(email):
+            st.error("Veuillez entrer une adresse email valide.")
+        else:
+            # Simuler l'envoi de l'email de réinitialisation
+            st.success("Une demande de réinitialisation a été envoyée à votre adresse email.")
+            go_to_page('login')
+
+    if st.button("Retour", key='back_to_login_from_forgot'):
+        go_to_page('login')
+>>>>>>> b1b9800e3498787476c2f4d9bfeab78cc1683418
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
-    st.session_state['page'] = 'home'
+    st.session_state.page = 'home'
 
 # Page d'accueil
-if st.session_state['page'] == 'home':
+if st.session_state.page == 'home':
     st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
     st.write("Pour commencer, inscrivez-vous si vous n'avez pas encore de compte. Si vous avez déjà un compte, connectez-vous pour accéder à votre espace personnel.")
     if st.button("S'inscrire", key='home_to_signup'):
@@ -122,9 +139,9 @@ if st.session_state['page'] == 'home':
         go_to_page('login')
 
 # Logic pour changer de page
-if st.session_state['page'] == 'login':
-    login_page(go_to_page)
-elif st.session_state['page'] == 'signup':
-    signup_page(go_to_page)
-elif st.session_state['page'] == 'forgot_password':
-    forgot_password_page(go_to_page)
+if st.session_state.page == 'login':
+    login_page()
+elif st.session_state.page == 'signup':
+    signup_page()
+elif st.session_state.page == 'forgot_password':
+    forgot_password_page()
