@@ -79,11 +79,10 @@ def forgot_password_page():
     if st.button("Retour", key='back_to_login_from_forgot'):
         go_to_page('login')
 
-# Initialiser l'état de session pour la page
+# Page d'accueil
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Page d'accueil
 if st.session_state.page == 'home':
     st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
     st.write("Pour commencer, inscrivez-vous si vous n'avez pas encore de compte. Si vous avez déjà un compte, connectez-vous pour accéder à votre espace personnel.")
@@ -98,4 +97,6 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-    forgot_password_page(navigate)
+    forgot_password_page()
+
+
