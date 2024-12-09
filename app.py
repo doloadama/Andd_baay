@@ -62,7 +62,7 @@ def signup_page():
         go_to_page('login')
 
 # Fonction de la page de récupération du mot de passe
-<<<<<<< HEAD
+
 import streamlit as st
 import requests
 import re
@@ -108,22 +108,9 @@ def forgot_password_page(navigate):
             st.error(f"Erreur de connexion à l'API : {e}")
 
 # Appelez forgot_password_page quelque part dans votre logique de navigation
+API_RESET_PASSWORD_URL = "http://127.0.0.1:8000/api/reset-password/"
 
-=======
-def forgot_password_page():
-    st.subheader("Mot de passe oublié")
-    email = st.text_input("Email", placeholder="Entrez votre email", key='forgot_email')
-    if st.button("Envoyer une demande de réinitialisation", key='send_reset'):
-        if not email or not email_valide(email):
-            st.error("Veuillez entrer une adresse email valide.")
-        else:
-            # Simuler l'envoi de l'email de réinitialisation
-            st.success("Une demande de réinitialisation a été envoyée à votre adresse email.")
-            go_to_page('login')
 
-    if st.button("Retour", key='back_to_login_from_forgot'):
-        go_to_page('login')
->>>>>>> b1b9800e3498787476c2f4d9bfeab78cc1683418
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
