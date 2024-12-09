@@ -17,18 +17,24 @@ else:
     st.error(f"Erreur lors de la récupération des utilisateurs : Statut {response.status_code}")
 
 # Ajouter un utilisateur
-#st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
+st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
 st.subheader("Inscrivez-vous et commencez votre aventure agricole")
 nom = st.text_input("Nom")
 prenom= st.text_input("Prenom")
 email = st.text_input("Email")
-Date_de_creation = st.text_input("Date de création")
+
 
 
 if st.button("Créer un utilisateur"):
-    data = {'prenom': prenom, 'nom': nom, 'email': email}
-    response = requests.post(API_URL, json=data)
-    if response.status_code == 201:
-        st.success("Utilisateur ajouté avec succès")
+    if not nom or not prenom or not email:
+        st.error("Veuillez remplir tous les champs.")
     else:
-        st.error("Erreur lors de l'ajout de l'utilisateur")
+        try:
+            data = {'prenom': prenom, 'nom': nom, 'email': email}
+            response = requests.post(API_URL, json=data)
+            if response.status_code == 201:
+                st.success("Utilisateur ajouté avec succès")
+            else:
+                st.error(f"Erreur lors de l'ajout de l'utilisateur : {response.text}")
+        except requests.exceptions.RequestException as e:
+            st.error(f"Erreur de connexion à l'API : {e}")
