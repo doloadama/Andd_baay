@@ -2,7 +2,9 @@ import streamlit as st
 import requests
 import re
 
+# Remplace par l'URL de ton API
 API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
+API_RESET_PASSWORD_URL = "http://127.0.0.1:8000/api/utilisateurs/reset_password/"  # URL pour la réinitialisation du mot de passe
 
 # Fonction pour valider les emails
 def email_valide(email):
@@ -14,17 +16,20 @@ def email_valide(email):
 def go_to_page(page_name):
     """Fonction pour changer de page."""
     st.session_state.page = page_name
-    st.rerun()  # Utilisation de st.rerun() pour recharger la page
+    st.rerun()  # Remplace st.experimental_rerun() par st.rerun()
 
 # Fonction de la page de connexion
 def login_page():
     st.subheader("Page de connexion")
     login_email = st.text_input("Email (Connexion)", placeholder="Entrez votre email", key='login_email')
     login_mdp = st.text_input("Mot de passe (Connexion)", type="password", placeholder="Entrez votre mot de passe", key='login_mdp')
+    
     if st.button("Se connecter", key='login_button'):
         st.write("Fonctionnalité de connexion non implémentée.")
+    
     if st.button("S'inscrire", key='to_signup'):
         go_to_page('signup')
+    
     if st.button("Mot de passe oublié?", key='forgot_password'):
         go_to_page('forgot_password')
 
@@ -68,13 +73,21 @@ def signup_page():
 def forgot_password_page():
     st.subheader("Mot de passe oublié")
     email = st.text_input("Email", placeholder="Entrez votre email", key='forgot_email')
+    
     if st.button("Envoyer une demande de réinitialisation", key='send_reset'):
         if not email or not email_valide(email):
             st.error("Veuillez entrer une adresse email valide.")
         else:
-            # Simuler l'envoi de l'email de réinitialisation
-            st.success("Une demande de réinitialisation a été envoyée à votre adresse email.")
-            go_to_page('login')
+            try:
+                # Appel à l'API pour envoyer une demande de réinitialisation
+                response = requests.post(API_RESET_PASSWORD_URL, json={'email': email})
+                if response.status_code == 200:
+                    st.success("Un lien de réinitialisation a été envoyé à votre email.")
+                    go_to_page('login')
+                else:
+                    st.error(f"Erreur lors de l'envoi du lien de réinitialisation : {response.text}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Erreur de connexion à l'API : {e}")
 
     if st.button("Retour", key='back_to_login_from_forgot'):
         go_to_page('login')
@@ -98,4 +111,8 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
+<<<<<<< HEAD
     forgot_password_page(navigate)
+=======
+    forgot_password_page()
+>>>>>>> a19663654e571b63d5d2f3f0650d82d87ff5c1ee
