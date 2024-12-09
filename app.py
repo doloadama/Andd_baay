@@ -98,4 +98,4 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-    forgot_password_page()
+    forgot_password_page(navigate)
