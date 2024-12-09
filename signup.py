@@ -3,6 +3,7 @@ import requests
 import re
 
 API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
+EMAIL_VERIFICATION_URL = "http://127.0.0.1:8000/api/verify-email/"
 
 
 def email_valide(email):
@@ -35,10 +36,9 @@ def signup_page(navigate):
                 }
                 response = requests.post(API_URL, json=data)
                 if response.status_code == 201:
-                    st.success("Compte créé avec succès.")
-                    navigate('login')
+                    st.success("Inscription réussie! Vérifiez votre email pour activer votre compte.")
                 else:
-                    st.error(f"Erreur lors de la création du compte : {response.text}")
+                    st.error(f"Erreur lors de l'inscription : {response.text}")
             except requests.exceptions.RequestException as e:
                 st.error(f"Erreur de connexion à l'API : {e}")
 
