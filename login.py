@@ -12,6 +12,10 @@ def login_page(navigate):
         # Logique de connexion à implémenter
         st.write("Fonction de connexion réussie - à implémenter.")
 
+    # Lien pour réinitialiser le mot de passe
+    if st.button("Mot de passe oublié?", key='reset_password'):
+        navigate('reset_password')
+
     # Lien vers la page d'inscription
     if st.button("S'inscrire", key='to_signup'):
         navigate('signup')
