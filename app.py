@@ -95,5 +95,3 @@ elif st.session_state['page'] == 'signup':
     signup_page(go_to_page)
 elif st.session_state['page'] == 'forgot_password':
     forgot_password_page(go_to_page)
-
-
