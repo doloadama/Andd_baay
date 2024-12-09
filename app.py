@@ -11,9 +11,10 @@ response = requests.get(API_URL)
 if response.status_code == 200:
     utilisateurs = response.json()
     for utilisateur in utilisateurs:
-        st.write(f" Prenom: {utilisateur['prenom']}, Nom: {utilisateur['nom']}, Email: {utilisateur['email']}, Date de création: {utilisateur['date_creation']}")
+        st.write(
+            f" Prenom: {utilisateur['prenom']}, Nom: {utilisateur['nom']}, Email: {utilisateur['email']}, Date de création: {utilisateur['date_creation']}")
 else:
-    st.error("Erreur lors de la récupération des utilisateurs")
+    st.error(f"Erreur lors de la récupération des utilisateurs : Statut {response.status_code}")
 
 # Ajouter un utilisateur
 #st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
