@@ -14,20 +14,38 @@ def email_valide(email):
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
-    st.session_state['page'] = 'signup'
+    st.session_state['page'] = 'login'
+
+# Page de connexion
+if st.session_state['page'] == 'login':
+    st.title("Connexion")
+
+    # Champs de connexion
+    login_email = st.text_input("Email")
+    login_mdp = st.text_input("Mot de passe", type="password")
+
+    if st.button("Se connecter"):
+        # Logique de connexion à implémenter
+        # Si la connexion est réussie, faites ce qui suit:
+        st.write("Fonction de connexion réussie - à implémenter.")
+
+    # Lien vers la page d'inscription
+    st.markdown("[Créer un compte](#)", unsafe_allow_html=True)
+    # Change l'état de la page lorsqu'on clique sur le lien
+    if st.button("Inscription", key='to_signup'):
+        st.session_state['page'] = 'signup'
 
 # Page d'inscription
 if st.session_state['page'] == 'signup':
-    st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
-    st.subheader("Inscrivez-vous et commencez votre aventure agricole")
+    st.title("Inscription")
 
-    # Champs d'entrée pour le nouvel utilisateur
+    # Champs d'inscription
     nom = st.text_input("Nom", key='nom')
     prenom = st.text_input("Prenom", key='prenom')
     email = st.text_input("Email", key='email')
     mot_de_passe = st.text_input("Mot de passe", type="password", key='mot_de_passe')
 
-    if st.button("Créer un utilisateur"):
+    if st.button("Créer un compte"):
         if not nom or not prenom or not email or not mot_de_passe:
             st.error("Veuillez remplir tous les champs.")
         elif not email_valide(email):
@@ -42,19 +60,14 @@ if st.session_state['page'] == 'signup':
                 }
                 response = requests.post(API_URL, json=data)
                 if response.status_code == 201:
-                    st.success("Utilisateur ajouté avec succès. Redirection vers la page de connexion...")
-                    st.session_state['page'] = 'login'  # Changer la page à 'login'
+                    st.success("Compte créé avec succès.")
+                    st.session_state['page'] = 'login'
                 else:
-                    st.error(f"Erreur lors de l'ajout de l'utilisateur : {response.text}")
+                    st.error(f"Erreur lors de la création du compte : {response.text}")
             except requests.exceptions.RequestException as e:
                 st.error(f"Erreur de connexion à l'API : {e}")
 
-# Page de connexion simulée
-if st.session_state['page'] == 'login':
-    st.subheader("Page de connexion")
-    # Simuler les champs de connexion
-    login_email = st.text_input("Email (Connexion)", placeholder="Entrez votre email")
-    login_mdp = st.text_input("Mot de passe (Connexion)", type="password", placeholder="Entrez votre mot de passe")
-    if st.button("Se connecter"):
-        st.write("Fonctionnalité de connexion non implémentée.")
-        # Implémentez la logique de connexion ici
+    # Lien vers la page de connexion
+    st.markdown("[Vous avez déjà un compte? Connexion](#)", unsafe_allow_html=True)
+    if st.button("Se connecter", key='back_to_login'):
+        st.session_state['page'] = 'login'
