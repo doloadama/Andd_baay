@@ -37,14 +37,10 @@ class UtilisateurDetailAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def request_password_reset(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        # Logique pour initier la réinitialisation du mot de passe
-        # Envoyez l'email de réinitialisation ici
-        return JsonResponse({'message': 'Lien de réinitialisation envoyé.'})
-
-    return JsonResponse({'error': 'Méthode non supportée.'}, status=405)
+class ResetPasswordView(APIView):
+    def post(self, request, *args, **kwargs):
+        # implémenter la logique de réinitialisation du mot de passe
+        return JsonResponse({'status': 'mot de passe réinitialisé avec succès'})
 
 
 """

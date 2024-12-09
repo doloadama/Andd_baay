@@ -67,14 +67,34 @@ def signup_page():
 # Fonction de la page de récupération du mot de passe
 def forgot_password_page():
     st.subheader("Mot de passe oublié")
-    email = st.text_input("Email", placeholder="Entrez votre email", key='forgot_email')
+    email = st.text_input("Email", placeholder="Entrez votre email valide", key='forgot_email')
+
+    # Champs pour les nouveaux mots de passe
+    nouveau_mot_de_passe = st.text_input("Nouveau mot de passe", type="password", key='new_password')
+    confirmer_mot_de_passe = st.text_input("Confirmer le nouveau mot de passe", type="password", key='confirm_password')
+
     if st.button("Envoyer une demande de réinitialisation", key='send_reset'):
-        if not email or not email_valide(email):
+        if not email_valide(email):
             st.error("Veuillez entrer une adresse email valide.")
+        elif not nouveau_mot_de_passe or not confirmer_mot_de_passe:
+            st.error("Veuillez remplir tous les champs du mot de passe.")
+        elif nouveau_mot_de_passe != confirmer_mot_de_passe:
+            st.error("Les mots de passe ne correspondent pas.")
         else:
-            # Simuler l'envoi de l'email de réinitialisation
-            st.success("Une demande de réinitialisation a été envoyée à votre adresse email.")
-            go_to_page('login')
+            # Appel API pour modifier le mot de passe
+            try:
+                data = {
+                    'email': email,
+                    'nouveau_mot_de_passe': nouveau_mot_de_passe
+                }
+                response = requests.post(f"{API_URL}reset_password", json=data)  # modifiez l'url selon votre API
+                if response.status_code == 200:
+                    st.success("Mot de passe réinitialisé avec succès. Redirection vers la connexion...")
+                    go_to_page('login')
+                else:
+                    st.error(f"Erreur lors de la réinitialisation du mot de passe : {response.text}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Erreur de connexion à l'API : {e}")
 
     if st.button("Retour", key='back_to_login_from_forgot'):
         go_to_page('login')
@@ -98,4 +118,4 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-    forgot_password_page(navigate)
+    forgot_password_page()

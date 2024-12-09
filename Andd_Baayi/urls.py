@@ -16,12 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from baay.views import UtilisateurListCreateAPIView, UtilisateurDetailAPIView, request_password_reset
+from baay.views import UtilisateurListCreateAPIView, UtilisateurDetailAPIView, ResetPasswordView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 path('api/utilisateurs/', UtilisateurListCreateAPIView.as_view(), name='utilisateurs-list-create'),
 path('api/utilisateurs/<int:pk>/', UtilisateurDetailAPIView.as_view(), name='utilisateur-detail'),
- path('api/reset-password/request', request_password_reset, name='request_password_reset'),
+path('api/utilisateurs/reset_password', ResetPasswordView.as_view(), name='reset_password'),
 
 ]
