@@ -111,8 +111,4 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-<<<<<<< HEAD
-    forgot_password_page(navigate)
-=======
     forgot_password_page()
->>>>>>> a19663654e571b63d5d2f3f0650d82d87ff5c1ee
