@@ -28,6 +28,9 @@ def login_page():
     if st.button("Mot de passe oublié?", key='forgot_password'):
         go_to_page('forgot_password')
 
+    if st.button("Retour", key='back_to_home'):
+        go_to_page('home')  # Redirige vers la première page
+
 # Fonction de la page d'inscription
 def signup_page():
     st.subheader("Inscrivez-vous et commencez votre aventure agricole")
@@ -62,6 +65,7 @@ def signup_page():
         go_to_page('login')
 
 # Fonction de la page de récupération du mot de passe
+<<<<<<< HEAD
 
 import streamlit as st
 import requests
@@ -111,6 +115,21 @@ def forgot_password_page(navigate):
 API_RESET_PASSWORD_URL = "http://127.0.0.1:8000/api/reset-password/"
 
 
+=======
+def forgot_password_page():
+    st.subheader("Mot de passe oublié")
+    email = st.text_input("Email", placeholder="Entrez votre email", key='forgot_email')
+    if st.button("Envoyer une demande de réinitialisation", key='send_reset'):
+        if not email or not email_valide(email):
+            st.error("Veuillez entrer une adresse email valide.")
+        else:
+            # Simuler l'envoi de l'email de réinitialisation
+            st.success("Une demande de réinitialisation a été envoyée à votre adresse email.")
+            go_to_page('login')
+
+    if st.button("Retour", key='back_to_login_from_forgot'):
+        go_to_page('login')
+>>>>>>> c0b7ebb5e15a35ce772d1cdf2a5ad04973d58b1a
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
