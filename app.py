@@ -24,23 +24,34 @@ def login_page():
     mot_de_passe = st.text_input("Mot de passe", type='password')
 
     if st.button('Connexion'):
-        response = requests.post('http://localhost:8000/api/v1/connexion',
-                                 data={'nom': nom, 'mot_de_passe': mot_de_passe})
-        if response.status_code == 200:
-            token = response.json().get('token')
-            st.success('Connexion réussie! Votre token : ' + token)
-            main()
+        if not nom or not mot_de_passe:
+            st.warning("Veuillez remplir tous les champs.")
         else:
-            st.error('Erreur de connexion.')
+            response = requests.post(
+                'http://localhost:8000/api/v1/connexion',
+                json={'nom': nom, 'mot_de_passe': mot_de_passe}
+            )
+            if response.status_code == 200:
+                token = response.json().get('token')
+                st.session_state['token'] = token  # Stockage dans la session
+                st.success('Connexion réussie!')
+                main()
+            else:
+                try:
+                    error_message = response.json().get('erreur', 'Erreur inconnue.')
+                    st.error(f'Erreur de connexion : {error_message}')
+                except ValueError:
+                    st.error('Erreur de connexion : Réponse invalide du serveur.')
 
     if st.button("S'inscrire", key='to_signup'):
         go_to_page('signup')
-    
+
     if st.button("Mot de passe oublié?", key='forgot_password'):
         go_to_page('forgot_password')
 
     if st.button("Retour", key='back_to_home'):
-        go_to_page('home')  # Redirige vers la première page
+        go_to_page('home')
+
 
 # Fonction de la page d'inscription
 def signup_page():
