@@ -25,3 +25,4 @@ path('api/utilisateurs/<int:pk>/', UtilisateurDetailAPIView.as_view(), name='uti
 path('api/utilisateurs/reset_password/', reset_password_view, name='reset_password'),
 
 ]
+
