@@ -29,6 +29,7 @@ def login_page():
         if response.status_code == 200:
             token = response.json().get('token')
             st.success('Connexion réussie! Votre token : ' + token)
+
         else:
             st.error('Erreur de connexion.')
 
@@ -126,6 +127,7 @@ def reset_password_page():
 
 def main():
     nav = ["Profil","Projet","Localités","Tendances marché"]
+    st.navigation(nav)
 
     return st.session_state.page
 
@@ -150,8 +152,6 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-    reset_password_page()
-
     st.subheader("Reinitialisation du mot de passe")
     reset_password_page(st.text_input("Veullez insérer votre email"))
 
