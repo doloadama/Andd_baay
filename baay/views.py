@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -83,29 +83,31 @@ def reset_password_view(request):
 
 
 class ConnexionView(APIView):
-    # 1. Définition d'une classe ConnexionView qui est une sous-classe de l'APIView de Django Rest Framework.
+    def get(self, request):
+        return Response({"message": "GET method allowed for testing purposes."})
+    # Une classe qui hérite de la classe APIView de Django REST Framework afin de créer une nouvelle vue API pour gérer les requêtes d'authentification.
+
     def post(self, request):
-        # 2. Redéfinition de la méthode post pour prendre en charge les requêtes POST HTTP.
-        # 'request' englobe toutes les informations de la demande HTTP entrante.
         nom = request.data.get("nom")
         mot_de_passe = request.data.get("mot_de_passe")
-        # 3. Récupération du nom et du mot de passe de l'utilisateur à partir du corps de la demande POST.
-        utilisateur = Utilisateur.objects.get(nom=nom, password=mot_de_passe)
-        # 4. Tentative d'authentification de l'utilisateur à l'aide des informations d'identification fournies.
-        # La méthode 'authenticate' est une méthode de Django pour vérifier les informations d'identification d'un utilisateur.
-        if utilisateur is not None:
-            # 5. Si l'utilisateur est authentifié correctement (c'est-à-dire, l'objet 'utilisateur' n'est pas 'None'),
-            # nous créons ou récupérons un token existant pour cet utilisateur.
-            token, _ = Token.objects.get_or_create(user=utilisateur)
-            # 6. Envoi du token en réponse à la requête.
-            return Response({"token": token.key})
-        else:
-            # 7. Si l'utilisateur n'existe pas (c'est-à-dire, 'authenticate' a renvoyé 'None'), nous envoyons une réponse
-            # indiquant que la tentative d'authentification a échoué.
+
+        if not nom or not mot_de_passe:
             return Response(
-                {"erreur": "L'authentification a échoué"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"erreur": "Nom d'utilisateur et mot de passe requis."},
+                status=status.HTTP_400_BAD_REQUEST
             )
+
+        utilisateur = authenticate(username=nom, password=mot_de_passe)
+        if utilisateur:
+            refresh = RefreshToken.for_user(utilisateur)
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            })
+        return Response(
+            {"erreur": "L'authentification a échoué."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 
