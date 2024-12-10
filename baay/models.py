@@ -34,7 +34,7 @@ class Utilisateur(models.Model):
     email = models.EmailField(unique=True, default="unknown@example.com")
     date_creation = models.DateTimeField(default=datetime.utcnow)
     mot_de_passe = models.TextField()
-   
+
 
     def __str__(self):
         return self.nom
