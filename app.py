@@ -127,3 +127,6 @@ elif st.session_state.page == 'signup':
 elif st.session_state.page == 'forgot_password':
     st.subheader("Reinitialisation du mot de passe")
     reset_password_page(st.text_input("Veullez insérer votre email"))
+
+def main():
+    return st.session_state.page
