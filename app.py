@@ -29,7 +29,7 @@ def login_page():
         if response.status_code == 200:
             token = response.json().get('token')
             st.success('Connexion réussie! Votre token : ' + token)
-
+            go_to_page('main')
         else:
             st.error('Erreur de connexion.')
 
