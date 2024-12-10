@@ -29,7 +29,6 @@ def login_page():
         if response.status_code == 200:
             token = response.json().get('token')
             st.success('Connexion réussie! Votre token : ' + token)
-
         else:
             st.error('Erreur de connexion.')
 
@@ -75,7 +74,36 @@ def signup_page():
     if st.button("Retour", key='back_to_login'):
         go_to_page('login')
 
-# Fonction de la page de demande de réinitialisation du mot de passe
+# Fonction de la page de réinitialisation du mot de passe
+def reset_password_page():
+    st.subheader("Réinitialiser le mot de passe")
+
+    email = st.text_input("Veuillez insérer votre email", key='reset_password_email')
+    new_password = st.text_input("Nouveau mot de passe", type="password", key='new_password')
+    confirm_password = st.text_input("Confirmer le nouveau mot de passe", type="password", key='confirm_password')
+
+    if st.button("Changer le mot de passe", key='update_password'):
+        if new_password != confirm_password:
+            st.error("Les mots de passe ne correspondent pas.")
+        elif len(new_password) < 8:
+            st.error("Le mot de passe doit contenir au moins 8 caractères.")
+        else:
+            try:
+                API_RESET_PASSWORD_URL = "http://127.0.0.1:8000/api/utilisateurs/reset_password/"
+                response = requests.post(API_RESET_PASSWORD_URL, data={'email': email, 'new_password': new_password})
+
+                if response.status_code == 200:
+                    st.success("Votre mot de passe a été modifié avec succès. Veuillez vous reconnecter.")
+                    time.sleep(2)  # Pause for 2 seconds
+                    go_to_page('login')
+                else:
+                    error_message = response.json().get('error', 'Une erreur inattendue s\'est produite.')
+                    st.error(f"Erreur : {error_message}")
+
+            except requests.exceptions.RequestException as e:
+                st.error(f"Erreur de connexion à l'API : {e}")
+
+# Fonction de la page de récupération du mot de passe
 def forgot_password_page():
     st.subheader("Réinitialisation du mot de passe")
     email = st.text_input("Veuillez insérer votre email", key='forgot_password_email')
@@ -85,7 +113,8 @@ def forgot_password_page():
             st.error("Veuillez entrer une adresse email valide.")
         else:
             try:
-                response = requests.post(f"{API_URL}send_reset_link/", data={'email': email})
+                API_SEND_RESET_LINK_URL = f"{API_URL}send_reset_link/"
+                response = requests.post(API_SEND_RESET_LINK_URL, data={'email': email})
                 if response.status_code == 200:
                     st.success("Un email de réinitialisation de mot de passe a été envoyé.")
                     go_to_page('reset_password')
@@ -98,40 +127,6 @@ def forgot_password_page():
 
     if st.button("Retour", key='back_to_login_from_forgot'):
         go_to_page('login')
-
-# Fonction de la page de réinitialisation du mot de passe
-def reset_password_page():
-    st.subheader("Réinitialiser le mot de passe")
-    email = st.text_input("Email", key='reset_password_email')
-    new_password = st.text_input("Nouveau mot de passe", type="password", key='new_password')
-    confirm_password = st.text_input("Confirmer le nouveau mot de passe", type="password", key='confirm_password')
-
-    if st.button("Changer le mot de passe", key='update_password'):
-        if new_password != confirm_password:
-            st.error("Les mots de passe ne correspondent pas.")
-        elif len(new_password) < 8:
-            st.error("Le mot de passe doit contenir au moins 8 caractères.")
-        else:
-            try:
-                response = requests.post(f"{API_URL}reset_password/", data={'email': email, 'new_password': new_password})
-                if response.status_code == 200:
-                    st.success("Votre mot de passe a été modifié avec succès. Veuillez vous reconnecter.")
-                    time.sleep(2)  # Pause for 2 seconds
-                    go_to_page('login')
-                else:
-                    error_message = response.json().get('error', 'Une erreur inattendue s\'est produite.')
-                    st.error(f"Erreur : {error_message}")
-            except requests.exceptions.RequestException as e:
-                st.error(f"Erreur de connexion à l'API : {e}")
-
-
-def main():
-    nav = ["Profil","Projet","Localités","Tendances marché"]
-    st.navigation(nav)
-
-    return st.session_state.page
-
-
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
@@ -152,9 +147,6 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-    st.subheader("Reinitialisation du mot de passe")
-    reset_password_page(st.text_input("Veullez insérer votre email"))
-
-
-def main():
-    return st.session_state.page
+    forgot_password_page()
+elif st.session_state.page == 'reset_password':
+    reset_password_page()
