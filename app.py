@@ -29,7 +29,7 @@ def login_page():
         if response.status_code == 200:
             token = response.json().get('token')
             st.success('Connexion réussie! Votre token : ' + token)
-            go_to_page('main')
+            main()
         else:
             st.error('Erreur de connexion.')
 
@@ -139,13 +139,34 @@ def reset_password_page(email):
             except requests.exceptions.RequestException as e:
                 st.error(f"Erreur de connexion à l'API : {e}")
 
+def page_profil():
+    st.write("Bienvenue sur la page Profil")
+
+
+def page_projet():
+    st.write("Bienvenue sur la page Projet")
+
+
+def page_localites():
+    st.write("Bienvenue sur la page Localités")
+
+
+def page_tendances():
+    st.write("Bienvenue sur la page Tendances Marché")
+
+
+PAGES = {
+    "Profil": page_profil,
+    "Projet": page_projet,
+    "Localités": page_localites,
+    "Tendances marché": page_tendances,
+}
+
+
 def main():
-    nav = ["Profil","Projet","Localités","Tendances marché"]
-    st.navigation(nav)
-
-    return go_to_page('main')
-
-
+    st.sidebar.title("Navigation")
+    choix = st.sidebar.select_slider("Aller à", list(PAGES.keys()))
+    PAGES[choix]()
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
@@ -167,8 +188,7 @@ elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
     reset_password_page(st.text_input("Email"))
-#elif st.session_state.page == 'forgot_password':
-    #forgot_password_page()
+
 elif st.session_state.page == 'main':
     st.title("Votre espace personnel")
     st.subheader("Votre profil")
