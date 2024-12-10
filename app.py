@@ -104,6 +104,11 @@ def reset_password_page(email):
             except requests.exceptions.RequestException as e:
                 st.error(f"Erreur de connexion à l'API : {e}")
 
+def main():
+    nav = ["Profil","Projet","Localités","Tendances marché"]
+
+    return st.session_state.page
+
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
@@ -118,7 +123,6 @@ if st.session_state.page == 'home':
     if st.button("Se connecter", key='home_to_login'):
         go_to_page('login')
 
-
 # Logic pour changer de page
 if st.session_state.page == 'login':
     login_page()
@@ -128,5 +132,4 @@ elif st.session_state.page == 'forgot_password':
     st.subheader("Reinitialisation du mot de passe")
     reset_password_page(st.text_input("Veullez insérer votre email"))
 
-def main():
-    return st.session_state.page
+
