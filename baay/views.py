@@ -59,8 +59,6 @@ class UtilisateurDetailAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
 @csrf_exempt
 def reset_password_view(request):
     if request.method == 'POST':
@@ -85,17 +83,29 @@ def reset_password_view(request):
 
 
 class ConnexionView(APIView):
+    # 1. Définition d'une classe ConnexionView qui est une sous-classe de l'APIView de Django Rest Framework.
     def post(self, request):
-        nom = request.data.get('nom')
-        mot_de_passe = request.data.get('mot_de_passe')
-        utilisateur = authenticate(nom=nom, password=mot_de_passe)
+        # 2. Redéfinition de la méthode post pour prendre en charge les requêtes POST HTTP.
+        # 'request' englobe toutes les informations de la demande HTTP entrante.
+        nom = request.data.get("nom")
+        mot_de_passe = request.data.get("mot_de_passe")
+        # 3. Récupération du nom et du mot de passe de l'utilisateur à partir du corps de la demande POST.
+        utilisateur = Utilisateur.objects.get(nom=nom, password=mot_de_passe)
+        # 4. Tentative d'authentification de l'utilisateur à l'aide des informations d'identification fournies.
+        # La méthode 'authenticate' est une méthode de Django pour vérifier les informations d'identification d'un utilisateur.
         if utilisateur is not None:
-            # l'utilisateur est authentifié correctement
+            # 5. Si l'utilisateur est authentifié correctement (c'est-à-dire, l'objet 'utilisateur' n'est pas 'None'),
+            # nous créons ou récupérons un token existant pour cet utilisateur.
             token, _ = Token.objects.get_or_create(user=utilisateur)
-            return Response({'token': token.key})
+            # 6. Envoi du token en réponse à la requête.
+            return Response({"token": token.key})
         else:
-            # l'authentification a échoué.
-            return Response({"erreur": "L'authentification a échoué"}, status=status.HTTP_400_BAD_REQUEST)
+            # 7. Si l'utilisateur n'existe pas (c'est-à-dire, 'authenticate' a renvoyé 'None'), nous envoyons une réponse
+            # indiquant que la tentative d'authentification a échoué.
+            return Response(
+                {"erreur": "L'authentification a échoué"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 
