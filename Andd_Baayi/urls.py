@@ -19,7 +19,7 @@ from django.urls import path
 from baay.views import UtilisateurListCreateAPIView, UtilisateurDetailAPIView, reset_password_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+path('admin/', admin.site.urls),
 path('api/utilisateurs/', UtilisateurListCreateAPIView.as_view(), name='utilisateurs-list-create'),
 path('api/utilisateurs/<int:pk>/', UtilisateurDetailAPIView.as_view(), name='utilisateur-detail'),
 path('api/utilisateurs/reset_password/', reset_password_view, name='reset_password'),

@@ -1,5 +1,4 @@
 from django.contrib.auth.hashers import make_password
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
