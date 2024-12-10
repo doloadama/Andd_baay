@@ -1,10 +1,11 @@
+import time
+
 import streamlit as st
 import requests
 import re
 
 # Remplace par l'URL de ton API
 API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
-API_RESET_PASSWORD_URL = "http://127.0.0.1:8000/api/utilisateurs/reset_password/"  # URL pour la réinitialisation du mot de passe
 
 # Fonction pour valider les emails
 def email_valide(email):
@@ -20,12 +21,18 @@ def go_to_page(page_name):
 
 # Fonction de la page de connexion
 def login_page():
-    st.subheader("Page de connexion")
-    login_email = st.text_input("Email (Connexion)", placeholder="Entrez votre email", key='login_email')
-    login_mdp = st.text_input("Mot de passe (Connexion)", type="password", placeholder="Entrez votre mot de passe", key='login_mdp')
-    
-    if st.button("Se connecter", key='login_button'):
-        st.write("Fonctionnalité de connexion non implémentée.")
+    nom = st.text_input("Nom d'utilisateur")
+    mot_de_passe = st.text_input("Mot de passe", type='password')
+
+    if st.button('Connexion'):
+        response = requests.post('http://localhost:8000/api/v1/connexion',
+                                 data={'nom': nom, 'mot_de_passe': mot_de_passe})
+        if response.status_code == 200:
+            token = response.json().get('token')
+            st.success('Connexion réussie! Votre token : ' + token)
+        else:
+            st.error('Erreur de connexion.')
+
     
     if st.button("S'inscrire", key='to_signup'):
         go_to_page('signup')
@@ -69,28 +76,34 @@ def signup_page():
     if st.button("Retour", key='back_to_login'):
         go_to_page('login')
 
-# Fonction de la page de récupération du mot de passe
-def forgot_password_page():
-    st.subheader("Mot de passe oublié")
-    email = st.text_input("Email", placeholder="Entrez votre email", key='forgot_email')
-    
-    if st.button("Envoyer une demande de réinitialisation", key='send_reset'):
-        if not email or not email_valide(email):
-            st.error("Veuillez entrer une adresse email valide.")
+# Fonction de la page de réinitialisation du mot de passe
+def reset_password_page(email):
+    st.subheader("Réinitialiser le mot de passe")
+
+    new_password = st.text_input("Nouveau mot de passe", type="password", key='new_password')
+    confirm_password = st.text_input("Confirmer le nouveau mot de passe", type="password", key='confirm_password')
+
+    if st.button("Changer le mot de passe", key='update_password'):
+        if new_password != confirm_password:
+            st.error("Les mots de passe ne correspondent pas.")
+        elif len(new_password) < 8:
+            st.error("Le mot de passe doit contenir au moins 8 caractères.")
         else:
             try:
-                # Appel à l'API pour envoyer une demande de réinitialisation
-                response = requests.post(API_RESET_PASSWORD_URL, json={'email': email})
+                API_RESET_PASSWORD_URL = "http://127.0.0.1:8000/api/utilisateurs/reset_password/"
+                response = requests.post(API_RESET_PASSWORD_URL, data={'email': email, 'new_password': new_password})
+
                 if response.status_code == 200:
-                    st.success("Un lien de réinitialisation a été envoyé à votre email.")
+                    st.success("Votre mot de passe a été modifié avec succès. Veuillez vous reconnecter.")
+                    time.sleep(2)  # Pause for 2 seconds
                     go_to_page('login')
                 else:
-                    st.error(f"Erreur lors de l'envoi du lien de réinitialisation : {response.text}")
+                    error_message = response.json().get('error', 'Une erreur inattendue s\'est produite.')
+                    st.error(f"Erreur : {error_message}")
+
             except requests.exceptions.RequestException as e:
                 st.error(f"Erreur de connexion à l'API : {e}")
 
-    if st.button("Retour", key='back_to_login_from_forgot'):
-        go_to_page('login')
 
 # Initialiser l'état de session pour la page
 if 'page' not in st.session_state:
@@ -105,14 +118,20 @@ if st.session_state.page == 'home':
     if st.button("Se connecter", key='home_to_login'):
         go_to_page('login')
 
+
 # Logic pour changer de page
 if st.session_state.page == 'login':
     login_page()
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
+<<<<<<< HEAD
 
     forgot_password_page(navigate)
 
     forgot_password_page()
 
+=======
+    st.subheader("Reinitialisation du mot de passe")
+    reset_password_page(st.text_input("Veullez insérer votre email"))
+>>>>>>> refs/remotes/origin/main

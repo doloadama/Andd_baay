@@ -1,5 +1,8 @@
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render
-
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -22,25 +25,81 @@ class UtilisateurListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Cette classe définit une API RESTful pour gérer un utilisateur spécifique par son identifiant primaire (pk).
 class UtilisateurDetailAPIView(APIView):
-    def put(self, request, pk):
-        utilisateur = Utilisateur.objects.get(pk=pk)
-        serializer = UtilisateurSerializer(utilisateur, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Méthode HTTP PUT pour mettre à jour les détails d'un utilisateur
+    class UtilisateurDetailAPIView(APIView):
+
+        def put(self, request, pk):
+            utilisateur = Utilisateur.objects.get(pk=pk)
+
+            # Supposez que new_password est un champ fourni dans request.data
+            new_password = request.data.get('new_password')
+
+            # Si un nouveau mot de passe est fourni, changez-le
+            if new_password:
+                utilisateur.set_password(new_password)
+                utilisateur.save()
+
+            # Actualiser les autres champs avec le sérialiseur
+            serializer = UtilisateurSerializer(utilisateur, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Méthode HTTP DELETE pour supprimer un utilisateur existant
     def delete(self, request, pk):
+        # Obtenez l'objet Utilisateur basé sur l'identifiant primaire (pk)
         utilisateur = Utilisateur.objects.get(pk=pk)
+        # Supprimez l'utilisateur de la base de données
         utilisateur.delete()
+        # Retournez une réponse avec un statut HTTP 204 qui signifie "pas de contenu"
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ResetPasswordView(APIView):
-    def post(self, request, *args, **kwargs):
-        # implémenter la logique de réinitialisation du mot de passe
-        return JsonResponse({'status': 'mot de passe réinitialisé avec succès'})
+
+
+@csrf_exempt
+def reset_password_view(request):
+    if request.method == 'POST':
+        # Extraire les données du corps de la requête
+        email = request.POST.get('email')
+        new_password = request.POST.get('new_password')
+
+        if not email or not new_password:
+            return JsonResponse({'error': 'Email and new password are both required.'}, status=400)
+
+        try:
+            # Chercher l'utilisateur par email
+            user = Utilisateur.objects.get(email=email)
+            # Mettre à jour le mot de passe
+            user.password = make_password(new_password)
+            user.save()
+            return JsonResponse({'message': 'Mot de passe réinitialisé avec succès'}, status=200)
+        except Utilisateur.DoesNotExist:
+            return JsonResponse({'error': 'Utilisateur introuvable.'}, status=404)
+    else:
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
+
+class ConnexionView(APIView):
+    def post(self, request):
+        nom = request.data.get('nom')
+        mot_de_passe = request.data.get('mot_de_passe')
+        utilisateur = authenticate(nom=nom, password=mot_de_passe)
+        if utilisateur is not None:
+            # l'utilisateur est authentifié correctement
+            token, _ = Token.objects.get_or_create(user=utilisateur)
+            return Response({'token': token.key})
+        else:
+            # l'authentification a échoué.
+            return Response({"erreur": "L'authentification a échoué"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 """
