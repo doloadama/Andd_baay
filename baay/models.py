@@ -2,6 +2,8 @@
 # myapp/models.py
 
 from datetime import datetime
+
+from django.contrib.auth.hashers import make_password
 from django.db import models
 import uuid
 
@@ -36,6 +38,11 @@ class Utilisateur(models.Model):
 
     def __str__(self):
         return self.nom
+
+    def set_password(self, new_password):
+        self.mot_de_passe = make_password(new_password)
+        self.save()
+
 
 class Investissement(models.Model):
     culture = models.ForeignKey(Culture, on_delete=models.CASCADE)

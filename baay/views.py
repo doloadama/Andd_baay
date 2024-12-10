@@ -1,7 +1,8 @@
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,19 +29,26 @@ class UtilisateurListCreateAPIView(APIView):
 class UtilisateurDetailAPIView(APIView):
 
     # Méthode HTTP PUT pour mettre à jour les détails d'un utilisateur
-    def put(self, request, pk):
-        # Obtenez l'objet Utilisateur basé sur l'identifiant primaire (pk)
-        utilisateur = Utilisateur.objects.get(pk=pk)
-        # Passez l'objet existant et les données de la requête au sérialiseur
-        serializer = UtilisateurSerializer(utilisateur, data=request.data)
-        # Vérifiez si les données sont valides selon le sérialiseur
-        if serializer.is_valid():
-            # Sauvegardez les données validées pour mettre à jour l'utilisateur
-            serializer.save()
-            # Retournez les données sérialisées avec le code de statut HTTP 200 par défaut
-            return Response(serializer.data)
-        # Si les données ne sont pas valides, retournez les erreurs avec un statut HTTP 400
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    class UtilisateurDetailAPIView(APIView):
+
+        def put(self, request, pk):
+            utilisateur = Utilisateur.objects.get(pk=pk)
+
+            # Supposez que new_password est un champ fourni dans request.data
+            new_password = request.data.get('new_password')
+
+            # Si un nouveau mot de passe est fourni, changez-le
+            if new_password:
+                utilisateur.set_password(new_password)
+                utilisateur.save()
+
+            # Actualiser les autres champs avec le sérialiseur
+            serializer = UtilisateurSerializer(utilisateur, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # Méthode HTTP DELETE pour supprimer un utilisateur existant
     def delete(self, request, pk):
@@ -50,6 +58,8 @@ class UtilisateurDetailAPIView(APIView):
         utilisateur.delete()
         # Retournez une réponse avec un statut HTTP 204 qui signifie "pas de contenu"
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 
 @csrf_exempt
@@ -73,6 +83,22 @@ def reset_password_view(request):
             return JsonResponse({'error': 'Utilisateur introuvable.'}, status=404)
     else:
         return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
+
+class ConnexionView(APIView):
+    def post(self, request):
+        nom = request.data.get('nom')
+        mot_de_passe = request.data.get('mot_de_passe')
+        utilisateur = authenticate(nom=nom, password=mot_de_passe)
+        if utilisateur is not None:
+            # l'utilisateur est authentifié correctement
+            token, _ = Token.objects.get_or_create(user=utilisateur)
+            return Response({'token': token.key})
+        else:
+            # l'authentification a échoué.
+            return Response({"erreur": "L'authentification a échoué"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 
