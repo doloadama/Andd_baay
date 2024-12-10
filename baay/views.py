@@ -1,7 +1,11 @@
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+<<<<<<< HEAD
+from rest_framework_simplejwt.tokens import RefreshToken # type: ignore
+=======
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
+>>>>>>> 7d8b5d8d9cbd95eee68fe7d1e39d273af15ce399
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
