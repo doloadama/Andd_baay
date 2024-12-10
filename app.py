@@ -1,11 +1,10 @@
-import time
 import streamlit as st
 import requests
 import re
 
 # Remplace par l'URL de ton API
 API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
-
+API_LOGIN_URL = "http://127.0.0.1:8000/api/utilisateurs/login_view/"
 # Fonction pour valider les emails
 def email_valide(email):
     """Vérifie si l'email a un format valide."""
@@ -25,29 +24,13 @@ def login_page():
     mot_de_passe = st.text_input("Mot de passe", type='password')
 
     if st.button('Connexion'):
-        if not nom.strip() or not mot_de_passe.strip():
-            st.warning("Veuillez remplir tous les champs.")
-        elif len(mot_de_passe) < 8:
-            st.warning("Le mot de passe doit contenir au moins 8 caractères.")
-        elif not re.match(r"^\w+$", nom):
-            st.warning("Le nom d'utilisateur contient des caractères invalides.")
+        response = requests.post(API_LOGIN_URL, data={"nom": nom, "mot_de_passe": mot_de_passe})
+        if response.status_code == 200 and response.json().get("status") == "success":
+            st.success("Logged in successfully!")
+            go_to_page('main')
         else:
-            response = requests.post(
-                'http://127.0.0.1:8000/api/utilisateurs/connexion/',
-                data={'nom': nom, 'mot_de_passe': mot_de_passe}
-            )
+            st.error("Invalid credentials.")
 
-            if response.status_code == 200:
-                access_token = response.json().get('access')
-                st.session_state['access_token'] = access_token
-                st.success('Connexion réussie!')
-                main()
-            else:
-                try:
-                    error_message = response.json().get('erreur', None)
-                    st.error(f"Erreur de connexion : {error_message or 'Erreur inconnue.'}")
-                except ValueError:
-                    st.error('Erreur de connexion : Réponse invalide du serveur.')
 
     if st.button("S'inscrire", key='to_signup'):
         go_to_page('signup')

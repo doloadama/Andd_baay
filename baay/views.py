@@ -1,11 +1,9 @@
+from django.contrib.auth.handlers.modwsgi import check_password
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
-<<<<<<< HEAD
 from rest_framework_simplejwt.tokens import RefreshToken # type: ignore
-=======
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
->>>>>>> 7d8b5d8d9cbd95eee68fe7d1e39d273af15ce399
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,7 +13,15 @@ from .serializers import UtilisateurSerializer
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 
-
+def authenticate_user(username, password):
+    from .models import Utilisateur
+    try:
+        user = Utilisateur.objects.get(nom=username)
+        if check_password(password, user.mot_de_passe):
+            return user
+    except Utilisateur.DoesNotExist:
+        return None
+    return None
 
 class UtilisateurListCreateAPIView(APIView):
     def get(self, request):
@@ -88,31 +94,15 @@ def reset_password_view(request):
     else:
         return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
-
-class ConnexionView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-def post(self, request):
-        nom = request.data.get("nom")
-        mot_de_passe = request.data.get("mot_de_passe")
-
-        if not nom or not mot_de_passe:
-            return Response(
-                {"erreur": "Nom d'utilisateur et mot de passe requis."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        utilisateur = authenticate(username=nom, password=mot_de_passe)
-        if utilisateur:
-            refresh = RefreshToken.for_user(utilisateur)
-            return Response({
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            })
-        return Response(
-            {"erreur": "L'authentification a échoué."},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+@csrf_exempt
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('name')
+        password = request.POST.get('mot_de_passe')
+        user = authenticate_user(username, password)
+        if user:
+            return JsonResponse({"status": "success", "message": "User authenticated"})
+        return JsonResponse({"status": "error", "message": "Invalid credentials"})
 
 
 """
