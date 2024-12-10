@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken # type: ignore
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
