@@ -1,5 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
@@ -8,6 +9,8 @@ from rest_framework import status
 from .models import Utilisateur
 from .serializers import UtilisateurSerializer
 from django.http import JsonResponse
+from rest_framework.permissions import IsAuthenticated
+
 
 
 class UtilisateurListCreateAPIView(APIView):
@@ -83,8 +86,9 @@ def reset_password_view(request):
 
 
 class ConnexionView(APIView):
-
-    def post(self, request):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+def post(self, request):
         nom = request.data.get("nom")
         mot_de_passe = request.data.get("mot_de_passe")
 
@@ -105,10 +109,6 @@ class ConnexionView(APIView):
             {"erreur": "L'authentification a échoué."},
             status=status.HTTP_401_UNAUTHORIZED
         )
-
-
-
-
 
 
 """

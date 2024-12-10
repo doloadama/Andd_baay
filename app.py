@@ -4,7 +4,7 @@ import requests
 import re
 
 # Remplace par l'URL de ton API
-API_URL = "http://127.0.0.1:8001/api/utilisateurs/"
+API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
 
 # Fonction pour valider les emails
 def email_valide(email):
@@ -33,8 +33,8 @@ def login_page():
             st.warning("Le nom d'utilisateur contient des caractères invalides.")
         else:
             response = requests.post(
-                'http://127.0.0.1:8001/api/utilisateurs/connexion/',
-                json={'nom': nom, 'mot_de_passe': mot_de_passe}
+                'http://127.0.0.1:8000/api/utilisateurs/connexion/',
+                data={'nom': nom, 'mot_de_passe': mot_de_passe}
             )
 
             if response.status_code == 200:
