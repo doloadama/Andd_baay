@@ -125,13 +125,5 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'signup':
     signup_page()
 elif st.session_state.page == 'forgot_password':
-<<<<<<< HEAD
-
-    forgot_password_page(navigate)
-
-    forgot_password_page()
-
-=======
     st.subheader("Reinitialisation du mot de passe")
     reset_password_page(st.text_input("Veullez insérer votre email"))
->>>>>>> refs/remotes/origin/main
