@@ -143,7 +143,7 @@ def main():
     nav = ["Profil","Projet","Localités","Tendances marché"]
     st.navigation(nav)
 
-    return st.session_state.page
+    return go_to_page('main')
 
 
 
