@@ -4,11 +4,13 @@ import requests
 import re
 
 # Remplace par l'URL de ton API
-API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
+API_URL = "http://127.0.0.1:8001/api/utilisateurs/"
 
 # Fonction pour valider les emails
 def email_valide(email):
     """Vérifie si l'email a un format valide."""
+    if not email or not isinstance(email, str):
+        return False
     regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(regex, email)
 
@@ -18,28 +20,32 @@ def go_to_page(page_name):
     st.session_state.page = page_name
     st.rerun()
 
-# Fonction de la page de connexion
 def login_page():
     nom = st.text_input("Nom d'utilisateur")
     mot_de_passe = st.text_input("Mot de passe", type='password')
 
     if st.button('Connexion'):
-        if not nom or not mot_de_passe:
+        if not nom.strip() or not mot_de_passe.strip():
             st.warning("Veuillez remplir tous les champs.")
+        elif len(mot_de_passe) < 8:
+            st.warning("Le mot de passe doit contenir au moins 8 caractères.")
+        elif not re.match(r"^\w+$", nom):
+            st.warning("Le nom d'utilisateur contient des caractères invalides.")
         else:
             response = requests.post(
-                'http://localhost:8000/api/v1/connexion',
+                'http://127.0.0.1:8001/api/utilisateurs/connexion/',
                 json={'nom': nom, 'mot_de_passe': mot_de_passe}
             )
+
             if response.status_code == 200:
-                token = response.json().get('token')
-                st.session_state['token'] = token  # Stockage dans la session
+                access_token = response.json().get('access')
+                st.session_state['access_token'] = access_token
                 st.success('Connexion réussie!')
                 main()
             else:
                 try:
-                    error_message = response.json().get('erreur', 'Erreur inconnue.')
-                    st.error(f'Erreur de connexion : {error_message}')
+                    error_message = response.json().get('erreur', None)
+                    st.error(f"Erreur de connexion : {error_message or 'Erreur inconnue.'}")
                 except ValueError:
                     st.error('Erreur de connexion : Réponse invalide du serveur.')
 
@@ -51,6 +57,7 @@ def login_page():
 
     if st.button("Retour", key='back_to_home'):
         go_to_page('home')
+
 
 
 # Fonction de la page d'inscription
@@ -183,7 +190,10 @@ def main():
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Page d'accueil
+def hash_password(password):
+    """Hash le mot de passe pour plus de sécurité."""
+    import hashlib
+    return hashlib.sha256(password.encode()).hexdigest()
 if st.session_state.page == 'home':
     st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
     st.write("Pour commencer, inscrivez-vous si vous n'avez pas encore de compte. Si vous avez déjà un compte, connectez-vous pour accéder à votre espace personnel.")
@@ -195,8 +205,10 @@ if st.session_state.page == 'home':
 # Logic pour changer de page
 if st.session_state.page == 'login':
     login_page()
+
 elif st.session_state.page == 'signup':
     signup_page()
+
 elif st.session_state.page == 'forgot_password':
     reset_password_page(st.text_input("Email"))
 
