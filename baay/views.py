@@ -83,9 +83,6 @@ def reset_password_view(request):
 
 
 class ConnexionView(APIView):
-    def get(self, request):
-        return Response({"message": "GET method allowed for testing purposes."})
-    # Une classe qui hérite de la classe APIView de Django REST Framework afin de créer une nouvelle vue API pour gérer les requêtes d'authentification.
 
     def post(self, request):
         nom = request.data.get("nom")
@@ -106,8 +103,9 @@ class ConnexionView(APIView):
             })
         return Response(
             {"erreur": "L'authentification a échoué."},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_401_UNAUTHORIZED
         )
+
 
 
 
