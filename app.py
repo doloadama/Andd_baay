@@ -4,7 +4,7 @@ import re
 
 # Remplace par l'URL de ton API
 API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
-API_LOGIN_URL = "http://127.0.0.1:8000/api/utilisateurs/login_view/"
+API_LOGIN_URL = "http://127.0.0.1:8000//api/utilisateurs/login_view/"
 # Fonction pour valider les emails
 def email_valide(email):
     """Vérifie si l'email a un format valide."""
@@ -151,7 +151,7 @@ def reset_password_page(email):
                 )
                 response = requests.post(
                     API_RESET_PASSWORD_URL,
-                    data={"email": email, "new_password": new_password},
+                    data={"email": email, "mot_de_passe": new_password},
                 )
 
                 if response.status_code == 200:

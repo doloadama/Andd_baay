@@ -1,27 +1,12 @@
-from django.contrib.auth.handlers.modwsgi import check_password
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework_simplejwt.tokens import RefreshToken # type: ignore
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import JsonResponse
 from .models import Utilisateur
 from .serializers import UtilisateurSerializer
-from django.http import JsonResponse
-
-
-
-def authenticate_user(username, password):
-    try:
-        user = Utilisateur.objects.get(
-            nom=username
-        )  # Cherche l'utilisateur dans la base de données
-    except Utilisateur.DoesNotExist:
-        return None
-    if check_password(password, user.mot_de_passe):  # Compare les mots de passe
-        return user  # Si les mot de passe correspondent, retourne l'utilisateur
-    return None  # Si les mots de passe ne correspondent pas, retourne None
+from utils import authenticate_user
 
 class UtilisateurListCreateAPIView(APIView):
     def get(self, request):
@@ -37,39 +22,32 @@ class UtilisateurListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Cette classe définit une API RESTful pour gérer un utilisateur spécifique par son identifiant primaire (pk).
 class UtilisateurDetailAPIView(APIView):
-
-    # Méthode HTTP PUT pour mettre à jour les détails d'un utilisateur
-    class UtilisateurDetailAPIView(APIView):
-
-        def put(self, request, pk):
+    def put(self, request, pk):
+        try:
             utilisateur = Utilisateur.objects.get(pk=pk)
+        except Utilisateur.DoesNotExist:
+            return Response({"error": "Utilisateur introuvable"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Supposez que new_password est un champ fourni dans request.data
-            new_password = request.data.get('new_password')
+        new_password = request.data.get('new_password')
+        if new_password:
+            utilisateur.set_password(new_password)
+            utilisateur.save()
 
-            # Si un nouveau mot de passe est fourni, changez-le
-            if new_password:
-                utilisateur.set_password(new_password)
-                utilisateur.save()
+        serializer = UtilisateurSerializer(utilisateur, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # Actualiser les autres champs avec le sérialiseur
-            serializer = UtilisateurSerializer(utilisateur, data=request.data, partial=True)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # Méthode HTTP DELETE pour supprimer un utilisateur existant
     def delete(self, request, pk):
-        # Obtenez l'objet Utilisateur basé sur l'identifiant primaire (pk)
-        utilisateur = Utilisateur.objects.get(pk=pk)
-        # Supprimez l'utilisateur de la base de données
-        utilisateur.delete()
-        # Retournez une réponse avec un statut HTTP 204 qui signifie "pas de contenu"
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            utilisateur = Utilisateur.objects.get(pk=pk)
+            utilisateur.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Utilisateur.DoesNotExist:
+            return Response({"error": "Utilisateur introuvable"}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 @csrf_exempt
@@ -77,7 +55,7 @@ def reset_password_view(request):
     if request.method == 'POST':
         # Extraire les données du corps de la requête
         email = request.POST.get('email')
-        new_password = request.POST.get('new_password')
+        new_password = request.POST.get('mot_de_passe')
 
         if not email or not new_password:
             return JsonResponse({'error': 'Email and new password are both required.'}, status=400)
@@ -86,7 +64,7 @@ def reset_password_view(request):
             # Chercher l'utilisateur par email
             user = Utilisateur.objects.get(email=email)
             # Mettre à jour le mot de passe
-            user.password = make_password(new_password)
+            user.mot_de_passe = make_password(new_password)
             user.save()
             return JsonResponse({'message': 'Mot de passe réinitialisé avec succès'}, status=200)
         except Utilisateur.DoesNotExist:
@@ -99,6 +77,7 @@ def login_view(request):
     if request.method == 'POST':
         nom = request.POST.get('nom')
         mot_de_passe = request.POST.get('mot_de_passe')
+
         print(f"Nom utilisateur : {nom}")
         print(f"Mot de passe : {mot_de_passe}")
 
@@ -106,7 +85,7 @@ def login_view(request):
         if user:
             return JsonResponse({"status": "success", "user": {"id": user.id, "nom": user.nom}})
         else:
-            return JsonResponse({"status": "error", "message": "Invalid credentials"}, status=401)
+            return JsonResponse({"status": "error", "message": "Invalid credentials or user does not exist"}, status=401)
     return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
 
 
