@@ -2,26 +2,26 @@ from django.contrib.auth.handlers.modwsgi import check_password
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.tokens import RefreshToken # type: ignore
-from rest_framework.authentication import TokenAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Utilisateur
 from .serializers import UtilisateurSerializer
 from django.http import JsonResponse
-from rest_framework.permissions import IsAuthenticated
+
+
 
 def authenticate_user(username, password):
-    from .models import Utilisateur
     try:
-        user = Utilisateur.objects.get(nom=username)
-        if check_password(password, user.mot_de_passe):
-            return user
+        user = Utilisateur.objects.get(
+            nom=username
+        )  # Cherche l'utilisateur dans la base de données
     except Utilisateur.DoesNotExist:
         return None
-    return None
+    if check_password(password, user.mot_de_passe):  # Compare les mots de passe
+        return user  # Si les mot de passe correspondent, retourne l'utilisateur
+    return None  # Si les mots de passe ne correspondent pas, retourne None
 
 class UtilisateurListCreateAPIView(APIView):
     def get(self, request):
@@ -97,12 +97,17 @@ def reset_password_view(request):
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('nom')
-        password = request.POST.get('mot_de_passe')
-        user = authenticate_user(username, password)
+        nom = request.POST.get('nom')
+        mot_de_passe = request.POST.get('mot_de_passe')
+        print(f"Nom utilisateur : {nom}")
+        print(f"Mot de passe : {mot_de_passe}")
+
+        user = authenticate_user(nom, mot_de_passe)
         if user:
-            return JsonResponse({"status": "success", "message": "User authenticated"})
-        return JsonResponse({"status": "error", "message": "Invalid credentials"})
+            return JsonResponse({"status": "success", "user": {"id": user.id, "nom": user.nom}})
+        else:
+            return JsonResponse({"status": "error", "message": "Invalid credentials"}, status=401)
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
 
 
 """

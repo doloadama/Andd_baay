@@ -19,18 +19,45 @@ def go_to_page(page_name):
     st.session_state.page = page_name
     st.rerun()
 
-def login_page():
-    nom = st.text_input("Nom d'utilisateur")
-    mot_de_passe = st.text_input("Mot de passe", type='password')
 
+def login_page():
+    """
+    Affiche la page de connexion et gère l'authentification de l'utilisateur.
+    """
+    st.title("Page de Connexion")
+
+    # Champs pour le nom d'utilisateur et le mot de passe
+    nom = st.text_input("Nom d'utilisateur", key="nom_utilisateur")
+    mot_de_passe = st.text_input("Mot de passe", type='password', key="mot_de_passe")
+
+    # Bouton pour la connexion
     if st.button('Connexion'):
-        response = requests.post(API_LOGIN_URL, data={"nom": nom, "mot_de_passe": mot_de_passe})
-        if response.status_code == 200 and response.json().get("status") == "success":
-            st.success("Logged in successfully!")
-            st.write(response.json())
-            go_to_page('main')
-        else:
-            st.error("Invalid credentials.")
+        # Validation des champs
+        if not nom or not mot_de_passe:
+            st.warning("Veuillez remplir tous les champs.")
+            return
+
+        try:
+            # Envoi de la requête POST à l'API
+            response = requests.post(
+                API_LOGIN_URL,
+                data={"nom": nom, "mot_de_passe": mot_de_passe}
+            )
+
+            # Traitement de la réponse
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "success":
+                    st.success("Connexion réussie !")
+                    st.write(data)  # Affiche les données renvoyées par l'API
+                    #go_to_page('main')  # Redirige vers la page principale
+                else:
+                    st.error("Identifiants invalides. Veuillez réessayer.")
+            else:
+                st.error(f"Erreur serveur : {response.status_code}")
+
+        except requests.exceptions.RequestException as e:
+            st.error(f"Erreur lors de la connexion : {e}")
 
 
     if st.button("S'inscrire", key='to_signup'):
