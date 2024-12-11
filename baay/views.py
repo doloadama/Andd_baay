@@ -18,6 +18,9 @@ class UtilisateurListCreateAPIView(APIView):
         serializer = UtilisateurSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            if 'mot_de_passe' in request.data:
+                serializer.instance.set_password(request.data['mot_de_passe'])
+                serializer.instance.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
