@@ -29,6 +29,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+SECRET_KEY = "votre_cle_secrete_ultra_securisee"
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'baay',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',             # Pour django-cors-headers
+    'rest_framework_simplejwt' # Pour djangorestframework_simplejwt
 ]
 
 MIDDLEWARE = [
@@ -137,7 +139,6 @@ REST_FRAMEWORK = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        #'rest_framework.authentication.TokenAuthentication',  # Pour l'authentification par token
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],

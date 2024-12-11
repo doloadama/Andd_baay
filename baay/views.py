@@ -1,9 +1,12 @@
+from datetime import datetime
+import jwt
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
+from Andd_Baayi import settings
 from .models import Utilisateur
 from .serializers import UtilisateurSerializer
 from utils import authenticate_user
@@ -90,6 +93,7 @@ def login_view(request):
         else:
             return JsonResponse({"status": "error", "message": "Invalid credentials or user does not exist"}, status=401)
     return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+
 
 
 """

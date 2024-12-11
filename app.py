@@ -4,7 +4,7 @@ import re
 
 # Remplace par l'URL de ton API
 API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
-API_LOGIN_URL = "http://127.0.0.1:8000//api/utilisateurs/login_view/"
+API_LOGIN_URL = "http://127.0.0.1:8000/api/utilisateurs/login_view/"
 # Fonction pour valider les emails
 def email_valide(email):
     """Vérifie si l'email a un format valide."""
@@ -68,6 +68,7 @@ def login_page():
 
     if st.button("Retour", key='back_to_home'):
         go_to_page('home')
+
 
 
 
