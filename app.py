@@ -50,7 +50,7 @@ def login_page():
                 if data.get("status") == "success":
                     st.success("Connexion réussie !")
                     st.write(data)  # Affiche les données renvoyées par l'API
-                    #go_to_page('main')  # Redirige vers la page principale
+                    go_to_page('main')  # Redirige vers la page principale
                 else:
                     st.error("Identifiants invalides. Veuillez réessayer.")
             else:
