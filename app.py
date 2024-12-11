@@ -27,6 +27,7 @@ def login_page():
         response = requests.post(API_LOGIN_URL, data={"nom": nom, "mot_de_passe": mot_de_passe})
         if response.status_code == 200 and response.json().get("status") == "success":
             st.success("Logged in successfully!")
+            st.write(response.json())
             go_to_page('main')
         else:
             st.error("Invalid credentials.")

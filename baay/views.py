@@ -97,7 +97,7 @@ def reset_password_view(request):
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('name')
+        username = request.POST.get('nom')
         password = request.POST.get('mot_de_passe')
         user = authenticate_user(username, password)
         if user:
