@@ -1,7 +1,8 @@
-from datetime import datetime
+import datetime
 import jwt
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -79,20 +80,62 @@ def reset_password_view(request):
         return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
 
 @csrf_exempt
+@require_POST
 def login_view(request):
     if request.method == 'POST':
+        # Récupération des données envoyées
         nom = request.POST.get('nom')
         mot_de_passe = request.POST.get('mot_de_passe')
 
-        print(f"Nom utilisateur : {nom}")
-        print(f"Mot de passe : {mot_de_passe}")
+        # Validation des champs
+        if not nom or not mot_de_passe:
+            return JsonResponse({"status": "error", "message": "Nom et mot de passe requis"}, status=400)
 
-        user = authenticate_user(nom, mot_de_passe)
+        # Authentification utilisateur
+        user = authenticate_user(nom, mot_de_passe)  # Remplacez par votre fonction d'authentification
         if user:
-            return JsonResponse({"status": "success", "user": {"id": user.id, "nom": user.nom}})
+            # Création du JWT
+            payload = {
+                "nom": user.nom,
+                "exp": datetime.datetime.now() + datetime.timedelta(hours=1)  # Expire dans 1 heure
+            }
+            try:
+                token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": f"Erreur lors de la création du toke: {str(e)}"},
+                                    status=500)
+
+            return JsonResponse({
+                "status": "success",
+                "user": {"id": user.id, "nom": user.nom},
+                "token": token
+            })
         else:
-            return JsonResponse({"status": "error", "message": "Invalid credentials or user does not exist"}, status=401)
-    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+            return JsonResponse({"status": "error", "message": "Identifiants invalides"}, status=401)
+
+    return JsonResponse({"status": "error", "message": "Méthode non autorisée"}, status=405)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

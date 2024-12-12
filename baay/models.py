@@ -7,6 +7,8 @@ from django.contrib.auth.hashers import make_password
 from django.db import models
 import uuid
 
+from django.utils.timezone import now
+
 
 class Culture(models.Model):
     nom = models.CharField(max_length=100, unique=True)
@@ -32,7 +34,7 @@ class Utilisateur(models.Model):
     prenom = models.CharField(max_length=100,default=" alexandra")
     nom = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True, default="unknown@example.com")
-    date_creation = models.DateTimeField(default=datetime.utcnow)
+    date_creation = models.DateTimeField(default=now)
     mot_de_passe = models.TextField()
 
 

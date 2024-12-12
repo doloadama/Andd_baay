@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-SECRET_KEY = "votre_cle_secrete_ultra_securisee"
+SECRET_KEY = "traitement"
 
 INSTALLED_APPS = [
     'django.contrib.admin',
