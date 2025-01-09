@@ -1,5 +1,5 @@
-from django.contrib.auth.hashers import make_password
-from baay.models import Utilisateur
+"""from django.contrib.auth.hashers import make_password
+from baay.models import Profile
 from django.contrib.auth.hashers import check_password
 
 
@@ -19,6 +19,7 @@ def authenticate_user(username, password):
     except Utilisateur.DoesNotExist:
         return None
 
-    if check_password(password, user.mot_de_passe):
+    if check_password(password, user.password):
         return user
     return None
+"""

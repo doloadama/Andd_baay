@@ -28,9 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-# Application definition
-SECRET_KEY = "traitement"
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'baay',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',             # Pour django-cors-headers
     'rest_framework_simplejwt' # Pour djangorestframework_simplejwt
 ]
@@ -139,9 +137,17 @@ REST_FRAMEWORK = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
+AUTH_USER_MODEL = 'auth.User'
+# Email configuration for local development
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Sends emails to the console
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+EMAIL_USE_TLS = False

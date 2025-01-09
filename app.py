@@ -1,234 +1,156 @@
 import streamlit as st
 import requests
-import re
-
-# Remplace par l'URL de ton API
-API_URL = "http://127.0.0.1:8000/api/utilisateurs/"
-API_LOGIN_URL = "http://127.0.0.1:8000/api/utilisateurs/login_view/"
-# Fonction pour valider les emails
-def email_valide(email):
-    """Vérifie si l'email a un format valide."""
-    if not email or not isinstance(email, str):
-        return False
-    regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    return re.match(regex, email)
-
-# Fonction pour changer de page
-def go_to_page(page_name):
-    """Fonction pour changer de page."""
-    st.session_state.page = page_name
-    st.rerun()
 
 
+# Fonction pour afficher la page de connexion
 def login_page():
-    """
-    Affiche la page de connexion et gère l'authentification de l'utilisateur.
-    """
-    st.title("Page de Connexion")
+    st.markdown(
+        """
+        <style>
+        .stButton button {
+            background-color: #3897f0;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .stTextInput input {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    # Champs pour le nom d'utilisateur et le mot de passe
-    nom = st.text_input("Nom d'utilisateur", key="nom_utilisateur")
-    mot_de_passe = st.text_input("Mot de passe", type='password', key="mot_de_passe")
+    st.header("Connexion")
+    username = st.text_input("Nom d'utilisateur", key="login_username")
+    password = st.text_input("Mot de passe", type="password", key="login_password")
 
-    # Bouton pour la connexion
-    if st.button('Connexion'):
-        # Validation des champs
-        if not nom or not mot_de_passe:
-            st.warning("Veuillez remplir tous les champs.")
-            return
-        try:
-            with st.spinner("Connexion en cours..."):
-                # Envoi de la requête POST à l'API
-                response = requests.post(
-                    API_LOGIN_URL,
-                    data={"nom": nom, "mot_de_passe": mot_de_passe}
-                )
-                # Traitement de la réponse
-                if response.status_code == 200:
-                    data = response.json()
-                    if data.get("status") == "success":
-                        token = data.get("token")  # Récupère le token
-                        st.success("Connexion réussie !")
-                        st.session_state["auth_token"] = token  # Stocke le token dans l'état de session
-                        go_to_page('main')  # Redirige vers la page principale
-                    else:
-                        st.error("Identifiants invalides. Veuillez réessayer.")
-                else:
-                    st.error(f"Erreur serveur : {response.status_code}")
+    # Bouton de connexion
+    if st.button("Se connecter", key="login_button"):
+        # Appeler l'API Django pour la connexion
+        response = requests.post(
+            "http://127.0.0.1:8000/accounts/login/",
+            data={"username": username, "password": password},
+        )
+        if response.status_code == 200:
+            st.success("Connexion réussie !")
+            st.session_state.logged_in = True  # Mettre à jour l'état de la session
+            st.session_state.page = (
+                "home"  # Rediriger vers la page d'accueil après la connexion
+            )
+            st.rerun()  # Forcer le réexécution du script pour appliquer la redirection
+        else:
+            st.error("Identifiants invalides.")
 
-        except requests.exceptions.RequestException as e:
-            st.error(f"Erreur lors de la connexion : {e}")
-
-    if st.button("S'inscrire", key='to_signup'):
-        go_to_page('signup')
-
-    if st.button("Mot de passe oublié?", key='forgot_password'):
-        go_to_page('forgot_password')
-
-    if st.button("Retour", key='back_to_home'):
-        go_to_page('home')
-
-
+    # Bouton pour s'inscrire
+    if st.button("Pas de compte ? S'inscrire", key="signup_redirect_button"):
+        st.session_state.page = "signup"
+        st.rerun()  # Forcer le réexécution du script pour appliquer la redirection
 
 
-# Fonction de la page d'inscription
+# Fonction pour afficher la page d'inscription
 def signup_page():
-    st.subheader("Inscrivez-vous et commencez votre aventure agricole")
-    nom = st.text_input("Nom", key='signup_nom')
-    prenom = st.text_input("Prenom", key='signup_prenom')
-    email = st.text_input("Email", key='signup_email')
-    mot_de_passe = st.text_input("Mot de passe", type="password", key='signup_mot_de_passe')
-
-    if st.button("Créer un utilisateur", key='create_user'):
-        if not nom or not prenom or not email or not mot_de_passe:
-            st.error("Veuillez remplir tous les champs.")
-        elif not email_valide(email):
-            st.error("Veuillez entrer une adresse email valide.")
-        else:
-            try:
-                data = {
-                    'prenom': prenom,
-                    'nom': nom,
-                    'email': email,
-                    'mot_de_passe': mot_de_passe
-                }
-                response = requests.post(API_URL, json=data)
-                if response.status_code == 201:
-                    st.success("Utilisateur ajouté avec succès. Redirection vers la page de connexion...")
-                    go_to_page('login')
-                else:
-                    st.error(f"Erreur lors de l'ajout de l'utilisateur : {response.text}")
-            except requests.exceptions.RequestException as e:
-                st.error(f"Erreur de connexion à l'API : {e}")
-
-    if st.button("Retour", key='back_to_login'):
-        go_to_page('login')
-
-# Fonction de la page de demande de réinitialisation du mot de passe
-def forgot_password_page():
-    st.subheader("Réinitialisation du mot de passe")
-    email = st.text_input("Veuillez insérer votre email", key='forgot_password_email')
-
-    if st.button("Envoyer le lien de réinitialisation", key='send_reset_link'):
-        if not email or not email_valide(email):
-            st.error("Veuillez entrer une adresse email valide.")
-        else:
-            try:
-                response = requests.post(f"{API_URL}send_reset_link/", data={'email': email})
-                if response.status_code == 200:
-                    st.success("Un email de réinitialisation de mot de passe a été envoyé.")
-                    go_to_page('reset_password')
-                else:
-                    st.error(f"Erreur lors de l'envoi du lien de réinitialisation : {response.text}")
-                    st.error(f"Statut de la réponse : {response.status_code}")
-                    st.error(f"Contenu de la réponse : {response.content.decode('utf-8')}")
-            except requests.exceptions.RequestException as e:
-                st.error(f"Erreur de connexion à l'API : {e}")
-
-    if st.button("Retour", key='back_to_login_from_forgot'):
-        go_to_page('login')
-
-# Fonction de la page de réinitialisation du mot de passe
-def reset_password_page(email):
-    st.subheader("Réinitialiser le mot de passe")
-
-    new_password = st.text_input(
-        "Nouveau mot de passe", type="password", key="new_password"
-    )
-    confirm_password = st.text_input(
-        "Confirmer le nouveau mot de passe", type="password", key="confirm_password"
+    st.markdown(
+        """
+        <style>
+        .stButton button {
+            background-color: #3897f0;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .stTextInput input {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
 
-    if st.button("Changer le mot de passe", key="update_password"):
-        if new_password != confirm_password:
-            st.error("Les mots de passe ne correspondent pas.")
-        elif len(new_password) < 8:
-            st.error("Le mot de passe doit contenir au moins 8 caractères.")
+    st.header("Inscription")
+    username = st.text_input("Nom d'utilisateur", key="signup_username")
+    email = st.text_input("Email", key="signup_email")
+    password = st.text_input("Mot de passe", type="password", key="signup_password")
+
+    # Bouton d'inscription
+    if st.button("S'inscrire", key="signup_button"):
+        # Appeler l'API Django pour l'inscription
+        response = requests.post(
+            "http://127.0.0.1:8000/accounts/signup/",
+            data={"username": username, "email": email, "password": password},
+        )
+        if response.status_code == 201:
+            st.success("Inscription réussie ! Veuillez vous connecter.")
+            st.session_state.page = (
+                "login"  # Rediriger vers la page de connexion après l'inscription
+            )
+            st.rerun()  # Forcer le réexécution du script pour appliquer la redirection
         else:
-            try:
-                API_RESET_PASSWORD_URL = (
-                    "http://127.0.0.1:8000/api/utilisateurs/reset_password/"
-                )
-                response = requests.post(
-                    API_RESET_PASSWORD_URL,
-                    data={"email": email, "mot_de_passe": new_password},
-                )
+            st.error("Échec de l'inscription. Veuillez réessayer.")
 
-                if response.status_code == 200:
-                    st.success(
-                        "Votre mot de passe a été modifié avec succès. Veuillez vous reconnecter."
-                    )
-                    go_to_page("login")
-                else:
-                    error_message = response.json().get(
-                        "error", "Une erreur inattendue s'est produite."
-                    )
-                    st.error(f"Erreur : {error_message}")
-
-            except requests.exceptions.RequestException as e:
-                st.error(f"Erreur de connexion à l'API : {e}")
-
-def page_profil():
-    st.write("Bienvenue sur la page Profil")
+    # Bouton pour revenir à la page de connexion
+    if st.button("Déjà un compte ? Se connecter", key="login_redirect_button"):
+        st.session_state.page = "login"
+        st.rerun()  # Forcer le réexécution du script pour appliquer la redirection
 
 
-def page_projet():
-    st.write("Bienvenue sur la page Projet")
+# Fonction pour afficher la page d'accueil
+def home_page():
+    st.markdown(
+        """
+        <style>
+        .stButton button {
+            background-color: #3897f0;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.header("Bienvenue sur l'application !")
+    st.write("Vous êtes connecté avec succès.")
+
+    # Bouton pour se déconnecter
+    if st.button("Se déconnecter", key="logout_button"):
+        st.session_state.logged_in = False
+        st.session_state.page = (
+            "login"  # Rediriger vers la page de connexion après la déconnexion
+        )
+        st.rerun()  # Forcer le réexécution du script pour appliquer la redirection
 
 
-def page_localites():
-    st.write("Bienvenue sur la page Localités")
-
-
-def page_tendances():
-    st.write("Bienvenue sur la page Tendances Marché")
-
-
-PAGES = {
-    "Profil": page_profil,
-    "Projet": page_projet,
-    "Localités": page_localites,
-    "Tendances marché": page_tendances,
-}
-
-
+# Fonction principale
 def main():
-    st.sidebar.title("Navigation")
-    choix = st.sidebar.select_slider("Aller à", list(PAGES.keys()))
-    PAGES[choix]()
+    st.set_page_config(page_title="Authentification", page_icon="🔐")
 
-# Initialiser l'état de session pour la page
-if 'page' not in st.session_state:
-    st.session_state.page = 'home'
-    st.session_state.auth_token = None  # Initialisation du token dans l'état de session
+    # Initialiser l'état de la session
+    if "page" not in st.session_state:
+        st.session_state.page = "login"  # Afficher la page de connexion par défaut
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
 
-def hash_password(password):
-    """Hash le mot de passe pour plus de sécurité."""
-    import hashlib
-    return hashlib.sha256(password.encode()).hexdigest()
-if st.session_state.page == 'home':
-    st.title("Bienvenue sur Andd_baay : Votre Guide vers des Investissements Agricoles Réussis")
-    st.write("Pour commencer, inscrivez-vous si vous n'avez pas encore de compte. Si vous avez déjà un compte, connectez-vous pour accéder à votre espace personnel.")
-    if st.button("S'inscrire", key='home_to_signup'):
-        go_to_page('signup')
-    if st.button("Se connecter", key='home_to_login'):
-        go_to_page('login')
+    # Afficher la page appropriée
+    if st.session_state.page == "login":
+        login_page()
+    elif st.session_state.page == "signup":
+        signup_page()
+    elif st.session_state.page == "home":
+        home_page()
 
-# Logic pour changer de page
-if st.session_state.page == 'login':
-    login_page()
 
-elif st.session_state.page == 'signup':
-    signup_page()
-
-elif st.session_state.page == 'forgot_password':
-    reset_password_page(st.text_input("Email"))
-
-elif st.session_state.page == 'main':
-    st.title("Votre espace personnel")
-    st.subheader("Votre profil")
-    st.write("Ceci est votre profil personnel. Vous pouvez modifier les informations que vous souhaitez.")
-    st.write("Vous pouvez aussi modifier votre mot de passe, ou supprimer votre compte.")
-    if st.button("Modifier le profil", key='main_to_edit_profile'):
-        st.subheader("Reinitialisation du mot de passe")
-        reset_password_page(st.text_input("Email", key="reset_password_email"))
+# Lancer l'application
+if __name__ == "__main__":
+    main()

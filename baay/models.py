@@ -1,9 +1,9 @@
-
 # myapp/models.py
-
 from datetime import datetime
 
+from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import PermissionsMixin, AbstractUser, User
 from django.db import models
 import uuid
 
@@ -29,21 +29,18 @@ class Localite(models.Model):
     def __str__(self):
         return self.nom
 
-class Utilisateur(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    prenom = models.CharField(max_length=100,default=" alexandra")
-    nom = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(unique=True, default="unknown@example.com")
-    date_creation = models.DateTimeField(default=now)
-    mot_de_passe = models.TextField()
-
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    reset_token = models.CharField(max_length=32, blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    last_login = models.DateTimeField(auto_now=True)
+    last_name = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(max_length=100, blank=True, null=True)
+    first_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return self.nom
-
-    def set_password(self, new_password):
-        self.mot_de_passe = make_password(new_password)
-        self.save()
+        return self.user.username
 
 
 class Investissement(models.Model):
@@ -53,7 +50,7 @@ class Investissement(models.Model):
     autres_frais = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
 class Projet(models.Model):
-    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)
+    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
     culture = models.ForeignKey(Culture, on_delete=models.CASCADE)
     superficie = models.DecimalField(max_digits=10, decimal_places=2)
     date_lancement = models.DateField()
@@ -62,11 +59,32 @@ class Projet(models.Model):
     benefices_estimes = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
 
-# models.py de votre application Django
-from django.db import models
-
 class FruitLegume(models.Model):
-    nom = models.CharField(max_length=100)
-    
+    nom = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True)
+    saison = models.CharField(max_length=50, null=True, blank=True)  # Example: "Summer", "Winter"
+    prix_par_kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    apport_nutritionnel = models.TextField(null=True, blank=True)  # Example: "Rich in Vitamin C"
+    quantite_disponible = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # in kilograms
+    date_ajout = models.DateTimeField(default="10-10-2024")
+
+
     def __str__(self):
         return self.nom
+
+    def est_en_saison(self, saison_actuelle):
+        """
+        Check if the fruit/vegetable is in season.
+        :param saison_actuelle: Current season as a string.
+        :return: Boolean
+        """
+        return self.saison and saison_actuelle.lower() in self.saison.lower()
+
+    def calculer_valeur_totale(self):
+        """
+        Calculate the total value of available stock based on price per kilogram.
+        :return: Decimal
+        """
+        if self.prix_par_kg and self.quantite_disponible:
+            return self.prix_par_kg * self.quantite_disponible
+        return 0
