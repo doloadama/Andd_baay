@@ -42,7 +42,7 @@ def user_login(request):
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-@api_view(['POST'])
+"""@api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_request(request):
     email = request.data.get('email')
@@ -73,25 +73,26 @@ def password_reset_request(request):
         return Response({"message": "Password reset email sent"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
+"""
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def password_reset_confirm(request, token):
+def password_reset_confirm(request):
+    email = request.data.get('email')
     new_password = request.data.get('new_password')
 
-    # Find the user with the matching reset token
-    user = User.objects.filter(profile__reset_token=token).first()
+    # Vérifier si l'utilisateur existe
+    user = User.objects.filter(email=email).first()
+    if not user:
+        return Response({"error": "Aucun utilisateur trouvé avec cette adresse e-mail."}, status=status.HTTP_404_NOT_FOUND)
 
-    if user:
-        # Set the new password
-        user.set_password(new_password)
-        user.save()
 
-        # Clear the reset token
-        user.profile.reset_token = None
-        user.profile.save()
+    # Réinitialiser le mot de passe
+    user.set_password(new_password)
+    user.save()
 
-        return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
-    else:
-        return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+    # Effacer le token de réinitialisation
+    user.profile.reset_token = None
+    user.profile.save()
+
+    return Response({"message": "Mot de passe réinitialisé avec succès."}, status=status.HTTP_200_OK)
