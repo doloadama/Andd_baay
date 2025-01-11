@@ -1,25 +1,61 @@
-"""from django.contrib.auth.hashers import make_password
-from baay.models import Profile
-from django.contrib.auth.hashers import check_password
+import streamlit as st
 
+def set_background_color(color):
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-color: {color};
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-def hash_existing_passwords():
-    utilisateurs = Utilisateur.objects.all()  # Récupérer tous les utilisateurs
-    for utilisateur in utilisateurs:
-        if utilisateur.mot_de_passe and not utilisateur.mot_de_passe.startswith('pbkdf2_'):  # Vérifiez si le mot de passe est déjà haché
-            utilisateur.mot_de_passe = make_password(utilisateur.mot_de_passe)  # Hacher le mot de passe
-            utilisateur.save()  # Sauvegarder l'utilisateur avec le mot de passe mis à jour
-            print(f"Mot de passe pour {utilisateur.nom} a été haché.")
-    print("Tous les mots de passe ont été mis à jour.")
+def apply_common_styles():
+    st.markdown("""
+    <style>
+    .stButton button {
+        background-color: #3897f0;
+        color: white;
+        border-radius: 5px;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    .stTextInput input {
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        padding: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+# Fonction pour injecter le JavaScript de navigation
+def add_enter_navigation():
+    st.markdown(
+        """
+        <script>
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                const inputs = document.querySelectorAll("input");
+                const currentInput = document.activeElement;
+                let nextInput = null;
 
-def authenticate_user(username, password):
-    try:
-        user = Utilisateur.objects.get(nom=username)
-    except Utilisateur.DoesNotExist:
-        return None
+                for (let i = 0; i < inputs.length; i++) {
+                    if (inputs[i] === currentInput && i < inputs.length - 1) {
+                        nextInput = inputs[i + 1];
+                        break;
+                    }
+                }
 
-    if check_password(password, user.password):
-        return user
-    return None
-"""
+                if (nextInput) {
+                    nextInput.focus();
+                    event.preventDefault();
+                }
+            }
+        });
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
