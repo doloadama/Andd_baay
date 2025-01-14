@@ -1,21 +1,26 @@
 from Streamlit.login import *
 from Streamlit.signup import *
 from Streamlit.passreset import *
+from Streamlit.Project import *
 from utils import *
 
 
-@st.fragment()
 # Fonction pour afficher la page d'accueil
 def home_page():
     set_background_color("#f0f8ff")  # Couleur de fond pour la page d'accueil
     st.header("Bienvenue sur l'application !")
     st.write("Vous êtes connecté avec succès.")
+    navig_project()
 
 
     if st.button("Se déconnecter", key="logout_button"):
         st.session_state.logged_in = False
         st.session_state.page = "login"
         st.rerun()
+
+        # Menu de navigation
+
+
 
 # Fonction principale
 def main():

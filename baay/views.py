@@ -1,98 +1,79 @@
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
-from django.core.mail import send_mail
-from django.utils.crypto import get_random_string
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib import messages
 
-from baay.models import Profile
+from baay.forms import CustomUserCreationForm, ProjetForm
+from baay.models import Profile, Projet
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def signup(request):
-    username = request.data.get('username')
-    email = request.data.get('email')
-    password = request.data.get('password')
-    first_name = request.data.get('first_name')
-    last_name = request.data.get('last_name')
+# Vue pour la page d'accueil
+def home_view(request):
+    return render(request, 'home.html')
 
-    if not username or not email or not password:
-        return Response({"error": "Please provide all fields"}, status=status.HTTP_400_BAD_REQUEST)
-
-    if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = User.objects.create_user(username=username, email=email, password=password, last_name=last_name, first_name=first_name)
-    return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def user_login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    user = authenticate(username=username, password=password)
-    if user:
-        login(request, user)
-        return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+# Vue pour l'inscription
+def register_view(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()  # Enregistre l'utilisateur
+            # Créez un profil utilisateur avec le numéro de téléphone
+            Profile.objects.create(
+                user=user,
+                phone_number=form.cleaned_data['phone_number']
+            )
+            login(request, user)
+            messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
+            return redirect('home')
     else:
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        form = CustomUserCreationForm()
+    return render(request, 'auth/register.html', {'form': form})
 
-
-"""@api_view(['POST'])
-@permission_classes([AllowAny])
-def password_reset_request(request):
-    email = request.data.get('email')
-    user = User.objects.filter(email=email).first()
-
-    if user:
-        # Generate a random token
-        token = get_random_string(length=32)
-
-        # Ensure the user has a profile
-        profile, created = Profile.objects.get_or_create(user=user)
-
-        # Save the token to the user's profile
-        profile.reset_token = token
-        profile.save()
-
-        # Create the reset link
-        reset_link = f"http://127.0.0.1:8000/accounts/reset-password/{token}/"
-
-        # Send the email
-        send_mail(
-            "Password Reset Request",
-            f"Click the link to reset your password: {reset_link}",
-            "noreply@example.com",
-            [email],
-            fail_silently=False,
-        )
-        return Response({"message": "Password reset email sent"}, status=status.HTTP_200_OK)
+# Vue pour la connexion
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f"Bienvenue, {username} !")
+                return redirect('home')
+            else:
+                messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+        else:
+            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     else:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-"""
+        form = AuthenticationForm()
+    return render(request, 'auth/login.html', {'form': form})
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def password_reset_confirm(request):
-    email = request.data.get('email')
-    new_password = request.data.get('new_password')
+# Vue pour la déconnexion
+def logout_view(request):
+    logout(request)
+    messages.success(request, "Vous avez été déconnecté avec succès.")
+    return redirect('home')
 
-    # Vérifier si l'utilisateur existe
-    user = User.objects.filter(email=email).first()
-    if not user:
-        return Response({"error": "Aucun utilisateur trouvé avec cette adresse e-mail."}, status=status.HTTP_404_NOT_FOUND)
+@login_required
+def creer_projet(request):
+    if request.method == 'POST':
+        form = ProjetForm(request.POST)
+        if form.is_valid():
+            projet = form.save(commit=False)
+            projet.utilisateur = request.user.profile  # Associez le projet à l'utilisateur connecté
+            projet.save()
+            return redirect('liste_projets')  # Redirigez vers la liste des projets
+    else:
+        form = ProjetForm()
+    return render(request, 'projets/creer_projet.html', {'form': form})
 
-
-    # Réinitialiser le mot de passe
-    user.set_password(new_password)
-    user.save()
-
-    # Effacer le token de réinitialisation
-    user.profile.reset_token = None
-    user.profile.save()
-
-    return Response({"message": "Mot de passe réinitialisé avec succès."}, status=status.HTTP_200_OK)
+@login_required
+def liste_projets(request):
+    projets_list = Projet.objects.filter(utilisateur=request.user.profile)
+    paginator =  Paginator(projets_list, 10)  # Affichez 10 projets par page
+    page_number = request.GET.get('page')
+    projets = paginator.get_page(page_number)
+    return render(request, 'projets/liste_projets.html', {'projets': projets})

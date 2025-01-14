@@ -1,9 +1,10 @@
+# myapp/urls.py
 from django.urls import path
-from .views import signup, user_login, password_reset_confirm
+from . import views
 
 urlpatterns = [
-    path('signup/', signup, name='signup'),
-    path('login/', user_login, name='login'),
-
-    path('password-reset-confirm/', password_reset_confirm, name='password_reset_confirm'),
+    # Authentification
+    path('accounts/register/', views.register_view, name='register'),
+    path('accounts/login/', views.login_view, name='login'),
+    path('accounts/logout/', views.logout_view, name='logout'),
 ]

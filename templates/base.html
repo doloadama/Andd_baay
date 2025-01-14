@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Application</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome pour les icônes -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <!-- Animate.css pour les animations -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+    <!-- Styles personnalisés -->
+    <style>
+        body {
+            background-color: #f8f9fa;  /* Couleur de fond légère */
+        }
+        .navbar {
+            margin-bottom: 20px;  /* Espacement sous la barre de navigation */
+        }
+        .container {
+            max-width: 960px;  /* Largeur maximale du contenu */
+        }
+        .btn-nav {
+            margin-left: 10px;  /* Espacement entre les boutons de navigation */
+        }
+    </style>
+</head>
+<body>
+    <!-- Barre de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <!-- Logo ou nom de l'application -->
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-home"></i> Mon Application
+            </a>
+
+            <!-- Bouton pour les écrans mobiles -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Contenu de la barre de navigation -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <!-- Message de bienvenue -->
+                        <li class="nav-item">
+                            <span class="navbar-text me-3">Bonjour, {{ user.username }} !</span>
+                        </li>
+
+                        <!-- Bouton pour créer un projet -->
+                        <li class="nav-item">
+                            <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}">
+                                <i class="fas fa-plus"></i> Créer un projet
+                            </a>
+                        </li>
+
+                        <!-- Bouton pour voir les projets -->
+                        <li class="nav-item">
+                            <a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}">
+                                <i class="fas fa-list"></i> Vos projets
+                            </a>
+                        </li>
+
+                        <!-- Bouton de déconnexion -->
+                        <li class="nav-item">
+                            <a class="btn btn-danger btn-nav" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt"></i> Déconnexion
+                            </a>
+                        </li>
+                    {% else %}
+                        <!-- Bouton de connexion -->
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-nav" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Connexion
+                            </a>
+                        </li>
+
+                        <!-- Bouton d'inscription -->
+                        <li class="nav-item">
+                            <a class="btn btn-success btn-nav" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus"></i> Inscription
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <div class="container">
+        <!-- Messages flash -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Bloc pour le contenu des pages -->
+        {% block content %}
+        <!-- Le contenu des pages sera inséré ici -->
+        {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS (pour les fonctionnalités interactives) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
