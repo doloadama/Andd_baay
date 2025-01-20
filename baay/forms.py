@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from baay.models import Projet, Culture, Investissement
+from baay.models import Projet, ProduitAgricole, Investissement, Localite
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -25,16 +25,71 @@ class CustomUserCreationForm(UserCreationForm):
             user.save()
         return user
 
-class ProjetForm(forms.ModelForm):
+
+
+# myapp/forms.py
+from django import forms
+from .models import Investissement, Localite
+
+class InvestissementForm(forms.ModelForm):
     class Meta:
-        model = Projet
-        fields = ['culture', 'investissement', 'superficie', 'date_lancement']
+        model = Investissement
+        fields = ['projet', 'localite', 'cout_par_hectare', 'autres_frais']
         widgets = {
-            'date_lancement': forms.DateInput(attrs={'type': 'date'}),
+            'projet': forms.Select(attrs={'class': 'form-control'}),
+            'localite': forms.Select(attrs={'class': 'form-control'}),
+            'cout_par_hectare': forms.NumberInput(attrs={'class': 'form-control'}),
+            'autres_frais': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Personnalisez les champs si nécessaire
-        self.fields['culture'].queryset = Culture.objects.all()
-        self.fields['investissement'].queryset = Investissement.objects.all()
+        # Afficher les noms des projets dans le formulaire
+        self.fields['projet'].queryset = Projet.objects.all()
+        self.fields['projet'].label_from_instance = lambda obj: f"Projet {obj.id} - {obj.culture.nom}"
+
+        # Afficher les noms des localités dans le formulaire
+        self.fields['localite'].queryset = Localite.objects.all()
+        self.fields['localite'].label_from_instance = lambda obj: obj.nom
+
+    def clean_cout_par_hectare(self):
+        cout_par_hectare = self.cleaned_data['cout_par_hectare']
+        if cout_par_hectare <= 0:
+            raise forms.ValidationError("Le coût par hectare doit être positif.")
+        return cout_par_hectare
+
+class ProjetForm(forms.ModelForm):
+    statut = forms.ChoiceField(
+        choices=Projet.STATUT_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        initial='en_cours',  # Valeur par défaut
+    )
+
+    class Meta:
+        model = Projet
+        fields = ['localite', 'culture', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
+        widgets = {
+            'localite': forms.Select(attrs={'class': 'form-control'}),
+            'culture': forms.Select(attrs={'class': 'form-control'}),
+            'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
+            'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
+            'statut': forms.Select(attrs={'class': 'form-control'}),  # Ajoute une classe CSS
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Afficher les noms des cultures dans le formulaire
+        self.fields['culture'].queryset = ProduitAgricole.objects.all()
+        self.fields['culture'].label_from_instance = lambda obj: obj.nom  # Afficher le nom au lieu de l'ID
+
+        # Afficher les noms des cultures dans le formulaire
+        self.fields['localite'].queryset = Localite.objects.all()
+        self.fields['localite'].label_from_instance = lambda obj: obj.nom  # Afficher le nom au lieu de l'ID
+
+
+    def clean_superficie(self):
+        superficie = self.cleaned_data['superficie']
+        if superficie <= 0:
+            raise forms.ValidationError("La superficie doit être positive.")
+        return superficie

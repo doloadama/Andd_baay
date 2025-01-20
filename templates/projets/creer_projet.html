@@ -1,46 +1,45 @@
-<!-- templates/projets/creer_projet.html -->
 {% extends 'base.html' %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Créer un nouveau projet</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_culture" class="form-label">Culture</label>
-                        {{ form.culture }}
-                        {% if form.culture.errors %}
-                            <div class="text-danger">{{ form.culture.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_investissement" class="form-label">Investissement</label>
-                        {{ form.investissement }}
-                        {% if form.investissement.errors %}
-                            <div class="text-danger">{{ form.investissement.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_superficie" class="form-label">Superficie (en hectares)</label>
-                        {{ form.superficie }}
-                        {% if form.superficie.errors %}
-                            <div class="text-danger">{{ form.superficie.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_date_lancement" class="form-label">Date de lancement</label>
-                        {{ form.date_lancement }}
-                        {% if form.date_lancement.errors %}
-                            <div class="text-danger">{{ form.date_lancement.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Créer le projet</button>
-                </form>
-            </div>
-        </div>
+<h1>Créer un nouveau projet</h1>
+<form method="post">
+    {% csrf_token %}
+
+    <!-- Champ pour sélectionner la localité -->
+    <div class="form-group">
+        <label for="localite">Localité :</label>
+        {{ projet_form.localite }}
     </div>
-</div>
+
+    <!-- Champ pour sélectionner la culture -->
+    <div class="form-group">
+        <label for="culture">Culture :</label>
+        {{ projet_form.culture }}
+    </div>
+
+    <!-- Champ pour la superficie -->
+    <div class="form-group">
+        <label for="superficie">Superficie (en hectares) :</label>
+        {{ projet_form.superficie }}
+    </div>
+
+    <!-- Champ pour la date de lancement -->
+    <div class="form-group">
+        <label for="date_lancement">Date de lancement :</label>
+        {{ projet_form.date_lancement }}
+    </div>
+
+    <!-- Champ pour le rendement estimé -->
+    <div class="form-group">
+        <label for="rendement_estime">Rendement estimé (en kg) :</label>
+        {{ projet_form.rendement_estime }}
+    </div>
+
+    <!-- Champ pour le statut -->
+    <div class="form-group">
+        <label for="statut">Statut :</label>
+        {{ projet_form.statut }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Créer le projet</button>
+</form>
 {% endblock %}

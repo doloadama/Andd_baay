@@ -1,6 +1,19 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Styles pour la carte -->
+<style>
+    #map {
+        height: 400px;  /* Hauteur de la carte */
+        width: 100%;    /* Largeur de la carte */
+    }
+</style>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Application</title>
@@ -17,14 +30,29 @@
     <!-- Styles personnalisés -->
     <style>
         body {
-            background-color: #f8f9fa;  /* Couleur de fond légère */
+            background-image: url('{% static "baay/images/image.jpg" %}');  /* Chemin de l'image */
+            background-size: cover;  /* Ajuste l'image pour couvrir tout l'écran */
+            background-position: center;  /* Centre l'image */
+            background-repeat: no-repeat;  /* Empêche la répétition de l'image */
+            background-attachment: fixed;  /* Fixe l'image pour qu'elle ne défile pas avec la page */
+            color: #ffffff;  /* Couleur du texte pour qu'il soit lisible sur l'image */
         }
+
         .navbar {
             margin-bottom: 20px;  /* Espacement sous la barre de navigation */
+            background-color: rgba(0, 0, 0, 0.7);  /* Fond semi-transparent pour la barre de navigation */
+            color: #006b1b;
         }
+
         .container {
             max-width: 960px;  /* Largeur maximale du contenu */
+            background-color: rgba(255, 255, 255, 0.8);  /* Fond semi-transparent pour le contenu */
+            padding: 20px;  /* Espacement intérieur */
+            border-radius: 10px;  /* Coins arrondis */
+            margin-top: 20px;  /* Espacement au-dessus du contenu */
+            color: #006b1b;
         }
+
         .btn-nav {
             margin-left: 10px;  /* Espacement entre les boutons de navigation */
         }

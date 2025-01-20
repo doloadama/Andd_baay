@@ -151,3 +151,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Sends emails
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 EMAIL_USE_TLS = False
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'baay/static'),
+]
