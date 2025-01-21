@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Modifier le projet : {{ projet.nom }}</h1>
+<form method="post">
+    {% csrf_token %}
+
+    <!-- Champ pour sélectionner la localite -->
+    <div class="form-group">
+        <label for="localite">Localité :</label>
+        {{ projet_form.localite }}
+    </div>
+
+    <!-- Champ pour sélectionner la culture -->
+    <div class="form-group">
+        <label for="culture">Culture :</label>
+        {{ projet_form.culture }}
+    </div>
+
+    <!-- Champ pour la superficie -->
+    <div class="form-group">
+        <label for="superficie">Superficie (en hectares) :</label>
+        {{ projet_form.superficie }}
+    </div>
+
+    <!-- Champ pour la date de lancement -->
+    <div class="form-group">
+        <label for="date_lancement">Date de lancement :</label>
+        {{ projet_form.date_lancement }}
+    </div>
+
+    <!-- Champ pour le rendement estimé -->
+    <div class="form-group">
+        <label for="rendement_estime">Rendement estimé (en kg) :</label>
+        {{ projet_form.rendement_estime }}
+    </div>
+
+    <!-- Champ pour le statut -->
+    <div class="form-group">
+        <label for="statut">Statut :</label>
+        {{ projet_form.statut }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+    <a href="{% url 'detail_projet' projet.id %}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

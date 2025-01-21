@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Ajouter un investissement au projet : {{ projet.nom }}</h1>
+<form method="post">
+    {% csrf_token %}
+
+    <!-- Champ pour sélectionner la localité -->
+    <div class="form-group">
+        <label for="localite">Localité :</label>
+        {{ investissement_form.localite }}
+    </div>
+
+    <!-- Champ pour le coût par hectare -->
+    <div class="form-group">
+        <label for="cout_par_hectare">Coût par hectare (FCFA) :</label>
+        {{ investissement_form.cout_par_hectare }}
+    </div>
+
+    <!-- Champ pour les autres frais -->
+    <div class="form-group">
+        <label for="autres_frais">Autres frais (FCFA) :</label>
+        {{ investissement_form.autres_frais }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Ajouter l'investissement</button>
+</form>
+{% endblock %}

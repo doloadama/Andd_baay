@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Détails du projet : {{ projet.nom }}</h1>
+<p>Culture : {{ projet.culture.nom }}</p>
+<p>Superficie : {{ projet.superficie }} ha</p>
+<p>Date de lancement : {{ projet.date_lancement }}</p>
+<p>Rendement estimé : {{ projet.rendement_estime }} kg</p>
+    <p style="accent-color: #006b1b">Statut : {{ projet.statut }} </p>
+
+<h2>Investissements</h2>
+<ul>
+    {% for investissement in projet.investissement_set.all %}
+    <li>
+        Localité : {{ investissement.localite.nom }} |
+        Coût par hectare : {{ investissement.cout_par_hectare }} FCFA |
+        Autres frais : {{ investissement.autres_frais }} FCFA
+    </li>
+    {% endfor %}
+</ul>
+
+<h1>Détails du projet : {{ projet.nom }}</h1>
+
+<!-- Section pour le produit agricole -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5>Produit Agricole : {{ projet.culture.nom }}</h5>
+    </div>
+    <div class="card-body">
+        {% if projet.culture.photo %}
+            <img src="{{ projet.culture.photo.url }}" alt="{{ projet.culture.nom }}" class="img-fluid", height="300", width="300">
+        {% else %}
+            <p>Aucune photo disponible.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Section pour la localité -->
+    <div class="card mt-4">
+    <div class="card-header">
+        <h5>Localité : {{ projet.localite.nom }}</h5>
+    </div>
+<div id="map" style="height: 400px;"></div>
+<script>
+  var latitude = {{ projet.localite.latitude }};
+  var longitude = {{ projet.localite.longitude }};
+
+  function loadMapScenario() {
+    var map = new Microsoft.Maps.Map(document.getElementById('map'), {
+      credentials: 'VOTRE_CLE_API_BING',
+      center: new Microsoft.Maps.Location(latitude, longitude),
+      zoom: 13,
+      mapTypeId: Microsoft.Maps.MapTypeId.aerial // Vue satellite
+    });
+
+    // Ajout d'un marqueur
+    var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
+      title: '{{ projet.localite.nom }}'
+    });
+    map.entities.push(pushpin);
+  }
+</script>
+<script src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
+    </div>
+
+
+<!-- Boutons pour modifier et supprimer le projet -->
+<div class="mt-4">
+    <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-primary">Modifier</a>
+    <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger">Supprimer</a>
+    <a href="{% url 'liste_projets' %}" class="btn btn-secondary">Retour à la liste</a>
+    <a href="{% url 'ajouter_investissement' projet.id %}" class="btn btn-primary">Ajouter un investissement</a>
+
+</div>
+{% endblock %}
+
