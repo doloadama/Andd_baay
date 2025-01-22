@@ -1,75 +1,169 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<h1>Détails du projet : {{ projet.nom }}</h1>
-<p>Culture : {{ projet.culture.nom }}</p>
-<p>Superficie : {{ projet.superficie }} ha</p>
-<p>Date de lancement : {{ projet.date_lancement }}</p>
-<p>Rendement estimé : {{ projet.rendement_estime }} kg</p>
-    <p style="accent-color: #006b1b">Statut : {{ projet.statut }} </p>
+<!-- Effet de parallaxe -->
+<div class="parallax">
+    <div class="container animate__animated animate__fadeIn">
+        <h1 class="text-center mb-4 text-white">Détails du projet : {{ projet.nom }}</h1>
 
-<h2>Investissements</h2>
-<ul>
-    {% for investissement in projet.investissement_set.all %}
-    <li>
-        Localité : {{ investissement.localite.nom }} |
-        Coût par hectare : {{ investissement.cout_par_hectare }} FCFA |
-        Autres frais : {{ investissement.autres_frais }} FCFA
-    </li>
-    {% endfor %}
-</ul>
+        <!-- Section supérieure : Informations générales -->
+        <div class="card mb-4 shadow-sm animate__animated animate__fadeInUp">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Informations générales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-seedling"></i> Culture :</strong> {{ projet.culture.nom }}</p>
+                        <p><strong><i class="fas fa-ruler-combined"></i> Superficie :</strong> {{ projet.superficie }} ha</p>
+                        <p><strong><i class="fas fa-calendar-alt"></i> Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-weight-hanging"></i> Rendement estimé :</strong> {{ projet.rendement_estime }} kg</p>
+                        <p><strong><i class="fas fa-tasks"></i> Statut :</strong>
+                            <span class="badge
+                                {% if projet.statut == 'En cours' %}bg-primary
+                                {% elif projet.statut == 'Terminé' %}bg-success
+                                {% elif projet.statut == 'Annulé' %}bg-danger
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ projet.statut }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<h1>Détails du projet : {{ projet.nom }}</h1>
+        <!-- Section principale : Grille pour la photo, la carte et les investissements -->
+        <div class="row">
+            <!-- Section gauche : Photo et carte -->
+            <div class="col-md-6">
+                <!-- Photo du produit agricole -->
+                <div class="card mb-4 shadow-sm animate__animated animate__fadeInLeft">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0"><i class="fas fa-camera"></i> Photo du produit agricole</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if projet.culture.photo %}
+                            <img src="{{ projet.culture.photo.url }}" alt="{{ projet.culture.nom }}" class="img-fluid rounded" style="max-height: 300px; width: auto;">
+                        {% else %}
+                            <p class="text-muted">Aucune photo disponible.</p>
+                        {% endif %}
+                    </div>
+                </div>
 
-<!-- Section pour le produit agricole -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h5>Produit Agricole : {{ projet.culture.nom }}</h5>
-    </div>
-    <div class="card-body">
-        {% if projet.culture.photo %}
-            <img src="{{ projet.culture.photo.url }}" alt="{{ projet.culture.nom }}" class="img-fluid", height="300", width="300">
-        {% else %}
-            <p>Aucune photo disponible.</p>
-        {% endif %}
+                <!-- Carte de la localité -->
+                <div class="card mb-4 shadow-sm animate__animated animate__fadeInLeft">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt"></i> Localité : {{ projet.localite.nom }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="map" style="height: 300px; border-radius: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section droite : Liste des investissements -->
+            <div class="col-md-6">
+                <div class="card mb-4 shadow-sm animate__animated animate__fadeInRight">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="card-title mb-0"><i class="fas fa-coins"></i> Investissements</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for investissement in projet.investissement_set.all %}
+                            <li class="list-group-item">
+                                <strong><i class="fas fa-map-pin"></i> Localité :</strong> {{ investissement.localite.nom }}<br>
+                                <strong><i class="fas fa-money-bill-wave"></i> Coût par hectare :</strong> {{ investissement.cout_par_hectare }} FCFA<br>
+                                <strong><i class="fas fa-file-invoice-dollar"></i> Autres frais :</strong> {{ investissement.autres_frais }} FCFA
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons d'actions -->
+        <div class="mt-4 d-flex justify-content-between animate__animated animate__fadeInUp">
+            <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Supprimer
+            </a>
+            <a href="{% url 'ajouter_investissement' projet.id %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Ajouter un investissement
+            </a>
+            <a href="{% url 'liste_projets' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Section pour la localité -->
-    <div class="card mt-4">
-    <div class="card-header">
-        <h5>Localité : {{ projet.localite.nom }}</h5>
-    </div>
-<div id="map" style="height: 400px;"></div>
+<!-- Script pour la carte Bing Maps -->
 <script>
-  var latitude = {{ projet.localite.latitude }};
-  var longitude = {{ projet.localite.longitude }};
+    var latitude = {{ projet.localite.latitude }};
+    var longitude = {{ projet.localite.longitude }};
 
-  function loadMapScenario() {
-    var map = new Microsoft.Maps.Map(document.getElementById('map'), {
-      credentials: 'VOTRE_CLE_API_BING',
-      center: new Microsoft.Maps.Location(latitude, longitude),
-      zoom: 13,
-      mapTypeId: Microsoft.Maps.MapTypeId.aerial // Vue satellite
-    });
+    function loadMapScenario() {
+        var map = new Microsoft.Maps.Map(document.getElementById('map'), {
+            credentials: 'VOTRE_CLE_API_BING',
+            center: new Microsoft.Maps.Location(latitude, longitude),
+            zoom: 13,
+            mapTypeId: Microsoft.Maps.MapTypeId.aerial // Vue satellite
+        });
 
-    // Ajout d'un marqueur
-    var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
-      title: '{{ projet.localite.nom }}'
-    });
-    map.entities.push(pushpin);
-  }
+        // Ajout d'un marqueur avec infobulle
+        var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
+            title: '{{ projet.localite.nom }}',
+            color: 'green' // Couleur du marqueur
+        });
+        map.entities.push(pushpin);
+
+        // Infobulle
+        var infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+            title: 'Localité',
+            description: '{{ projet.localite.nom }}'
+        });
+        infobox.setMap(map);
+    }
 </script>
 <script src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
-    </div>
 
+<!-- Custom Styles -->
+<style>
+    /* Effet de parallaxe */
+    .parallax {
+        background-image: url('{% static "baay/images/image.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        padding: 50px 0;
+    }
 
-<!-- Boutons pour modifier et supprimer le projet -->
-<div class="mt-4">
-    <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-primary">Modifier</a>
-    <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger">Supprimer</a>
-    <a href="{% url 'liste_projets' %}" class="btn btn-secondary">Retour à la liste</a>
-    <a href="{% url 'ajouter_investissement' projet.id %}" class="btn btn-primary">Ajouter un investissement</a>
-
-</div>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+    .btn {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    #map {
+        border: 1px solid #ddd;
+    }
+</style>
 {% endblock %}
-

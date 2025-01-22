@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
+from django.urls import reverse_lazy
 
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
 from baay.models import Profile, Projet, Investissement
@@ -57,6 +59,12 @@ def logout_view(request):
     messages.success(request, "Vous avez été déconnecté avec succès.")
     return redirect('home')
 
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'registration/password_reset_form.html'
+    email_template_name = 'registration/password_reset_email.html'
+    subject_template_name = 'registration/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
 
 @login_required
 def creer_projet(request):
@@ -109,7 +117,7 @@ def supprimer_projet(request, projet_id):
 
 @login_required
 def ajouter_investissement(request, projet_id):
-    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    projet = get_object_or_404(Projet, id=projet_id)
 
     if request.method == 'POST':
         investissement_form = InvestissementForm(request.POST)
@@ -117,14 +125,13 @@ def ajouter_investissement(request, projet_id):
             investissement = investissement_form.save(commit=False)
             investissement.projet = projet  # Associer l'investissement au projet
             investissement.save()
-            messages.success(request, "L'investissement a été ajouté avec succès.")
             return redirect('detail_projet', projet_id=projet.id)
     else:
         investissement_form = InvestissementForm()
 
     return render(request, 'projets/ajouter_investissement.html', {
-        'investissement_form': investissement_form,
         'projet': projet,
+        'investissement_form': investissement_form,
     })
 
 @login_required

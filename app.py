@@ -54,7 +54,7 @@ produits_photos = [
 # Mettre à jour les produits agricoles avec les photos
 for produit_data in produits_photos:
     produit = ProduitAgricole.objects.get(id=produit_data["id"])
-    produit.photo = f"produits/{produit_data['photo']}"  # Chemin relatif vers l'image
+    produit.photo = f"produits/{produit['photo']}"  # Chemin relatif vers l'image
     produit.save()
 
 

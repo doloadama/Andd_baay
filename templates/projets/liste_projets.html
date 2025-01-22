@@ -1,48 +1,95 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Liste des projets</h1>
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Culture</th>
-            <th>Superficie</th>
-            <th>Date de lancement</th>
-            <th>Rendement estimé</th>
-            <th>Statut</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="container animate__animated animate__fadeIn">
+    <h1 class="text-center mb-4">Liste des projets</h1>
+
+    <!-- Liste des projets sous forme de cartes -->
+    <div class="row">
         {% for projet in projets %}
-        <tr>
-            <td>{{ projet.id }}</td>
-            <td>{{ projet.culture.nom }}</td>
-            <td>{{ projet.superficie }} ha</td>
-            <td>{{ projet.date_lancement }}</td>
-            <td>{{ projet.rendement_estime }} kg</td>
-            <td>{{ projet.statut }}</td>
-            <td>
-                <a href="{% url 'detail_projet' projet.id %}" class="btn btn-info">Détails</a>
-            </td>
-        </tr>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h5 class="card-title">{{ projet.culture.nom }}</h5>
+                    <p class="card-text">
+                        <strong>Superficie :</strong> {{ projet.superficie }} ha<br>
+                        <strong>Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}<br>
+                        <strong>Rendement estimé :</strong> {{ projet.rendement_estime }} kg<br>
+                        <strong>Statut :</strong>
+                        <span class="badge
+                            {% if projet.statut == 'En cours' %}bg-primary
+                            {% elif projet.statut == 'Terminé' %}bg-success
+                            {% elif projet.statut == 'Annulé' %}bg-danger
+                            {% else %}bg-secondary
+                            {% endif %}">
+                            {{ projet.statut }}
+                        </span>
+                    </p>
+                    <a href="{% url 'detail_projet' projet.id %}" class="btn btn-info btn-sm">
+                        <i class="fas fa-info-circle"></i> Détails
+                    </a>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
-<!-- Pagination -->
-<div class="pagination">
-    <span class="step-links">
-        {% if projets.has_previous %}
-            <a href="?page=1">&laquo; première</a>
-            <a href="?page={{ projets.previous_page_number }}">précédente</a>
-        {% endif %}
-        <span class="current">
-            Page {{ projets.number }} sur {{ projets.paginator.num_pages }}.
-        </span>
-        {% if projets.has_next %}
-            <a href="?page={{ projets.next_page_number }}">suivante</a>
-            <a href="?page={{ projets.paginator.num_pages }}">dernière &raquo;</a>
-        {% endif %}
-    </span>
+    </div>
+
+    <!-- Pagination améliorée -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if projets.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="Première">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ projets.previous_page_number }}" aria-label="Précédente">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page {{ projets.number }} sur {{ projets.paginator.num_pages }}
+                </span>
+            </li>
+            {% if projets.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ projets.next_page_number }}" aria-label="Suivante">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ projets.paginator.num_pages }}" aria-label="Dernière">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
+
+<!-- Custom Styles -->
+<style>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+    .pagination .page-link {
+        margin: 0 5px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .pagination .page-link:hover {
+        background-color: #007bff;
+        color: #fff;
+    }
+</style>
 {% endblock %}

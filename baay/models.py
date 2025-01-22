@@ -1,8 +1,7 @@
 # myapp/models.py
 from datetime import datetime
 
-from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
-from django.contrib.auth.hashers import make_password
+
 from django.contrib.auth.models import PermissionsMixin, AbstractUser, User
 from django.db import models
 import uuid
@@ -74,9 +73,9 @@ class Projet(models.Model):
 
 class Investissement(models.Model):
     projet = models.ForeignKey('Projet', on_delete=models.CASCADE)
-    localite = models.ForeignKey(Localite, on_delete=models.CASCADE)
+    description = models.TextField(null=True, blank=False)
     cout_par_hectare = models.DecimalField(max_digits=10, decimal_places=2)
-    autres_frais = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    date_investissement = models.DateField(default=now)
 
     def calculer_investissement_total(self):
         """

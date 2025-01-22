@@ -4,11 +4,19 @@
 <form method="post">
     {% csrf_token %}
 
-    <!-- Champ pour sélectionner la localité -->
+    <!-- Afficher les erreurs de validation -->
+    {% if investissement_form.errors %}
+        <div class="alert alert-danger">
+            <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
+            {{ investissement_form.errors }}
+        </div>
+    {% endif %}
+
     <div class="form-group">
-        <label for="localite">Localité :</label>
-        {{ investissement_form.localite }}
+        <label for="description">Description:</label>
+        {{ investissement_form.description }}
     </div>
+
 
     <!-- Champ pour le coût par hectare -->
     <div class="form-group">
@@ -16,10 +24,10 @@
         {{ investissement_form.cout_par_hectare }}
     </div>
 
-    <!-- Champ pour les autres frais -->
+    <!-- Champ pour la date de l'investissement -->
     <div class="form-group">
-        <label for="autres_frais">Autres frais (FCFA) :</label>
-        {{ investissement_form.autres_frais }}
+        <label for="date_investissement">Date de l'investissement :</label>
+        {{ investissement_form.date_investissement }}
     </div>
 
     <button type="submit" class="btn btn-primary">Ajouter l'investissement</button>

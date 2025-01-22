@@ -145,12 +145,15 @@ REST_FRAMEWORK = {
     ],
 }
 
-AUTH_USER_MODEL = 'auth.User'
-# Email configuration for local development
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Sends emails to the console
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
-EMAIL_USE_TLS = False
+# settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Exemple pour Gmail
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'adamadolo30@gmail.com'  # Votre adresse email
+EMAIL_HOST_PASSWORD = 'ExtraREvange321@;'  # Votre mot de passe ou mot de passe d'application
+DEFAULT_FROM_EMAIL = 'adamadolo30@gmail.com'  # Adresse email par défaut
+
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -158,4 +161,4 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/media')
