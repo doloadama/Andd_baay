@@ -134,6 +134,7 @@ def ajouter_investissement(request, projet_id):
         'investissement_form': investissement_form,
     })
 
+
 @login_required
 def detail_projet(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)

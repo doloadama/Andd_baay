@@ -74,7 +74,7 @@
                         <ul class="list-group list-group-flush">
                             {% for investissement in projet.investissement_set.all %}
                             <li class="list-group-item">
-                                <strong><i class="fas fa-map-pin"></i> Localité :</strong> {{ investissement.localite.nom }}<br>
+                                <strong><i class="fas fa-map-pin"></i> Détail :</strong> {{ investissement.description }}<br>
                                 <strong><i class="fas fa-money-bill-wave"></i> Coût par hectare :</strong> {{ investissement.cout_par_hectare }} FCFA<br>
                                 <strong><i class="fas fa-file-invoice-dollar"></i> Autres frais :</strong> {{ investissement.autres_frais }} FCFA
                             </li>

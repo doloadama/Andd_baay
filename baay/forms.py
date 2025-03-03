@@ -34,25 +34,21 @@ from .models import Investissement, Localite
 class InvestissementForm(forms.ModelForm):
     class Meta:
         model = Investissement
-        fields = ['projet', 'description', 'cout_par_hectare', 'date_investissement']
+        fields = ['description', 'cout_par_hectare', 'date_investissement']
         widgets = {
-            'projet': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
             'cout_par_hectare': forms.NumberInput(attrs={'class': 'form-control'}),
             'date_investissement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, projet=None, **kwargs):
         super().__init__(*args, **kwargs)
-        # Afficher les noms des projets dans le formulaire
-        self.fields['projet'].queryset = Projet.objects.all()
-        self.fields['projet'].label_from_instance = lambda obj: f"Projet {obj.id} - {obj.culture.nom}"
-
-
+        if projet:
+            self.projet = projet
 
     def clean_cout_par_hectare(self):
-        cout_par_hectare = self.cleaned_data['cout_par_hectare']
-        if cout_par_hectare <= 0:
+        cout_par_hectare = self.cleaned_data.get('cout_par_hectare')
+        if cout_par_hectare is not None and cout_par_hectare <= 0:
             raise forms.ValidationError("Le coût par hectare doit être positif.")
         return cout_par_hectare
 
