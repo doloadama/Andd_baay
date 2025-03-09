@@ -1,84 +1,78 @@
-<!-- templates/auth/register.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Inscription</h2>
-                <form method="post">
-                    {% csrf_token %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 450px; width: 100%; background: rgba(255, 255, 255, 0.95);">
+        <div class="card-body">
+            <h2 class="card-title text-center fw-bold text-primary">📝 Inscription</h2>
+            <p class="text-center text-muted">Créez un compte pour accéder à toutes les fonctionnalités</p>
 
-                    <!-- Nom d'utilisateur -->
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Nom d'utilisateur</label>
-                        <input type="text" name="username" class="form-control" id="username" required>
-                        {% if form.username.errors %}
-                            <div class="text-danger">{{ form.username.errors }}</div>
-                        {% endif %}
+            <form method="post" class="mt-3">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-semibold">Nom d'utilisateur</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre nom d'utilisateur" required>
                     </div>
-
-                    <!-- Email -->
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" id="email" required>
-                        {% if form.email.errors %}
-                            <div class="text-danger">{{ form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Prénom -->
-                    <div class="mb-3">
-                        <label for="first_name" class="form-label">Prénom</label>
-                        <input type="text" name="first_name" class="form-control" id="first_name" required>
-                        {% if form.first_name.errors %}
-                            <div class="text-danger">{{ form.first_name.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Nom -->
-                    <div class="mb-3">
-                        <label for="last_name" class="form-label">Nom</label>
-                        <input type="text" name="last_name" class="form-control" id="last_name" required>
-                        {% if form.last_name.errors %}
-                            <div class="text-danger">{{ form.last_name.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Numéro de téléphone -->
-                    <div class="mb-3">
-                        <label for="phone_number" class="form-label">Numéro de téléphone</label>
-                        <input type="text" name="phone_number" class="form-control" id="phone_number" required>
-                        {% if form.phone_number.errors %}
-                            <div class="text-danger">{{ form.phone_number.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Mot de passe -->
-                    <div class="mb-3">
-                        <label for="password1" class="form-label">Mot de passe</label>
-                        <input type="password" name="password1" class="form-control" id="password1" required>
-                        {% if form.password1.errors %}
-                            <div class="text-danger">{{ form.password1.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Confirmation du mot de passe -->
-                    <div class="mb-3">
-                        <label for="password2" class="form-label">Confirmer le mot de passe</label>
-                        <input type="password" name="password2" class="form-control" id="password2" required>
-                        {% if form.password2.errors %}
-                            <div class="text-danger">{{ form.password2.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Bouton de soumission -->
-                    <button type="submit" class="btn btn-success w-100">S'inscrire</button>
-                </form>
-                <div class="mt-3 text-center">
-                    <p>Déjà un compte ? <a href="{% url 'login' %}">Connectez-vous ici</a>.</p>
                 </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" id="email" placeholder="Entrez votre email" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="first_name" class="form-label fw-semibold">Prénom</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
+                        <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Entrez votre prénom" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="last_name" class="form-label fw-semibold">Nom</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
+                        <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Entrez votre nom de famille" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label fw-semibold">Numéro de téléphone</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                        <input type="tel" name="phone_number" class="form-control" id="phone_number" placeholder="Entrez votre numéro de téléphone" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password1" class="form-label fw-semibold">Mot de passe</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password1" class="form-control" id="password1" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password2" class="form-label fw-semibold">Confirmer le mot de passe</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password2" class="form-control" id="password2" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 mt-3">
+                    <i class="bi bi-person-check"></i> S'inscrire
+                </button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <p>Déjà un compte ? <a href="{% url 'login' %}" class="text-primary fw-bold">Connectez-vous ici</a>.</p>
             </div>
         </div>
     </div>

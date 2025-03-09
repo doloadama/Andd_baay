@@ -1,35 +1,64 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <h1>Ajouter un investissement au projet : {{ projet.nom }}</h1>
-<form method="post">
+
+<form method="post" novalidate>
     {% csrf_token %}
 
     <!-- Afficher les erreurs de validation -->
     {% if investissement_form.errors %}
         <div class="alert alert-danger">
             <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
-            {{ investissement_form.errors }}
+            <ul>
+                {% for field in investissement_form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
         </div>
     {% endif %}
 
     <div class="form-group">
-        <label for="description">Description:</label>
+        <label for="description">Description :</label>
         {{ investissement_form.description }}
+        {% if investissement_form.description.errors %}
+            <div class="text-danger">
+                {% for error in investissement_form.description.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
-
 
     <!-- Champ pour le coût par hectare -->
     <div class="form-group">
         <label for="cout_par_hectare">Coût par hectare (FCFA) :</label>
         {{ investissement_form.cout_par_hectare }}
+        {% if investissement_form.cout_par_hectare.errors %}
+            <div class="text-danger">
+                {% for error in investissement_form.cout_par_hectare.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 
     <!-- Champ pour la date de l'investissement -->
     <div class="form-group">
         <label for="date_investissement">Date de l'investissement :</label>
         {{ investissement_form.date_investissement }}
+        {% if investissement_form.date_investissement.errors %}
+            <div class="text-danger">
+                {% for error in investissement_form.date_investissement.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 
     <button type="submit" class="btn btn-primary">Ajouter l'investissement</button>
 </form>
+
 {% endblock %}

@@ -59,3 +59,8 @@ for produit_data in produits_photos:
 
 
 print("10 produits agricoles ont été ajoutés à la base de données.")
+
+
+
+def ready(self):
+    import baay.signals

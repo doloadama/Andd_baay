@@ -1,24 +1,31 @@
-<!-- templates/home.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="text-center">
-    <h1 class="display-4">Bienvenue sur Mon Application</h1>
-    <p class="lead">Gérez vos fruits et légumes de saison en toute simplicité.</p>
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg p-5 border-0 rounded-4 text-center" style="max-width: 600px; background: rgba(255, 255, 255, 0.9);">
+        <h1 class="display-5 fw-bold text-success">🌿 Bienvenue {{ user.username}}</h1>
+        <p class="lead text-muted">Gérez vos fruits et légumes de saison en toute simplicité.</p>
 
-    {% if user.is_authenticated %}
-        <div class="mt-5">
-            <p>Vous êtes connecté en tant que <strong>{{ user.username }}</strong>.</p>
-            <a href="{% url 'logout' %}" class="btn btn-lg btn-danger">Déconnexion</a>
-        </div>
-    {% else %}
-        <div class="mt-5">
-            <p>Veuillez vous connecter ou vous inscrire pour accéder à l'application.</p>
-            <div class="d-grid gap-2 d-md-block">
-                <a href="{% url 'login' %}" class="btn btn-lg btn-primary me-2">Connexion</a>
-                <a href="{% url 'register' %}" class="btn btn-lg btn-success">Inscription</a>
+        {% if user.is_authenticated %}
+            <div class="mt-4">
+                <p class="fs-5">Vous êtes connecté en tant que <strong>{{ user.username }}</strong>.</p>
+                <a href="{% url 'logout' %}" class="btn btn-danger btn-lg mt-2">
+                    <i class="bi bi-box-arrow-right"></i> Déconnexion
+                </a>
             </div>
-        </div>
-    {% endif %}
+        {% else %}
+            <div class="mt-4">
+                <p class="fs-5">Veuillez vous connecter ou vous inscrire pour accéder à l'application.</p>
+                <div class="d-grid gap-3 d-md-flex justify-content-center">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-person-circle"></i> Connexion
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-pencil-square"></i> Inscription
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

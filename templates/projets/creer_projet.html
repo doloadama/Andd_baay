@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container animate__animated animate__fadeIn">
     <h1 class="text-center mb-4">Créer un nouveau projet</h1>
 
     <!-- Formulaire dans une carte -->
-    <div class="card shadow-sm animate__animated animate__fadeInUp">
+    <div class="card shadow-lg animate__animated animate__fadeInUp">
         <div class="card-header bg-primary text-white">
             <h5 class="card-title mb-0"><i class="fas fa-plus-circle"></i> Nouveau projet</h5>
         </div>
         <div class="card-body">
-            <form method="post">
+            <form method="post" novalidate>
                 {% csrf_token %}
 
                 <!-- Section 1 : Informations de base -->
@@ -22,6 +23,11 @@
                         </h2>
                         <div id="collapseBasic" class="accordion-collapse collapse show" aria-labelledby="headingBasic" data-bs-parent="#accordionBasic">
                             <div class="accordion-body">
+                            <div class="form-group mb-3">
+                                    <label for="nom" class="form-label"><i class="fas fa-ruler-combined"></i> Nom du projet: </label>
+                                    {{ projet_form.nom }}
+                                    
+                                </div>
                                 <!-- Champ pour sélectionner la localité -->
                                 <div class="form-group mb-3">
                                     <label for="localite" class="form-label"><i class="fas fa-map-marker-alt"></i> Localité :</label>
@@ -151,5 +157,19 @@
         background-color: #f8f9fa;
         color: #006b1b;
     }
+
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .card-header {
+            text-align: center;
+        }
+        .accordion-button {
+            font-size: 14px;
+        }
+        .form-control {
+            font-size: 14px;
+        }
+    }
 </style>
+
 {% endblock %}

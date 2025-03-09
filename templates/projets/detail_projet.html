@@ -14,12 +14,29 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong><i class="fas fa-seedling"></i> Culture :</strong> {{ projet.culture.nom }}</p>
+                        <p>
+                            <strong><i class="fas fa-seedling"></i> Culture :</strong>
+                            <a href="#" class="produit-agricole-tooltip" data-produit-id="{{ projet.culture.id }}">
+                                {{ projet.culture.nom }}
+                            </a>
+                        </p>
                         <p><strong><i class="fas fa-ruler-combined"></i> Superficie :</strong> {{ projet.superficie }} ha</p>
                         <p><strong><i class="fas fa-calendar-alt"></i> Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong><i class="fas fa-weight-hanging"></i> Rendement estimé :</strong> {{ projet.rendement_estime }} kg</p>
+                        <h3>Prédiction de Rendement :</h3>
+                            {% if prediction %}
+                                <p>Rendement Estimé : {{ prediction.rendement_estime }} kg</p>
+                                <p>Date de Prédiction : {{ prediction.date_prediction }}</p>
+                            {% else %}
+                                <p>Aucune prédiction disponible pour ce projet.</p>
+                            {% endif %}
+                            {% if not prediction %}
+                                <form action="{% url 'generer_prediction' projet.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit">Générer la Prédiction</button>
+                                </form>
+                            {% endif %}
                         <p><strong><i class="fas fa-tasks"></i> Statut :</strong>
                             <span class="badge
                                 {% if projet.statut == 'En cours' %}bg-primary
@@ -82,6 +99,20 @@
                         </ul>
                     </div>
                 </div>
+
+                <!-- Graphique des investissements -->
+                <div class="card mb-4 shadow-sm animate__animated animate__fadeInRight">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Graphique des investissements</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if projet.investissement_set.all %}
+                        <canvas id="investmentChart" style="height: 300px;"></canvas>
+                        {% else %}
+                        <p class="text-muted">Aucun investissement enregistré pour ce projet.</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -110,30 +141,69 @@
 
     function loadMapScenario() {
         var map = new Microsoft.Maps.Map(document.getElementById('map'), {
-            credentials: 'VOTRE_CLE_API_BING',
+            credentials: '{{ BING_MAPS_API_KEY }}',  <!-- Clé API sécurisée -->
             center: new Microsoft.Maps.Location(latitude, longitude),
             zoom: 13,
-            mapTypeId: Microsoft.Maps.MapTypeId.aerial // Vue satellite
+            mapTypeId: Microsoft.Maps.MapTypeId.aerial
         });
 
-        // Ajout d'un marqueur avec infobulle
         var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
             title: '{{ projet.localite.nom }}',
-            color: 'green' // Couleur du marqueur
+            color: 'green'
         });
         map.entities.push(pushpin);
 
-        // Infobulle
         var infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
             title: 'Localité',
-            description: '{{ projet.localite.nom }}'
+            description: '{{ projet.localite.nom }}<br>Superficie : {{ projet.superficie }} ha'
         });
         infobox.setMap(map);
+        infobox.setOptions({ visible: false });
+
+        pushpin.addEventListener('click', function() {
+            infobox.setOptions({ visible: true });
+            $(infobox.getHtmlElement()).hide().fadeIn(500);
+        });
     }
 </script>
 <script src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
 
-<!-- Custom Styles -->
+<!-- Script pour le graphique des investissements -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script>
+    var investmentLabels = [{% for investissement in projet.investissement_set.all %}"{{ investissement.description }}",{% endfor %}];
+    var investmentData = [{% for investissement in projet.investissement_set.all %}{{ investissement.cout_par_hectare }},{% endfor %}];
+
+    var ctx = document.getElementById('investmentChart').getContext('2d');
+    var investmentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: investmentLabels,
+            datasets: [{
+                label: 'Coût par hectare (FCFA)',
+                data: investmentData,
+                backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
+                borderColor: ['#FF5733', '#33FF57', '#3357FF'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Répartition des investissements'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Effets de style supplémentaires -->
 <style>
     /* Effet de parallaxe */
     .parallax {
@@ -151,19 +221,108 @@
         transform: translateY(-5px);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
+
     .badge {
         font-size: 0.9em;
         padding: 0.5em 0.75em;
     }
+
     .btn {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
     .btn:hover {
         transform: scale(1.05);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
+
     #map {
         border: 1px solid #ddd;
     }
+
+    .card-body img:hover {
+        transform: scale(1.1);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    @media (max-width: 768px) {
+        #map {
+            height: 250px;
+        }
+        .parallax {
+            background-attachment: scroll;
+        }
+    }
 </style>
+
+<!-- Défilement fluide pour les liens -->
+<script>
+    $(document).ready(function() {
+        $("a[href^='#']").on('click', function(event) {
+            var target = $(this.getAttribute('href'));
+            if (target.length) {
+                event.preventDefault();
+                $('html, body').stop().animate({
+                    scrollTop: target.offset().top
+                }, 1000);
+            }
+        });
+    });
+</script>
+
+<!-- Animation des éléments au défilement -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let elements = document.querySelectorAll(".animate__animated");
+        let observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("animate__fadeIn");
+                }
+            });
+        }, { threshold: 0.3 });
+
+        elements.forEach(el => observer.observe(el));
+    });
+</script>
+    <!-- Script pour le tooltip -->
+<script>
+    $(document).ready(function() {
+        // Initialiser les tooltips Bootstrap
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Gérer le clic sur le nom du produit agricole
+        $('.produit-agricole-tooltip').on('click', function(e) {
+            e.preventDefault(); // Empêcher le comportement par défaut du lien
+
+            var produitId = $(this).data('produit-id'); // Récupérer l'ID du produit agricole
+            var tooltipElement = $(this); // Élément sur lequel le tooltip sera affiché
+
+            // Requête AJAX pour récupérer les informations du produit agricole
+            $.ajax({
+                url: '{% url "get_produit_agricole_details" %}',  // URL de la vue Django
+                type: 'GET',
+                data: {
+                    'produit_id': produitId
+                },
+                success: function(response) {
+                    // Mettre à jour le contenu du tooltip avec les informations reçues
+                    tooltipElement.attr('title', response.details);
+                    tooltipElement.tooltip('dispose').tooltip({
+                        html: true,
+                        placement: 'right'
+                    }).tooltip('show');
+                },
+                error: function() {
+                    tooltipElement.attr('title', 'Erreur lors du chargement des informations.');
+                    tooltipElement.tooltip('dispose').tooltip({
+                        html: true,
+                        placement: 'right'
+                    }).tooltip('show');
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock %}

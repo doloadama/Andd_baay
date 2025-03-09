@@ -61,8 +61,9 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['localite', 'culture', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
+        fields = ['nom','localite', 'culture', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
         widgets = {
+            'nom': forms.TextInput(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
             'culture': forms.Select(attrs={'class': 'form-control'}),
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),

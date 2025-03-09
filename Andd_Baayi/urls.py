@@ -21,4 +21,8 @@ urlpatterns = [
     path('password_reset/done/', CustomPasswordResetView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', CustomPasswordResetView.as_view(), name='password_reset_confirm'),
     path('reset/done/', CustomPasswordResetView.as_view(), name='password_reset_complete'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('get-produit-agricole-details/', views.get_produit_agricole_details, name='get_produit_agricole_details'),
+    path('projet/<uuid:projet_id>/generer_prediction/', views.generer_prediction, name='generer_prediction'),
+
 ]

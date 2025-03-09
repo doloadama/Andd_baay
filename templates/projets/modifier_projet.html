@@ -1,46 +1,100 @@
 {% extends 'base.html' %}
+{% load rest_framework %}
 {% block content %}
-<h1>Modifier le projet : {{ projet.nom }}</h1>
-<form method="post">
-    {% csrf_token %}
+<div class="container">
+    <h1 class="my-4">Modifier le projet : {{ projet.nom }}</h1>
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
 
-    <!-- Champ pour sélectionner la localite -->
-    <div class="form-group">
-        <label for="localite">Localité :</label>
-        {{ projet_form.localite }}
-    </div>
+        <!-- Afficher les erreurs générales du formulaire -->
+        {% if projet_form.errors %}
+        <div class="alert alert-danger">
+            <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
+        </div>
+        {% endif %}
 
-    <!-- Champ pour sélectionner la culture -->
-    <div class="form-group">
-        <label for="culture">Culture :</label>
-        {{ projet_form.culture }}
-    </div>
+        <!-- Champ pour le nom -->
+        <div class="form-group mb-3">
+            <label for="nom" class="form-label">Nom :</label>
+            {{ projet_form.nom|add_class:"form-control" }}
+            {% if projet_form.nom.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.nom.errors }}
+            </div>
+            {% endif %}
+        </div>
 
-    <!-- Champ pour la superficie -->
-    <div class="form-group">
-        <label for="superficie">Superficie (en hectares) :</label>
-        {{ projet_form.superficie }}
-    </div>
+        <!-- Champ pour la localité -->
+        <div class="form-group mb-3">
+            <label for="localite" class="form-label">Localité :</label>
+            {{ projet_form.localite|add_class:"form-control" }}
+            {% if projet_form.localite.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.localite.errors }}
+            </div>
+            {% endif %}
+        </div>
 
-    <!-- Champ pour la date de lancement -->
-    <div class="form-group">
-        <label for="date_lancement">Date de lancement :</label>
-        {{ projet_form.date_lancement }}
-    </div>
+        <!-- Champ pour la culture -->
+        <div class="form-group mb-3">
+            <label for="culture" class="form-label">Culture :</label>
+            {{ projet_form.culture|add_class:"form-control" }}
+            {% if projet_form.culture.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.culture.errors }}
+            </div>
+            {% endif %}
+        </div>
 
-    <!-- Champ pour le rendement estimé -->
-    <div class="form-group">
-        <label for="rendement_estime">Rendement estimé (en kg) :</label>
-        {{ projet_form.rendement_estime }}
-    </div>
+        <!-- Champ pour la superficie -->
+        <div class="form-group mb-3">
+            <label for="superficie" class="form-label">Superficie (en hectares) :</label>
+            {{ projet_form.superficie|add_class:"form-control" }}
+            {% if projet_form.superficie.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.superficie.errors }}
+            </div>
+            {% endif %}
+        </div>
 
-    <!-- Champ pour le statut -->
-    <div class="form-group">
-        <label for="statut">Statut :</label>
-        {{ projet_form.statut }}
-    </div>
+        <!-- Champ pour la date de lancement -->
+        <div class="form-group mb-3">
+            <label for="date_lancement" class="form-label">Date de lancement :</label>
+            {{ projet_form.date_lancement|add_class:"form-control" }}
+            {% if projet_form.date_lancement.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.date_lancement.errors }}
+            </div>
+            {% endif %}
+        </div>
 
-    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-    <a href="{% url 'detail_projet' projet.id %}" class="btn btn-secondary">Annuler</a>
-</form>
+        <!-- Champ pour le rendement estimé -->
+        <div class="form-group mb-3">
+            <label for="rendement_estime" class="form-label">Rendement estimé (en kg) :</label>
+            {{ projet_form.rendement_estime|add_class:"form-control" }}
+            {% if projet_form.rendement_estime.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.rendement_estime.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Champ pour le statut -->
+        <div class="form-group mb-3">
+            <label for="statut" class="form-label">Statut :</label>
+            {{ projet_form.statut|add_class:"form-control" }}
+            {% if projet_form.statut.errors %}
+            <div class="invalid-feedback">
+                {{ projet_form.statut.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="form-group mb-3">
+            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            <a href="{% url 'detail_projet' projet.id %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
 {% endblock %}
