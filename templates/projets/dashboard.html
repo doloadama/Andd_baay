@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Tableau de Bord Agricole</h1>
+
+    <!-- Indicateurs clés (KPI) -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Superficie Totale Cultivée</h5>
+                    <p class="h3">{{ superficie_totale }} ha</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Rendement Total Prévu</h5>
+                    <p class="h3">{{ rendement_total }} kg</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Cultures en Problème</h5>
+                    <p class="h3">{{ cultures_en_probleme.count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique des rendements (Chart.js) -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Répartition des Rendements par Culture</h5>
+            <canvas id="rendementChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Tableau de suivi des cultures -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Suivi des Cultures</h5>
+            {% if cultures %}
+            <table class="table table-striped table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Culture</th>
+                        <th>État</th>
+                        <th>Superficie (ha)</th>
+                        <th>Rendement Prévu (kg)</th>
+                        <th>Progression</th>
+                        <th>Responsable</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for culture in cultures %}
+                    <tr>
+                        <td>{{ culture.nom }}</td>
+                        <td>
+                            <span class="badge {% if culture.etat == 'Problème' %}bg-danger{% elif culture.etat == 'Récolté' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ culture.etat }}
+                            </span>
+                        </td>
+                        <td>{{ culture.superficie }}</td>
+                        <td>{{ culture.rendement_prevu }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ culture.progression }}%;" aria-valuenow="{{ culture.progression }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ culture.progression }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ culture.responsable }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="alert alert-warning">Aucune culture enregistrée.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Intégration de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('rendementChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for culture in cultures %}'{{ culture.nom }}',{% endfor %}],
+            datasets: [{
+                label: 'Rendement (kg)',
+                data: [{% for culture in cultures %}{{ culture.rendement_prevu }},{% endfor %}],
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
