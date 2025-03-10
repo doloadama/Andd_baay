@@ -131,6 +131,17 @@ def supprimer_projet(request, projet_id):
     })
 
 @login_required
+def supprimer_projets(request):
+    if request.method == 'POST':
+        projets_ids = request.POST.getlist('projets')
+        if projets_ids:
+            Projet.objects.filter(id__in=projets_ids, utilisateur=request.user.profile).delete()
+            messages.success(request, f"{len(projets_ids)} projet(s) supprimé(s) avec succès.")
+        else:
+            messages.warning(request, "Aucun projet sélectionné.")
+    return redirect('liste_projets')
+
+@login_required
 def ajouter_investissement(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id)
 
@@ -219,7 +230,8 @@ def collect_training_data():
     data = []
 
     for projet in projets:
-        investissement_total = projet.investissement_set.aggregate(models.Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
+        investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))[
+                                   'cout_par_hectare__sum'] or 0
         data.append({
             'superficie': float(projet.superficie),
             'prix_par_kg': float(projet.culture.prix_par_kg or 0),
@@ -236,13 +248,21 @@ def collect_training_data():
 def entrainer_modele():
     df = collect_training_data()
 
+    if df.empty:
+        print("Aucune donnée disponible pour l'entraînement !")
+        return None
+
+    print(df.head())  # Affiche un aperçu des données
+
     # Encoder les variables catégoriques
     df = pd.get_dummies(df, columns=['type_sol', 'conditions_meteo'], drop_first=True)
 
     X = df.drop('rendement_estime', axis=1)
     y = df['rendement_estime']
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    print("Colonnes utilisées pour l'entraînement :", X.columns)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2 ,random_state=42)
 
     # Entraîner le modèle
     model = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -256,23 +276,25 @@ def entrainer_modele():
     with open('modele_rendement.pkl', 'wb') as f:
         pickle.dump(model, f)
 
+    print("Modèle sauvegardé avec succès : modele_rendement.pkl")
+
     return model
+
 
 import pickle
 from django.db.models import Sum
 
 def predire_rendement(projet):
-    model = None
     try:
         with open('modele_rendement.pkl', 'rb') as f:
             model = pickle.load(f)
-    except (FileNotFoundError, pickle.UnpicklingError) as e:
+            logger.debug("Modèle chargé avec succès.")
+    except Exception as e:
         logger.error(f"Erreur lors du chargement du modèle : {e}")
-        return 0  # Retourne 0 si le modèle ne peut pas être chargé
+        return 0
 
     investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
 
-    # Créer un input pour le modèle
     data = {
         'superficie': float(projet.superficie),
         'prix_par_kg': float(projet.culture.prix_par_kg or 0),
@@ -282,20 +304,23 @@ def predire_rendement(projet):
         'investissement_total': float(investissement_total),
     }
 
+    logger.debug(f"Données d'entrée : {data}")
+
     # Encoder les variables catégoriques
     input_data = pd.DataFrame([data])
     input_data = pd.get_dummies(input_data, columns=['type_sol', 'conditions_meteo'], drop_first=True)
 
-    # Assurer la compatibilité avec les colonnes du modèle
+    # S'assurer que toutes les colonnes sont présentes
     for col in model.feature_names_in_:
         if col not in input_data.columns:
             input_data[col] = 0
 
-    # S'assurer que les colonnes sont dans le bon ordre
+    # Réorganiser les colonnes
     input_data = input_data[model.feature_names_in_]
 
-    # Faire la prédiction
     rendement_pred = model.predict(input_data)[0]
+    logger.debug(f"Rendement prédit : {rendement_pred}")
+
     return rendement_pred
 
 from django.db.models.signals import post_save

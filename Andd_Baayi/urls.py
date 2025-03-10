@@ -3,7 +3,7 @@ from django.urls import path, include
 from baay import views
 from django.contrib.auth import views as auth_views
 
-from baay.views import CustomPasswordResetView
+from baay.views import CustomPasswordResetView, supprimer_projet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,7 +16,6 @@ urlpatterns = [
     path('projet/<uuid:projet_id>/', views.detail_projet, name='detail_projet'),
     path('projet/<uuid:projet_id>/ajouter-investissement/', views.ajouter_investissement, name='ajouter_investissement'),
     path('projet/<uuid:projet_id>/modifier/', views.modifier_projet, name='modifier_projet'),
-    path('projet/<uuid:projet_id>/supprimer/', views.supprimer_projet, name='supprimer_projet'),
     path('password_reset/', CustomPasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', CustomPasswordResetView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', CustomPasswordResetView.as_view(), name='password_reset_confirm'),
@@ -24,5 +23,8 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('get-produit-agricole-details/', views.get_produit_agricole_details, name='get_produit_agricole_details'),
     path('projet/<uuid:projet_id>/generer_prediction/', views.generer_prediction, name='generer_prediction'),
+    path('projet/<uuid:projet_id>/supprimer/', supprimer_projet, name='supprimer_projet'),
+    path('projets/supprimer/', views.supprimer_projets, name='supprimer_projets'),
+
 
 ]

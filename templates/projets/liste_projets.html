@@ -3,66 +3,84 @@
 <div class="container animate__animated animate__fadeIn">
     <h1 class="text-center mb-4">Liste des projets</h1>
 
-    <!-- Liste des projets sous forme de cartes -->
-    <div class="row">
-        {% for projet in projets %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm animate__animated animate__fadeInUp">
-                <div class="card-body">
-                    <h5 class="card-title">{{ projet.culture.nom }}</h5>
-                    <p class="card-text">
-                        <strong>Superficie :</strong> {{ projet.superficie }} ha<br>
-                        <strong>Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}<br>
-                        <strong>Rendement estimé :</strong> {{ projet.rendement_estime }} kg<br>
-                        <strong>Statut :</strong>
-                        <span class="badge
-                            {% if projet.statut == 'En cours' %}bg-primary
-                            {% elif projet.statut == 'Terminé' %}bg-success
-                            {% elif projet.statut == 'Annulé' %}bg-danger
-                            {% else %}bg-secondary
-                            {% endif %}">
-                            {{ projet.statut }}
-                        </span>
-                    </p>
-                    <a href="{% url 'detail_projet' projet.id %}" class="btn btn-info btn-sm">
-                        <i class="fas fa-info-circle"></i> Détails
-                    </a>
+    <!-- Formulaire de suppression multiple -->
+    <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
+        {% csrf_token %}
+
+        <!-- Liste des projets sous forme de cartes -->
+        <div class="row">
+            {% for projet in projets %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm animate__animated animate__fadeInUp">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <input type="checkbox" name="projets" value="{{ projet.id }}"> {{ projet.nom }}
+                        </h5>
+                        <p class="card-text">
+                            <strong>Superficie :</strong> {{ projet.superficie }} ha<br>
+                            <strong>Culture :</strong> {{ projet.culture.nom }}<br>
+                            <strong>Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}<br>
+                            <strong>Rendement estimé :</strong> {{ projet.rendement_estime }} kg<br>
+                            <strong>Statut :</strong>
+                            <span class="badge
+                                {% if projet.statut == 'en_cours' %}bg-primary
+                                {% elif projet.statut == 'fini' %}bg-success
+                                {% elif projet.statut == 'en_pause' %}bg-warning
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ projet.statut }}
+                            </span>
+                        </p>
+
+
+                        <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+
+                        <!-- Lien de suppression individuelle (Corrigé) -->
+                        <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Confirmer la suppression de ce projet ?');">
+                            <i class="fas fa-trash-alt"></i> Supprimer
+                        </a>
+
+                        <a href="{% url 'detail_projet' projet.id %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-info-circle"></i> Détails
+                        </a>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
+
         </div>
-        {% endfor %}
-    </div>
+
+        <!-- Bouton de suppression -->
+        <button type="submit" class="btn btn-danger mt-3" onclick="return confirm('Confirmer la suppression des projets sélectionnés ?');">
+            <i class="fas fa-trash-alt"></i> Supprimer la sélection
+        </button>
+
+    </form>
 
     <!-- Pagination améliorée -->
     <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if projets.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page=1" aria-label="Première">
-                        <span aria-hidden="true">&laquo;&laquo;</span>
-                    </a>
+                    <a class="page-link" href="?page=1" aria-label="Première">&laquo;&laquo;</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ projets.previous_page_number }}" aria-label="Précédente">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
+                    <a class="page-link" href="?page={{ projets.previous_page_number }}" aria-label="Précédente">&laquo;</a>
                 </li>
             {% endif %}
+
             <li class="page-item disabled">
-                <span class="page-link">
-                    Page {{ projets.number }} sur {{ projets.paginator.num_pages }}
-                </span>
+                <span class="page-link">Page {{ projets.number }} sur {{ projets.paginator.num_pages }}</span>
             </li>
+
             {% if projets.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ projets.next_page_number }}" aria-label="Suivante">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
+                    <a class="page-link" href="?page={{ projets.next_page_number }}" aria-label="Suivante">&raquo;</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ projets.paginator.num_pages }}" aria-label="Dernière">
-                        <span aria-hidden="true">&raquo;&raquo;</span>
-                    </a>
+                    <a class="page-link" href="?page={{ projets.paginator.num_pages }}" aria-label="Dernière">&raquo;&raquo;</a>
                 </li>
             {% endif %}
         </ul>
