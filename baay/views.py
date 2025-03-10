@@ -259,15 +259,18 @@ def entrainer_modele():
     return model
 
 import pickle
+from django.db.models import Sum
 
 def predire_rendement(projet):
+    model = None
     try:
         with open('modele_rendement.pkl', 'rb') as f:
             model = pickle.load(f)
     except (FileNotFoundError, pickle.UnpicklingError) as e:
-        logger.error(f"Erreur lors du chargement du modèle: {e}")
+        logger.error(f"Erreur lors du chargement du modèle : {e}")
+        return 0  # Retourne 0 si le modèle ne peut pas être chargé
 
-    investissement_total = projet.investissement_set.aggregate(models.Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
+    investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
 
     # Créer un input pour le modèle
     data = {
@@ -283,11 +286,15 @@ def predire_rendement(projet):
     input_data = pd.DataFrame([data])
     input_data = pd.get_dummies(input_data, columns=['type_sol', 'conditions_meteo'], drop_first=True)
 
-    # Remplir les colonnes manquantes si nécessaire
+    # Assurer la compatibilité avec les colonnes du modèle
     for col in model.feature_names_in_:
         if col not in input_data.columns:
             input_data[col] = 0
 
+    # S'assurer que les colonnes sont dans le bon ordre
+    input_data = input_data[model.feature_names_in_]
+
+    # Faire la prédiction
     rendement_pred = model.predict(input_data)[0]
     return rendement_pred
 

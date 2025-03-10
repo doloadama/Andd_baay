@@ -96,4 +96,3 @@ class PredictionRendement(models.Model):
 
     def __str__(self):
         return f"Prédiction pour {self.projet.nom}"
-
