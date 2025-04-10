@@ -1,37 +1,29 @@
 {% load static %}
 
-<!DOCTYPE html>
+
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Description de Mon Application">
-    <title>Mon Application</title>
+    <meta name="description" content="Système de gestion agricole avec prédiction des rendements.">
+    <title>Mon Application Agricole</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{% static 'baay/images/favicon.png' %}">
-
-    <!-- Preload critical resources -->
-    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style">
-    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" as="script">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" as="script">
+    <link rel="icon" type="image/png" href="{% static 'templates/images/image.jpg' %}">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
 
     <!-- Custom Styles -->
     <style>
+        /* Styles globaux */
         body {
-            background-image: url('{% static "baay/images/image.jpg" %}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: #ffffff;
+            background: url('{% static "templates/images/image.jpg" %}') center/cover no-repeat fixed;
+
             font-family: 'Arial', sans-serif;
             position: relative;
         }
@@ -39,28 +31,31 @@
         body::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5); /* Overlay sombre pour améliorer la lisibilité */
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
             z-index: -1;
         }
 
-        .button :hover{
-            cursor: pointer;
-            flood-color: #1b1b1b;
-        }
-
+        /* Navigation */
         .navbar {
             margin-bottom: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.8);
         }
 
+        .btn-nav {
+            margin-left: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-nav:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Conteneur principal */
         .container {
             max-width: 960px;
-            background-color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.9);
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
@@ -74,31 +69,29 @@
             box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-nav {
-            margin-left: 10px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .btn-nav:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
+        /* Messages d'alerte */
         .alert {
             animation: fadeIn 0.5s ease;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* Dark mode */
+        /* Mode sombre */
         @media (prefers-color-scheme: dark) {
             body {
-                background-image: url('{% static "baay/images/image.jpg" %}');
                 color: #e0e0e0;
             }
+
             .container {
                 background-color: rgba(0, 0, 0, 0.8);
                 color: #e0e0e0;
@@ -106,73 +99,82 @@
         }
     </style>
 </head>
-<body>
+
+<body >
+
+    <!-- Barre de navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark animate__animated animate__fadeInDown">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-home" aria-hidden="true"></i> Mon Application
+                <i class="fas fa-seedling" aria-hidden="true"></i> Mon Application Agricole
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">Bienvenue, {{ user.username }} !</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}">
+                            <i class="fas fa-plus" aria-hidden="true"></i> Créer un projet
+                        </a>
+                    </li>
                         <li class="nav-item">
-                            <span class="navbar-text me-3">Bonjour, {{ user.username }} !</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}">
-                                <i class="fas fa-plus" aria-hidden="true"></i> Créer un projet
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}">
-                                <i class="fas fa-list" aria-hidden="true"></i> Vos projets
-                            </a>
-                        </li>
-
-                        <a href="{% url 'dashboard' %}" class="btn btn-primary">Voir le Dashboard</a>
-
-
-                        <li class="nav-item">
-                            <a class="btn btn-danger btn-nav" href="{% url 'logout' %}">
-                                <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Déconnexion
-                            </a>
-                        </li>
+                        <a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}">
+                            <i class="fas fa-list-1-2" aria-hidden="true"></i> Liste des projets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-nav" href="{% url 'dashboard' %}">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i> Voir le Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-danger btn-nav" href="{% url 'logout' %}">
+                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Déconnexion
+                        </a>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="btn btn-primary btn-nav" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Connexion
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-success btn-nav" href="{% url 'register' %}">
-                                <i class="fas fa-user-plus" aria-hidden="true"></i> Inscription
-                            </a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-nav" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Connexion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-success btn-nav" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus" aria-hidden="true"></i> Inscription
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- Contenu principal -->
     <div class="container animate__animated animate__fadeInUp">
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-4" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-4" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        {% endfor %}
         {% endif %}
 
         {% block content %}
         {% endblock %}
     </div>
 
-    <!-- JavaScript at the end for better performance -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 </body>
+
 </html>

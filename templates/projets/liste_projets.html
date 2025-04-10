@@ -14,13 +14,13 @@
                 <div class="card h-100 shadow-sm animate__animated animate__fadeInUp">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <input type="checkbox" name="projets" value="{{ projet.id }}"> {{ projet.nom }}
+                            <input type="checkbox" height="50px" width="50px" name="projets" value="{{ projet.id }}"> {{ projet.nom }}
                         </h5>
                         <p class="card-text">
                             <strong>Superficie :</strong> {{ projet.superficie }} ha<br>
                             <strong>Culture :</strong> {{ projet.culture.nom }}<br>
                             <strong>Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}<br>
-                            <strong>Rendement estimé :</strong> {{ projet.rendement_estime }} kg<br>
+                            <strong>Rendement estimé :</strong> {{ PredictionRendement.rendement_estime }} kg<br>
                             <strong>Statut :</strong>
                             <span class="badge
                                 {% if projet.statut == 'en_cours' %}bg-primary
@@ -31,20 +31,19 @@
                                 {{ projet.statut }}
                             </span>
                         </p>
-
+                        <a href="{% url 'detail_projet' projet.id %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-info-circle"></i> Détails
+                        </a>
 
                         <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-warning btn-sm">
                             <i class="fas fa-edit"></i> Modifier
                         </a>
-
+                        <p></p>
                         <!-- Lien de suppression individuelle (Corrigé) -->
                         <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Confirmer la suppression de ce projet ?');">
                             <i class="fas fa-trash-alt"></i> Supprimer
                         </a>
 
-                        <a href="{% url 'detail_projet' projet.id %}" class="btn btn-info btn-sm">
-                            <i class="fas fa-info-circle"></i> Détails
-                        </a>
                     </div>
                 </div>
             </div>

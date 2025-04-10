@@ -169,45 +169,84 @@
 <script src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
 
 <!-- Script pour le graphique des investissements -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-<script>
-    var investmentLabels = [{% for investissement in projet.investissement_set.all %}"{{ investissement.description }}",{% endfor %}];
-    var investmentData = [{% for investissement in projet.investissement_set.all %}{{ investissement.cout_par_hectare }},{% endfor %}];
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    var ctx = document.getElementById('investmentChart').getContext('2d');
-    var investmentChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: investmentLabels,
-            datasets: [{
-                label: 'Coût par hectare (FCFA)',
-                data: investmentData,
-                backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
-                borderColor: ['#FF5733', '#33FF57', '#3357FF'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Répartition des investissements'
-                }
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Vérifier si Chart.js est chargé
+        if (typeof Chart === 'undefined') {
+            console.error("Erreur : Chart.js n'est pas chargé !");
+            return;
+        }
+
+        // Récupération des données
+        var investmentLabels = [
+            {% for investissement in projet.investissement_set.all %}
+                "{{ investissement.description|escapejs }}",
+            {% endfor %}
+        ];
+
+        var investmentData = [
+            {% for investissement in projet.investissement_set.all %}
+                {{ investissement.cout_par_hectare|default:0 }},
+            {% endfor %}
+        ];
+
+        console.log("Investment Labels : ", investmentLabels);
+        console.log("Investment Data : ", investmentData);
+
+        // Vérifier si les données existent
+        if (investmentLabels.length === 0) {
+            console.warn("Aucun investissement trouvé.");
+            return;
+        }
+
+        // Réinitialiser le canvas pour éviter les doublons
+        var canvas = document.getElementById('investmentChart');
+        if (canvas) {
+            canvas.remove();
+            var newCanvas = document.createElement('canvas');
+            newCanvas.id = 'investmentChart';
+            document.querySelector('.card-body').appendChild(newCanvas);
+        }
+
+        // Initialiser le graphique
+        var ctx = document.getElementById('investmentChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: investmentLabels,
+                datasets: [{
+                    label: 'Coût par hectare (FCFA)',
+                    data: investmentData,
+                    backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
+                    borderColor: ['#FF5733', '#33FF57', '#3357FF'],
+                    borderWidth: 1
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Répartition des investissements'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
+        });
     });
 </script>
+
 
 <!-- Effets de style supplémentaires -->
 <style>
     /* Effet de parallaxe */
     .parallax {
-        background-image: url('{% static "baay/images/image.jpg" %}');
+        background-image: url('{% static "baay/../images/image.jpg" %}');
         background-size: cover;
         background-position: center;
         background-attachment: fixed;

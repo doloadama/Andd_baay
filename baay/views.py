@@ -9,17 +9,17 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Sum
-from django.db.models import Sum
 
-from baay import models
+from sklearn.metrics import r2_score, mean_absolute_error
+import numpy as np
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
-from baay.models import Profile, Projet, Investissement, ProduitAgricole, PredictionRendement, Localite
+from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-
+import pickle
+from django.db.models import Sum
 
 # Vue pour la page d'accueil
 def home_view(request):
@@ -160,7 +160,6 @@ def ajouter_investissement(request, projet_id):
         'investissement_form': investissement_form,
     })
 
-
 @login_required
 def detail_projet(request, projet_id):
     # Récupérer le projet pour l'utilisateur connecté
@@ -186,34 +185,34 @@ def liste_projets(request):
     projets = paginator.get_page(page_number)
     return render(request, 'projets/liste_projets.html', {'projets': projets})
 
-
 @login_required
 def dashboard(request):
     # Récupérer les projets de l'utilisateur
     projets_user = Projet.objects.filter(utilisateur=request.user.profile)
 
     # Récupérer les cultures liées aux projets de l'utilisateur
-    cultures = ProduitAgricole.objects.filter(id__in=projets_user.values_list('culture_id', flat=True))
+    cultures = Projet.objects.filter(id__in=projets_user.values_list('culture', flat=True))
 
     # Calculer la superficie totale des projets de l'utilisateur
     superficie_totale = projets_user.aggregate(Sum('superficie'))['superficie__sum'] or 0
 
     # Calculer le rendement total estimé des projets de l'utilisateur
-    rendement_total = projets_user.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+    rendement_total = PredictionRendement.objects.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+    rendements = PredictionRendement.objects.filter(id__in=projets_user.values_list('rendement_estime', flat=True))
 
     # Identifier les cultures en problème (si l'état est stocké dans ProduitAgricole)
-    cultures_en_probleme = cultures.filter(etat='Problème')
 
     return render(request, 'projets/dashboard.html', {
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
-        'cultures_en_probleme': cultures_en_probleme,
+        'rendements': rendements,
         'cultures': cultures,
     })
+
 def get_produit_agricole_details(request):
     produit_id = request.GET.get('produit_id')
     try:
-        produit = ProduitAgricole.objects.get(id=produit_id)
+        produit = ProduitAgricole.objects.get(id=id)
         details = f"""
             <strong>Nom :</strong> {produit.nom}<br>
             <strong>Description :</strong> {produit.description}<br>
@@ -243,7 +242,6 @@ def collect_training_data():
         })
 
     return pd.DataFrame(data)
-
 
 def entrainer_modele():
     df = collect_training_data()
@@ -279,10 +277,6 @@ def entrainer_modele():
     print("Modèle sauvegardé avec succès : modele_rendement.pkl")
 
     return model
-
-
-import pickle
-from django.db.models import Sum
 
 def predire_rendement(projet):
     try:
@@ -343,3 +337,13 @@ def generer_prediction(request, projet_id):
     )
 
     return redirect('detail_projet', projet_id=projet.id)
+
+def evaluer_modele(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+
+    print(f"RMSE : {rmse:.2f}")
+    print(f"R² : {r2:.2f}")
+    print(f"MAE : {mae:.2f}")
