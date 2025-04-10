@@ -197,7 +197,6 @@ def dashboard(request):
 
     rendements = PredictionRendement.objects.filter(projet__in=projets_user)
 
-    # Cette ligne doit être revue selon ton modèle de relation entre Projet et ProduitAgricole
     cultures = ProduitAgricole.objects.filter(id__in=projets_user.values_list('culture', flat=True))
 
     return render(request, 'projets/dashboard.html', {
