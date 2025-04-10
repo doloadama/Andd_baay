@@ -1,80 +1,362 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 450px; width: 100%; background: rgba(255, 255, 255, 0.95);">
-        <div class="card-body">
-            <h2 class="card-title text-center fw-bold text-primary">📝 Inscription</h2>
-            <p class="text-center text-muted">Créez un compte pour accéder à toutes les fonctionnalités</p>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0 rounded-lg animate__animated animate__fadeIn">
+            <div class="card-header bg-success text-white text-center py-3">
+                <h2 class="card-title mb-0 fw-bold">
+                    <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Inscription
+                </h2>
+            </div>
+            <div class="card-body">
+                <p class="text-center text-muted mb-4">Créez un compte pour accéder à toutes les fonctionnalités</p>
 
-            <form method="post" class="mt-3">
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label for="username" class="form-label fw-semibold">Nom d'utilisateur</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre nom d'utilisateur" required>
-                    </div>
+                {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
+                    Veuillez corriger les erreurs ci-dessous.
+                    <ul class="mb-0 mt-2">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
+                {% endif %}
 
-                <div class="mb-3">
-                    <label for="email" class="form-label fw-semibold">Email</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" name="email" class="form-control" id="email" placeholder="Entrez votre email" required>
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label fw-semibold">Nom d'utilisateur</label>
+                            <div class="input-group">
+                                <span class="input-group-text" aria-hidden="true">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" name="username" class="form-control" id="username"
+                                    placeholder="Entrez votre nom d'utilisateur" required
+                                    aria-describedby="usernameHelp">
+                                <div class="invalid-feedback">
+                                    Veuillez saisir un nom d'utilisateur.
+                                </div>
+                            </div>
+                            <small id="usernameHelp" class="form-text text-muted">
+                                Lettres, chiffres et @/./+/-/_ uniquement.
+                            </small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label fw-semibold">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text" aria-hidden="true">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" name="email" class="form-control" id="email"
+                                    placeholder="Entrez votre email" required>
+                                <div class="invalid-feedback">
+                                    Veuillez saisir une adresse email valide.
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label for="first_name" class="form-label fw-semibold">Prénom</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
-                        <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Entrez votre prénom" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label fw-semibold">Prénom</label>
+                            <div class="input-group">
+                                <span class="input-group-text" aria-hidden="true">
+                                    <i class="fas fa-user-tag"></i>
+                                </span>
+                                <input type="text" name="first_name" class="form-control" id="first_name"
+                                    placeholder="Entrez votre prénom" required>
+                                <div class="invalid-feedback">
+                                    Veuillez saisir votre prénom.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label fw-semibold">Nom</label>
+                            <div class="input-group">
+                                <span class="input-group-text" aria-hidden="true">
+                                    <i class="fas fa-user-tag"></i>
+                                </span>
+                                <input type="text" name="last_name" class="form-control" id="last_name"
+                                    placeholder="Entrez votre nom de famille" required>
+                                <div class="invalid-feedback">
+                                    Veuillez saisir votre nom de famille.
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label for="last_name" class="form-label fw-semibold">Nom</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
-                        <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Entrez votre nom de famille" required>
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label fw-semibold">Numéro de téléphone</label>
+                        <div class="input-group">
+                            <span class="input-group-text" aria-hidden="true">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input type="tel" name="phone_number" class="form-control" id="phone_number"
+                                placeholder="Entrez votre numéro de téléphone" required
+                                pattern="[0-9]{10}">
+                            <div class="invalid-feedback">
+                                Veuillez saisir un numéro de téléphone valide (10 chiffres).
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label for="phone_number" class="form-label fw-semibold">Numéro de téléphone</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-phone"></i></span>
-                        <input type="tel" name="phone_number" class="form-control" id="phone_number" placeholder="Entrez votre numéro de téléphone" required>
+                    <div class="mb-3">
+                        <label for="password1" class="form-label fw-semibold">Mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text" aria-hidden="true">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" name="password1" class="form-control" id="password1"
+                                placeholder="••••••••" required minlength="8">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword1"
+                                aria-label="Afficher/masquer le mot de passe">
+                                <i class="fas fa-eye" id="eyeIcon1" aria-hidden="true"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Le mot de passe doit contenir au moins 8 caractères.
+                            </div>
+                        </div>
+                        <div id="passwordStrength" class="mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;"
+                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small id="passwordStrengthText" class="form-text text-muted">Force du mot de passe</small>
+                        </div>
+                        <small class="form-text text-muted">
+                            Utilisez au moins 8 caractères avec des lettres, chiffres et symboles.
+                        </small>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label for="password1" class="form-label fw-semibold">Mot de passe</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" name="password1" class="form-control" id="password1" placeholder="••••••••" required>
+                    <div class="mb-3">
+                        <label for="password2" class="form-label fw-semibold">Confirmer le mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text" aria-hidden="true">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" name="password2" class="form-control" id="password2"
+                                placeholder="••••••••" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword2"
+                                aria-label="Afficher/masquer le mot de passe">
+                                <i class="fas fa-eye" id="eyeIcon2" aria-hidden="true"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Les mots de passe ne correspondent pas.
+                            </div>
+                        </div>
+                        <div id="passwordMatch" class="mt-1 d-none">
+                            <small class="text-success">
+                                <i class="fas fa-check-circle"></i> Les mots de passe correspondent
+                            </small>
+                        </div>
+                        <div id="passwordMismatch" class="mt-1 d-none">
+                            <small class="text-danger">
+                                <i class="fas fa-times-circle"></i> Les mots de passe ne correspondent pas
+                            </small>
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label for="password2" class="form-label fw-semibold">Confirmer le mot de passe</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" name="password2" class="form-control" id="password2" placeholder="••••••••" required>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="termsCheck" name="terms_accepted" required>
+                        <label class="form-check-label" for="termsCheck">
+                            J'accepte les <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">conditions d'utilisation</a> et la <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">politique de confidentialité</a>
+                        </label>
+                        <div class="invalid-feedback">
+                            Vous devez accepter les conditions pour vous inscrire.
+                        </div>
                     </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 mt-3">
+                        <i class="fas fa-user-plus me-2" aria-hidden="true"></i> S'inscrire
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p>Déjà un compte ? <a href="{% url 'login' %}" class="text-primary fw-bold">Connectez-vous ici</a>.</p>
                 </div>
-
-                <button type="submit" class="btn btn-success w-100 mt-3">
-                    <i class="bi bi-person-check"></i> S'inscrire
-                </button>
-            </form>
-
-            <div class="mt-4 text-center">
-                <p>Déjà un compte ? <a href="{% url 'login' %}" class="text-primary fw-bold">Connectez-vous ici</a>.</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Conditions d'utilisation -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Conditions d'utilisation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Acceptation des conditions</h6>
+                <p>En utilisant cette application, vous acceptez d'être lié par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser l'application.</p>
+
+                <h6>2. Description du service</h6>
+                <p>Mon Application Agricole est un système de gestion agricole avec prédiction des rendements qui permet aux utilisateurs de gérer leurs projets agricoles.</p>
+
+                <h6>3. Inscription</h6>
+                <p>Pour utiliser certaines fonctionnalités de l'application, vous devez vous inscrire et fournir des informations précises et complètes.</p>
+
+                <h6>4. Confidentialité</h6>
+                <p>Votre utilisation de l'application est également régie par notre politique de confidentialité.</p>
+
+                <h6>5. Modifications des conditions</h6>
+                <p>Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications entrent en vigueur dès leur publication.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">J'ai compris</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Politique de confidentialité -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Politique de confidentialité</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Collecte d'informations</h6>
+                <p>Nous collectons des informations personnelles telles que votre nom, adresse e-mail et numéro de téléphone lors de l'inscription.</p>
+
+                <h6>2. Utilisation des informations</h6>
+                <p>Nous utilisons vos informations pour fournir et améliorer notre service, communiquer avec vous et personnaliser votre expérience.</p>
+
+                <h6>3. Protection des données</h6>
+                <p>Nous mettons en œuvre des mesures de sécurité pour protéger vos informations personnelles contre tout accès non autorisé.</p>
+
+                <h6>4. Partage d'informations</h6>
+                <p>Nous ne vendons pas vos informations personnelles à des tiers. Nous pouvons partager des informations avec des prestataires de services qui nous aident à exploiter notre application.</p>
+
+                <h6>5. Vos droits</h6>
+                <p>Vous avez le droit d'accéder, de corriger ou de supprimer vos informations personnelles.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">J'ai compris</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validation du formulaire
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // Vérification supplémentaire pour les mots de passe
+            const password1 = document.getElementById('password1');
+            const password2 = document.getElementById('password2');
+
+            if (password1.value !== password2.value) {
+                password2.setCustomValidity('Les mots de passe ne correspondent pas');
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                password2.setCustomValidity('');
+            }
+
+            form.classList.add('was-validated');
+        });
+
+        // Afficher/masquer les mots de passe
+        function setupPasswordToggle(toggleId, passwordId, eyeIconId) {
+            const toggle = document.getElementById(toggleId);
+            const password = document.getElementById(passwordId);
+            const eyeIcon = document.getElementById(eyeIconId);
+
+            toggle.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+
+                if (type === 'text') {
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                } else {
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
+                }
+            });
+        }
+
+        setupPasswordToggle('togglePassword1', 'password1', 'eyeIcon1');
+        setupPasswordToggle('togglePassword2', 'password2', 'eyeIcon2');
+
+        // Vérification de la correspondance des mots de passe en temps réel
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        const passwordMatch = document.getElementById('passwordMatch');
+        const passwordMismatch = document.getElementById('passwordMismatch');
+
+        function checkPasswordMatch() {
+            if (password2.value === '') {
+                passwordMatch.classList.add('d-none');
+                passwordMismatch.classList.add('d-none');
+                return;
+            }
+
+            if (password1.value === password2.value) {
+                passwordMatch.classList.remove('d-none');
+                passwordMismatch.classList.add('d-none');
+                password2.setCustomValidity('');
+            } else {
+                passwordMatch.classList.add('d-none');
+                passwordMismatch.classList.remove('d-none');
+                password2.setCustomValidity('Les mots de passe ne correspondent pas');
+            }
+        }
+
+        password1.addEventListener('input', checkPasswordMatch);
+        password2.addEventListener('input', checkPasswordMatch);
+
+        // Indicateur de force du mot de passe
+        const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+        const passwordStrengthText = document.getElementById('passwordStrengthText');
+
+        password1.addEventListener('input', function() {
+            const value = password1.value;
+            let strength = 0;
+
+            if (value.length >= 8) strength += 25;
+            if (value.match(/[a-z]+/)) strength += 25;
+            if (value.match(/[A-Z]+/)) strength += 25;
+            if (value.match(/[0-9]+/)) strength += 12.5;
+            if (value.match(/[^a-zA-Z0-9]+/)) strength += 12.5;
+
+            passwordStrengthBar.style.width = strength + '%';
+
+            if (strength < 30) {
+                passwordStrengthBar.className = 'progress-bar bg-danger';
+                passwordStrengthText.textContent = 'Mot de passe faible';
+                passwordStrengthText.className = 'form-text text-danger';
+            } else if (strength < 60) {
+                passwordStrengthBar.className = 'progress-bar bg-warning';
+                passwordStrengthText.textContent = 'Mot de passe moyen';
+                passwordStrengthText.className = 'form-text text-warning';
+            } else {
+                passwordStrengthBar.className = 'progress-bar bg-success';
+                passwordStrengthText.textContent = 'Mot de passe fort';
+                passwordStrengthText.className = 'form-text text-success';
+            }
+        });
+    });
+</script>
 {% endblock %}

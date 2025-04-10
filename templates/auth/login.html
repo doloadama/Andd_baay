@@ -1,41 +1,111 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 450px; width: 100%; background: rgba(255, 255, 255, 0.95);">
-        <div class="card-body">
-            <h2 class="card-title text-center fw-bold text-primary">🔑 Connexion</h2>
-            <p class="text-center text-muted">Accédez à votre compte en toute sécurité</p>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-lg animate__animated animate__fadeIn">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h2 class="card-title mb-0 fw-bold">
+                    <i class="fas fa-key me-2" aria-hidden="true"></i>Connexion
+                </h2>
+            </div>
+            <div class="card-body">
+                <p class="text-center text-muted mb-4">Accédez à votre compte en toute sécurité</p>
 
-            <form method="post" class="mt-3">
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label for="username" class="form-label fw-semibold">Nom d'utilisateur</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre nom" required>
-                    </div>
+                {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
+                    Nom d'utilisateur ou mot de passe incorrect. Veuillez réessayer.
                 </div>
+                {% endif %}
 
-                <div class="mb-3">
-                    <label for="password" class="form-label fw-semibold">Mot de passe</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">Nom d'utilisateur</label>
+                        <div class="input-group">
+                            <span class="input-group-text" aria-hidden="true">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" name="username" class="form-control" id="username"
+                                placeholder="Entrez votre nom d'utilisateur" required
+                                aria-describedby="usernameHelp">
+                            <div class="invalid-feedback">
+                                Veuillez saisir votre nom d'utilisateur.
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-semibold">Mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text" aria-hidden="true">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" name="password" class="form-control" id="password"
+                                placeholder="••••••••" required aria-describedby="passwordHelp">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword"
+                                aria-label="Afficher/masquer le mot de passe">
+                                <i class="fas fa-eye" id="eyeIcon" aria-hidden="true"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Veuillez saisir votre mot de passe.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+                        <label class="form-check-label" for="rememberMe">Se souvenir de moi</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
+                        <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i> Se connecter
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p>Pas encore de compte ? <a href="{% url 'register' %}" class="text-success fw-bold">Inscrivez-vous ici</a>.</p>
+                    <p><a href="{% url 'password_reset' %}" class="text-danger">
+                        <i class="fas fa-key-skeleton me-1" aria-hidden="true"></i>Mot de passe oublié ?
+                    </a></p>
                 </div>
-
-                <button type="submit" class="btn btn-primary w-100 mt-3">
-                    <i class="bi bi-box-arrow-in-right"></i> Se connecter
-                </button>
-            </form>
-
-            <div class="mt-4 text-center">
-                <p>Pas encore de compte ? <a href="{% url 'register' %}" class="text-success fw-bold">Inscrivez-vous ici</a>.</p>
-                <p><a href="{% url 'password_reset' %}" class="text-danger">Mot de passe oublié ?</a></p>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validation du formulaire
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Afficher/masquer le mot de passe
+        const togglePassword = document.getElementById('togglePassword');
+        const password = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+
+            // Changer l'icône
+            if (type === 'text') {
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -4,13 +4,20 @@
 <div class="container animate__animated animate__fadeIn">
     <h1 class="text-center mb-4">Créer un nouveau projet</h1>
 
-    <!-- Formulaire dans une carte -->
-    <div class="card shadow-lg animate__animated animate__fadeInUp">
-        <div class="card-header bg-primary text-white">
+    {% if messages %}
+        <div class="mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card shadow-sm rounded-lg border-0 animate__animated animate__fadeInUp">
+        <div class="card-header bg-primary text-white text-center">
             <h5 class="card-title mb-0"><i class="fas fa-plus-circle"></i> Nouveau projet</h5>
         </div>
         <div class="card-body">
-            <form method="post" novalidate>
+            <form method="post" novalidate autocomplete="off">
                 {% csrf_token %}
 
                 <!-- Section 1 : Informations de base -->
@@ -23,12 +30,14 @@
                         </h2>
                         <div id="collapseBasic" class="accordion-collapse collapse show" aria-labelledby="headingBasic" data-bs-parent="#accordionBasic">
                             <div class="accordion-body">
-                            <div class="form-group mb-3">
-                                    <label for="nom" class="form-label"><i class="fas fa-ruler-combined"></i> Nom du projet: </label>
+                                <div class="form-group mb-3">
+                                    <label for="nom" class="form-label"><i class="fas fa-ruler-combined"></i> Nom du projet:</label>
                                     {{ projet_form.nom }}
-                                    
+                                    {% if projet_form.nom.errors %}
+                                        <div class="text-danger">{{ projet_form.nom.errors }}</div>
+                                    {% endif %}
                                 </div>
-                                <!-- Champ pour sélectionner la localité -->
+
                                 <div class="form-group mb-3">
                                     <label for="localite" class="form-label"><i class="fas fa-map-marker-alt"></i> Localité :</label>
                                     {{ projet_form.localite }}
@@ -37,7 +46,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Champ pour sélectionner la culture -->
                                 <div class="form-group mb-3">
                                     <label for="culture" class="form-label"><i class="fas fa-seedling"></i> Culture :</label>
                                     {{ projet_form.culture }}
@@ -60,7 +68,6 @@
                         </h2>
                         <div id="collapseDetails" class="accordion-collapse collapse" aria-labelledby="headingDetails" data-bs-parent="#accordionDetails">
                             <div class="accordion-body">
-                                <!-- Champ pour la superficie -->
                                 <div class="form-group mb-3">
                                     <label for="superficie" class="form-label"><i class="fas fa-ruler-combined"></i> Superficie (en hectares) :</label>
                                     {{ projet_form.superficie }}
@@ -69,17 +76,20 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Champ pour la date de lancement -->
                                 <div class="form-group mb-3">
                                     <label for="date_lancement" class="form-label"><i class="fas fa-calendar-alt"></i> Date de lancement :</label>
-                                    <input type="date" name="date_lancement" class="form-control" id="date_lancement" required>
+                                    {{ projet_form.date_lancement }}
                                     {% if projet_form.date_lancement.errors %}
                                         <div class="text-danger">{{ projet_form.date_lancement.errors }}</div>
                                     {% endif %}
                                 </div>
 
-                                <!-- Champ pour le rendement estimé -->
-
+                                <div class="form-group mb-3">
+                                    <label for="rendement" class="form-label"><i class="fas fa-chart-line"></i> Rendement estimé (kg/ha) :</label>
+                                    {{ projet_form.rendement }}
+                                    {% if projet_form.rendement.errors %}
+                                        <div class="text-danger">{{ projet_form.rendement.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -96,7 +106,6 @@
                         </h2>
                         <div id="collapseStatus" class="accordion-collapse collapse" aria-labelledby="headingStatus" data-bs-parent="#accordionStatus">
                             <div class="accordion-body">
-                                <!-- Champ pour le statut -->
                                 <div class="form-group mb-3">
                                     <label for="statut" class="form-label"><i class="fas fa-tasks"></i> Statut :</label>
                                     {{ projet_form.statut }}
@@ -127,44 +136,58 @@
     }
     .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
+
     .btn-success {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .btn-success:hover {
         transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
     .form-control {
-        border-radius: 5px;
+        border-radius: 8px;
         border: 1px solid #ddd;
+        padding: 12px;
+        font-size: 16px;
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
+
     .form-control:focus {
         border-color: #006b1b;
         box-shadow: 0 0 5px rgba(0, 107, 27, 0.5);
     }
+
     .accordion-button {
         font-weight: bold;
+        font-size: 16px;
+        padding: 14px;
     }
+
     .accordion-button:not(.collapsed) {
         background-color: #f8f9fa;
         color: #006b1b;
+        border-color: #ddd;
     }
 
-    /* Responsive adjustments */
+    .accordion-body {
+        font-size: 14px;
+    }
+
     @media (max-width: 576px) {
         .card-header {
             text-align: center;
         }
+
         .accordion-button {
             font-size: 14px;
         }
+
         .form-control {
             font-size: 14px;
         }
     }
 </style>
-
 {% endblock %}

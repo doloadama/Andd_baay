@@ -1,16 +1,19 @@
 {% load static %}
 
-
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Système de gestion agricole avec prédiction des rendements.">
+    <meta name="theme-color" content="#006b1b">
+    <meta property="og:title" content="Mon Application Agricole">
+    <meta property="og:description" content="Système de gestion agricole avec prédiction des rendements.">
+    <meta property="og:type" content="website">
     <title>Mon Application Agricole</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'templates/images/image.jpg' %}">
+    <link rel="apple-touch-icon" href="{% static 'templates/images/image.jpg' %}">
 
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -20,15 +23,39 @@
 
     <!-- Custom Styles -->
     <style>
-        /* Styles globaux */
-        body {
-            background: url('{% static "templates/images/image.jpg" %}') center/cover no-repeat fixed;
-
-            font-family: 'Arial', sans-serif;
-            position: relative;
+        :root {
+            --primary-color: #006b1b;
+            --secondary-color: #004a12;
+            --light-bg: rgba(255, 255, 255, 0.9);
+            --dark-bg: rgba(0, 0, 0, 0.8);
+            --text-light: #e0e0e0;
+            --text-dark: #333333;
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 12px rgba(0, 0, 0, 0.2);
+            --transition-default: 0.3s ease;
         }
 
-        body::before {
+        /* Styles globaux */
+        body {
+            font-family: 'Arial', sans-serif;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-dark);
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('{% static "images/image.jpg" %}') center/cover no-repeat fixed;
+            z-index: -2;
+        }
+
+        .bg-overlay::after {
             content: '';
             position: absolute;
             inset: 0;
@@ -36,10 +63,23 @@
             z-index: -1;
         }
 
+        main {
+            flex: 1;
+            padding: 20px 0;
+        }
+
         /* Navigation */
         .navbar {
             margin-bottom: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: var(--dark-bg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-nav {
@@ -49,29 +89,30 @@
 
         .btn-nav:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-sm);
         }
 
         /* Conteneur principal */
-        .container {
+        .main-container {
             max-width: 960px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
+            background: var(--light-bg);
+            padding: 25px;
             border-radius: 10px;
-            margin-top: 20px;
-            color: #006b1b;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 20px auto;
+            color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-default), box-shadow var(--transition-default);
         }
 
-        .container:hover {
+        .main-container:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-lg);
         }
 
         /* Messages d'alerte */
         .alert {
             animation: fadeIn 0.5s ease;
+            margin-bottom: 20px;
         }
 
         @keyframes fadeIn {
@@ -79,34 +120,105 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
+        /* Footer */
+        footer {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            padding: 20px 0;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-links a {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            transition: color var(--transition-default);
+        }
+
+        .social-links a:hover {
+            color: #ffffff;
+        }
+
         /* Mode sombre */
-        @media (prefers-color-scheme: dark) {
-            body {
-                color: #e0e0e0;
+        .dark-mode {
+            --light-bg: rgba(33, 37, 41, 0.95);
+            --text-dark: var(--text-light);
+        }
+
+        .dark-mode .main-container {
+            background-color: var(--light-bg);
+            color: var(--text-light);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color var(--transition-default);
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 15px;
+                padding: 15px;
             }
 
-            .container {
-                background-color: rgba(0, 0, 0, 0.8);
-                color: #e0e0e0;
+            .btn-nav {
+                margin: 5px 0;
+                width: 100%;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --light-bg: rgba(33, 37, 41, 0.95);
+                --text-dark: var(--text-light);
             }
         }
     </style>
 </head>
 
-<body >
+<body>
+    <div class="bg-overlay" aria-hidden="true"></div>
 
     <!-- Barre de navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark animate__animated animate__fadeInDown">
+    <nav class="navbar navbar-expand-lg navbar-dark animate__animated animate__fadeInDown" aria-label="Navigation principale">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-seedling" aria-hidden="true"></i> Mon Application Agricole
+                <i class="fas fa-seedling" aria-hidden="true"></i>
+                <span>Mon Application Agricole</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
@@ -120,61 +232,119 @@
                         <span class="navbar-text me-3">Bienvenue, {{ user.username }} !</span>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}">
+                        <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}" aria-label="Créer un projet">
                             <i class="fas fa-plus" aria-hidden="true"></i> Créer un projet
                         </a>
                     </li>
-                        <li class="nav-item">
-                        <a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}">
-                            <i class="fas fa-list-1-2" aria-hidden="true"></i> Liste des projets
+                    <li class="nav-item">
+                        <a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}" aria-label="Liste des projets">
+                            <i class="fas fa-list" aria-hidden="true"></i> Liste des projets
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary btn-nav" href="{% url 'dashboard' %}">
+                        <a class="btn btn-primary btn-nav" href="{% url 'dashboard' %}" aria-label="Voir le dashboard">
                             <i class="fas fa-chart-bar" aria-hidden="true"></i> Voir le Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-danger btn-nav" href="{% url 'logout' %}">
-                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Déconnexion
+                        <a class="btn btn-danger btn-nav" href="{% url 'logout' %}" aria-label="Déconnexion">
+                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Déconnexion
                         </a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="btn btn-primary btn-nav" href="{% url 'login' %}">
+                        <a class="btn btn-primary btn-nav" href="{% url 'login' %}" aria-label="Connexion">
                             <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Connexion
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-success btn-nav" href="{% url 'register' %}">
+                        <a class="btn btn-success btn-nav" href="{% url 'register' %}" aria-label="Inscription">
                             <i class="fas fa-user-plus" aria-hidden="true"></i> Inscription
                         </a>
                     </li>
                     {% endif %}
+                    <li class="nav-item ms-2">
+                        <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                            <i class="fas fa-moon" id="darkIcon" aria-hidden="true"></i>
+                            <i class="fas fa-sun" id="lightIcon" style="display: none;" aria-hidden="true"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <!-- Contenu principal -->
-    <div class="container animate__animated animate__fadeInUp">
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-4" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-        </div>
-        {% endfor %}
-        {% endif %}
+    <main>
+        <div class="main-container animate__animated animate__fadeInUp">
+            {% if messages %}
+            <div class="messages" role="alert" aria-live="polite">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
-        {% block content %}
-        {% endblock %}
-    </div>
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <p>&copy; {% now "Y" %} Mon Application Agricole. Tous droits réservés.</p>
+                </div>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 
+    <!-- Theme Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const lightIcon = document.getElementById('lightIcon');
+            const body = document.body;
+
+            // Check for saved theme preference or use preferred color scheme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                body.classList.add('dark-mode');
+                darkIcon.style.display = 'none';
+                lightIcon.style.display = 'inline';
+            }
+
+            // Toggle theme
+            themeToggle.addEventListener('click', function() {
+                body.classList.toggle('dark-mode');
+
+                if (body.classList.contains('dark-mode')) {
+                    localStorage.setItem('theme', 'dark');
+                    darkIcon.style.display = 'none';
+                    lightIcon.style.display = 'inline';
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    darkIcon.style.display = 'inline';
+                    lightIcon.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
-
 </html>
