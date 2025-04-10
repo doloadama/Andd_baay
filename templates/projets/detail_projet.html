@@ -4,7 +4,7 @@
 <!-- Effet de parallaxe -->
 <div class="parallax">
     <div class="container animate__animated animate__fadeIn">
-        <h1 class="text-center mb-4 text-white">Détails du projet : {{ projet.nom }}</h1>
+        <h1 class="text-center mb-4 text-white typewriter">Détails du projet : {{ projet.nom }}</h1>
 
         <!-- Section supérieure : Informations générales -->
         <div class="card mb-4 shadow-sm animate__animated animate__fadeInUp">
@@ -24,19 +24,28 @@
                         <p><strong><i class="fas fa-calendar-alt"></i> Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}</p>
                     </div>
                     <div class="col-md-6">
-                        <h3>Prédiction de Rendement :</h3>
-                            {% if prediction %}
-                                <p>Rendement Estimé : {{ prediction.rendement_estime }} kg</p>
-                                <p>Date de Prédiction : {{ prediction.date_prediction }}</p>
-                            {% else %}
-                                <p>Aucune prédiction disponible pour ce projet.</p>
-                            {% endif %}
-                            {% if not prediction %}
-                                <form action="{% url 'generer_prediction' projet.id %}" method="post">
-                                    {% csrf_token %}
-                                    <button type="submit">Générer la Prédiction</button>
-                                </form>
-                            {% endif %}
+                        <!-- Prediction Section -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0"><i class="fas fa-chart-line"></i> Prédiction de Rendement</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if prediction %}
+                                    <p><strong>Rendement Estimé :</strong> {{ prediction.rendement_estime }} kg</p>
+                                    <p><strong>Date de Prédiction :</strong> {{ prediction.date_prediction }}</p>
+                                {% else %}
+                                    <p class="text-muted">Aucune prédiction disponible pour ce projet.</p>
+                                {% endif %}
+                                {% if not prediction %}
+                                    <form action="{% url 'generer_prediction' projet.id %}" method="post" class="mt-3">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-magic"></i> Générer la Prédiction
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
                         <p><strong><i class="fas fa-tasks"></i> Statut :</strong>
                             <span class="badge
                                 {% if projet.statut == 'En cours' %}bg-primary
@@ -76,7 +85,7 @@
                         <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt"></i> Localité : {{ projet.localite.nom }}</h5>
                     </div>
                     <div class="card-body">
-                        <div id="map" style="height: 300px; border-radius: 10px;"></div>
+                        <div id="map" style="height: 300px; border-radius: 10px; border: 1px solid #ddd;"></div>
                     </div>
                 </div>
             </div>
@@ -88,15 +97,28 @@
                         <h5 class="card-title mb-0"><i class="fas fa-coins"></i> Investissements</h5>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            {% for investissement in projet.investissement_set.all %}
-                            <li class="list-group-item">
-                                <strong><i class="fas fa-map-pin"></i> Détail :</strong> {{ investissement.description }}<br>
-                                <strong><i class="fas fa-money-bill-wave"></i> Coût par hectare :</strong> {{ investissement.cout_par_hectare }} FCFA<br>
-                                <strong><i class="fas fa-file-invoice-dollar"></i> Autres frais :</strong> {{ investissement.autres_frais }} FCFA
-                            </li>
-                            {% endfor %}
-                        </ul>
+                        {% if projet.investissement_set.all %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Détail</th>
+                                        <th>Coût par hectare (FCFA)</th>
+                                        <th>Autres frais (FCFA)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for investissement in projet.investissement_set.all %}
+                                        <tr>
+                                            <td>{{ investissement.description }}</td>
+                                            <td>{{ investissement.cout_par_hectare }}</td>
+                                            <td>{{ investissement.autres_frais }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">Aucun investissement enregistré pour ce projet.</p>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -141,7 +163,7 @@
 
     function loadMapScenario() {
         var map = new Microsoft.Maps.Map(document.getElementById('map'), {
-            credentials: '{{ BING_MAPS_API_KEY }}',  <!-- Clé API sécurisée -->
+            credentials: '{{ BING_MAPS_API_KEY }}',
             center: new Microsoft.Maps.Location(latitude, longitude),
             zoom: 13,
             mapTypeId: Microsoft.Maps.MapTypeId.aerial
@@ -170,16 +192,8 @@
 
 <!-- Script pour le graphique des investissements -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Vérifier si Chart.js est chargé
-        if (typeof Chart === 'undefined') {
-            console.error("Erreur : Chart.js n'est pas chargé !");
-            return;
-        }
-
-        // Récupération des données
         var investmentLabels = [
             {% for investissement in projet.investissement_set.all %}
                 "{{ investissement.description|escapejs }}",
@@ -192,59 +206,40 @@
             {% endfor %}
         ];
 
-        console.log("Investment Labels : ", investmentLabels);
-        console.log("Investment Data : ", investmentData);
-
-        // Vérifier si les données existent
-        if (investmentLabels.length === 0) {
-            console.warn("Aucun investissement trouvé.");
-            return;
-        }
-
-        // Réinitialiser le canvas pour éviter les doublons
-        var canvas = document.getElementById('investmentChart');
-        if (canvas) {
-            canvas.remove();
-            var newCanvas = document.createElement('canvas');
-            newCanvas.id = 'investmentChart';
-            document.querySelector('.card-body').appendChild(newCanvas);
-        }
-
-        // Initialiser le graphique
-        var ctx = document.getElementById('investmentChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: investmentLabels,
-                datasets: [{
-                    label: 'Coût par hectare (FCFA)',
-                    data: investmentData,
-                    backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
-                    borderColor: ['#FF5733', '#33FF57', '#3357FF'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Répartition des investissements'
-                    }
+        if (investmentLabels.length > 0) {
+            var ctx = document.getElementById('investmentChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: investmentLabels,
+                    datasets: [{
+                        label: 'Coût par hectare (FCFA)',
+                        data: investmentData,
+                        backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
+                        borderColor: ['#FF5733', '#33FF57', '#3357FF'],
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Répartition des investissements'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
 
-
 <!-- Effets de style supplémentaires -->
 <style>
-    /* Effet de parallaxe */
     .parallax {
         background-image: url('{% static "baay/../images/image.jpg" %}');
         background-size: cover;
@@ -293,75 +288,4 @@
         }
     }
 </style>
-
-<!-- Défilement fluide pour les liens -->
-<script>
-    $(document).ready(function() {
-        $("a[href^='#']").on('click', function(event) {
-            var target = $(this.getAttribute('href'));
-            if (target.length) {
-                event.preventDefault();
-                $('html, body').stop().animate({
-                    scrollTop: target.offset().top
-                }, 1000);
-            }
-        });
-    });
-</script>
-
-<!-- Animation des éléments au défilement -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        let elements = document.querySelectorAll(".animate__animated");
-        let observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add("animate__fadeIn");
-                }
-            });
-        }, { threshold: 0.3 });
-
-        elements.forEach(el => observer.observe(el));
-    });
-</script>
-    <!-- Script pour le tooltip -->
-<script>
-    $(document).ready(function() {
-        // Initialiser les tooltips Bootstrap
-        $('[data-toggle="tooltip"]').tooltip();
-
-        // Gérer le clic sur le nom du produit agricole
-        $('.produit-agricole-tooltip').on('click', function(e) {
-            e.preventDefault(); // Empêcher le comportement par défaut du lien
-
-            var produitId = $(this).data('produit-id'); // Récupérer l'ID du produit agricole
-            var tooltipElement = $(this); // Élément sur lequel le tooltip sera affiché
-
-            // Requête AJAX pour récupérer les informations du produit agricole
-            $.ajax({
-                url: '{% url "get_produit_agricole_details" %}',  // URL de la vue Django
-                type: 'GET',
-                data: {
-                    'produit_id': produitId
-                },
-                success: function(response) {
-                    // Mettre à jour le contenu du tooltip avec les informations reçues
-                    tooltipElement.attr('title', response.details);
-                    tooltipElement.tooltip('dispose').tooltip({
-                        html: true,
-                        placement: 'right'
-                    }).tooltip('show');
-                },
-                error: function() {
-                    tooltipElement.attr('title', 'Erreur lors du chargement des informations.');
-                    tooltipElement.tooltip('dispose').tooltip({
-                        html: true,
-                        placement: 'right'
-                    }).tooltip('show');
-                }
-            });
-        });
-    });
-</script>
-
 {% endblock %}

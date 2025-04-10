@@ -25,6 +25,6 @@ urlpatterns = [
     path('projet/<uuid:projet_id>/generer_prediction/', views.generer_prediction, name='generer_prediction'),
     path('projet/<uuid:projet_id>/supprimer/', supprimer_projet, name='supprimer_projet'),
     path('projets/supprimer/', views.supprimer_projets, name='supprimer_projets'),
-
+    path('dashboard/', views.dashboard, name='dashboard'),
 
 ]
