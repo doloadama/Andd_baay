@@ -96,3 +96,18 @@ class PredictionRendement(models.Model):
 
     def __str__(self):
         return f"Prédiction pour {self.projet.nom}"
+
+class DonneePrediction(models.Model):
+    projet = models.ForeignKey('Projet', on_delete=models.CASCADE, related_name='donnees_prediction', null=True, blank=True)
+    superficie = models.DecimalField(max_digits=10, decimal_places=2)
+    prix_par_kg = models.DecimalField(max_digits=10, decimal_places=2)
+    duree_avant_recolte = models.IntegerField()
+    type_sol = models.CharField(max_length=100)
+    conditions_meteo = models.CharField(max_length=100)
+    investissement_total = models.DecimalField(max_digits=12, decimal_places=2)
+    rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Donnée prédiction pour {self.projet.nom}"

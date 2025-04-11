@@ -13,7 +13,7 @@ from django.urls import reverse_lazy
 from sklearn.metrics import r2_score, mean_absolute_error
 import numpy as np
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
-from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement
+from baay.models import DonneePrediction, Profile, Projet, ProduitAgricole, PredictionRendement
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
@@ -185,26 +185,25 @@ def liste_projets(request):
     projets = paginator.get_page(page_number)
     return render(request, 'projets/liste_projets.html', {'projets': projets})
 
+
+# Exemple de vue Django
+from django.contrib.auth.decorators import login_required
+
 @login_required
 def dashboard(request):
-    projets_user = Projet.objects.filter(utilisateur=request.user.profile)
+    utilisateur = request.user.profile  # Assure-toi que le profil est bien lié via OneToOneField
+    projets = Projet.objects.filter(utilisateur=utilisateur)
 
-    superficie_totale = projets_user.aggregate(Sum('superficie'))['superficie__sum'] or 0
+    superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
+    rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
 
-    rendement_total = PredictionRendement.objects.filter(projet__in=projets_user).aggregate(
-        Sum('rendement_estime')
-    )['rendement_estime__sum'] or 0
-
-    rendements = PredictionRendement.objects.filter(projet__in=projets_user)
-
-    cultures = ProduitAgricole.objects.filter(id__in=projets_user.values_list('culture', flat=True))
-
-    return render(request, 'projets/dashboard.html', {
+    context = {
+        'projets': projets,
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
-        'rendements': rendements,
-        'cultures': cultures,
-    })
+    }
+    return render(request, 'projets/dashboard.html', context)
+
 
 def get_produit_agricole_details(request):
     produit_id = request.GET.get('produit_id')
@@ -227,7 +226,8 @@ def collect_training_data():
 
     for projet in projets:
         investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
-        data.append({
+        donnee = {
+            'projet': projet,
             'superficie': float(projet.superficie),
             'prix_par_kg': float(projet.culture.prix_par_kg or 0),
             'duree_avant_recolte': projet.culture.duree_avant_recolte or 0,
@@ -235,10 +235,16 @@ def collect_training_data():
             'conditions_meteo': projet.localite.conditions_meteo,
             'investissement_total': float(investissement_total),
             'rendement_estime': float(projet.rendement_estime or 0),
-        })
+        }
 
+        # Enregistrer dans la base
+        DonneePrediction.objects.update_or_create(
+            projet=projet,
+            defaults=donnee
+        )
+
+        data.append({k: v for k, v in donnee.items() if k != 'projet'})
     df = pd.DataFrame(data)
-    logger.debug(f"Training data: {df.head()}")
     return df
 
 def entrainer_modele():
