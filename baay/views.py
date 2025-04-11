@@ -20,6 +20,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 import pickle
 from django.db.models import Sum
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+
+
+MODEL_PATH = 'modele_rendement.pkl'
+
+# Global model cache
+_model_cache = None
+
 
 # Vue pour la page d'accueil
 def home_view(request):
@@ -237,21 +246,20 @@ def collect_training_data():
             'rendement_estime': float(projet.rendement_estime or 0),
         }
 
-        # Enregistrer dans la base
         DonneePrediction.objects.update_or_create(
             projet=projet,
             defaults=donnee
         )
 
         data.append({k: v for k, v in donnee.items() if k != 'projet'})
-    df = pd.DataFrame(data)
-    return df
+
+    return pd.DataFrame(data)
 
 def entrainer_modele():
     df = collect_training_data()
 
     if df.empty:
-        logger.error("No data available for training!")
+        logger.error("Aucune donnée disponible pour l'entraînement.")
         return None
 
     df = pd.get_dummies(df, columns=['type_sol', 'conditions_meteo'], drop_first=True)
@@ -265,26 +273,34 @@ def entrainer_modele():
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
-    logger.info(f"Model RMSE: {mean_squared_error(y_test, y_pred, squared=False)}")
+    rmse = mean_squared_error(y_test, y_pred, squared=False)
+    logger.info(f"Model RMSE: {rmse:.2f}")
 
-    with open('modele_rendement.pkl', 'wb') as f:
+    with open(MODEL_PATH, 'wb') as f:
         pickle.dump(model, f)
 
-    logger.info("Model saved successfully.")
+    logger.info("Modèle sauvegardé avec succès.")
     return model
 
+def charger_modele():
+    global _model_cache
+    if _model_cache is None:
+        try:
+            with open(MODEL_PATH, 'rb') as f:
+                _model_cache = pickle.load(f)
+                logger.debug("Modèle chargé en mémoire.")
+        except Exception as e:
+            logger.error(f"Erreur lors du chargement du modèle : {e}")
+            _model_cache = None
+    return _model_cache
+
 def predire_rendement(projet):
-    try:
-        with open('modele_rendement.pkl', 'rb') as f:
-            model = pickle.load(f)
-            logger.debug("Model loaded successfully.")
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement du modèle : {e}")
+    model = charger_modele()
+    if model is None:
         return 0
 
-    investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
-
     try:
+        investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
         data = {
             'superficie': float(projet.superficie),
             'prix_par_kg': float(projet.culture.prix_par_kg or 0),
@@ -292,26 +308,25 @@ def predire_rendement(projet):
             'investissement_total': float(investissement_total),
         }
 
-        # Ajouter les données catégorielles
-        sol = f"type_sol_{projet.localite.type_sol}"
-        meteo = f"conditions_meteo_{projet.localite.conditions_meteo}"
-
-        # Charger un DataFrame vide avec les colonnes d'entraînement
-        with open('modele_rendement.pkl', 'rb') as f:
-            model = pickle.load(f)
-
+        # Charger les colonnes du modèle
         columns = model.feature_names_in_
-        input_data = pd.DataFrame([data], columns=[col for col in data.keys() if col in columns])
+        input_data = pd.DataFrame([data])
 
         # Ajouter les colonnes fictives manquantes
         for col in columns:
             if col not in input_data.columns:
                 input_data[col] = 0
 
+        # Gérer les colonnes catégorielles (dummy variables)
+        sol = f"type_sol_{projet.localite.type_sol}"
+        meteo = f"conditions_meteo_{projet.localite.conditions_meteo}"
         if sol in columns:
             input_data[sol] = 1
         if meteo in columns:
             input_data[meteo] = 1
+
+        # Réordonner les colonnes
+        input_data = input_data[columns]
 
         prediction = model.predict(input_data)[0]
         return prediction
@@ -320,16 +335,13 @@ def predire_rendement(projet):
         logger.error(f"Erreur pendant la prédiction : {e}")
         return 0
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
 @receiver(post_save, sender=Projet)
 def creer_prediction_rendement(sender, instance, created, **kwargs):
     if created:
-        logger.debug(f"Signal triggered for project {instance.id}")
+        logger.debug(f"Signal déclenché pour le projet {instance.id}")
         rendement_pred = predire_rendement(instance)
         PredictionRendement.objects.create(projet=instance, rendement_estime=rendement_pred)
-        
+
 @login_required
 def generer_prediction(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
