@@ -15,7 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATIC_URL = '/static/'
+STATIC_URL = 'baay/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'baay/static',
@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-51*3o!q=pag5959-3!glvv_v##c-pbk!sj+w0sc()=2ci9&6*7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['andd-baay.onrender.com']
+ALLOWED_HOSTS = ['andd-baay.onrender.com', "localhost"]
 
 
 INSTALLED_APPS = [
