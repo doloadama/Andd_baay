@@ -12,8 +12,8 @@
     <title>Mon Application Agricole</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{% staticfiles 'images/image1.jpg' %}">
-    <link rel="apple-touch-icon" href="{% staticfiles 'images/image1.jpg' %}" alt="Images">
+    <link rel="icon" type="image/png" href="{% static 'images/image1.jpg' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/image1.jpg' %}" alt="Images">
 
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -57,7 +57,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('{% staticfiles "images/image.jpg" %}') center/cover no-repeat fixed;
+            background: url('{% static "images/image.jpg" %}') center/cover no-repeat fixed;
             z-index: -2;
         }
 
