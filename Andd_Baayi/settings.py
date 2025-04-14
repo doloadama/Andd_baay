@@ -60,6 +60,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8501"
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://andd-baay.onrender.com"
+]
+
 ROOT_URLCONF = 'Andd_Baayi.urls'
 
 TEMPLATES = [
