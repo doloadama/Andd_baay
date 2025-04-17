@@ -8,6 +8,11 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+    env_file:
+      - .env  # charge les variables d’environnement automatiquement
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
