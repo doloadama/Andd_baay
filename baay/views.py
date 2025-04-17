@@ -103,6 +103,8 @@ def ask_chatbot(request):
 
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+
+
 @login_required
 def creer_projet(request):
     if request.method == 'POST':
