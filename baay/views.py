@@ -12,7 +12,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
 import os
-import google.generativeai as genai
+from google import genai
 from sklearn.metrics import r2_score, mean_absolute_error
 import numpy as np
 from Andd_Baayi import settings
