@@ -16,7 +16,6 @@ from dotenv import load_dotenv
 # Charger les variables du fichier .env
 load_dotenv()
 
-# Clé d’API Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 
