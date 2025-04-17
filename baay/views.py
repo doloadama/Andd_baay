@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.contrib.auth.decorators import login_required
@@ -14,6 +15,7 @@ import os
 import google.generativeai as genai
 from sklearn.metrics import r2_score, mean_absolute_error
 import numpy as np
+from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
 from baay.models  import Profile, Projet, ProduitAgricole, PredictionRendement
 import pandas as pd
@@ -79,18 +81,28 @@ class CustomPasswordResetView(PasswordResetView):
 
 
 # Configure l'API
-genai.configure(api_key=os.getenv("AIzaSyB_yUyl7LoSr0Ih8rVbgEh2ZyhjL7BwjT0"))
+
+# Créer le client Gemini avec la clé depuis settings
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 @csrf_exempt
 def ask_chatbot(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        user_message = data.get("message", "")
-        model = genai.GenerativeModel("gemini-pro")
-        response = model.generate_content(user_message)
-        return JsonResponse({"response": response.text})
+        try:
+            data = json.loads(request.body)
+            prompt = data.get('message', '')
 
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
 
+            return JsonResponse({'response': response.text})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @login_required
 def creer_projet(request):

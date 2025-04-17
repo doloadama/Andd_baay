@@ -283,25 +283,26 @@
 
     <!-- Contenu principal -->
     <main>
-                <h2>Assistant Agricole Intelligent 🌿</h2>
-        <textarea id="user-input"></textarea>
+                <!-- chatbot.html -->
+        <h3>Assistant agricole 🤖</h3>
+        <textarea id="message"></textarea>
         <button onclick="sendMessage()">Envoyer</button>
-        <div id="chat-response"></div>
+        <div id="response"></div>
 
         <script>
         function sendMessage() {
-            const message = document.getElementById("user-input").value;
             fetch("/api/chatbot/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: message }),
+                body: JSON.stringify({ message: document.getElementById("message").value }),
             })
             .then(res => res.json())
             .then(data => {
-                document.getElementById("chat-response").innerText = data.response;
+                document.getElementById("response").innerText = data.response || data.error;
             });
-            }
+        }
         </script>
+
         <div class="main-container animate__animated animate__fadeInUp">
             {% if messages %}
             <div class="messages" role="alert" aria-live="polite">
