@@ -6,10 +6,12 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
-
+import os
+import google.generativeai as genai
 from sklearn.metrics import r2_score, mean_absolute_error
 import numpy as np
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
@@ -74,6 +76,20 @@ class CustomPasswordResetView(PasswordResetView):
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
+
+
+# Configure l'API
+genai.configure(api_key=os.getenv("AIzaSyB_yUyl7LoSr0Ih8rVbgEh2ZyhjL7BwjT0"))
+
+@csrf_exempt
+def ask_chatbot(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_message = data.get("message", "")
+        model = genai.GenerativeModel("gemini-pro")
+        response = model.generate_content(user_message)
+        return JsonResponse({"response": response.text})
+
 
 
 @login_required
