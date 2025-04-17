@@ -1,21 +1,24 @@
-# Utilise une image Python officielle
-FROM python:3.13-alpine
+# Use a Debian-based Python image
+FROM python:3.13-slim
 
-# Définir le répertoire de travail
+# Set the working directory
 WORKDIR /app
 
-# Copier les fichiers de ton projet
+# Install system dependencies
+RUN apt-get update && apt-get install -y gcc g++ libffi-dev
+
+# Copy the project files
 COPY . /app
 
-# Installer les dépendances
+# Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Collecte des fichiers statiques (si tu en as)
+# Collect static files (if applicable)
 RUN python manage.py collectstatic --noinput
 
-# Exposer le port
+# Expose the port
 EXPOSE 8000
 
-# Lancer le serveur
+# Run the server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
