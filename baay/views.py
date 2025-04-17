@@ -80,7 +80,6 @@ class CustomPasswordResetView(PasswordResetView):
     success_url = reverse_lazy('password_reset_done')
 
 
-# Configure l'API
 
 # Créer le client Gemini avec la clé depuis settings
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
