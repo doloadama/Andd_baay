@@ -1,5 +1,6 @@
 {% load static %}
 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -20,12 +21,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.querySelector('.theme-toggle')?.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-        });
-    </script>
 
     <!-- Custom Styles -->
     <style>
@@ -41,7 +36,6 @@
             --transition-default: 0.3s ease;
         }
 
-        /* Styles globaux */
         body {
             font-family: 'Arial', sans-serif;
             position: relative;
@@ -74,7 +68,6 @@
             padding: 20px 0;
         }
 
-        /* Navigation */
         .navbar {
             margin-bottom: 20px;
             background-color: var(--dark-bg);
@@ -98,7 +91,6 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Conteneur principal */
         .main-container {
             max-width: 960px;
             background: var(--light-bg);
@@ -115,7 +107,6 @@
             box-shadow: var(--shadow-lg);
         }
 
-        /* Messages d'alerte */
         .alert {
             animation: fadeIn 0.5s ease;
             margin-bottom: 20px;
@@ -132,7 +123,6 @@
             }
         }
 
-        /* Footer */
         footer {
             background-color: var(--dark-bg);
             color: var(--text-light);
@@ -163,7 +153,6 @@
             color: #ffffff;
         }
 
-        /* Mode sombre */
         .dark-mode {
             --light-bg: rgba(33, 37, 41, 0.95);
             --text-dark: var(--text-light);
@@ -189,7 +178,6 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .main-container {
                 margin: 15px;
@@ -220,15 +208,13 @@
     <div class="bg-overlay" aria-hidden="true"></div>
 
     <!-- Barre de navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark animate__animated animate__fadeInDown" aria-label="Navigation principale">
+    <nav class="navbar navbar-expand-lg navbar-dark animate__animated animate__fadeInDown">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-seedling animate__animated animate__bounceIn" aria-hidden="true"></i>
-
+                <i class="fas fa-seedling animate__animated animate__bounceIn"></i>
                 <span>Mon Application Agricole</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -239,43 +225,22 @@
                         <span class="navbar-text me-3">Bienvenue, {{ user.username }} !</span>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}" aria-label="Créer un projet">
-                            <i class="fas fa-plus" aria-hidden="true"></i> Créer un projet
-                        </a>
+                        <a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}">Créer un projet</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}" aria-label="Liste des projets">
-                            <i class="fas fa-list" aria-hidden="true"></i> Liste des projets
-                        </a>
+                        <a class="btn btn-primary btn-nav" href="{% url 'dashboard' %}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary btn-nav" href="{% url 'dashboard' %}" aria-label="Voir le dashboard">
-                            <i class="fas fa-chart-bar" aria-hidden="true"></i> Voir le Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-danger btn-nav" href="{% url 'logout' %}" aria-label="Déconnexion">
-                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Déconnexion
-                        </a>
+                        <a class="btn btn-danger btn-nav" href="{% url 'logout' %}">Déconnexion</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="btn btn-primary btn-nav" href="{% url 'login' %}" aria-label="Connexion">
-                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Connexion
-                        </a>
+                        <a class="btn btn-primary btn-nav" href="{% url 'login' %}">Connexion</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-success btn-nav" href="{% url 'register' %}" aria-label="Inscription">
-                            <i class="fas fa-user-plus" aria-hidden="true"></i> Inscription
-                        </a>
+                        <a class="btn btn-success btn-nav" href="{% url 'register' %}">Inscription</a>
                     </li>
                     {% endif %}
-                    <li class="nav-item ms-2">
-                        <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
-                            <i class="fas fa-moon" id="darkIcon" aria-hidden="true"></i>
-                            <i class="fas fa-sun" id="lightIcon" style="display: none;" aria-hidden="true"></i>
-                        </button>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -283,33 +248,13 @@
 
     <!-- Contenu principal -->
     <main>
-                <!-- chatbot.html -->
-        <h3>Assistant agricole 🤖</h3>
-        <textarea id="message"></textarea>
-        <button onclick="sendMessage()">Envoyer</button>
-        <div id="response"></div>
-
-        <script>
-        function sendMessage() {
-            fetch("/api/chatbot/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: document.getElementById("message").value }),
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("response").innerText = data.response || data.error;
-            });
-        }
-        </script>
-
         <div class="main-container animate__animated animate__fadeInUp">
             {% if messages %}
             <div class="messages" role="alert" aria-live="polite">
                 {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 {% endfor %}
             </div>
@@ -328,10 +273,10 @@
                     <p>&copy; {% now "Y" %} Mon Application Agricole. Tous droits réservés.</p>
                 </div>
                 <div class="social-links">
-                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook" aria-hidden="true"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin" aria-hidden="true"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
                 </div>
             </div>
         </div>
@@ -345,31 +290,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const themeToggle = document.getElementById('themeToggle');
-            const darkIcon = document.getElementById('darkIcon');
-            const lightIcon = document.getElementById('lightIcon');
             const body = document.body;
 
-            // Check for saved theme preference or use preferred color scheme
             const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            if (savedTheme === 'dark') {
                 body.classList.add('dark-mode');
-                darkIcon.style.display = 'none';
-                lightIcon.style.display = 'inline';
             }
 
-            // Toggle theme
             themeToggle.addEventListener('click', function() {
                 body.classList.toggle('dark-mode');
-
-                if (body.classList.contains('dark-mode')) {
-                    localStorage.setItem('theme', 'dark');
-                    darkIcon.style.display = 'none';
-                    lightIcon.style.display = 'inline';
-                } else {
-                    localStorage.setItem('theme', 'light');
-                    darkIcon.style.display = 'inline';
-                    lightIcon.style.display = 'none';
-                }
+                localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
             });
         });
     </script>
