@@ -24,11 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static"
-]
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 # Quick-start development settings - unsuitable for production
@@ -66,7 +65,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Middleware pour servir les fichiers statiques
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8501"
@@ -153,7 +155,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -180,15 +181,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Exemple pour Gmail
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'adamadolo30@gmail.com'  # Votre adresse email
-EMAIL_HOST_PASSWORD = 'ExtraREvange321@;'  # Votre mot de passe ou mot de passe d'application
-DEFAULT_FROM_EMAIL = 'adamadolo30@gmail.com'  # Adresse email par défaut
+EMAIL_HOST_USER = 'test@gmail.com'  # Votre adresse email
+EMAIL_HOST_PASSWORD = 'test'  # Votre mot de passe ou mot de passe d'application
+DEFAULT_FROM_EMAIL = 'test1gmail.com'  # Adresse email par défaut
 
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'baay/static'),
-]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/media')

@@ -14,11 +14,11 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Collect static files (if applicable)
+# Collect static files
 RUN python manage.py collectstatic --noinput
 
 # Expose the port
 EXPOSE 8000
 
 # Run the server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "Anndd_Baayi.wsgi:application", "--bind", "0.0.0.0:8000"]
