@@ -39,7 +39,7 @@ SECRET_KEY = 'django-insecure-51*3o!q=pag5959-3!glvv_v##c-pbk!sj+w0sc()=2ci9&6*7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['andd-baay.onrender.com', 'localhost', ]
+ALLOWED_HOSTS = ['andd-baay.onrender.com', 'localhost', '*']
 
 
 INSTALLED_APPS = [
@@ -102,23 +102,25 @@ WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.getenv('ENV') == 'production':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'andd_baay'),
+            'USER': os.getenv('DB_USER', 'andd_baay_user'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'c19GE0cR6OiHLz0ACCAvgyKwndNVcTS9'),
+            'HOST': os.getenv('DB_HOST', 'dpg-d055inbe5dus738uk7t0-a'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
-"""DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'BAYY',
-        'USER': 'Dolo',
-        'PASSWORD': 'toto',
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-}"""
 
 
 # Password validation
