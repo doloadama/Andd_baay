@@ -158,36 +158,28 @@
 
 <!-- Script pour la carte Bing Maps -->
 <script>
-    var latitude = {{ projet.localite.latitude }};
-    var longitude = {{ projet.localite.longitude }};
+    document.addEventListener("DOMContentLoaded", function () {
+        // Coordonnées de la localité
+        var latitude = {{ projet.localite.latitude }};
+        var longitude = {{ projet.localite.longitude }};
 
-    function loadMapScenario() {
-        var map = new Microsoft.Maps.Map(document.getElementById('map'), {
-            credentials: '{{ BING_MAPS_API_KEY }}',
-            center: new Microsoft.Maps.Location(latitude, longitude),
-            zoom: 13,
-            mapTypeId: Microsoft.Maps.MapTypeId.aerial
-        });
+        // Initialiser la carte
+        var map = L.map('map').setView([latitude, longitude], 13);
 
-        var pushpin = new Microsoft.Maps.Pushpin(map.getCenter(), {
-            title: '{{ projet.localite.nom }}',
-            color: 'green'
-        });
-        map.entities.push(pushpin);
+        // Ajouter les tuiles OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-        var infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
-            title: 'Localité',
-            description: '{{ projet.localite.nom }}<br>Superficie : {{ projet.superficie }} ha'
-        });
-        infobox.setMap(map);
-        infobox.setOptions({ visible: false });
+        // Ajouter un marqueur pour la localité
+        var marker = L.marker([latitude, longitude]).addTo(map);
 
-        pushpin.addEventListener('click', function() {
-            infobox.setOptions({ visible: true });
-            $(infobox.getHtmlElement()).hide().fadeIn(500);
+        // Ajouter une infobulle au marqueur
+        marker.bindPopup("<b>{{ projet.localite.nom }}</b><br>Superficie : {{ projet.superficie }} ha").openPopup();
         });
-    }
+    </script>
 </script>
+
 <script src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
 
 <!-- Script pour le graphique des investissements -->
