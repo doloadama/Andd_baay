@@ -39,7 +39,7 @@ SECRET_KEY = 'django-insecure-51*3o!q=pag5959-3!glvv_v##c-pbk!sj+w0sc()=2ci9&6*7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['andd-baay.onrender.com']
+ALLOWED_HOSTS = ['andd-baay.onrender.com', 'localhost', ]
 
 
 INSTALLED_APPS = [
