@@ -7,12 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Système de gestion agricole intelligent avec prédiction des rendements et assistant IA." />
     <meta name="theme-color" content="#006b1b" />
-    <meta property="og:title" content="Mon Application Agricole" />
+    <meta property="og:title" content="Mon Application Agricole"/>
     <meta property="og:description" content="Plateforme innovante pour les agriculteurs." />
     <meta property="og:type" content="website" />
 
     <title>Mon Application Agricole</title>
 
+ 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'images/logo.jpg' %}" />
     <link rel="apple-touch-icon" href="{% static 'images/logo.jpg' %}" />
@@ -28,7 +29,7 @@
         :root {
             --primary-color: #006b1b;
             --secondary-color: #004a12;
-            --light-bg: rgba(255, 255, 255, 0.9);
+            --light-bg: transparent;
             --dark-bg: rgba(0, 0, 0, 0.8);
             --text-light: #e0e0e0;
             --text-dark: #333333;
@@ -44,7 +45,7 @@
             display: flex;
             flex-direction: column;
             color: var(--text-dark);
-            background-image: url('{% static "images/image.jpg" %}');
+    
         }
 
         .bg-overlay {
