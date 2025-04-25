@@ -32,18 +32,17 @@
                             <div class="card-body">
                                 {% if prediction %}
                                     <p><strong>Rendement Estimé :</strong> {{ prediction.rendement_estime }} kg</p>
-                                    <p><strong>Date de Prédiction :</strong> {{ prediction.date_prediction }}</p>
+                                    <p><strong>Date de Prédiction :</strong> {{ prediction.date_prediction|date:"d/m/Y H:i" }}</p>
+                                    <p class="text-muted"><i class="fas fa-info-circle"></i> Cette prédiction est basée sur les données actuelles du projet.</p>
                                 {% else %}
-                                    <p class="text-muted">Aucune prédiction disponible pour ce projet.</p>
+                                    <p class="text-muted">Aucune prédiction disponible pour ce projet. Vous pouvez générer une prédiction en cliquant sur le bouton ci-dessous.</p>
                                 {% endif %}
-                                {% if not prediction %}
-                                    <form action="{% url 'generer_prediction' projet.id %}" method="post" class="mt-3">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-magic"></i> Générer la Prédiction
-                                        </button>
-                                    </form>
-                                {% endif %}
+                                <form action="{% url 'generer_prediction' projet.id %}" method="post" class="mt-3">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-magic"></i> {% if prediction %}Mettre à jour la Prédiction{% else %}Générer la Prédiction{% endif %}
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         <p><strong><i class="fas fa-tasks"></i> Statut :</strong>

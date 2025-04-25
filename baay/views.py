@@ -20,7 +20,7 @@ from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
 from baay.models  import Profile, Projet, ProduitAgricole, PredictionRendement
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.metrics import mean_squared_error
 import pickle
 from django.db.models import Sum
@@ -256,17 +256,17 @@ def collect_training_data():
     for projet in projets:
         investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
         data.append({
-            'superficie': float(projet.superficie),
+            'superficie': float(projet.superficie or 0),
             'prix_par_kg': float(projet.culture.prix_par_kg or 0),
             'duree_avant_recolte': projet.culture.duree_avant_recolte or 0,
-            'type_sol': projet.localite.type_sol,
-            'conditions_meteo': projet.localite.conditions_meteo,
+            'type_sol': projet.localite.type_sol or 'unknown',
+            'conditions_meteo': projet.localite.conditions_meteo or 'unknown',
             'investissement_total': float(investissement_total),
             'rendement_estime': float(projet.rendement_estime or 0),
         })
 
     df = pd.DataFrame(data)
-    logger.debug(f"Training data: {df.head()}")
+    logger.debug(f"Training data collected: {df.head()}")
     return df
 
 def entrainer_modele():
@@ -283,17 +283,24 @@ def entrainer_modele():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    param_grid = {
+        'n_estimators': [50, 100, 200],
+        'max_depth': [None, 10, 20, 30],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4],
+    }
+
+    model = RandomizedSearchCV(RandomForestRegressor(random_state=42), param_grid, n_iter=10, cv=3, random_state=42)
     model.fit(X_train, y_train)
 
-    y_pred = model.predict(X_test)
+    y_pred = model.best_estimator_.predict(X_test)
     logger.info(f"Model RMSE: {mean_squared_error(y_test, y_pred, squared=False)}")
 
     with open('modele_rendement.pkl', 'wb') as f:
-        pickle.dump(model, f)
+        pickle.dump(model.best_estimator_, f)
 
-    logger.info("Model saved successfully.")
-    return model
+    logger.info("Optimized model saved successfully.")
+    return model.best_estimator_
 
 def predire_rendement(projet):
     try:
@@ -301,34 +308,24 @@ def predire_rendement(projet):
             model = pickle.load(f)
             logger.debug("Model loaded successfully.")
     except Exception as e:
-        logger.error(f"Erreur lors du chargement du modèle : {e}")
+        logger.error(f"Error loading model: {e}")
         return 0
 
     investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
 
     try:
         data = {
-            'superficie': float(projet.superficie),
+            'superficie': float(projet.superficie or 0),
             'prix_par_kg': float(projet.culture.prix_par_kg or 0),
             'duree_avant_recolte': projet.culture.duree_avant_recolte or 0,
             'investissement_total': float(investissement_total),
         }
 
-        # Ajouter les données catégorielles
-        sol = f"type_sol_{projet.localite.type_sol}"
-        meteo = f"conditions_meteo_{projet.localite.conditions_meteo}"
-
-        # Charger un DataFrame vide avec les colonnes d'entraînement
-        with open('modele_rendement.pkl', 'rb') as f:
-            model = pickle.load(f)
+        sol = f"type_sol_{projet.localite.type_sol or 'unknown'}"
+        meteo = f"conditions_meteo_{projet.localite.conditions_meteo or 'unknown'}"
 
         columns = model.feature_names_in_
-        input_data = pd.DataFrame([data], columns=[col for col in data.keys() if col in columns])
-
-        # Ajouter les colonnes fictives manquantes
-        for col in columns:
-            if col not in input_data.columns:
-                input_data[col] = 0
+        input_data = pd.DataFrame([data], columns=columns).fillna(0)
 
         if sol in columns:
             input_data[sol] = 1
@@ -339,7 +336,7 @@ def predire_rendement(projet):
         return prediction
 
     except Exception as e:
-        logger.error(f"Erreur pendant la prédiction : {e}")
+        logger.error(f"Error during prediction: {e}")
         return 0
 
 from django.db.models.signals import post_save
@@ -375,6 +372,19 @@ def evaluer_modele(model, X_test, y_test):
     r2 = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
 
-    print(f"RMSE : {rmse:.2f}")
-    print(f"R² : {r2:.2f}")
-    print(f"MAE : {mae:.2f}")
+    logger.info(f"Model Evaluation - RMSE: {rmse:.2f}, R²: {r2:.2f}, MAE: {mae:.2f}")
+    return {'rmse': rmse, 'r2': r2, 'mae': mae}
+
+model_cache = None
+
+def get_model():
+    global model_cache
+    if model_cache is None:
+        try:
+            with open('modele_rendement.pkl', 'rb') as f:
+                model_cache = pickle.load(f)
+                logger.debug("Model loaded into cache.")
+        except Exception as e:
+            logger.error(f"Error loading model: {e}")
+            return None
+    return model_cache
