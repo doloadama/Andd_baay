@@ -134,9 +134,21 @@
             color: #ffffff;
         }
 
-         /* Apply Dark Mode Styles */
+          /* Dark Mode Variables */
         .dark-mode {
-            background-color: var(--light-bg);
+            --primary-color: #1db954; /* Vibrant green for highlights */
+            --secondary-color: #121212; /* True dark background */
+            --light-bg: #181818; /* Slightly lighter dark background */
+            --dark-bg: #121212; /* True dark background */
+            --text-light: wheat; /* Light gray for readable text */
+            --text-dark: #ffffff; /* White for high-contrast text */
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3); /* Softer shadows */
+            --shadow-lg: 0 8px 12px rgba(0, 0, 0, 0.5); /* Deeper shadows */
+        }
+
+        /* Apply Dark Mode Styles */
+        .dark-mode {
+            background-color: var(--dark-bg);
             color: var(--text-light);
         }
 
@@ -147,19 +159,19 @@
         }
 
         .dark-mode .main-container {
-            background-color: var(--dark-bg);
+            background-color: var(--light-bg);
             color: var(--text-light);
             box-shadow: var(--shadow-sm);
         }
 
         .dark-mode .card {
-            background-color: var(--dark-bg);
+            background-color: var(--light-bg);
             color: var(--text-light);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .dark-mode .table {
-            background-color: var(--dark-bg);
+            background-color: var(--light-bg);
             color: var(--text-light);
         }
 
@@ -190,13 +202,13 @@
         }
 
         .dark-mode .chat-window {
-            background-color: var(--dark-bg);
-            color: white;
+            background-color: var(--light-bg);
+            color: var(--text-light);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .dark-mode .chat-input {
-            background-color: var(--dark-bg);
+            background-color: var(--light-bg);
             color: var(--text-light);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
