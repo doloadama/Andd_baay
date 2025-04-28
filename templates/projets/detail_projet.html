@@ -4,7 +4,7 @@
 <!-- Effet de parallaxe -->
 <div class="parallax">
     <div class="container animate__animated animate__fadeIn">
-        <h1 class="text-center mb-4 text-white typewriter">Détails du projet : {{ projet.nom }}</h1>
+        <h1 class="text-center mb-4 text-white typewriter" style=" border-radius: 15px;">Détails du projet : {{ projet.nom }}</h1>
 
         <!-- Section supérieure : Informations générales -->
         <div class="card mb-4 shadow-sm animate__animated animate__fadeInUp">
@@ -241,7 +241,9 @@
 
     .card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #fefbe9;
     }
+
     .card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);

@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
 {% load rest_framework %}
 {% block content %}
-<div class="container">
-    <h1 class="my-4">Modifier le projet : {{ projet.nom }}</h1>
-    <form method="post" class="needs-validation" novalidate>
+<div class="container py-4" style="position: relative;">
+    <!-- Background Overlay -->
+    <div style="background: rgba(0, 0, 0, 0.5); position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+
+    <h1 class="my-4 text-center text-light">Modifier le projet : {{ projet.nom }}</h1>
+    <form method="post" class="needs-validation" novalidate style="background-color: var(--card-background-color); color: var(--text-color); padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
         {% csrf_token %}
 
         <!-- Afficher les erreurs générales du formulaire -->
@@ -13,7 +16,7 @@
         </div>
         {% endif %}
 
-        <!-- Champ pour le nom -->
+        <!-- Form Fields -->
         <div class="form-group mb-3">
             <label for="nom" class="form-label">Nom :</label>
             {{ projet_form.nom|add_class:"form-control" }}
@@ -24,7 +27,6 @@
             {% endif %}
         </div>
 
-        <!-- Champ pour la localité -->
         <div class="form-group mb-3">
             <label for="localite" class="form-label">Localité :</label>
             {{ projet_form.localite|add_class:"form-control" }}
@@ -35,7 +37,6 @@
             {% endif %}
         </div>
 
-        <!-- Champ pour la culture -->
         <div class="form-group mb-3">
             <label for="culture" class="form-label">Culture :</label>
             {{ projet_form.culture|add_class:"form-control" }}
@@ -46,7 +47,6 @@
             {% endif %}
         </div>
 
-        <!-- Champ pour la superficie -->
         <div class="form-group mb-3">
             <label for="superficie" class="form-label">Superficie (en hectares) :</label>
             {{ projet_form.superficie|add_class:"form-control" }}
@@ -57,7 +57,6 @@
             {% endif %}
         </div>
 
-        <!-- Champ pour la date de lancement -->
         <div class="form-group mb-3">
             <label for="date_lancement" class="form-label">Date de lancement :</label>
             {{ projet_form.date_lancement|add_class:"form-control" }}
@@ -68,7 +67,6 @@
             {% endif %}
         </div>
 
-        <!-- Champ pour le rendement estimé -->
         <div class="form-group mb-3">
             <label for="rendement_estime" class="form-label">Rendement estimé (en kg) :</label>
             {{ projet_form.rendement_estime|add_class:"form-control" }}
@@ -79,7 +77,6 @@
             {% endif %}
         </div>
 
-        <!-- Champ pour le statut -->
         <div class="form-group mb-3">
             <label for="statut" class="form-label">Statut :</label>
             {{ projet_form.statut|add_class:"form-control" }}
@@ -90,11 +87,32 @@
             {% endif %}
         </div>
 
-        <!-- Boutons d'action -->
-        <div class="form-group mb-3">
+        <!-- Action Buttons -->
+        <div class="form-group mb-3 text-center">
             <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
             <a href="{% url 'detail_projet' projet.id %}" class="btn btn-secondary">Annuler</a>
         </div>
     </form>
 </div>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .btn-primary {
+        background-color: var(--btn-primary-color);
+        border-color: var(--btn-primary-color);
+    }
+
+    .btn-secondary {
+        background-color: var(--card-border-color);
+        color: var(--text-color);
+    }
+
+    .btn-primary:hover, .btn-secondary:hover {
+        opacity: 0.9;
+    }
+</style>
 {% endblock %}

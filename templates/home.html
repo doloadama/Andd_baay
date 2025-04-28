@@ -1,14 +1,74 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<style>
+    :root {
+        /* Light mode variables */
+        --background-color: #f8f9fa;
+        --text-color: gold;
+        --card-background-color: #ffffff;
+        --card-border-color: #ddd;
+        --btn-primary-color: #007bff;
+        --btn-success-color: #28a745;
+        --btn-danger-color: #dc3545;
+    }
+
+    .dark-mode {
+        /* Dark mode variables */
+        --background-color: #121212;
+        --text-color: rgb(106, 0, 255);
+        --card-background-color: #1e1e1e;
+        --card-border-color: #333;
+        --btn-primary-color: #0056b3;
+        --btn-success-color: #1e7e34;
+        --btn-danger-color: #bd2130;
+    }
+
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .card {
+        background-color: #fefbe9;
+        color: var(--text-color);
+        border: 1px solid var(--card-border-color);
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn-primary {
+        background-color: var(--btn-primary-color);
+        border-color: var(--btn-primary-color);
+        color: #fff;
+    }
+
+    .btn-success {
+        background-color: var(--btn-success-color);
+        border-color: var(--btn-success-color);
+        color: #fff;
+    }
+
+    .btn-danger {
+        background-color: var(--btn-danger-color);
+        border-color: var(--btn-danger-color);
+        color: #fff;
+    }
+
+    .btn-primary:hover, .btn-success:hover, .btn-danger:hover {
+        opacity: 0.9;
+    }
+</style>
+
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow-lg p-5 border-0 rounded-4 text-center" style="max-width: 600px; background: rgba(255, 255, 255, 0.9);">
-        <h1 class="display-5 fw-bold text-success">🌿 Bienvenue {{ user.username}}</h1>
+    <div class="card shadow-lg p-5 border-0 rounded-4 text-center" style="max-width: 600px">
+        <h1 class="display-5 fw-bold text-success">🌿 Bienvenue {{ user.username }}</h1>
         <p class="lead text-muted">Gérez vos fruits et légumes de saison en toute simplicité.</p>
 
         {% if user.is_authenticated %}
             <div class="mt-4">
-                <p class="fs-5" style="color: black;">Vous êtes connecté en tant que <strong>{{ user.username }}</strong>.</p>
+                <p class="fs-5" style="color: goldenrod;">Vous êtes connecté en tant que <strong>{{ user.username }}</strong>.</p>
                 <a href="{% url 'logout' %}" class="btn btn-danger btn-lg mt-2">
                     <i class="bi bi-box-arrow-right"></i> Déconnexion
                 </a>
@@ -28,4 +88,5 @@
         {% endif %}
     </div>
 </div>
+
 {% endblock %}

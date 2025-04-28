@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container animate__animated animate__fadeIn">
-    <h1 class="text-center mb-4">Liste des projets</h1>
+    <h1 class="text-center mb-4" style="border-radius: 15px;">Liste des projets</h1>
 
     <!-- Formulaire de suppression multiple -->
     <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
@@ -88,8 +88,15 @@
 
 <!-- Custom Styles -->
 <style>
+    .dark-mode {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+
+
     .card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #fefbe9;
     }
     .card:hover {
         transform: translateY(-5px);

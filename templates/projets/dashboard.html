@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4 text-center">🌾 Tableau de Bord des Projets Agricoles</h1>
+    <h1 class="mb-4 text-center" style=" border-radius: 10px;">🌾 Tableau de Bord des Projets Agricoles</h1>
 
     <!-- Indicateurs Globaux -->
     <div class="row mb-4 text-center">
@@ -51,7 +51,7 @@
             {% if projets %}
                 <div class="table-responsive">
                     <table class="table table-striped table-hover mt-3">
-                        <thead class="table-dark">
+                        <thead>
                             <tr>
                                 <th>Nom du Projet</th>
                                 <th>Culture</th>
@@ -83,6 +83,13 @@
 
 
 <style>
+    .card {
+    background-color: #fefbe9; /* code hexadécimal pour 'wheat' */
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+    
 
 </style>
 
