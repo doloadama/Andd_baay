@@ -49,36 +49,42 @@
         <div class="card-body">
             <h5 class="card-title">📋 Liste des Projets</h5>
             {% if projets %}
-                <table class="table table-striped table-hover mt-3">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Nom du Projet</th>
-                            <th>Culture</th>
-                            <th>Superficie (ha)</th>
-                            <th>Rendement Estimé (kg)</th>
-                            <th>Date de Lancement</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for projet in projets %}
-                        <tr>
-                            <td>{{ projet.nom }}</td>
-                            <td>{{ projet.culture.nom }}</td>
-                            <td>{{ projet.superficie }}</td>
-                            <td>{{ projet.rendement_estime|default:"-" }}</td>
-                            <td>{{ projet.date_lancement }}</td>
-                            <td>{{ projet.statut }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mt-3">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nom du Projet</th>
+                                <th>Culture</th>
+                                <th>Superficie (ha)</th>
+                                <th>Rendement Estimé (kg)</th>
+                                <th>Date de Lancement</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for projet in projets %}
+                            <tr>
+                                <td>{{ projet.nom }}</td>
+                                <td>{{ projet.culture.nom }}</td>
+                                <td>{{ projet.superficie }}</td>
+                                <td>{{ projet.rendement_estime|default:"-" }}</td>
+                                <td>{{ projet.date_lancement }}</td>
+                                <td>{{ projet.statut }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% else %}
                 <div class="alert alert-warning">Aucun projet à afficher.</div>
             {% endif %}
         </div>
     </div>
-</div>
+
+
+<style>
+
+</style>
 
 <!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
