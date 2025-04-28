@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Système de gestion agricole intelligent avec prédiction des rendements et assistant IA." />
     <meta name="theme-color" content="#006b1b" />
-    <meta property="og:title" content="Mon Application Agricole"/>
+    <meta property="og:title" content="Andd Baay"/>
     <meta property="og:description" content="Plateforme innovante pour les agriculteurs." />
     <meta property="og:type" content="website" />
 
-    <title>Mon Application Agricole</title>
+    <title>Andd Baay</title>
 
  
     <!-- Favicon -->
@@ -134,14 +134,84 @@
             color: #ffffff;
         }
 
+         /* Apply Dark Mode Styles */
         .dark-mode {
-            --light-bg: rgba(33, 37, 41, 0.95);
-            --text-dark: var(--text-light);
+            background-color: var(--light-bg);
+            color: var(--text-light);
+        }
+
+        .dark-mode .navbar {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            box-shadow: var(--shadow-sm);
         }
 
         .dark-mode .main-container {
-            background-color: var(--light-bg);
+            background-color: var(--dark-bg);
             color: var(--text-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dark-mode .card {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .table {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+        }
+
+        .dark-mode .table thead {
+            background-color: var(--primary-color);
+            color: var(--text-dark);
+        }
+
+        .dark-mode .btn {
+            background-color: var(--primary-color);
+            color: var(--text-dark);
+            border: none;
+        }
+
+        .dark-mode .btn:hover {
+            background-color: #1ed760; /* Slightly lighter green for hover effect */
+        }
+
+        .dark-mode .alert {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dark-mode footer {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+        }
+
+        .dark-mode .chat-window {
+            background-color: var(--dark-bg);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .chat-input {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dark-mode .chat-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .dark-mode .chat-send-btn {
+            background-color: var(--primary-color);
+            color: var(--text-dark);
+        }
+
+        .dark-mode .chat-send-btn:hover {
+            background-color: #1ed760;
         }
 
         .theme-toggle {
@@ -236,7 +306,7 @@
             right: 20px;
             width: 350px;
             height: 500px;
-            background-color: var(--light-bg);
+            background-color: wheat;
             border-radius: 15px;
             box-shadow: var(--shadow-lg);
             display: flex;
@@ -519,7 +589,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-seedling animate__animated animate__bounceIn" aria-hidden="true"></i>
-                <span>Mon Application Agricole</span>
+                <span>Andd Baay</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
