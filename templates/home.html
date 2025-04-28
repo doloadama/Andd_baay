@@ -1,69 +1,51 @@
 {% extends 'base.html' %}
+{% block title %}Accueil{% endblock %}
+{% block background_image %}/static/images/image2.jpg{% endblock %}
 
 {% block content %}
-
 <style>
-    :root {
-        /* Light mode variables */
-        --background-color: #f8f9fa;
-        --text-color: gold;
-        --card-background-color: #ffffff;
-        --card-border-color: #ddd;
-        --btn-primary-color: #007bff;
-        --btn-success-color: #28a745;
-        --btn-danger-color: #dc3545;
-    }
-
-    .dark-mode {
-        /* Dark mode variables */
-        --background-color: #121212;
-        --text-color: rgb(106, 0, 255);
-        --card-background-color: #1e1e1e;
-        --card-border-color: #333;
-        --btn-primary-color: #0056b3;
-        --btn-success-color: #1e7e34;
-        --btn-danger-color: #bd2130;
-    }
-
-    body {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        transition: background-color 0.3s, color 0.3s;
+    
+    .overlay {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+        z-index: -1;
     }
 
     .card {
-        background-color: #fefbe9;
-        color: var(--text-color);
-        border: 1px solid var(--card-border-color);
-        transition: background-color 0.3s, color 0.3s;
+        background-color: rgba(255, 255, 255, 0.7); /* More transparent white background */
+        color: #333;
+        border: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-primary {
-        background-color: var(--btn-primary-color);
-        border-color: var(--btn-primary-color);
-        color: #fff;
-    }
-
-    .btn-success {
-        background-color: var(--btn-success-color);
-        border-color: var(--btn-success-color);
-        color: #fff;
+    h1 {
+        color: #28a745; /* Green color for the heading */
     }
 
     .btn-danger {
-        background-color: var(--btn-danger-color);
-        border-color: var(--btn-danger-color);
-        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
     }
 
-    .btn-primary:hover, .btn-success:hover, .btn-danger:hover {
-        opacity: 0.9;
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+    .btn-primary, .btn-success {
+        color: #fff;
     }
 </style>
 
+<div class="overlay"></div>
+
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <div class="card shadow-lg p-5 border-0 rounded-4 text-center" style="max-width: 600px">
-        <h1 class="display-5 fw-bold text-success">🌿 Bienvenue {{ user.username }}</h1>
+        <h1 class="display-5 fw-bold">🌿 Bienvenue {{ user.username }}</h1>
         <p class="lead text-muted">Gérez vos fruits et légumes de saison en toute simplicité.</p>
 
         {% if user.is_authenticated %}
@@ -88,5 +70,4 @@
         {% endif %}
     </div>
 </div>
-
 {% endblock %}

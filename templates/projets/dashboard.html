@@ -1,8 +1,11 @@
 {% extends 'base.html' %}
 
+{% block title %}Dashboard{% endblock %}
+{% block background_image %}/static/images/dashboard.jpg{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4 text-center" style=" border-radius: 10px;">🌾 Tableau de Bord des Projets Agricoles</h1>
+    <h1 class="mb-4 text-center">🌾 Tableau de Bord des Projets Agricoles</h1>
 
     <!-- Indicateurs Globaux -->
     <div class="row mb-4 text-center">
@@ -84,9 +87,39 @@
 
 <style>
     .card {
-    background-color: #fefbe9; /* code hexadécimal pour 'wheat' */
+    background-color: rgba(255, 255, 255, 0.7); /* More transparent white background */
     border-radius: 0.5rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    .table {
+        background-color: #fefbe9; /* Light wheat background for the table */
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .table thead {
+        background-color: #007bff; /* Blue header background */
+        color: #fff; /* White text for the header */
+    }
+
+    .table tbody tr:nth-child(odd) {
+        background-color: #f8f9fa; /* Light gray for odd rows */
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #ffffff; /* White for even rows */
+    }
+
+    .table tbody tr:hover {
+        background-color: #e9ecef; /* Light hover effect */
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+
 }
 
     

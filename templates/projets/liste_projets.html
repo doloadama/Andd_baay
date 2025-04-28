@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% block title %}liste_projets{% endblock %}
+{% block background_image %}/static/images/pexels-tomfisk-1567791.jpg{% endblock %}
+
 {% block content %}
 <div class="container animate__animated animate__fadeIn">
     <h1 class="text-center mb-4" style="border-radius: 15px;">Liste des projets</h1>
@@ -96,7 +99,7 @@
 
     .card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background-color: #fefbe9;
+        background-color: rgba(255, 255, 255, 0.7); /* More transparent white background */;
     }
     .card:hover {
         transform: translateY(-5px);

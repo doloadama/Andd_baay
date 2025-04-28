@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-
+{% block title %}creer_projet{% endblock %}
+{% block background_image %}/static/images/crop-vegetables-garden.jpg{% endblock %}
 {% block content %}
 <div class="container animate__animated animate__fadeIn">
     <h1 class="text-center mb-4">Créer un nouveau projet</h1>
@@ -133,7 +134,7 @@
 <style>
     .card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background-color: #fefbe9;
+        background-color: transparent
     }
     .card:hover {
         transform: translateY(-5px);
@@ -148,8 +149,16 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
+    form {
+        background-color: transparent; /* code hexadécimal pour 'wheat' */
+        border-radius: 0.5rem;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .form-control {
         border-radius: 8px;
+        
         border: 1px solid #ddd;
         padding: 12px;
         font-size: 16px;
