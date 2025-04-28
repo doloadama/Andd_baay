@@ -138,19 +138,27 @@
         </div>
 
         <!-- Boutons d'actions -->
-        <div class="mt-4 d-flex justify-content-between animate__animated animate__fadeInUp">
-            <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-primary">
-                <i class="fas fa-edit"></i> Modifier
-            </a>
-            <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger">
-                <i class="fas fa-trash"></i> Supprimer
-            </a>
-            <a href="{% url 'ajouter_investissement' projet.id %}" class="btn btn-success">
-                <i class="fas fa-plus"></i> Ajouter un investissement
-            </a>
-            <a href="{% url 'liste_projets' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Retour à la liste
-            </a>
+        <div class="mt-4 row animate__animated animate__fadeInUp">
+            <div class="col-12 col-md-3 mb-2">
+                <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-primary w-100">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+            </div>
+            <div class="col-12 col-md-3 mb-2">
+                <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger w-100">
+                    <i class="fas fa-trash"></i> Supprimer
+                </a>
+            </div>
+            <div class="col-12 col-md-3 mb-2">
+                <a href="{% url 'ajouter_investissement' projet.id %}" class="btn btn-success w-100">
+                    <i class="fas fa-plus"></i> Ajouter un investissement
+                </a>
+            </div>
+            <div class="col-12 col-md-3 mb-2">
+                <a href="{% url 'liste_projets' %}" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
         </div>
     </div>
 </div>
