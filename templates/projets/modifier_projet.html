@@ -6,7 +6,7 @@
     <div style="background: rgba(0, 0, 0, 0.5); position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
 
     <h1 class="my-4 text-center text-light">Modifier le projet : {{ projet.nom }}</h1>
-    <form method="post" class="needs-validation" novalidate style="background-color: var(--card-background-color); color: var(--text-color); padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+    <form method="post" class="needs-validation" novalidate style="background-color: var(--card-background-color); color: wheat; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
         {% csrf_token %}
 
         <!-- Afficher les erreurs générales du formulaire -->
@@ -96,9 +96,30 @@
 </div>
 
 <style>
+    .parallax {
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        padding: 50px 0;
+        border-radius: 15px;
+    }
+
+    .parallax::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Couleur de superposition */
+        z-index: -1; /* Placer derrière le contenu */
+        border-radius: 15px;
+    }
+
     .container {
         max-width: 800px;
         margin: 0 auto;
+        border-radius: 15px;
     }
 
     .btn-primary {
