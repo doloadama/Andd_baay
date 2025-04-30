@@ -190,5 +190,5 @@ DEFAULT_FROM_EMAIL = 'test1gmail.com'  # Adresse email par défaut
 
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/static/media')
 LOGIN_REDIRECT_URL = '/dashboard/'

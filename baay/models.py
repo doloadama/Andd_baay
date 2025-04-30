@@ -38,6 +38,19 @@ class ProduitAgricole(models.Model):
 
     def __str__(self):
         return f"{self.nom} - {self.saison or 'Indéfini'}"
+        
+
+class PhotoProduitAgricole(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    produit = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='photos')
+    image = models.ImageField(upload_to='produits_photos/')
+    description = models.TextField(blank=True, null=True)
+
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Photo de {self.produit.nom} - {self.date_ajout.strftime('%Y-%m-%d %H:%M:%S')}"
+
 
 
 class Localite(models.Model):

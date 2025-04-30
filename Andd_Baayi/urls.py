@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
+from Andd_Baayi import settings
 from baay import views
 from django.contrib.auth import views as auth_views
+from django.conf.urls.static import static
 
 from baay.views import CustomPasswordResetView, supprimer_projet
 
@@ -29,3 +31,7 @@ urlpatterns = [
      path('api/chatbot/', views.ask_chatbot, name='ask_chatbot'),
 
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

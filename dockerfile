@@ -1,11 +1,11 @@
 # Use a Debian-based Python image
-FROM python:3.13-slim
+FROM python:alpine
 
 # Set the working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y gcc g++ libffi-dev
+RUN apk add --no-cache gcc g++ libffi-dev
 
 # Copy the project files
 COPY . /app
@@ -21,4 +21,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Run the server
-CMD ["python", "manage.py", "runserver", "--bind" , "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "--bind", "0.0.0.0:8000"]

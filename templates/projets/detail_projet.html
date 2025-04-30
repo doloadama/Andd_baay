@@ -67,13 +67,40 @@
                 <!-- Photo du produit agricole -->
                 <div class="card mb-4 shadow-sm animate__animated animate__fadeInLeft">
                     <div class="card-header bg-info text-white">
-                        <h5 class="card-title mb-0"><i class="fas fa-camera"></i> Photo du produit agricole</h5>
+                        <h5 class="card-title mb-0"><i class="fas fa-camera"></i> Détails du produit agricole</h5>
                     </div>
                     <div class="card-body text-center">
-                        {% if projet.culture.photo %}
-                            <img src="{{ projet.culture.photo.url }}" alt="{{ projet.culture.nom }}" class="img-fluid rounded" style="max-height: 300px; width: auto;">
+                        <!-- Photos associées au produit agricole -->
+                        {% if projet.culture.photos.all %}
+                            <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    {% for photo in projet.culture.photos.all %}
+                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                            <img 
+                                                src="{{ photo.image.url }}" 
+                                                alt="{{ projet.culture.nom }}" 
+                                                class="d-block w-100 img-fluid rounded" 
+                                                style="max-height: 400px; object-fit: cover;"
+                                                {% if photo.description %}
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="{{ photo.description }}"
+                                                {% endif %}
+                                            >
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
                         {% else %}
-                            <p class="text-muted">Aucune photo disponible.</p>
+                            <p class="text-muted mt-4">Aucune photo disponible pour ce produit agricole.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -237,8 +264,19 @@
     });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+
+
 <!-- Effets de style supplémentaires -->
 <style>
+    
     .parallax {
         background-size: cover;
         background-position: center;
@@ -299,5 +337,13 @@
             margin-top: 20px;
         }
     }
+
+    .tooltip-inner {
+    max-width: 300px;
+    text-align: center;
+    }
+
+
+
 </style>
 {% endblock %}

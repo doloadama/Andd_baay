@@ -10,6 +10,11 @@
     <meta property="og:title" content="Andd Baay"/>
     <meta property="og:description" content="Plateforme innovante pour les agriculteurs." />
     <meta property="og:type" content="website" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <title>Andd Baay</title>
 
@@ -47,6 +52,7 @@
             color: var(--text-dark);
             background-image: url("{% block background_image %} /static/images/image.jpg{% endblock %}");
             background-size: cover;
+            backface-visibility: hidden;
             background-repeat: no-repeat;
             background-position: center center;
         }
@@ -55,18 +61,18 @@
             color: greenyellow;
         }
 
-        
-
         main { flex: 1; padding: 20px 0; }
 
         .navbar {
             margin-bottom: 20px;
-            background-color: var(--dark-bg);
+            background-color: transparent;
+            
             box-shadow: var(--shadow-sm);
         }
 
         .navbar-brand {
             font-weight: bold; display: flex; align-items: center; gap: 8px;
+            
         }
 
         .btn-nav {
@@ -607,8 +613,8 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><span class="navbar-text me-3">Bienvenue, {{ user.username }} !</span></li>
+                    {% if user.is_authenticated %}"
+                        <li class="nav-item" ><span class="navbar-text me-3" ; style="color: blue;">Bienvenue, {{ user.username }} !</span></li>
                         <li class="nav-item"><a class="btn btn-success btn-nav" href="{% url 'creer_projet' %}"><i class="fas fa-plus"></i> Créer un projet</a></li>
                         <li class="nav-item"><a class="btn btn-success btn-nav" href="{% url 'liste_projets' %}"><i class="fas fa-list"></i> Liste des projets</a></li>
                         <li class="nav-item"><a class="btn btn-primary btn-nav" href="{% url 'dashboard' %}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>

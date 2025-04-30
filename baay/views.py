@@ -103,8 +103,6 @@ def ask_chatbot(request):
 
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-
-
 @login_required
 def creer_projet(request):
     if request.method == 'POST':
@@ -271,6 +269,10 @@ def collect_training_data():
 
 def entrainer_modele():
     df = collect_training_data()
+    if df.empty:
+        logger.error("Les données d'entraînement sont vides.")
+    else:
+        logger.info(f"Données d'entraînement collectées : {df.shape[0]} lignes, {df.shape[1]} colonnes.")
 
     if df.empty:
         logger.error("No data available for training!")
@@ -302,13 +304,47 @@ def entrainer_modele():
     logger.info("Optimized model saved successfully.")
     return model.best_estimator_
 
+
+model_cache = None
+
+def get_model():
+    global model_cache
+    if model_cache is None:
+        try:
+            with open('modele_rendement.pkl', 'rb') as f:
+                model_cache = pickle.load(f)
+                logger.debug("Model loaded into cache.")
+        except FileNotFoundError:
+            logger.error("Le fichier modele_rendement.pkl est introuvable.")
+            return None
+        except pickle.UnpicklingError:
+            logger.error("Erreur lors du chargement du modèle : fichier corrompu.")
+            return None
+        except Exception as e:
+            logger.error(f"Erreur inattendue lors du chargement du modèle : {e}")
+            return None
+    return model_cache
+
+
 def predire_rendement(projet):
+
+    model = get_model()
+    if model is None:
+        return 0
+
+
     try:
         with open('modele_rendement.pkl', 'rb') as f:
             model = pickle.load(f)
             logger.debug("Model loaded successfully.")
+    except FileNotFoundError:
+        logger.error("Le fichier modele_rendement.pkl est introuvable.")
+        return 0
+    except pickle.UnpicklingError:
+        logger.error("Erreur lors du chargement du modèle : fichier corrompu.")
+        return 0
     except Exception as e:
-        logger.error(f"Error loading model: {e}")
+        logger.error(f"Erreur inattendue lors du chargement du modèle : {e}")
         return 0
 
     investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
@@ -335,8 +371,11 @@ def predire_rendement(projet):
         prediction = model.predict(input_data)[0]
         return prediction
 
+    except KeyError as e:
+        logger.error(f"Colonne manquante dans les données d'entrée : {e}")
+        return 0
     except Exception as e:
-        logger.error(f"Error during prediction: {e}")
+        logger.error(f"Erreur lors de la prédiction : {e}")
         return 0
 
 from django.db.models.signals import post_save
@@ -375,16 +414,4 @@ def evaluer_modele(model, X_test, y_test):
     logger.info(f"Model Evaluation - RMSE: {rmse:.2f}, R²: {r2:.2f}, MAE: {mae:.2f}")
     return {'rmse': rmse, 'r2': r2, 'mae': mae}
 
-model_cache = None
 
-def get_model():
-    global model_cache
-    if model_cache is None:
-        try:
-            with open('modele_rendement.pkl', 'rb') as f:
-                model_cache = pickle.load(f)
-                logger.debug("Model loaded into cache.")
-        except Exception as e:
-            logger.error(f"Error loading model: {e}")
-            return None
-    return model_cache
