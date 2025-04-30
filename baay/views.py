@@ -218,7 +218,12 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def dashboard(request):
-    utilisateur = request.user.profile  # Assure-toi que le profil est bien lié via OneToOneField
+    try:
+        utilisateur = request.user.profile  # Vérifie si le profil existe
+    except Profile.DoesNotExist:
+        # Crée un profil si nécessaire
+        utilisateur = Profile.objects.create(user=request.user)
+
     projets = Projet.objects.filter(utilisateur=utilisateur)
 
     superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
@@ -229,6 +234,10 @@ def dashboard(request):
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
     }
+
+    context['utilisateur'] = utilisateur
+
+
     return render(request, 'projets/dashboard.html', context)
 
 
