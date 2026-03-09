@@ -152,7 +152,7 @@
             color: var(--accent);
             border-radius: 50%;
             font-size: 1.2rem;
-            shadow: var(--shadow-glow);
+            box-shadow: var(--shadow-glow);
         }
         
         .dark-mode .brand-icon { background: var(--accent); color: #020617; }
@@ -412,7 +412,11 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto align-items-center gap-2">
                         {% if user.is_authenticated %}
-                            <li class="nav-item me-3"><span class="nav-username">Hello, {{ user.first_name|default:user.username }}</span></li>
+                            <li class="nav-item me-2">
+                                <a href="{% url 'profil' %}" class="btn-modern btn-outline-modern" style="padding: 10px 16px; border:none; background: rgba(163, 230, 53, 0.15); font-size: 0.9rem;">
+                                    <i class="fas fa-user-circle me-2"></i> {{ user.first_name|default:user.username }}
+                                </a>
+                            </li>
                             <li class="nav-item"><a class="btn-modern btn-primary-modern" href="{% url 'creer_projet' %}"><i class="fas fa-plus"></i> Créer</a></li>
                             <li class="nav-item"><a class="nav-link-custom" href="{% url 'liste_projets' %}">Projets</a></li>
                             <li class="nav-item"><a class="nav-link-custom" href="{% url 'dashboard' %}">Dashboard</a></li>

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from baay.models import Projet, ProduitAgricole, Investissement, Localite
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -22,6 +22,26 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Prénom'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nom'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+        }
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['phone_number', 'address']
+        widgets = {
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Numéro de téléphone (+221...)'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Adresse complète'}),
+        }
 
 
 class InvestissementForm(forms.ModelForm):

@@ -249,6 +249,38 @@ def dashboard(request):
     return render(request, 'projets/dashboard.html', context)
 
 
+@login_required
+def profil_view(request):
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+        
+    if request.method == 'POST':
+        # Import local to avoid circular import if needed, though they are imported at the top
+        from baay.forms import UserUpdateForm, ProfileUpdateForm
+        
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Votre profil a été mis à jour avec succès !')
+            return redirect('profil')
+    else:
+        from baay.forms import UserUpdateForm, ProfileUpdateForm
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=profile)
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form
+    }
+
+    return render(request, 'auth/profil.html', context)
+
+
 def get_produit_agricole_details(request):
     produit_id = request.GET.get('produit_id')
     try:
