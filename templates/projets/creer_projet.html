@@ -1,203 +1,281 @@
 {% extends 'base.html' %}
-{% block title %}creer_projet{% endblock %}
-{% block background_image %}/static/images/crop-vegetables-garden.jpg{% endblock %}
+{% block title %}Créer un Projet | Andd Baay{% endblock %}
+
 {% block content %}
-<div class="container animate__animated animate__fadeIn">
-    <h1 class="text-center mb-4">Créer un nouveau projet</h1>
+<!-- Full-screen aesthetic background for auth/form pages -->
+<div class="form-page-bg"></div>
+
+<div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
+    
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-white mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 12px rgba(0,0,0,0.3);">Nouveau Projet</h1>
+        <p class="lead text-white-50" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Façonnez l'avenir de votre exploitation agricole.</p>
+    </div>
 
     {% if messages %}
-        <div class="mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% for message in messages %}
+                    <div class="alert alert-modern mb-4">{{ message }}</div>
+                {% endfor %}
+            </div>
         </div>
     {% endif %}
 
-    <div class="card shadow-sm rounded-lg border-0 animate__animated animate__fadeInUp">
-        <div class="card-header bg-primary text-white text-center">
-            <h5 class="card-title mb-0"><i class="fas fa-plus-circle"></i> Nouveau projet</h5>
-        </div>
-        <div class="card-body">
-            <form method="post" novalidate autocomplete="off">
-                {% csrf_token %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-form-card shadow-lg animate__animated animate__fadeInUp">
+                <div class="card-header-modern">
+                    <h4 class="mb-0"><i class="fas fa-leaf text-accent me-2"></i> Détails de la culture</h4>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" novalidate autocomplete="off" class="modern-form">
+                        {% csrf_token %}
 
-                <!-- Section 1 : Informations de base -->
-                <div class="accordion mb-4" id="accordionBasic">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingBasic">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasic" aria-expanded="true" aria-controls="collapseBasic">
-                                <i class="fas fa-info-circle me-2"></i> Informations de base
-                            </button>
-                        </h2>
-                        <div id="collapseBasic" class="accordion-collapse collapse show" aria-labelledby="headingBasic" data-bs-parent="#accordionBasic">
-                            <div class="accordion-body">
-                                <div class="form-group mb-3">
-                                    <label for="nom" class="form-label"><i class="fas fa-ruler-combined"></i> Nom du projet:</label>
-                                    {{ projet_form.nom }}
-                                    {% if projet_form.nom.errors %}
-                                        <div class="text-danger">{{ projet_form.nom.errors }}</div>
-                                    {% endif %}
+                        <div class="form-section mb-5">
+                            <h5 class="form-section-title"><i class="fas fa-info-circle"></i> Informations Générales</h5>
+                            <div class="row g-4">
+                                <div class="col-md-12">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.nom.id_for_label }}" class="form-label-modern">Nom du projet</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-signature input-icon"></i>
+                                            {{ projet_form.nom }}
+                                        </div>
+                                        {% if projet_form.nom.errors %}
+                                            <div class="form-error">{{ projet_form.nom.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.culture.id_for_label }}" class="form-label-modern">Culture</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-seedling input-icon"></i>
+                                            {{ projet_form.culture }}
+                                        </div>
+                                        {% if projet_form.culture.errors %}
+                                            <div class="form-error">{{ projet_form.culture.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
 
-                                <div class="form-group mb-3">
-                                    <label for="localite" class="form-label"><i class="fas fa-map-marker-alt"></i> Localité :</label>
-                                    {{ projet_form.localite }}
-                                    {% if projet_form.localite.errors %}
-                                        <div class="text-danger">{{ projet_form.localite.errors }}</div>
-                                    {% endif %}
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="culture" class="form-label"><i class="fas fa-seedling"></i> Culture :</label>
-                                    {{ projet_form.culture }}
-                                    {% if projet_form.culture.errors %}
-                                        <div class="text-danger">{{ projet_form.culture.errors }}</div>
-                                    {% endif %}
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.localite.id_for_label }}" class="form-label-modern">Localité</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-map-marker-alt input-icon"></i>
+                                            {{ projet_form.localite }}
+                                        </div>
+                                        {% if projet_form.localite.errors %}
+                                            <div class="form-error">{{ projet_form.localite.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Section 2 : Détails du projet -->
-                <div class="accordion mb-4" id="accordionDetails">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingDetails">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
-                                <i class="fas fa-list-alt me-2"></i> Détails du projet
-                            </button>
-                        </h2>
-                        <div id="collapseDetails" class="accordion-collapse collapse" aria-labelledby="headingDetails" data-bs-parent="#accordionDetails">
-                            <div class="accordion-body">
-                                <div class="form-group mb-3">
-                                    <label for="superficie" class="form-label"><i class="fas fa-ruler-combined"></i> Superficie (en hectares) :</label>
-                                    {{ projet_form.superficie }}
-                                    {% if projet_form.superficie.errors %}
-                                        <div class="text-danger">{{ projet_form.superficie.errors }}</div>
-                                    {% endif %}
+                        <div class="form-section mb-5">
+                            <h5 class="form-section-title"><i class="fas fa-chart-area"></i> Spécifications Techniques</h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.superficie.id_for_label }}" class="form-label-modern">Superficie (ha)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-ruler-combined input-icon"></i>
+                                            {{ projet_form.superficie }}
+                                        </div>
+                                        {% if projet_form.superficie.errors %}
+                                            <div class="form-error">{{ projet_form.superficie.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
 
-                                <div class="form-group mb-3">
-                                    <label for="date_lancement" class="form-label"><i class="fas fa-calendar-alt"></i> Date de lancement :</label>
-                                    {{ projet_form.date_lancement }}
-                                    {% if projet_form.date_lancement.errors %}
-                                        <div class="text-danger">{{ projet_form.date_lancement.errors }}</div>
-                                    {% endif %}
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.rendement.id_for_label }}" class="form-label-modern">Rendement estimé (kg/ha)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-weight-hanging input-icon"></i>
+                                            {{ projet_form.rendement }}
+                                        </div>
+                                        {% if projet_form.rendement.errors %}
+                                            <div class="form-error">{{ projet_form.rendement.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="rendement" class="form-label"><i class="fas fa-chart-line"></i> Rendement estimé (kg/ha) :</label>
-                                    {{ projet_form.rendement }}
-                                    {% if projet_form.rendement.errors %}
-                                        <div class="text-danger">{{ projet_form.rendement.errors }}</div>
-                                    {% endif %}
+                                
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.date_lancement.id_for_label }}" class="form-label-modern">Date de lancement</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-calendar-alt input-icon"></i>
+                                            {{ projet_form.date_lancement }}
+                                        </div>
+                                        {% if projet_form.date_lancement.errors %}
+                                            <div class="form-error">{{ projet_form.date_lancement.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 3 : Statut du projet -->
-                <div class="accordion mb-4" id="accordionStatus">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingStatus">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseStatus">
-                                <i class="fas fa-tasks me-2"></i> Statut du projet
-                            </button>
-                        </h2>
-                        <div id="collapseStatus" class="accordion-collapse collapse" aria-labelledby="headingStatus" data-bs-parent="#accordionStatus">
-                            <div class="accordion-body">
-                                <div class="form-group mb-3">
-                                    <label for="statut" class="form-label"><i class="fas fa-tasks"></i> Statut :</label>
-                                    {{ projet_form.statut }}
-                                    {% if projet_form.statut.errors %}
-                                        <div class="text-danger">{{ projet_form.statut.errors }}</div>
-                                    {% endif %}
+                                
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.statut.id_for_label }}" class="form-label-modern">Statut</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-tasks input-icon"></i>
+                                            {{ projet_form.statut }}
+                                        </div>
+                                        {% if projet_form.statut.errors %}
+                                            <div class="form-error">{{ projet_form.statut.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Bouton de soumission -->
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-check-circle"></i> Créer le projet
-                    </button>
+                        <div class="mt-5 pt-3 border-top border-light border-opacity-10 d-flex justify-content-end gap-3">
+                            <a href="{% url 'liste_projets' %}" class="btn-modern btn-outline-modern px-4">
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn-modern btn-primary-modern px-5">
+                                <i class="fas fa-check-circle me-2"></i> Créer le projet
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Custom Styles -->
 <style>
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background-color: transparent
+    /* Dedicated Page Background for Forms */
+    .form-page-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url('https://images.unsplash.com/photo-1595841696677-6489ff866160?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'); /* Drone view of crops */
+        background-size: cover;
+        background-position: center;
+        z-index: 0;
     }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-success {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .btn-success:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    form {
-        background-color: transparent; /* code hexadécimal pour 'wheat' */
-        border-radius: 0.5rem;
-        padding: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    .form-page-bg::after {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at center, rgba(2, 6, 23, 0.6) 0%, rgba(2, 6, 23, 0.9) 100%);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
 
-    .form-control {
-        border-radius: 8px;
-        
-        border: 1px solid #ddd;
-        padding: 12px;
-        font-size: 16px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    /* Glass Form Card */
+    .glass-form-card {
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-card);
+        overflow: hidden;
     }
 
-    .form-control:focus {
-        border-color: #006b1b;
-        box-shadow: 0 0 5px rgba(0, 107, 27, 0.5);
+    .card-header-modern {
+        background: rgba(2, 44, 34, 0.6);
+        padding: 24px 32px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        font-family: var(--font-display);
     }
 
-    .accordion-button {
-        font-weight: bold;
-        font-size: 16px;
-        padding: 14px;
+    /* Modern Form Components */
+    .form-section-title {
+        color: var(--accent);
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    .accordion-button:not(.collapsed) {
-        background-color: #f8f9fa;
-        color: #006b1b;
-        border-color: #ddd;
+    .form-label-modern {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: block;
     }
 
-    .accordion-body {
-        font-size: 14px;
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-pill);
+        transition: all var(--transition);
+        overflow: hidden;
     }
 
-    @media (max-width: 576px) {
-        .card-header {
-            text-align: center;
-        }
+    .input-wrapper:focus-within {
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+    }
 
-        .accordion-button {
-            font-size: 14px;
-        }
+    .input-icon {
+        color: rgba(255, 255, 255, 0.5);
+        padding-left: 20px;
+        width: 44px;
+        text-align: center;
+    }
 
-        .form-control {
-            font-size: 14px;
-        }
+    .input-wrapper:focus-within .input-icon { color: var(--accent); }
+
+    .modern-form input,
+    .modern-form select,
+    .modern-form textarea {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        width: 100%;
+        padding: 16px 20px 16px 12px;
+        font-size: 1rem;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    
+    .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+
+    .modern-form select option {
+        background: var(--primary);
+        color: white;
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 6px;
+        margin-left: 16px;
+    }
+
+    /* Overrides for Django Widget Renderer */
+    .modern-form .form-control { background: transparent; border: none; color: white; border-radius: 0; box-shadow: none; padding: 16px 20px 16px 12px; }
+    .modern-form .form-control:focus { background: transparent; color: white; border: none; box-shadow: none; }
+    .modern-form .form-select { background-color: transparent; border: none; color: white; border-radius: 0; box-shadow: none; padding: 16px 20px 16px 12px; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); }
+    .modern-form .form-select:focus { border: none; box-shadow: none; }
+    
+    .btn-outline-modern {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn-outline-modern:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: white;
     }
 </style>
 {% endblock %}

@@ -1,349 +1,374 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block content %}
-<!-- Effet de parallaxe -->
-<div class="parallax">
-    <div class="container animate__animated animate__fadeIn">
-        <h1 class="text-center mb-4 typewriter" style=" border-radius: 15px;">Détails du projet : {{ projet.nom }}</h1>
+{% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
-        <!-- Section supérieure : Informations générales -->
-        <div class="card mb-4 shadow-sm animate__animated animate__fadeInUp">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Informations générales</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p>
-                            <strong><i class="fas fa-seedling"></i> Culture :</strong>
-                            <a href="#" class="produit-agricole-tooltip" data-produit-id="{{ projet.culture.id }}">
-                                {{ projet.culture.nom }}
-                            </a>
-                        </p>
-                        <p><strong><i class="fas fa-ruler-combined"></i> Superficie :</strong> {{ projet.superficie }} ha</p>
-                        <p><strong><i class="fas fa-calendar-alt"></i> Date de lancement :</strong> {{ projet.date_lancement|date:"d/m/Y" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <!-- Prediction Section -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="card-title mb-0"><i class="fas fa-chart-line"></i> Prédiction de Rendement</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if prediction %}
-                                    <p><strong>Rendement Estimé :</strong> {{ prediction.rendement_estime }} kg</p>
-                                    <p><strong>Date de Prédiction :</strong> {{ prediction.date_prediction|date:"d/m/Y H:i" }}</p>
-                                    <p class="text-muted"><i class="fas fa-info-circle"></i> Cette prédiction est basée sur les données actuelles du projet.</p>
-                                {% else %}
-                                    <p class="text-muted">Aucune prédiction disponible pour ce projet. Vous pouvez générer une prédiction en cliquant sur le bouton ci-dessous.</p>
-                                {% endif %}
-                                <form action="{% url 'generer_prediction' projet.id %}" method="post" class="mt-3">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-magic"></i> {% if prediction %}Mettre à jour la Prédiction{% else %}Générer la Prédiction{% endif %}
-                                    </button>
-                                </form>
+{% block content %}
+<!-- Immersive Hero Background -->
+<div class="project-hero-bg">
+    <div class="hero-overlay"></div>
+    <div class="container relative z-10 h-100 d-flex flex-column justify-content-center text-center">
+        <div class="badge-modern mx-auto mb-3 animate__animated animate__fadeInDown">
+            <span class="status-dot 
+                {% if projet.statut == 'En cours' %}bg-success
+                {% elif projet.statut == 'Terminé' %}bg-primary
+                {% elif projet.statut == 'Annulé' %}bg-danger
+                {% else %}bg-warning{% endif %}">
+            </span>
+            {{ projet.statut }}
+        </div>
+        <h1 class="display-3 fw-bold text-white mb-3 text-shadow-lg animate__animated animate__fadeInUp" style="font-family: var(--font-display);">{{ projet.nom }}</h1>
+        <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <i class="fas fa-map-marker-alt text-accent me-2"></i> {{ projet.localite.nom }} &nbsp;&bull;&nbsp; 
+            <i class="fas fa-seedling text-accent me-2"></i> {{ projet.culture.nom }}
+        </p>
+    </div>
+</div>
+
+<div class="container project-content-wrapper">
+    <!-- Action Buttons Row -->
+    <div class="d-flex flex-wrap gap-3 justify-content-center mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.2s; margin-top: -30px; position: relative; z-index: 20;">
+        <a href="{% url 'liste_projets' %}" class="btn-modern btn-outline-modern bg-surface shadow-sm text-dark px-4">
+            <i class="fas fa-arrow-left text-muted"></i> Retour
+        </a>
+        <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-primary-modern px-4">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        <a href="{% url 'ajouter_investissement' projet.id %}" class="btn-modern btn-accent px-4 shadow-sm" style="background: var(--accent); color: var(--primary);">
+            <i class="fas fa-plus"></i> Investissement
+        </a>
+        <a href="{% url 'supprimer_projet' projet.id %}" class="btn-modern btn-danger-modern px-4 shadow-sm" style="background: #ef4444; color: white;">
+            <i class="fas fa-trash"></i>
+        </a>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Left Column -->
+        <div class="col-lg-7 d-flex flex-column gap-4 animate__animated animate__fadeInLeft">
+            
+            <!-- General Info Card -->
+            <div class="glass-card flex-fill">
+                <div class="glass-card-header">
+                    <h5><i class="fas fa-info-circle text-accent me-2"></i> Aperçu du Projet</h5>
+                </div>
+                <div class="glass-card-body">
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <div class="info-block">
+                                <div class="info-icon"><i class="fas fa-ruler-combined"></i></div>
+                                <div>
+                                    <div class="info-label">Superficie</div>
+                                    <div class="info-value">{{ projet.superficie }} <span>ha</span></div>
+                                </div>
                             </div>
                         </div>
-                        <p><strong><i class="fas fa-tasks"></i> Statut :</strong>
-                            <span class="badge
-                                {% if projet.statut == 'En cours' %}bg-primary
-                                {% elif projet.statut == 'Terminé' %}bg-success
-                                {% elif projet.statut == 'Annulé' %}bg-danger
-                                {% else %}bg-secondary
-                                {% endif %}">
-                                {{ projet.statut }}
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section principale : Grille pour la photo, la carte et les investissements -->
-        <div class="row">
-            <!-- Section gauche : Photo et carte -->
-            <div class="col-md-6">
-                <!-- Photo du produit agricole -->
-                <div class="card mb-4 shadow-sm animate__animated animate__fadeInLeft">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="card-title mb-0"><i class="fas fa-camera"></i> Détails du produit agricole</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <!-- Photos associées au produit agricole -->
-                        {% if projet.culture.photos.all %}
-                            <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel">
-                                <div class="carousel-inner">
-                                    {% for photo in projet.culture.photos.all %}
-                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                            <img 
-                                                src="{{ photo.image.url }}" 
-                                                alt="{{ projet.culture.nom }}" 
-                                                class="d-block w-100 img-fluid rounded" 
-                                                style="max-height: 400px; object-fit: cover;"
-                                                {% if photo.description %}
-                                                    data-bs-toggle="tooltip" 
-                                                    data-bs-placement="top" 
-                                                    title="{{ photo.description }}"
-                                                {% endif %}
-                                            >
-                                        </div>
-                                    {% endfor %}
+                        <div class="col-sm-6">
+                            <div class="info-block">
+                                <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+                                <div>
+                                    <div class="info-label">Lancement</div>
+                                    <div class="info-value-text">{{ projet.date_lancement|date:"d M Y" }}</div>
                                 </div>
-                                <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
                             </div>
-                        {% else %}
-                            <p class="text-muted mt-4">Aucune photo disponible pour ce produit agricole.</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Carte de la localité -->
-                <div class="card mb-4 shadow-sm animate__animated animate__fadeInLeft">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt"></i> Localité : {{ projet.localite.nom }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="map" style="height: 300px; border-radius: 10px; border: 1px solid #ddd;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section droite : Liste des investissements -->
-            <div class="col-md-6">
-                <div class="card mb-4 shadow-sm animate__animated animate__fadeInRight">
-                    <div class="card-header bg-warning text-white">
-                        <h5 class="card-title mb-0"><i class="fas fa-coins"></i> Investissements</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if projet.investissement_set.all %}
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Détail</th>
-                                        <th>Coût par hectare (FCFA)</th>
-                                        <th>Autres frais (FCFA)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for investissement in projet.investissement_set.all %}
-                                        <tr>
-                                            <td>{{ investissement.description }}</td>
-                                            <td>{{ investissement.cout_par_hectare }}</td>
-                                            <td>{{ investissement.autres_frais }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
-                            <p class="text-muted">Aucun investissement enregistré pour ce projet.</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Graphique des investissements -->
-                <div class="card mb-4 shadow-sm animate__animated animate__fadeInRight">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Graphique des investissements</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if projet.investissement_set.all %}
-                        <canvas id="investmentChart" style="height: 300px;"></canvas>
-                        {% else %}
-                        <p class="text-muted">Aucun investissement enregistré pour ce projet.</p>
-                        {% endif %}
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="info-block">
+                                <div class="info-icon"><i class="fas fa-leaf"></i></div>
+                                <div>
+                                    <div class="info-label">Culture</div>
+                                    <div class="info-value-text">
+                                        <a href="#" class="produit-agricole-tooltip text-decoration-none text-primary fw-bold" data-produit-id="{{ projet.culture.id }}">
+                                            {{ projet.culture.nom }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Carousel Details -->
+            <div class="glass-card flex-fill">
+                <div class="glass-card-header">
+                    <h5><i class="fas fa-camera text-accent me-2"></i> Galerie de Culture</h5>
+                </div>
+                <div class="glass-card-body p-3">
+                    {% if projet.culture.photos.all %}
+                        <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel" style="border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                            <div class="carousel-inner">
+                                {% for photo in projet.culture.photos.all %}
+                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                        <img src="{{ photo.image.url }}" alt="{{ projet.culture.nom }}" class="d-block w-100 object-fit-cover" style="height: 350px;" {% if photo.description %}data-bs-toggle="tooltip" title="{{ photo.description }}"{% endif %}>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon shadow-sm" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px;"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon shadow-sm" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px;"></span>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-image fs-1 mb-3 opacity-50"></i>
+                            <p>Aucune photo disponible pour cette culture.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
 
-        <!-- Boutons d'actions -->
-        <div class="mt-4 row animate__animated animate__fadeInUp">
-            <div class="col-12 col-md-3 mb-2">
-                <a href="{% url 'modifier_projet' projet.id %}" class="btn btn-primary w-100">
-                    <i class="fas fa-edit"></i> Modifier
-                </a>
+        <!-- Right Column -->
+        <div class="col-lg-5 d-flex flex-column gap-4 animate__animated animate__fadeInRight">
+            
+            <!-- Prediction Card -->
+            <div class="glass-card prediction-card bg-gradient-premium">
+                <div class="glass-card-header border-bottom border-light border-opacity-10 text-white">
+                    <h5 class="mb-0"><i class="fas fa-magic text-accent me-2"></i> Prédiction IA</h5>
+                </div>
+                <div class="glass-card-body text-white">
+                    {% if prediction %}
+                        <div class="text-center mb-4">
+                            <div class="text-uppercase tracking-widest text-accent text-sm fw-bold mb-2">Rendement Estimé</div>
+                            <div class="display-3 fw-bold" style="font-family: var(--font-display);">
+                                {{ prediction.rendement_estime }} <span class="fs-4 text-white-50">kg</span>
+                            </div>
+                            <div class="text-sm text-white-50 mt-2">Prédit le {{ prediction.date_prediction|date:"d/m/Y" }}</div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-white-50">
+                            <i class="fas fa-robot fs-1 mb-3 opacity-50"></i>
+                            <p>L'IA n'a pas encore analysé ce projet. Cliquez pour estimer votre future récolte.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <form action="{% url 'generer_prediction' projet.id %}" method="post" class="mt-3 text-center">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-modern btn-accent w-100 shadow-lg" style="background: var(--accent); color: var(--primary);">
+                            <i class="fas fa-bolt me-2"></i> {% if prediction %}Actualiser l'IA{% else %}Analyser & Prédire{% endif %}
+                        </button>
+                    </form>
+                </div>
             </div>
-            <div class="col-12 col-md-3 mb-2">
-                <a href="{% url 'supprimer_projet' projet.id %}" class="btn btn-danger w-100">
-                    <i class="fas fa-trash"></i> Supprimer
-                </a>
+
+            <!-- Map Card -->
+            <div class="glass-card flex-fill">
+                <div class="glass-card-header">
+                    <h5><i class="fas fa-map text-accent me-2"></i> Localisation</h5>
+                </div>
+                <div class="glass-card-body p-2">
+                    <div id="map" class="rounded-modern" style="height: 250px; width: 100%; z-index: 1;"></div>
+                </div>
             </div>
-            <div class="col-12 col-md-3 mb-2">
-                <a href="{% url 'ajouter_investissement' projet.id %}" class="btn btn-success w-100">
-                    <i class="fas fa-plus"></i> Ajouter un investissement
-                </a>
-            </div>
-            <div class="col-12 col-md-3 mb-2">
-                <a href="{% url 'liste_projets' %}" class="btn btn-secondary w-100">
-                    <i class="fas fa-arrow-left"></i> Retour à la liste
-                </a>
+
+        </div>
+    </div>
+
+    <!-- Investments Section (Full Width) -->
+    <div class="row mb-5 animate__animated animate__fadeInUp">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="mb-0"><i class="fas fa-coins text-accent me-2"></i> Investissements Financiers</h5>
+                </div>
+                <div class="glass-card-body">
+                    {% if projet.investissement_set.all %}
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <div class="table-responsive">
+                                    <table class="table-modern w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>Description</th>
+                                                <th class="text-end">Coût/ha</th>
+                                                <th class="text-end">Autres</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for inv in projet.investissement_set.all %}
+                                                <tr>
+                                                    <td>{{ inv.description }}</td>
+                                                    <td class="text-end fw-bold">{{ inv.cout_par_hectare }} <span class="text-muted text-sm">FCFA</span></td>
+                                                    <td class="text-end fw-bold">{{ inv.autres_frais }} <span class="text-muted text-sm">FCFA</span></td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div style="height: 300px; width: 100%;">
+                                    <canvas id="investmentChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="icon-circle mx-auto mb-3 text-muted"><i class="fas fa-wallet fs-2"></i></div>
+                            <h5 class="text-muted">Aucun investissement</h5>
+                            <p class="text-muted text-sm mb-4">Gérez vos coûts en liant des investissements à ce projet.</p>
+                            <a href="{% url 'ajouter_investissement' projet.id %}" class="btn-modern btn-outline-modern bg-surface shadow-sm">
+                                <i class="fas fa-plus text-accent"></i> Ajouter
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Script pour la carte Bing Maps -->
+<style>
+    .project-hero-bg {
+        position: absolute; top: 0; left: 0; width: 100%; height: 40vh; min-height: 350px;
+        background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'); /* Agricultural sunset */
+        background-size: cover; background-position: center; background-attachment: fixed;
+        z-index: 0;
+    }
+    .project-hero-bg .hero-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(to bottom, rgba(2, 6, 23, 0.4) 0%, rgba(2, 6, 23, 0.9) 100%);
+    }
+
+    .project-content-wrapper {
+        position: relative; z-index: 10;
+        padding-top: max(40vh, 350px);
+    }
+
+    .glass-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
+
+    .glass-card-header {
+        padding: 24px 32px 20px 32px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .glass-card-header h5 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--text-main); }
+    .dark-mode .glass-card-header h5 { color: white; }
+
+    .glass-card-body { padding: 32px; }
+
+    .info-block { display: flex; align-items: center; gap: 16px; }
+    .info-icon {
+        width: 50px; height: 50px; border-radius: 16px;
+        background: rgba(163, 230, 53, 0.15); color: var(--primary);
+        display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .dark-mode .info-icon { color: var(--accent); }
+    .info-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .info-value { font-size: 2rem; font-weight: 800; color: var(--text-main); line-height: 1; font-family: var(--font-display); }
+    .info-value span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+    .info-value-text { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
+
+    .bg-gradient-premium {
+        background: linear-gradient(135deg, #022c22 0%, #064e3b 100%);
+        border: 1px solid rgba(163, 230, 53, 0.2);
+    }
+
+    .tracking-widest { letter-spacing: 0.15em; }
+
+    .table-modern { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+    .table-modern th { font-family: var(--font-display); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; padding: 12px; border-bottom: 1px solid var(--border-color); }
+    .table-modern td { padding: 16px 12px; background: var(--bg-main); color: var(--text-main); vertical-align: middle; }
+    .table-modern tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+    .table-modern tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+    .rounded-modern { border-radius: 16px; overflow: hidden; }
+
+    .badge-modern {
+        background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white; padding: 6px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem;
+        display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display);
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    .bg-surface { background: var(--bg-main); }
+    .text-dark { color: var(--text-main) !important; }
+
+    @media (max-width: 991px) {
+        .project-content-wrapper { padding-top: max(30vh, 250px); }
+        .project-hero-bg { height: 30vh; min-height: 250px; }
+    }
+</style>
+
+<!-- Scripts -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Coordonnées de la localité
-        var latitude = {{ projet.localite.latitude }};
-        var longitude = {{ projet.localite.longitude }};
+        var latitude = {{ projet.localite.latitude|default:"14.497401" }};
+        var longitude = {{ projet.localite.longitude|default:"-14.452362" }};
 
-        // Initialiser la carte
         var map = L.map('map').setView([latitude, longitude], 13);
-
-        // Ajouter les tuiles OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // Ajouter un marqueur pour la localité
         var marker = L.marker([latitude, longitude]).addTo(map);
-
-        // Ajouter une infobulle au marqueur
-        marker.bindPopup("<b>{{ projet.localite.nom }}</b><br>Superficie : {{ projet.superficie }} ha").openPopup();
-        });
-    </script>
+        marker.bindPopup("<div style='font-family: var(--font-display);'><b>{{ projet.localite.nom }}</b><br>Superficie: {{ projet.superficie }} ha</div>").openPopup();
+    });
 </script>
 
-<script src="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer></script>
-
-<!-- Script pour le graphique des investissements -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        var investmentLabels = [
-            {% for investissement in projet.investissement_set.all %}
-                "{{ investissement.description|escapejs }}",
-            {% endfor %}
-        ];
-
-        var investmentData = [
-            {% for investissement in projet.investissement_set.all %}
-                {{ investissement.cout_par_hectare|default:0 }},
-            {% endfor %}
-        ];
+        var investmentLabels = [{% for inv in projet.investissement_set.all %}"{{ inv.description|escapejs }}",{% endfor %}];
+        var investmentData = [{% for inv in projet.investissement_set.all %}{{ inv.cout_par_hectare|default:0 }},{% endfor %}];
 
         if (investmentLabels.length > 0) {
+            const isDark = document.body.classList.contains('dark-mode');
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+            
             var ctx = document.getElementById('investmentChart').getContext('2d');
+            
+            const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient1.addColorStop(0, 'rgba(163, 230, 53, 0.8)'); // Lime
+            gradient1.addColorStop(1, 'rgba(163, 230, 53, 0.2)');
+
             new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: investmentLabels,
                     datasets: [{
-                        label: 'Coût par hectare (FCFA)',
+                        label: 'Coût/ha (FCFA)',
                         data: investmentData,
-                        backgroundColor: ['#FF5733', '#33FF57', '#3357FF'],
-                        borderColor: ['#FF5733', '#33FF57', '#3357FF'],
-                        borderWidth: 1
+                        backgroundColor: gradient1,
+                        borderColor: '#a3e635',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barPercentage: 0.5
                     }]
                 },
                 options: {
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Répartition des investissements'
-                        }
-                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true
-                        }
+                        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: isDark ? '#0f172a' : '#fff', titleColor: isDark ? '#fff' : '#000', bodyColor: isDark ? '#94a3b8' : '#64748b', overlay: true }
                     }
                 }
             });
         }
     });
-</script>
 
-<script>
+    // Initialize Tooltips
     document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     });
 </script>
-
-
-<!-- Effets de style supplémentaires -->
-<style>
-    
-    .parallax {
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        padding: 50px 0;
-    }
-    .parallax::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5); /* Couleur de superposition */
-        z-index: -1; /* Placer derrière le contenu */
-    }
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background-color: rgba(255, 255, 255, 0.7); /* More transparent white background */;
-    }
-
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    .badge {
-        font-size: 0.9em;
-        padding: 0.5em 0.75em;
-    }
-
-    .btn {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    #map {
-        border: 1px solid #ddd;
-    }
-
-    .card-body img:hover {
-        transform: scale(1.1);
-        transition: transform 0.3s ease-in-out;
-    }
-
-    @media (max-width: 768px) {
-        #map {
-            height: 250px;
-        }
-        .parallax {
-            background-attachment: scroll;
-        }
-        .mt4 {
-            margin-top: 20px;
-        }
-    }
-
-    .tooltip-inner {
-    max-width: 300px;
-    text-align: center;
-    }
-
-
-
-</style>
 {% endblock %}
