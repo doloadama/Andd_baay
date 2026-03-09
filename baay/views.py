@@ -113,6 +113,11 @@ def creer_projet(request):
             # Sauvegarder le projet en associant l'utilisateur connecté
             projet = projet_form.save(commit=False)
             projet.utilisateur = request.user.profile  # Associer le profil de l'utilisateur connecté
+            
+            # Calcul automatique du rendement estimé si non fourni
+            if not projet.rendement_estime and projet.culture and projet.culture.rendement_moyen:
+                projet.rendement_estime = projet.superficie * projet.culture.rendement_moyen
+                
             projet.save()
             messages.success(request, "Le projet a été créé avec succès.")
             return redirect('liste_projets')
@@ -131,7 +136,13 @@ def modifier_projet(request, projet_id):
     if request.method == 'POST':
         projet_form = ProjetForm(request.POST, instance=projet)
         if projet_form.is_valid():
-            projet_form.save()
+            projet = projet_form.save(commit=False)
+            
+            # Recalculer le rendement lors d'une modification
+            if projet.culture and projet.culture.rendement_moyen:
+                projet.rendement_estime = projet.superficie * projet.culture.rendement_moyen
+                
+            projet.save()
             messages.success(request, "Le projet a été modifié avec succès.")
             logger.debug(f"Projet {projet.id} modifié avec succès.")
             return redirect('detail_projet', projet_id=projet.id)
@@ -334,8 +345,14 @@ def get_model():
 
 def predire_rendement(projet):
     model = get_model()
+    
+    # Fallback mathématique (Moyenne Hectare * Superficie)
+    fallback_rendement = 0
+    if projet.culture and projet.culture.rendement_moyen:
+        fallback_rendement = float(projet.superficie * projet.culture.rendement_moyen)
+
     if model is None:
-        return 0
+        return fallback_rendement
 
     investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
 
@@ -391,6 +408,10 @@ def generer_prediction(request, projet_id):
     if not created:
         prediction.rendement_estime = rendement_pred
         prediction.save()
+
+    # Mettre à jour le rendement estimé global du projet
+    projet.rendement_estime = rendement_pred
+    projet.save(update_fields=['rendement_estime'])
 
     messages.success(request, "La prédiction a été générée avec succès.")
     return redirect('detail_projet', projet_id=projet.id)
