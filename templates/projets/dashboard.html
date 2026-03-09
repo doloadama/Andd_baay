@@ -1,269 +1,267 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard | Bento Box{% endblock %}
 
 {% block content %}
 <style>
-    .dashboard-header {
-        margin-bottom: 40px;
-        text-align: center;
-    }
-
-    .dashboard-header h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        color: var(--text-main);
-        font-weight: 800;
-        margin-bottom: 12px;
-    }
-    
-    .dashboard-subtitle {
-        color: var(--text-muted);
-        font-size: 1.1rem;
-    }
-
-    /* KPI Cards */
-    .kpi-wrapper {
+    /* Bento Box Dashboard Grid */
+    .bento-dashboard {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto;
         gap: 24px;
-        margin-bottom: 40px;
+        margin-bottom: 60px;
+        /* Define areas:
+           Row 1: chart chart chart action
+           Row 2: kpi1 kpi2 kpi3 projects
+        */
+        grid-auto-flow: dense;
     }
 
-    .kpi-card {
+    /* Bento Tiles Base Styling */
+    .bento-tile {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
+        border-radius: 32px; /* Extra rounded for modern look */
         padding: 32px;
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
-        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        box-shadow: var(--shadow-soft);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        align-items: flex-start;
-        gap: 20px;
         position: relative;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
-    .kpi-card::before {
+    .bento-tile::before {
         content: '';
         position: absolute;
         top: 0; left: 0;
-        width: 100%; height: 4px;
-        background: var(--primary);
-        opacity: 0.1;
+        width: 100%; height: 100%;
+        background: radial-gradient(circle at top right, rgba(163, 230, 53, 0.1), transparent 60%);
+        opacity: 0;
         transition: opacity var(--transition);
+        z-index: 0;
     }
 
-    .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-soft);
-    }
-    
-    .kpi-card:hover::before { opacity: 1; background: var(--accent); }
-
-    .kpi-icon {
-        width: 60px;
-        height: 60px;
-        background: rgba(163, 230, 53, 0.15);
-        color: var(--primary);
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        flex-shrink: 0;
+    .bento-tile:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px -15px rgba(163, 230, 53, 0.15);
+        border-color: rgba(163, 230, 53, 0.3);
     }
     
-    .dark-mode .kpi-icon { color: var(--accent); }
+    .bento-tile:hover::before { opacity: 1; }
+    .bento-content { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; }
 
-    .kpi-info { flex: 1; }
-    .kpi-title { font-family: var(--font-display); font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 8px; }
-    .kpi-value { font-size: 2.5rem; font-weight: 800; color: var(--text-main); line-height: 1; font-family: var(--font-display); }
-    .kpi-unit { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+    /* Grid Area Assignments */
+    .tile-chart { grid-column: span 3; grid-row: span 2; min-height: 400px; }
+    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(2, 6, 23, 0.9) 100%); text-align: center; justify-content: center; align-items: center; border: 1px solid rgba(163, 230, 53, 0.2); }
+    .tile-kpi { grid-column: span 1; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .tile-projects { grid-column: span 1; grid-row: span 2; max-height: 600px; overflow-y: auto; }
 
-    /* Main Sections */
-    .section-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        padding: 40px;
-        margin-bottom: 40px;
-        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
-        backdrop-filter: blur(24px);
-    }
+    /* Custom Scrollbar for Tile Projects */
+    .tile-projects::-webkit-scrollbar { width: 6px; }
+    .tile-projects::-webkit-scrollbar-track { background: transparent; }
+    .tile-projects::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.2); border-radius: 10px; }
+    .tile-projects:hover::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.5); }
 
-    .section-title {
-        font-size: 1.5rem;
+    /* Typography inside Bento */
+    .bento-title {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
         margin-bottom: 24px;
         display: flex;
         align-items: center;
         gap: 12px;
     }
-    
-    .section-title i { color: var(--accent); background: var(--primary); padding: 8px; border-radius: 12px; font-size: 16px; }
+    .bento-title i { color: var(--accent); }
 
-    /* Modern Table */
-    .table-modern { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-    
-    .table-modern th {
-        font-family: var(--font-display);
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 0 24px 12px 24px;
-        border-bottom: 1px solid var(--border-color);
-        font-weight: 600;
-        text-align: left;
+    /* KPI Specifics */
+    .kpi-bento-icon {
+        width: 64px; height: 64px;
+        background: rgba(163, 230, 53, 0.1);
+        color: var(--accent);
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px;
+        margin-bottom: 16px;
     }
+    .kpi-bento-value { font-size: 3rem; font-weight: 800; color: var(--text-main); line-height: 1; font-family: var(--font-display); margin-bottom: 8px; }
+    .kpi-bento-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
 
-    .table-modern td {
-        padding: 20px 24px;
+    /* Mini Project Cards (replaces table) */
+    .mini-project-list {
+        display: flex; flex-direction: column; gap: 16px;
+    }
+    .mini-project-card {
         background: var(--bg-main);
-        color: var(--text-main);
-        vertical-align: middle;
-        transition: all var(--transition);
-        border-top: 1px solid transparent;
-        border-bottom: 1px solid transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
-
-    .table-modern tr td:first-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; border-left: 1px solid transparent; font-weight: 600; }
-    .table-modern tr td:last-child { border-top-right-radius: 16px; border-bottom-right-radius: 16px; border-right: 1px solid transparent; }
-
-    /* Clickable Rows */
-    .clickable-row { cursor: pointer; }
-    
-    .clickable-row:hover td {
-        background: rgba(163, 230, 53, 0.08); /* Very subtle lime highlight */
-        border-color: rgba(163, 230, 53, 0.2);
-        transform: scale(1.005);
+    .mini-project-card:hover {
+        background: rgba(163, 230, 53, 0.05);
+        border-color: rgba(163, 230, 53, 0.4);
+        transform: scale(1.02);
     }
     
-    .dark-mode .clickable-row:hover td { background: rgba(163, 230, 53, 0.05); }
+    .mini-p-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .mini-p-title { font-weight: 700; color: var(--text-main); font-size: 1rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+    .mini-p-culture { font-size: 0.8rem; color: var(--text-muted); }
+    
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .status-dot.active { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .status-dot.pending { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+    .status-dot.completed { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
 
-    .status-badge {
-        padding: 6px 14px;
-        border-radius: var(--radius-pill);
-        font-size: 0.85rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+    .mini-p-stats { display: flex; gap: 12px; font-size: 0.85rem; color: var(--text-main); font-weight: 600; }
+    .mini-p-stats span { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px 10px; border-radius: 8px; }
+    .mini-p-stats i { color: var(--text-muted); }
+
+    /* Responsive Grid */
+    @media (max-width: 1200px) {
+        .bento-dashboard { grid-template-columns: repeat(3, 1fr); }
+        .tile-chart { grid-column: span 3; grid-row: span 2; }
+        .tile-action { grid-column: span 3; grid-row: span 1; flex-direction: row; gap: 24px; padding: 24px; }
+        .tile-projects { grid-column: span 3; grid-row: span 1; max-height: 400px; }
     }
-
-    .status-active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-    .status-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-    .status-completed { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-
     @media (max-width: 768px) {
-        .section-card { padding: 24px; border-radius: 20px; }
-        .table-modern, .table-modern tbody, .table-modern tr, .table-modern td { display: block; width: 100%; }
-        .table-modern thead { display: none; }
-        .table-modern tr { margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
-        .table-modern td { text-align: right; padding: 12px 20px; position: relative; border-radius: 0 !important; border: none !important; }
-        .table-modern td::before { content: attr(data-label); position: absolute; left: 20px; top: 12px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; font-family: var(--font-display); text-transform: uppercase; }
-        .table-modern td:not(:last-child) { border-bottom: 1px solid var(--border-color) !important; }
+        .bento-dashboard { grid-template-columns: 1fr; }
+        .tile-chart, .tile-kpi, .tile-action, .tile-projects { grid-column: span 1; grid-row: auto; }
+        .kpi-bento-icon { width: 48px; height: 48px; font-size: 20px; }
+        .kpi-bento-value { font-size: 2rem; }
     }
+    
+    /* Elegant Header */
+    .dashboard-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .db-title h1 { font-family: var(--font-display); font-weight: 800; font-size: 2.5rem; margin: 0; color: var(--text-main); }
+    .db-title p { color: var(--accent); font-weight: 500; margin: 8px 0 0 0; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; }
 </style>
 
-<div class="dashboard-header animate__animated animate__fadeInDown">
-    <h1>Tableau de Bord</h1>
-    <p class="dashboard-subtitle">Vue d'ensemble de vos activités agricoles</p>
+<div class="dashboard-header-modern animate__animated animate__fadeInDown">
+    <div class="db-title">
+        <h1>Dashboard</h1>
+        <p>Espace Analytique</p>
+    </div>
+    <div class="db-date text-muted" style="font-weight: 500; font-size: 0.9rem;">
+        <i class="far fa-calendar-alt me-2"></i> {% now "j F Y" %}
+    </div>
 </div>
 
-<!-- KPI Indicators -->
-<div class="kpi-wrapper animate__animated animate__fadeInUp">
-    <div class="kpi-card">
-        <div class="kpi-icon"><i class="fas fa-map"></i></div>
-        <div class="kpi-info">
-            <div class="kpi-title">Superficie Tolale</div>
-            <div class="kpi-value">{{ superficie_totale|default:"0" }} <span class="kpi-unit">ha</span></div>
-        </div>
-    </div>
+<div class="bento-dashboard animate__animated animate__fadeInUp">
     
-    <div class="kpi-card">
-        <div class="kpi-icon"><i class="fas fa-boxes"></i></div>
-        <div class="kpi-info">
-            <div class="kpi-title">Rendement Estimé</div>
-            <div class="kpi-value text-accent">{{ rendement_total|default:"0" }} <span class="kpi-unit" style="color:var(--text-muted);">kg</span></div>
+    <!-- TILE 1: Main Chart -->
+    <div class="bento-tile tile-chart">
+        <div class="bento-content">
+            <h3 class="bento-title"><i class="fas fa-chart-area"></i> Analyse des Rendements</h3>
+            {% if projets %}
+                <div style="flex: 1; position: relative; width: 100%; min-height: 300px;">
+                    <canvas id="rendementChart"></canvas>
+                </div>
+            {% else %}
+                <div class="alert alert-modern m-auto text-center" style="width: 100%; max-width: 400px;">
+                    <i class="fas fa-seedling fa-2x mb-3" style="color: var(--text-muted);"></i>
+                    <p>Aucune donnée disponible. Lancez votre premier projet d'IA agricole.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
-    
-    <div class="kpi-card">
-        <div class="kpi-icon"><i class="fas fa-seedling"></i></div>
-        <div class="kpi-info">
-            <div class="kpi-title">Projets Actifs</div>
-            <div class="kpi-value">{{ projets|length }}</div>
+
+    <!-- TILE 2: Quick Action -->
+    <div class="bento-tile tile-action">
+        <div class="bento-content text-center">
+            <div style="width: 80px; height: 80px; background: rgba(163, 230, 53, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                <i class="fas fa-bolt fa-2x" style="color: var(--accent);"></i>
+            </div>
+            <h4 style="color: white; font-family: var(--font-display); font-weight: 700; margin-bottom: 12px;">Nouvelle Ère ?</h4>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">Lancez une nouvelle prédiction IA pour vos cultures.</p>
+            <a href="{% url 'creer_projet' %}" class="btn-modern" style="background: var(--accent); color: #022c22; font-weight: 800; width: 100%;">
+                <i class="fas fa-plus me-2"></i> Créer
+            </a>
         </div>
     </div>
-</div>
 
-<!-- Yield Chart -->
-<div class="section-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-    <h3 class="section-title"><i class="fas fa-chart-line"></i> Répartition des Rendements</h3>
-    {% if projets %}
-        <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="rendementChart"></canvas>
+    <!-- TILE 3: KPI Area -->
+    <div class="bento-tile tile-kpi">
+        <div class="bento-content">
+            <div class="kpi-bento-icon"><i class="fas fa-map"></i></div>
+            <div class="kpi-bento-value">{{ superficie_totale|default:"0" }}</div>
+            <div class="kpi-bento-label">Hectares gérés</div>
         </div>
-    {% else %}
-        <div class="alert alert-modern">
-            <i class="fas fa-info-circle me-2"></i> Aucun projet trouvé. Créez votre premier projet pour voir les statistiques.
-        </div>
-    {% endif %}
-</div>
-
-<!-- Projects List -->
-<div class="section-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h3 class="section-title mb-0"><i class="fas fa-list"></i> Vos Projets</h3>
-        <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern">
-            <i class="fas fa-plus"></i> Nouveau Projet
-        </a>
     </div>
 
-    {% if projets %}
-        <div class="table-responsive">
-            <table class="table-modern">
-                <thead>
-                    <tr>
-                        <th>Projet</th>
-                        <th>Culture</th>
-                        <th>Superficie</th>
-                        <th>Rend. Estimé</th>
-                        <th>Lancement</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for projet in projets %}
-                    <!-- Redirection Onclick applied here -->
-                    <tr class="clickable-row" onclick="window.location='{% url 'detail_projet' projet.id %}'" title="Voir les détails du projet">
-                        <td data-label="Projet">{{ projet.nom }}</td>
-                        <td data-label="Culture">{{ projet.culture.nom }}</td>
-                        <td data-label="Superficie">{{ projet.superficie }} ha</td>
-                        <td data-label="Rendement"><strong>{{ projet.rendement_estime|default:"-" }}</strong> kg</td>
-                        <td data-label="Lancement" style="color: var(--text-muted);">{{ projet.date_lancement|date:"d/m/Y" }}</td>
-                        <td data-label="Statut">
+    <!-- TILE 4: KPI Yield -->
+    <div class="bento-tile tile-kpi">
+        <div class="bento-content">
+            <div class="kpi-bento-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);"><i class="fas fa-boxes"></i></div>
+            <div class="kpi-bento-value" style="color: #3b82f6;">{{ rendement_total|default:"0" }}</div>
+            <div class="kpi-bento-label">Kg Estimés</div>
+        </div>
+    </div>
+
+    <!-- TILE 5: KPI Projects -->
+    <div class="bento-tile tile-kpi">
+        <div class="bento-content">
+            <div class="kpi-bento-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i class="fas fa-seedling"></i></div>
+            <div class="kpi-bento-value text-main">{{ projets|length }}</div>
+            <div class="kpi-bento-label">Projets Actifs</div>
+        </div>
+    </div>
+
+    <!-- TILE 6: Projects List (Vertical Timeline Style) -->
+    <div class="bento-tile tile-projects">
+        <div class="bento-content">
+            <h3 class="bento-title" style="margin-bottom: 20px;"><i class="fas fa-layer-group"></i> Projets Récents</h3>
+            
+            {% if projets %}
+                <div class="mini-project-list">
+                    {% for projet in projets|slice:":6" %}
+                    <div class="mini-project-card" onclick="window.location='{% url 'detail_projet' projet.id %}'">
+                        <div class="mini-p-header">
+                            <div>
+                                <h4 class="mini-p-title">{{ projet.nom }}</h4>
+                                <span class="mini-p-culture">{{ projet.culture.nom }}</span>
+                            </div>
+                            
                             {% if projet.statut == 'En cours' or projet.statut == 'EN_COURS' %}
-                                <span class="status-badge status-active"><i class="fas fa-spinner fa-spin"></i> En cours</span>
+                                <div class="status-dot active" title="En cours"></div>
                             {% elif projet.statut == 'Planifié' or projet.statut == 'PLANIFIE' %}
-                                <span class="status-badge status-pending"><i class="fas fa-calendar-alt"></i> Planifié</span>
+                                <div class="status-dot pending" title="Planifié"></div>
                             {% else %}
-                                <span class="status-badge status-completed"><i class="fas fa-check"></i> {{ projet.statut }}</span>
+                                <div class="status-dot completed" title="Terminé"></div>
                             {% endif %}
-                        </td>
-                    </tr>
+                        </div>
+                        <div class="mini-p-stats">
+                            <span title="Superficie"><i class="fas fa-crop-alt"></i> {{ projet.superficie }} ha</span>
+                            <span title="Rendement estimé"><i class="fas fa-weight"></i> {{ projet.rendement_estime|default:"-" }} kg</span>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-folder-open fa-2x mb-3" style="color: var(--border-color);"></i>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Aucun projet en cours.</p>
+                </div>
+            {% endif %}
         </div>
-    {% else %}
-        <div class="text-center py-5">
-            <div style="font-size: 3rem; color: var(--border-color); margin-bottom: 16px;"><i class="fas fa-folder-open"></i></div>
-            <p style="color: var(--text-muted); font-size: 1.1rem;">Aucun projet à afficher.</p>
-        </div>
-    {% endif %}
+    </div>
+
 </div>
 
 <!-- Chart.js -->
