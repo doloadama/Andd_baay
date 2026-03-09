@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: andd_baay.wsgi:application"
+    name: andd-baay
     env: python
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
-    startCommand: "python andd_baay.wsgi:application"
+    startCommand: "gunicorn Andd_Baayi.wsgi:application"
     staticPublishPath: staticfiles

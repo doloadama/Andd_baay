@@ -20,5 +20,5 @@ RUN python manage.py collectstatic --noinput
 # Expose the port
 EXPOSE 8000
 
-# Run the server
-CMD ["python", "manage.py", "runserver", "--bind", "0.0.0.0:8000"]
+# Run the server with gunicorn for production
+CMD ["gunicorn", "Andd_Baayi.wsgi:application", "--bind", "0.0.0.0:8000"]

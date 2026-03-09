@@ -17,14 +17,14 @@ class Profile(models.Model):
 
 
 class ProduitAgricole(models.Model):
-    STATUTS = {
-        'En croissance': 'bg-success',
-        'Récolté': 'bg-primary',
-        'Problème': 'bg-danger',
-        'Autre': 'bg-secondary'
-    }
+    STATUTS = [
+        ('En croissance', 'En croissance'),
+        ('Récolté', 'Récolté'),
+        ('Problème', 'Problème'),
+        ('Autre', 'Autre'),
+    ]
 
-    id = models.UUIDField(primary_key=True, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nom = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
     saison = models.CharField(max_length=50, blank=True, null=True)

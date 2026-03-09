@@ -1,23 +1,14 @@
 from django.contrib import admin
-from django.contrib.auth.models import User as DefaultUser
+from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
 from .models import (
     PhotoProduitAgricole,
-    User,
     Projet,
     ProduitAgricole,
     Localite,
     Investissement,
 )
-
-# Unregister the default User model
-admin.site.unregister(DefaultUser)
-
-# Register your custom User model
-@admin.register(User)
-class CustomUserAdmin(DefaultUserAdmin):
-    pass
 
 
 @admin.register(ProduitAgricole)

@@ -7,7 +7,6 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -17,7 +16,7 @@ from sklearn.metrics import r2_score, mean_absolute_error
 import numpy as np
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
-from baay.models  import Profile, Projet, ProduitAgricole, PredictionRendement
+from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
@@ -35,11 +34,11 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()  # Enregistre l'utilisateur
-            # Créez un profil utilisateur avec le numéro de téléphone
-            Profile.objects.create(
-                user=user,
-                phone_number=form.cleaned_data['phone_number']
-            )
+            # Le signal post_save crée déjà le Profile automatiquement.
+            # On met à jour le numéro de téléphone sur le profil existant.
+            profile = user.profile
+            profile.phone_number = form.cleaned_data['phone_number']
+            profile.save()
             login(request, user)
             messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
             return redirect('home')
@@ -84,7 +83,10 @@ class CustomPasswordResetView(PasswordResetView):
 # Créer le client Gemini avec la clé depuis settings
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-@csrf_exempt
+logger = logging.getLogger(__name__)
+
+# Chatbot — CSRF enabled, login required for security
+@login_required
 def ask_chatbot(request):
     if request.method == 'POST':
         try:
@@ -121,7 +123,6 @@ def creer_projet(request):
         'projet_form': projet_form,
     })
 
-logger = logging.getLogger(__name__)
 
 @login_required
 def modifier_projet(request, projet_id):
@@ -170,7 +171,8 @@ def supprimer_projets(request):
 
 @login_required
 def ajouter_investissement(request, projet_id):
-    projet = get_object_or_404(Projet, id=projet_id)
+    # Vérifier que le projet appartient à l'utilisateur connecté
+    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
 
     if request.method == 'POST':
         investissement_form = InvestissementForm(request.POST)
@@ -213,9 +215,6 @@ def liste_projets(request):
     return render(request, 'projets/liste_projets.html', {'projets': projets})
 
 
-# Exemple de vue Django
-from django.contrib.auth.decorators import login_required
-
 @login_required
 def dashboard(request):
     try:
@@ -233,10 +232,8 @@ def dashboard(request):
         'projets': projets,
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
+        'utilisateur': utilisateur,
     }
-
-    context['utilisateur'] = utilisateur
-
 
     return render(request, 'projets/dashboard.html', context)
 
@@ -244,7 +241,7 @@ def dashboard(request):
 def get_produit_agricole_details(request):
     produit_id = request.GET.get('produit_id')
     try:
-        produit = ProduitAgricole.objects.get(id=id)
+        produit = ProduitAgricole.objects.get(id=produit_id)
         details = f"""
             <strong>Nom :</strong> {produit.nom}<br>
             <strong>Description :</strong> {produit.description}<br>
@@ -336,24 +333,8 @@ def get_model():
 
 
 def predire_rendement(projet):
-
     model = get_model()
     if model is None:
-        return 0
-
-
-    try:
-        with open('modele_rendement.pkl', 'rb') as f:
-            model = pickle.load(f)
-            logger.debug("Model loaded successfully.")
-    except FileNotFoundError:
-        logger.error("Le fichier modele_rendement.pkl est introuvable.")
-        return 0
-    except pickle.UnpicklingError:
-        logger.error("Erreur lors du chargement du modèle : fichier corrompu.")
-        return 0
-    except Exception as e:
-        logger.error(f"Erreur inattendue lors du chargement du modèle : {e}")
         return 0
 
     investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
@@ -422,5 +403,3 @@ def evaluer_modele(model, X_test, y_test):
 
     logger.info(f"Model Evaluation - RMSE: {rmse:.2f}, R²: {r2:.2f}, MAE: {mae:.2f}")
     return {'rmse': rmse, 'r2': r2, 'mae': mae}
-
-

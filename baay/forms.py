@@ -1,4 +1,3 @@
-# myapp/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -24,10 +23,6 @@ class CustomUserCreationForm(UserCreationForm):
             user.save()
         return user
 
-
-# myapp/forms.py
-from django import forms
-from .models import Investissement, Localite
 
 class InvestissementForm(forms.ModelForm):
     class Meta:
@@ -67,18 +62,18 @@ class ProjetForm(forms.ModelForm):
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
-            'statut': forms.Select(attrs={'class': 'form-control'}),  # Ajoute une classe CSS
+            'statut': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Afficher les noms des cultures dans le formulaire
         self.fields['culture'].queryset = ProduitAgricole.objects.all()
-        self.fields['culture'].label_from_instance = lambda obj: obj.nom  # Afficher le nom au lieu de l'ID
+        self.fields['culture'].label_from_instance = lambda obj: obj.nom
 
-        # Afficher les noms des cultures dans le formulaire
+        # Afficher les noms des localités dans le formulaire
         self.fields['localite'].queryset = Localite.objects.all()
-        self.fields['localite'].label_from_instance = lambda obj: obj.nom  # Afficher le nom au lieu de l'ID
+        self.fields['localite'].label_from_instance = lambda obj: obj.nom
 
 
     def clean_superficie(self):
