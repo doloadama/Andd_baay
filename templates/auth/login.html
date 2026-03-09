@@ -2,152 +2,215 @@
 
 {% block content %}
 <style>
+    .auth-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+        padding: 40px 0;
+    }
+
     .auth-card {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        border-radius: var(--radius-xl);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
-        overflow: hidden;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 48px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
 
     .auth-header {
-        background: var(--gradient-primary);
         text-align: center;
-        padding: 1.5rem;
-        color: #fff;
+        margin-bottom: 32px;
     }
+
+    .auth-header .icon-wrap {
+        width: 64px;
+        height: 64px;
+        background: rgba(163, 230, 53, 0.15);
+        color: var(--primary);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto 20px auto;
+        border: 1px solid rgba(163, 230, 53, 0.3);
+    }
+    
+    .dark-mode .auth-header .icon-wrap { color: var(--accent); }
 
     .auth-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
+        font-size: 2rem;
+        margin-bottom: 8px;
+        color: var(--text-main);
     }
 
-    .auth-body {
-        padding: 2rem 2.5rem;
-    }
-
-    .auth-subtitle {
-        text-align: center;
+    .auth-header p {
         color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
     }
 
-    .auth-submit {
-        background: var(--gradient-primary);
+    .form-modern .form-label {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+    }
+
+    .form-modern .input-group {
+        border-radius: var(--radius-input);
+        overflow: hidden;
+        border: 2px solid var(--border-color);
+        background: var(--bg-main);
+        transition: all var(--transition);
+    }
+
+    .form-modern .input-group:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+    }
+
+    .form-modern .input-group-text {
+        background: transparent;
         border: none;
-        border-radius: var(--radius-md);
-        padding: 12px;
+        color: var(--text-muted);
+        padding-left: 20px;
+    }
+    
+    .form-modern .input-group:focus-within .input-group-text { color: var(--primary); }
+    .dark-mode .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
+
+    .form-modern .form-control {
+        background: transparent;
+        border: none;
+        padding: 14px 20px 14px 10px;
+        font-size: 0.95rem;
+        color: var(--text-main);
+        box-shadow: none;
+    }
+
+    .form-modern .form-control::placeholder {
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+
+    .form-modern .btn-toggle-pass {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding-right: 20px;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        border-radius: var(--radius-input);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
         font-weight: 700;
-        font-size: 1rem;
-        color: #fff;
-        transition: all var(--transition-smooth);
-        letter-spacing: 0.01em;
+        margin-top: 10px;
     }
 
-    .auth-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-glow);
-        background: var(--gradient-accent);
+    .auth-footer {
+        text-align: center;
+        margin-top: 32px;
+        font-size: 0.95rem;
+        color: var(--text-muted);
     }
 
-    .auth-link { font-weight: 600; color: var(--color-primary); }
-    .auth-link:hover { color: var(--color-accent); }
+    .auth-footer a {
+        font-weight: 600;
+        color: var(--primary);
+    }
+    
+    .dark-mode .auth-footer a { color: var(--accent); }
+    .auth-footer a:hover { text-decoration: underline; }
 
-    .dark-mode .auth-card {
-        background: rgba(22, 35, 26, 0.88);
-        border-color: rgba(16, 185, 129, 0.15);
+    /* Custom Checkbox */
+    .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-top: 0.15rem;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-main);
+    }
+    .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    .dark-mode .form-check-input:checked {
+        background-color: var(--accent);
+        border-color: var(--accent);
     }
 </style>
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="auth-card animate__animated animate__fadeIn">
-            <div class="auth-header">
-                <h2><i class="fas fa-key me-2" aria-hidden="true"></i>Connexion</h2>
+<div class="auth-wrapper">
+    <div class="auth-card animate__animated animate__zoomIn" style="animation-duration: 0.4s;">
+        <div class="auth-header">
+            <div class="icon-wrap">
+                <i class="fas fa-fingerprint"></i>
             </div>
-            <div class="auth-body">
-                <p class="auth-subtitle">Accédez à votre compte en toute sécurité</p>
+            <h2>Connexion</h2>
+            <p>Accédez à votre espace sécurisé</p>
+        </div>
 
-                {% if form.errors %}
-                <div class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
-                    Nom d'utilisateur ou mot de passe incorrect. Veuillez réessayer.
+        {% if form.errors %}
+        <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+            <i class="fas fa-exclamation-triangle me-2"></i>Identifiants incorrects.
+        </div>
+        {% endif %}
+
+        <form method="post" class="form-modern needs-validation" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-4 position-relative">
+                <label for="username" class="form-label">Nom d'utilisateur</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-at"></i></span>
+                    <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre nom d'utilisateur" required>
                 </div>
-                {% endif %}
+            </div>
 
-                <form method="post" class="needs-validation" novalidate>
-                    {% csrf_token %}
-
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Nom d'utilisateur</label>
-                        <div class="input-group">
-                            <span class="input-group-text" aria-hidden="true">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input type="text" name="username" class="form-control" id="username"
-                                placeholder="Entrez votre nom d'utilisateur" required
-                                aria-describedby="usernameHelp">
-                            <div class="invalid-feedback">
-                                Veuillez saisir votre nom d'utilisateur.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Mot de passe</label>
-                        <div class="input-group">
-                            <span class="input-group-text" aria-hidden="true">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" name="password" class="form-control" id="password"
-                                placeholder="••••••••" required aria-describedby="passwordHelp">
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword"
-                                aria-label="Afficher/masquer le mot de passe" style="border-color: #d1e7dd;">
-                                <i class="fas fa-eye" id="eyeIcon" aria-hidden="true"></i>
-                            </button>
-                            <div class="invalid-feedback">
-                                Veuillez saisir votre mot de passe.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
-                        <label class="form-check-label" for="rememberMe" style="font-size: 0.9rem; color: var(--text-secondary);">Se souvenir de moi</label>
-                    </div>
-
-                    <button type="submit" class="auth-submit w-100 mt-2">
-                        <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i> Se connecter
+            <div class="mb-4 position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label for="password" class="form-label mb-0">Mot de passe</label>
+                    <a href="{% url 'password_reset' %}" style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">Oublié ?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
+                    <button type="button" class="btn-toggle-pass" id="togglePassword">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
                     </button>
-                </form>
-
-                <div class="mt-4 text-center">
-                    <p style="font-size: 0.9rem;">Pas encore de compte ? <a href="{% url 'register' %}" class="auth-link">Inscrivez-vous ici</a>.</p>
-                    <p><a href="{% url 'password_reset' %}" style="color: var(--text-muted); font-size: 0.85rem;">
-                        <i class="fas fa-lock me-1" aria-hidden="true"></i>Mot de passe oublié ?
-                    </a></p>
                 </div>
             </div>
+
+            <div class="mb-4 form-check d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+                <label class="form-check-label text-muted" for="rememberMe" style="font-size: 0.9rem;">Rester connecté</label>
+            </div>
+
+            <button type="submit" class="btn-modern btn-primary-modern btn-submit">
+                Connexion <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Nouveau ici ? <a href="{% url 'register' %}">Créer un compte</a>
         </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.needs-validation');
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        });
-
         const togglePassword = document.getElementById('togglePassword');
         const password = document.getElementById('password');
         const eyeIcon = document.getElementById('eyeIcon');
@@ -158,6 +221,11 @@
             eyeIcon.classList.toggle('fa-eye');
             eyeIcon.classList.toggle('fa-eye-slash');
         });
+        
+        // Auto-focus on first empty field
+        const username = document.getElementById('username');
+        if(!username.value) username.focus();
+        else password.focus();
     });
 </script>
 {% endblock %}

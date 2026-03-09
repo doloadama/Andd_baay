@@ -2,373 +2,235 @@
 
 {% block content %}
 <style>
+    .auth-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+        padding: 40px 0;
+    }
+
     .auth-card {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        border-radius: var(--radius-xl);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
-        overflow: hidden;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 48px;
+        width: 100%;
+        max-width: 650px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
 
-    .auth-header {
-        background: var(--gradient-primary);
-        text-align: center;
-        padding: 1.5rem;
-        color: #fff;
+    .auth-header { text-align: center; margin-bottom: 32px; }
+
+    .auth-header .icon-wrap {
+        width: 64px; height: 64px; margin: 0 auto 20px auto;
+        background: rgba(163, 230, 53, 0.15); color: var(--primary);
+        border-radius: 20px; display: flex; align-items: center; justify-content: center;
+        font-size: 28px; border: 1px solid rgba(163, 230, 53, 0.3);
+    }
+    .dark-mode .auth-header .icon-wrap { color: var(--accent); }
+
+    .auth-header h2 { font-size: 2rem; margin-bottom: 8px; color: var(--text-main); }
+    .auth-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .form-modern .form-label {
+        font-family: var(--font-display); font-weight: 600; font-size: 0.85rem;
+        color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
     }
 
-    .auth-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
+    .form-modern .input-group {
+        border-radius: var(--radius-input); overflow: hidden;
+        border: 2px solid var(--border-color); background: var(--bg-main); transition: all var(--transition);
     }
 
-    .auth-body {
-        padding: 2rem 2.5rem;
+    .form-modern .input-group:focus-within {
+        border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
     }
 
-    .auth-subtitle {
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-    }
+    .form-modern .input-group-text { background: transparent; border: none; color: var(--text-muted); padding-left: 20px; }
+    .form-modern .input-group:focus-within .input-group-text { color: var(--primary); }
+    .dark-mode .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
 
-    .auth-submit {
-        background: var(--gradient-primary);
-        border: none;
-        border-radius: var(--radius-md);
-        padding: 12px;
-        font-weight: 700;
-        font-size: 1rem;
-        color: #fff;
-        transition: all var(--transition-smooth);
+    .form-modern .form-control {
+        background: transparent; border: none; padding: 14px 20px 14px 10px; font-size: 0.95rem; color: var(--text-main); box-shadow: none;
     }
+    .form-modern .form-control::placeholder { color: var(--text-muted); opacity: 0.6; }
+    
+    .form-modern .btn-toggle-pass { background: transparent; border: none; color: var(--text-muted); padding-right: 20px; cursor: pointer; }
 
-    .auth-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-glow);
-        background: var(--gradient-accent);
-    }
+    .btn-submit { width: 100%; padding: 16px; border-radius: var(--radius-input); font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-top: 10px; }
 
-    .auth-link { font-weight: 600; color: var(--color-primary); }
-    .auth-link:hover { color: var(--color-accent); }
+    .auth-footer { text-align: center; margin-top: 32px; font-size: 0.95rem; color: var(--text-muted); }
+    .auth-footer a { font-weight: 600; color: var(--primary); }
+    .dark-mode .auth-footer a { color: var(--accent); }
+    .auth-footer a:hover { text-decoration: underline; }
 
-    .dark-mode .auth-card {
-        background: rgba(22, 35, 26, 0.88);
-        border-color: rgba(16, 185, 129, 0.15);
-    }
+    .form-check-input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; border: 2px solid var(--border-color); background-color: var(--bg-main); }
+    .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+    .dark-mode .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
 
-    .password-strength .progress {
-        height: 4px;
-        border-radius: 2px;
-        background: rgba(0, 0, 0, 0.06);
-    }
+    .password-strength .progress { height: 6px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
 </style>
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="auth-card animate__animated animate__fadeIn">
-            <div class="auth-header">
-                <h2><i class="fas fa-user-plus me-2" aria-hidden="true"></i>Inscription</h2>
-            </div>
-            <div class="auth-body">
-                <p class="auth-subtitle">Créez un compte pour accéder à toutes les fonctionnalités</p>
+<div class="auth-wrapper">
+    <div class="auth-card animate__animated animate__zoomIn" style="animation-duration: 0.4s;">
+        <div class="auth-header">
+            <div class="icon-wrap"><i class="fas fa-user-plus"></i></div>
+            <h2>Créer un compte</h2>
+            <p>Rejoignez la nouvelle ère agricole</p>
+        </div>
 
-                {% if form.errors %}
-                <div class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
-                    Veuillez corriger les erreurs ci-dessous.
-                    <ul class="mb-0 mt-2">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <li>{{ field.label }}: {{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                        {% for error in form.non_field_errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
+        {% if form.errors %}
+        <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+            <ul class="mb-0 ps-3">
+                {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="form-modern needs-validation" id="registerForm" novalidate>
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-at"></i></span>
+                        <input type="text" name="username" class="form-control" id="username" placeholder="Pseudo" required>
+                    </div>
                 </div>
-                {% endif %}
-
-                <form method="post" class="needs-validation" novalidate>
-                    {% csrf_token %}
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Nom d'utilisateur</label>
-                            <div class="input-group">
-                                <span class="input-group-text" aria-hidden="true">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <input type="text" name="username" class="form-control" id="username"
-                                    placeholder="Nom d'utilisateur" required aria-describedby="usernameHelp">
-                                <div class="invalid-feedback">Veuillez saisir un nom d'utilisateur.</div>
-                            </div>
-                            <small id="usernameHelp" class="form-text" style="color: var(--text-muted); font-size: 0.75rem;">
-                                Lettres, chiffres et @/./+/-/_ uniquement.
-                            </small>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text" aria-hidden="true">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                                <input type="email" name="email" class="form-control" id="email"
-                                    placeholder="votre@email.com" required>
-                                <div class="invalid-feedback">Veuillez saisir une adresse email valide.</div>
-                            </div>
-                        </div>
+                <div class="col-md-6 mb-4">
+                    <label for="email" class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" id="email" placeholder="votre@email.com" required>
                     </div>
+                </div>
+            </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">Prénom</label>
-                            <div class="input-group">
-                                <span class="input-group-text" aria-hidden="true">
-                                    <i class="fas fa-user-tag"></i>
-                                </span>
-                                <input type="text" name="first_name" class="form-control" id="first_name"
-                                    placeholder="Votre prénom" required>
-                                <div class="invalid-feedback">Veuillez saisir votre prénom.</div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Nom</label>
-                            <div class="input-group">
-                                <span class="input-group-text" aria-hidden="true">
-                                    <i class="fas fa-user-tag"></i>
-                                </span>
-                                <input type="text" name="last_name" class="form-control" id="last_name"
-                                    placeholder="Votre nom de famille" required>
-                                <div class="invalid-feedback">Veuillez saisir votre nom de famille.</div>
-                            </div>
-                        </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label for="first_name" class="form-label">Prénom</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Prénom" required>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="phone_number" class="form-label">Numéro de téléphone</label>
-                        <div class="input-group">
-                            <span class="input-group-text" aria-hidden="true">
-                                <i class="fas fa-phone"></i>
-                            </span>
-                            <input type="tel" name="phone_number" class="form-control" id="phone_number"
-                                placeholder="+221 XX XXX XX XX" required pattern="[0-9]{9}">
-                            <div class="invalid-feedback">Veuillez saisir un numéro valide.</div>
-                        </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <label for="last_name" class="form-label">Nom</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Nom" required>
                     </div>
+                </div>
+            </div>
 
-                    <div class="mb-3">
-                        <label for="password1" class="form-label">Mot de passe</label>
-                        <div class="input-group">
-                            <span class="input-group-text" aria-hidden="true">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" name="password1" class="form-control" id="password1"
-                                placeholder="••••••••" required minlength="8">
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword1"
-                                aria-label="Afficher/masquer" style="border-color: #d1e7dd;">
-                                <i class="fas fa-eye" id="eyeIcon1" aria-hidden="true"></i>
-                            </button>
-                            <div class="invalid-feedback">Au moins 8 caractères requis.</div>
-                        </div>
-                        <div class="password-strength mt-2">
-                            <div class="progress">
-                                <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
-                            </div>
-                            <small id="passwordStrengthText" class="form-text" style="color: var(--text-muted); font-size: 0.75rem;">Force du mot de passe</small>
-                        </div>
-                    </div>
+            <div class="mb-4">
+                <label for="phone_number" class="form-label">Numéro de téléphone</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                    <input type="tel" name="phone_number" class="form-control" id="phone_number" placeholder="+221 XX XXX XX XX" required pattern="[0-9]{9}">
+                </div>
+            </div>
 
-                    <div class="mb-3">
-                        <label for="password2" class="form-label">Confirmer le mot de passe</label>
-                        <div class="input-group">
-                            <span class="input-group-text" aria-hidden="true">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" name="password2" class="form-control" id="password2"
-                                placeholder="••••••••" required>
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword2"
-                                aria-label="Afficher/masquer" style="border-color: #d1e7dd;">
-                                <i class="fas fa-eye" id="eyeIcon2" aria-hidden="true"></i>
-                            </button>
-                            <div class="invalid-feedback">Les mots de passe ne correspondent pas.</div>
-                        </div>
-                        <div id="passwordMatch" class="mt-1 d-none">
-                            <small class="text-success"><i class="fas fa-check-circle"></i> Les mots de passe correspondent</small>
-                        </div>
-                        <div id="passwordMismatch" class="mt-1 d-none">
-                            <small class="text-danger"><i class="fas fa-times-circle"></i> Les mots de passe ne correspondent pas</small>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="termsCheck" name="terms_accepted" required>
-                        <label class="form-check-label" for="termsCheck" style="font-size: 0.85rem; color: var(--text-secondary);">
-                            J'accepte les <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="auth-link">conditions d'utilisation</a> et la <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="auth-link">politique de confidentialité</a>
-                        </label>
-                        <div class="invalid-feedback">Vous devez accepter les conditions.</div>
-                    </div>
-
-                    <button type="submit" class="auth-submit w-100 mt-2">
-                        <i class="fas fa-user-plus me-2" aria-hidden="true"></i> S'inscrire
+            <div class="mb-4">
+                <label for="password1" class="form-label">Mot de passe</label>
+                <div class="input-group mb-2">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password1" class="form-control" id="password1" placeholder="••••••••" required minlength="8">
+                    <button type="button" class="btn-toggle-pass toggle-pass">
+                        <i class="fas fa-eye eye-icon"></i>
                     </button>
-                </form>
-
-                <div class="mt-4 text-center">
-                    <p style="font-size: 0.9rem;">Déjà un compte ? <a href="{% url 'login' %}" class="auth-link">Connectez-vous ici</a>.</p>
+                </div>
+                <div class="password-strength">
+                    <div class="progress"><div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;"></div></div>
+                    <small id="passwordStrengthText" class="mt-1 d-block text-muted" style="font-size: 0.75rem;">Force du mot de passe</small>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Modal Conditions d'utilisation -->
-<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius: var(--radius-lg); overflow: hidden;">
-            <div class="modal-header" style="background: var(--gradient-primary); color: #fff; border: none;">
-                <h5 class="modal-title" id="termsModalLabel" style="font-weight: 700;">Conditions d'utilisation</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            <div class="mb-4">
+                <label for="password2" class="form-label">Confirmer le mot de passe</label>
+                <div class="input-group mb-1">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password2" class="form-control" id="password2" placeholder="••••••••" required>
+                    <button type="button" class="btn-toggle-pass toggle-pass">
+                        <i class="fas fa-eye eye-icon"></i>
+                    </button>
+                </div>
+                <small id="passwordMatchText" class="d-none" style="font-size: 0.8rem;"></small>
             </div>
-            <div class="modal-body">
-                <h6>1. Acceptation des conditions</h6>
-                <p>En utilisant cette application, vous acceptez d'être lié par ces conditions d'utilisation.</p>
-                <h6>2. Description du service</h6>
-                <p>Andd Baay est un système de gestion agricole avec prédiction des rendements.</p>
-                <h6>3. Inscription</h6>
-                <p>Pour utiliser certaines fonctionnalités, vous devez fournir des informations précises et complètes.</p>
-                <h6>4. Confidentialité</h6>
-                <p>Votre utilisation est régie par notre politique de confidentialité.</p>
-                <h6>5. Modifications</h6>
-                <p>Nous nous réservons le droit de modifier ces conditions à tout moment.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal" style="border-radius: var(--radius-md);">J'ai compris</button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Modal Politique de confidentialité -->
-<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius: var(--radius-lg); overflow: hidden;">
-            <div class="modal-header" style="background: var(--gradient-primary); color: #fff; border: none;">
-                <h5 class="modal-title" id="privacyModalLabel" style="font-weight: 700;">Politique de confidentialité</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            <div class="mb-4 form-check d-flex gap-2">
+                <input type="checkbox" class="form-check-input" id="termsCheck" name="terms_accepted" required>
+                <label class="form-check-label text-muted" for="termsCheck" style="font-size: 0.85rem; line-height: 1.4;">
+                    J'accepte les <a href="#">conditions</a> et la <a href="#">politique de confidentialité</a>
+                </label>
             </div>
-            <div class="modal-body">
-                <h6>1. Collecte d'informations</h6>
-                <p>Nous collectons des informations personnelles lors de l'inscription.</p>
-                <h6>2. Utilisation</h6>
-                <p>Nous utilisons vos informations pour fournir et améliorer notre service.</p>
-                <h6>3. Protection</h6>
-                <p>Nous mettons en œuvre des mesures de sécurité pour protéger vos données.</p>
-                <h6>4. Partage</h6>
-                <p>Nous ne vendons pas vos informations personnelles à des tiers.</p>
-                <h6>5. Vos droits</h6>
-                <p>Vous avez le droit d'accéder, de corriger ou de supprimer vos données.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal" style="border-radius: var(--radius-md);">J'ai compris</button>
-            </div>
+
+            <button type="submit" class="btn-modern btn-primary-modern btn-submit">
+                S'inscrire <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Déjà membre ? <a href="{% url 'login' %}">Se connecter</a>
         </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Form Validation & Match checks
         const form = document.querySelector('.needs-validation');
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
+        const p1 = document.getElementById('password1');
+        const p2 = document.getElementById('password2');
+        const pMatch = document.getElementById('passwordMatchText');
+        const pStrBar = document.getElementById('passwordStrengthBar');
+        const pStrText = document.getElementById('passwordStrengthText');
+
+        form.addEventListener('submit', function(e) {
+            if (p1.value !== p2.value) {
+                e.preventDefault();
+                p2.style.borderColor = '#ef4444';
             }
-            const password1 = document.getElementById('password1');
-            const password2 = document.getElementById('password2');
-            if (password1.value !== password2.value) {
-                password2.setCustomValidity('Les mots de passe ne correspondent pas');
-                event.preventDefault();
-                event.stopPropagation();
-            } else {
-                password2.setCustomValidity('');
-            }
-            form.classList.add('was-validated');
         });
 
-        function setupPasswordToggle(toggleId, passwordId, eyeIconId) {
-            const toggle = document.getElementById(toggleId);
-            const password = document.getElementById(passwordId);
-            const eyeIcon = document.getElementById(eyeIconId);
-            toggle.addEventListener('click', function() {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                eyeIcon.classList.toggle('fa-eye');
-                eyeIcon.classList.toggle('fa-eye-slash');
+        document.querySelectorAll('.toggle-pass').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const icon = this.querySelector('.eye-icon');
+                if(input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+                else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
             });
-        }
+        });
 
-        setupPasswordToggle('togglePassword1', 'password1', 'eyeIcon1');
-        setupPasswordToggle('togglePassword2', 'password2', 'eyeIcon2');
+        p2.addEventListener('input', () => {
+            pMatch.classList.remove('d-none');
+            if(p2.value === '') pMatch.classList.add('d-none');
+            else if(p1.value === p2.value) { pMatch.style.color = 'var(--accent)'; pMatch.innerText = 'Les mots de passe correspondent.'; }
+            else { pMatch.style.color = '#ef4444'; pMatch.innerText = 'Les mots de passe ne correspondent pas.'; }
+        });
 
-        const password1 = document.getElementById('password1');
-        const password2 = document.getElementById('password2');
-        const passwordMatch = document.getElementById('passwordMatch');
-        const passwordMismatch = document.getElementById('passwordMismatch');
+        p1.addEventListener('input', function() {
+            let val = this.value;
+            let str = 0;
+            if (val.length >= 8) str += 25;
+            if (/[a-z]/.test(val)) str += 25;
+            if (/[A-Z]/.test(val)) str += 25;
+            if (/[0-9]/.test(val)) str += 12.5;
+            if (/[^a-zA-Z0-9]/.test(val)) str += 12.5;
 
-        function checkPasswordMatch() {
-            if (password2.value === '') { passwordMatch.classList.add('d-none'); passwordMismatch.classList.add('d-none'); return; }
-            if (password1.value === password2.value) {
-                passwordMatch.classList.remove('d-none'); passwordMismatch.classList.add('d-none');
-                password2.setCustomValidity('');
-            } else {
-                passwordMatch.classList.add('d-none'); passwordMismatch.classList.remove('d-none');
-                password2.setCustomValidity('Les mots de passe ne correspondent pas');
-            }
-        }
+            pStrBar.style.width = str + '%';
+            pStrBar.style.transition = 'width 0.3s ease';
 
-        password1.addEventListener('input', checkPasswordMatch);
-        password2.addEventListener('input', checkPasswordMatch);
-
-        const passwordStrengthBar = document.getElementById('passwordStrengthBar');
-        const passwordStrengthText = document.getElementById('passwordStrengthText');
-
-        password1.addEventListener('input', function() {
-            const value = password1.value;
-            let strength = 0;
-            if (value.length >= 8) strength += 25;
-            if (value.match(/[a-z]+/)) strength += 25;
-            if (value.match(/[A-Z]+/)) strength += 25;
-            if (value.match(/[0-9]+/)) strength += 12.5;
-            if (value.match(/[^a-zA-Z0-9]+/)) strength += 12.5;
-
-            passwordStrengthBar.style.width = strength + '%';
-            passwordStrengthBar.style.transition = 'width 0.3s ease';
-
-            if (strength < 30) {
-                passwordStrengthBar.className = 'progress-bar';
-                passwordStrengthBar.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-                passwordStrengthText.textContent = 'Mot de passe faible';
-                passwordStrengthText.style.color = '#ef4444';
-            } else if (strength < 60) {
-                passwordStrengthBar.className = 'progress-bar';
-                passwordStrengthBar.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-                passwordStrengthText.textContent = 'Mot de passe moyen';
-                passwordStrengthText.style.color = '#d97706';
-            } else {
-                passwordStrengthBar.className = 'progress-bar';
-                passwordStrengthBar.style.background = 'var(--gradient-primary)';
-                passwordStrengthText.textContent = 'Mot de passe fort';
-                passwordStrengthText.style.color = 'var(--color-primary)';
-            }
+            if (str < 30) { pStrBar.style.background = '#ef4444'; pStrText.innerText = 'Faible'; pStrText.style.color = '#ef4444'; }
+            else if (str < 60) { pStrBar.style.background = '#f59e0b'; pStrText.innerText = 'Moyen'; pStrText.style.color = '#f59e0b'; }
+            else { pStrBar.style.background = 'var(--accent)'; pStrText.innerText = 'Fort'; pStrText.style.color = 'var(--primary)'; }
+            
+            p2.dispatchEvent(new Event('input')); // trigger match check
         });
     });
 </script>

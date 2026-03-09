@@ -1,145 +1,148 @@
 {% extends 'base.html' %}
 {% block title %}Accueil{% endblock %}
-{% block background_image %}/static/images/image2.jpg{% endblock %}
 
 {% block content %}
 <style>
-    .hero-card {
-        background: rgba(255, 255, 255, 0.82);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: var(--radius-xl);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        max-width: 600px;
-        padding: 48px 40px;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .hero-section {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 0;
     }
 
-    .hero-card:hover {
-        transform: translateY(-4px);
+    .hero-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
     }
 
-    .hero-emoji {
-        font-size: 3rem;
-        display: block;
-        margin-bottom: 8px;
-        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(163, 230, 53, 0.15);
+        color: var(--primary);
+        padding: 8px 16px;
+        border-radius: var(--radius-pill);
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+        border: 1px solid rgba(163, 230, 53, 0.3);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
     }
+    
+    .dark-mode .hero-badge { color: var(--accent); }
 
     .hero-title {
-        font-size: 2.2rem;
-        font-weight: 800;
+        font-size: clamp(3.2rem, 8vw, 5rem);
+        line-height: 1.05;
+        margin-bottom: 24px;
+        color: var(--text-main);
         letter-spacing: -0.04em;
-        background: var(--gradient-primary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 8px;
     }
+
+    .hero-title span {
+        color: var(--accent);
+        position: relative;
+        display: inline-block;
+    }
+    
+    /* Subtle underline effect for the span */
+    .hero-title span::after {
+        content: '';
+        position: absolute;
+        bottom: 8px;
+        left: 0;
+        width: 100%;
+        height: 8px;
+        background: var(--primary);
+        z-index: -1;
+        opacity: 0.2;
+        border-radius: 4px;
+    }
+    
+    .dark-mode .hero-title span::after { background: var(--accent); }
 
     .hero-subtitle {
-        color: var(--text-secondary);
-        font-size: 1.05rem;
-        font-weight: 400;
+        font-size: clamp(1.1rem, 2vw, 1.25rem);
+        color: var(--text-muted);
         line-height: 1.6;
+        margin-bottom: 40px;
+        max-width: 650px;
     }
 
-    .hero-username {
-        color: var(--color-gold);
+    .hero-actions {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-hero {
+        padding: 16px 36px;
+        font-size: 1.1rem;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-display);
         font-weight: 700;
     }
 
-    .hero-btn {
-        padding: 14px 32px;
-        font-size: 1rem;
-        font-weight: 700;
-        border-radius: var(--radius-lg);
-        border: none;
-        transition: all var(--transition-smooth);
-        letter-spacing: 0.01em;
+    /* Floating illustration or shapes */
+    .float-shape {
+        position: absolute;
+        border-radius: 50%;
+        background: var(--accent);
+        filter: blur(80px);
+        opacity: 0.15;
+        z-index: -1;
     }
-
-    .hero-btn:hover {
-        transform: translateY(-3px);
-    }
-
-    .hero-btn-login {
-        background: var(--gradient-primary);
-        color: #fff;
-        box-shadow: 0 6px 24px rgba(15, 122, 60, 0.3);
-    }
-
-    .hero-btn-login:hover {
-        box-shadow: 0 10px 36px rgba(15, 122, 60, 0.4);
-        color: #fff;
-    }
-
-    .hero-btn-register {
-        background: var(--gradient-warm);
-        color: var(--text-primary);
-        box-shadow: 0 6px 24px rgba(212, 168, 67, 0.3);
-    }
-
-    .hero-btn-register:hover {
-        box-shadow: 0 10px 36px rgba(212, 168, 67, 0.4);
-        color: var(--text-primary);
-    }
-
-    .hero-btn-logout {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: #fff;
-        box-shadow: 0 6px 24px rgba(239, 68, 68, 0.25);
-    }
-
-    .hero-divider {
-        width: 60px;
-        height: 3px;
-        background: var(--gradient-primary);
-        border-radius: 2px;
-        margin: 0 auto 20px auto;
-    }
-
-    .dark-mode .hero-card {
-        background: rgba(22, 35, 26, 0.82);
-        border-color: rgba(16, 185, 129, 0.15);
-    }
-
-    .dark-mode .hero-subtitle {
-        color: var(--text-secondary);
-    }
+    
+    .shape-1 { width: 400px; height: 400px; top: -100px; left: -150px; }
+    .shape-2 { width: 300px; height: 300px; bottom: 0; right: -100px; background: var(--primary); }
 </style>
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 65vh;">
-    <div class="hero-card text-center animate__animated animate__fadeInUp">
-        <span class="hero-emoji">🌿</span>
-        <h1 class="hero-title">Bienvenue{% if user.is_authenticated %}, {{ user.username }}{% endif %}</h1>
-        <div class="hero-divider"></div>
-        <p class="hero-subtitle">Gérez vos projets agricoles, prédisez vos rendements et optimisez vos investissements en toute simplicité.</p>
+<div class="hero-section position-relative">
+    <div class="float-shape shape-1"></div>
+    <div class="float-shape shape-2"></div>
 
+    <div class="hero-container animate__animated animate__fadeInUp">
+        <div class="hero-badge">
+            <i class="fas fa-bolt text-accent"></i> Nouvelle ère agricole
+        </div>
+        
+        <h1 class="hero-title">
+            L'intelligence au service de vos <span>récoltes</span>
+        </h1>
+        
+        <p class="hero-subtitle">
+            Gérez vos projets agricoles, anticipez la météo, prédisez vos rendements grâce à l'IA et maximisez la réussite de votre ferme.
+        </p>
+
+        <div class="hero-actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn-modern btn-primary-modern btn-hero">
+                    <i class="fas fa-chart-line me-2"></i>Accéder au Dashboard
+                </a>
+                <a href="{% url 'creer_projet' %}" class="btn-modern btn-outline-modern btn-hero">
+                    <i class="fas fa-plus me-2"></i>Nouveau Projet
+                </a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn-modern btn-primary-modern btn-hero">
+                    Créer un compte <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+                <a href="{% url 'login' %}" class="btn-modern btn-outline-modern btn-hero">
+                    Se connecter
+                </a>
+            {% endif %}
+        </div>
+        
         {% if user.is_authenticated %}
-            <div class="mt-4">
-                <p style="font-size: 1rem; color: var(--text-secondary);">
-                    Connecté en tant que <span class="hero-username">{{ user.username }}</span>
-                </p>
-                <a href="{% url 'dashboard' %}" class="hero-btn hero-btn-login me-2">
-                    <i class="fas fa-chart-bar me-2"></i>Mon Dashboard
-                </a>
-                <a href="{% url 'logout' %}" class="hero-btn hero-btn-logout mt-2">
-                    <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
-                </a>
-            </div>
-        {% else %}
-            <div class="mt-4">
-                <p style="font-size: 0.95rem; color: var(--text-muted);">Connectez-vous ou inscrivez-vous pour commencer.</p>
-                <div class="d-flex gap-3 justify-content-center flex-wrap mt-3">
-                    <a href="{% url 'login' %}" class="hero-btn hero-btn-login">
-                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
-                    </a>
-                    <a href="{% url 'register' %}" class="hero-btn hero-btn-register">
-                        <i class="fas fa-user-plus me-2"></i>Inscription
-                    </a>
-                </div>
+            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s">
+                <span class="text-muted" style="font-size: 0.95rem;">Connecté en tant que <strong>{{ user.username }}</strong></span>
             </div>
         {% endif %}
     </div>
