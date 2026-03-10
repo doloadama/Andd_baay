@@ -130,74 +130,188 @@
     }
     .bento-title i { color: var(--accent); }
 
-    /* Filter Bar */
+    /* Enhanced Filter Bar */
     .filter-bar {
         display: flex;
         flex-wrap: wrap;
-        gap: 16px;
-        align-items: center;
+        gap: 20px;
+        align-items: flex-end;
     }
     
     .filter-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
+        flex: 1;
+        min-width: 180px;
     }
     
     .filter-label {
-        font-size: 0.75rem;
-        color: var(--text-muted);
+        font-size: 0.7rem;
+        color: var(--accent);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 600;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .filter-label i {
+        font-size: 0.65rem;
+        opacity: 0.8;
     }
     
     .filter-select, .filter-input {
-        padding: 10px 16px;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        padding: 14px 18px;
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
         background: var(--bg-main);
         color: var(--text-main);
         font-size: 0.9rem;
-        min-width: 150px;
-        transition: all 0.2s ease;
+        font-weight: 500;
+        width: 100%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    
+    .filter-select:hover, .filter-input:hover {
+        border-color: rgba(163, 230, 53, 0.4);
+        background: rgba(163, 230, 53, 0.03);
     }
     
     .filter-select:focus, .filter-input:focus {
         outline: none;
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(163, 230, 53, 0.15);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+        background: rgba(163, 230, 53, 0.05);
+    }
+    
+    .filter-select option {
+        background: var(--card-bg);
+        color: var(--text-main);
+        padding: 12px;
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
     }
     
     .filter-btn {
-        padding: 10px 20px;
+        padding: 14px 24px;
         border: none;
-        border-radius: 12px;
-        background: var(--accent);
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
         color: #022c22;
         font-weight: 700;
+        font-size: 0.9rem;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .filter-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .filter-btn:hover::before {
+        left: 100%;
     }
     
     .filter-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-glow);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(163, 230, 53, 0.35);
+    }
+    
+    .filter-btn:active {
+        transform: translateY(0);
     }
     
     .filter-btn.secondary {
         background: transparent;
-        border: 1px solid var(--border-color);
+        border: 2px solid var(--border-color);
         color: var(--text-muted);
     }
     
+    .filter-btn.secondary::before {
+        display: none;
+    }
+    
     .filter-btn.secondary:hover {
-        border-color: var(--primary);
-        color: var(--primary);
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(163, 230, 53, 0.05);
         box-shadow: none;
+    }
+    
+    /* Active Filters Chips */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: rgba(163, 230, 53, 0.15);
+        border: 1px solid rgba(163, 230, 53, 0.3);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--accent);
+        animation: chipIn 0.3s ease-out;
+    }
+    
+    @keyframes chipIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .filter-chip-remove {
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-chip-remove:hover {
+        background: rgba(163, 230, 53, 0.3);
+    }
+    
+    .filter-count {
+        background: var(--accent);
+        color: #022c22;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 800;
     }
 
     /* Projects List with Search */
@@ -626,12 +740,17 @@
 <!-- Bento Grid Dashboard -->
 <div class="bento-dashboard">
     
-    <!-- Filter Bar -->
+    <!-- Enhanced Filter Bar -->
     <div class="bento-tile tile-filters animate__animated animate__fadeInDown">
         <div class="bento-content">
+            <div class="projects-header" style="margin-bottom: 20px;">
+                <h3 class="bento-title" style="margin-bottom: 0;"><i class="fas fa-sliders-h"></i> Filtres Avances</h3>
+                <span class="filter-count" id="filterCount">{{ projets|length }} projet(s)</span>
+            </div>
+            
             <form id="filterForm" class="filter-bar">
                 <div class="filter-group">
-                    <span class="filter-label">Statut</span>
+                    <span class="filter-label"><i class="fas fa-flag"></i> Statut du projet</span>
                     <select class="filter-select" name="statut" id="filterStatut">
                         <option value="">Tous les statuts</option>
                         <option value="en_cours">En cours</option>
@@ -641,37 +760,40 @@
                 </div>
                 
                 <div class="filter-group">
-                    <span class="filter-label">Culture</span>
+                    <span class="filter-label"><i class="fas fa-seedling"></i> Type de culture</span>
                     <select class="filter-select" name="culture" id="filterCulture">
                         <option value="">Toutes les cultures</option>
                         {% for culture in cultures %}
-                        <option value="{{ culture.id }}">{{ culture.nom }}</option>
+                        <option value="{{ culture.id }}" data-name="{{ culture.nom }}">{{ culture.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 
                 <div class="filter-group">
-                    <span class="filter-label">Date debut</span>
+                    <span class="filter-label"><i class="fas fa-calendar-alt"></i> Date de debut</span>
                     <input type="date" class="filter-input" name="date_from" id="filterDateFrom">
                 </div>
                 
                 <div class="filter-group">
-                    <span class="filter-label">Date fin</span>
+                    <span class="filter-label"><i class="fas fa-calendar-check"></i> Date de fin</span>
                     <input type="date" class="filter-input" name="date_to" id="filterDateTo">
                 </div>
                 
-                <div class="filter-group" style="justify-content: flex-end;">
+                <div class="filter-group" style="flex: 0 0 auto; min-width: auto;">
                     <span class="filter-label">&nbsp;</span>
-                    <div style="display: flex; gap: 8px;">
+                    <div class="filter-actions">
                         <button type="submit" class="filter-btn">
-                            <i class="fas fa-filter"></i> Filtrer
+                            <i class="fas fa-search"></i> Appliquer
                         </button>
                         <button type="button" class="filter-btn secondary" id="resetFilters">
-                            <i class="fas fa-undo"></i> Reset
+                            <i class="fas fa-times"></i> Effacer
                         </button>
                     </div>
                 </div>
             </form>
+            
+            <!-- Active Filters Display -->
+            <div class="active-filters" id="activeFilters" style="display: none;"></div>
         </div>
     </div>
 
@@ -785,7 +907,7 @@
             {% if projets %}
                 <div class="mini-project-list" id="projectsList">
                     {% for projet in projets %}
-                    <div class="mini-project-card" data-id="{{ projet.id }}" data-status="{{ projet.statut }}">
+                    <div class="mini-project-card" data-id="{{ projet.id }}" data-status="{{ projet.statut }}" data-culture="{{ projet.culture.id }}" data-date="{{ projet.date_lancement|date:'Y-m-d' }}">
                         <div class="mini-p-header">
                             <div>
                                 <h4 class="mini-p-title">{{ projet.nom }}</h4>
@@ -1025,42 +1147,142 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ===== Filter Form =====
+    // ===== Enhanced Filter Form =====
     const filterForm = document.getElementById('filterForm');
+    const filterStatut = document.getElementById('filterStatut');
+    const filterCulture = document.getElementById('filterCulture');
+    const filterDateFrom = document.getElementById('filterDateFrom');
+    const filterDateTo = document.getElementById('filterDateTo');
+    const activeFiltersContainer = document.getElementById('activeFilters');
+    const filterCountEl = document.getElementById('filterCount');
+    
+    // Apply filters on form submit
     if (filterForm) {
         filterForm.addEventListener('submit', function(e) {
             e.preventDefault();
             applyFilters();
+        });
+        
+        // Real-time filtering on select change
+        [filterStatut, filterCulture].forEach(select => {
+            if (select) {
+                select.addEventListener('change', applyFilters);
+            }
+        });
+        
+        // Filter on date change with debounce
+        [filterDateFrom, filterDateTo].forEach(input => {
+            if (input) {
+                input.addEventListener('change', applyFilters);
+            }
         });
     }
     
     const resetBtn = document.getElementById('resetFilters');
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
-            document.getElementById('filterStatut').value = '';
-            document.getElementById('filterCulture').value = '';
-            document.getElementById('filterDateFrom').value = '';
-            document.getElementById('filterDateTo').value = '';
-            projectCards.forEach(card => card.style.display = 'flex');
+            filterStatut.value = '';
+            filterCulture.value = '';
+            filterDateFrom.value = '';
+            filterDateTo.value = '';
+            applyFilters();
             showToast('Filtres reinitialises', 'success');
         });
     }
 });
 
-// ===== Apply Filters (Client-side) =====
+// ===== Enhanced Apply Filters (Client-side) =====
 function applyFilters() {
     const statut = document.getElementById('filterStatut').value;
+    const culture = document.getElementById('filterCulture');
+    const cultureId = culture.value;
+    const cultureName = culture.options[culture.selectedIndex]?.dataset?.name || '';
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+    
     const projectCards = document.querySelectorAll('.mini-project-card');
+    const activeFiltersContainer = document.getElementById('activeFilters');
+    const filterCountEl = document.getElementById('filterCount');
+    
     let visibleCount = 0;
+    const activeFilters = [];
     
     projectCards.forEach(card => {
         const cardStatus = card.getAttribute('data-status');
-        const matches = !statut || cardStatus === statut;
+        const cardCulture = card.getAttribute('data-culture');
+        const cardDate = card.getAttribute('data-date');
+        
+        let matches = true;
+        
+        // Status filter
+        if (statut && cardStatus !== statut) matches = false;
+        
+        // Culture filter
+        if (cultureId && cardCulture !== cultureId) matches = false;
+        
+        // Date range filter
+        if (dateFrom && cardDate && cardDate < dateFrom) matches = false;
+        if (dateTo && cardDate && cardDate > dateTo) matches = false;
+        
         card.style.display = matches ? 'flex' : 'none';
         if (matches) visibleCount++;
     });
     
-    showToast(`${visibleCount} projet(s) affiche(s)`, 'success');
+    // Build active filters chips
+    if (statut) {
+        const statusLabels = {'en_cours': 'En cours', 'en_pause': 'En pause', 'fini': 'Termine'};
+        activeFilters.push({type: 'statut', label: statusLabels[statut], value: statut});
+    }
+    if (cultureId) {
+        activeFilters.push({type: 'culture', label: cultureName, value: cultureId});
+    }
+    if (dateFrom) {
+        activeFilters.push({type: 'date_from', label: `Depuis ${dateFrom}`, value: dateFrom});
+    }
+    if (dateTo) {
+        activeFilters.push({type: 'date_to', label: `Jusqu'a ${dateTo}`, value: dateTo});
+    }
+    
+    // Update active filters display
+    if (activeFilters.length > 0) {
+        activeFiltersContainer.style.display = 'flex';
+        activeFiltersContainer.innerHTML = activeFilters.map(f => `
+            <div class="filter-chip">
+                <span>${f.label}</span>
+                <button type="button" class="filter-chip-remove" onclick="removeFilter('${f.type}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    } else {
+        activeFiltersContainer.style.display = 'none';
+    }
+    
+    // Update count
+    filterCountEl.textContent = `${visibleCount} projet(s)`;
+    
+    // Animate count change
+    filterCountEl.style.transform = 'scale(1.2)';
+    setTimeout(() => filterCountEl.style.transform = 'scale(1)', 200);
+}
+
+// Remove individual filter
+function removeFilter(type) {
+    switch(type) {
+        case 'statut':
+            document.getElementById('filterStatut').value = '';
+            break;
+        case 'culture':
+            document.getElementById('filterCulture').value = '';
+            break;
+        case 'date_from':
+            document.getElementById('filterDateFrom').value = '';
+            break;
+        case 'date_to':
+            document.getElementById('filterDateTo').value = '';
+            break;
+    }
+    applyFilters();
 }
 
 // ===== Update Status =====

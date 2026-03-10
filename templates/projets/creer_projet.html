@@ -1,22 +1,535 @@
 {% extends 'base.html' %}
-{% block title %}Créer un Projet | Andd Baay{% endblock %}
+{% block title %}Creer un Projet | Andd Baay{% endblock %}
 
 {% block content %}
-<!-- Full-screen aesthetic background for auth/form pages -->
-<div class="form-page-bg"></div>
+<style>
+    /* ===== ENHANCED FORM PAGE STYLES ===== */
+    .form-page-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(135deg, #020617 0%, #022c22 50%, #0f172a 100%);
+        z-index: 0;
+    }
+    
+    .form-page-bg::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.15) 0px, transparent 50%),
+            radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.08) 0px, transparent 50%);
+    }
+    
+    /* Floating particles animation */
+    .particles {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    
+    .particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: rgba(163, 230, 53, 0.3);
+        border-radius: 50%;
+        animation: float-particle 15s infinite ease-in-out;
+    }
+    
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .particle:nth-child(4) { left: 50%; animation-delay: 6s; }
+    .particle:nth-child(5) { left: 70%; animation-delay: 8s; }
+    .particle:nth-child(6) { left: 85%; animation-delay: 10s; }
+    
+    @keyframes float-particle {
+        0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+        10% { opacity: 1; transform: translateY(80vh) scale(1); }
+        90% { opacity: 1; transform: translateY(10vh) scale(1); }
+        100% { transform: translateY(-10vh) scale(0); opacity: 0; }
+    }
+
+    /* Glass Form Card */
+    .glass-form-card {
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(163, 230, 53, 0.15);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-header-modern {
+        background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        padding: 32px 40px;
+        border-bottom: 1px solid rgba(163, 230, 53, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .header-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(163, 230, 53, 0.15);
+        border: 2px solid rgba(163, 230, 53, 0.3);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--accent);
+    }
+    
+    .header-text h4 {
+        margin: 0;
+        font-size: 1.4rem;
+        color: white;
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+    
+    .header-text p {
+        margin: 4px 0 0 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Progress Steps */
+    .form-progress {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        padding: 24px 40px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .progress-step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .step-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .progress-step.active .step-circle {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #022c22;
+        box-shadow: 0 0 20px rgba(163, 230, 53, 0.4);
+    }
+    
+    .progress-step.completed .step-circle {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: #10b981;
+        color: #10b981;
+    }
+    
+    .step-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.4);
+        display: none;
+    }
+    
+    .progress-step.active .step-label {
+        color: var(--accent);
+        display: block;
+    }
+    
+    .step-connector {
+        width: 40px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0 4px;
+    }
+    
+    .progress-step.completed + .step-connector,
+    .step-connector.active {
+        background: linear-gradient(90deg, #10b981, var(--accent));
+    }
+
+    /* Form Sections */
+    .form-section {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .form-section.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .form-section-title {
+        color: var(--accent);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 28px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(163, 230, 53, 0.15);
+    }
+    
+    .form-section-title i {
+        width: 32px;
+        height: 32px;
+        background: rgba(163, 230, 53, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .form-label-modern {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-label-modern .required {
+        color: #ef4444;
+        font-size: 0.7rem;
+    }
+    
+    .form-label-hint {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
+        margin-left: auto;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    
+    .input-wrapper:hover {
+        border-color: rgba(163, 230, 53, 0.3);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .input-wrapper:focus-within {
+        border-color: var(--accent);
+        background: rgba(163, 230, 53, 0.05);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.1);
+    }
+    
+    .input-wrapper.error {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+    }
+    
+    .input-wrapper.success {
+        border-color: #10b981;
+    }
+
+    .input-icon {
+        color: rgba(255, 255, 255, 0.4);
+        padding-left: 20px;
+        width: 48px;
+        text-align: center;
+        transition: color 0.3s ease;
+    }
+
+    .input-wrapper:focus-within .input-icon { 
+        color: var(--accent); 
+    }
+
+    .modern-form input,
+    .modern-form select,
+    .modern-form textarea {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        width: 100%;
+        padding: 18px 20px 18px 12px;
+        font-size: 1rem;
+        box-shadow: none !important;
+        outline: none !important;
+        font-weight: 500;
+    }
+    
+    .modern-form input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    
+    .modern-form input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
+
+    .modern-form select option {
+        background: #0f172a;
+        color: white;
+        padding: 12px;
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 8px;
+        margin-left: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .form-error i {
+        font-size: 0.7rem;
+    }
+    
+    /* Input validation feedback */
+    .validation-icon {
+        position: absolute;
+        right: 16px;
+        font-size: 1rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .input-wrapper.success .validation-icon.success {
+        opacity: 1;
+        color: #10b981;
+    }
+    
+    .input-wrapper.error .validation-icon.error {
+        opacity: 1;
+        color: #ef4444;
+    }
+
+    /* Character counter */
+    .char-counter {
+        position: absolute;
+        right: 16px;
+        bottom: -20px;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Custom select styling */
+    .select-wrapper {
+        position: relative;
+    }
+    
+    .select-wrapper::after {
+        content: '\f078';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.4);
+        pointer-events: none;
+        transition: transform 0.3s ease;
+    }
+    
+    .select-wrapper:focus-within::after {
+        transform: translateY(-50%) rotate(180deg);
+        color: var(--accent);
+    }
+
+    /* Form Footer Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 32px;
+        margin-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 24px;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-back:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(-4px);
+    }
+    
+    .btn-submit-modern {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
+        border: none;
+        border-radius: 14px;
+        color: #022c22;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-submit-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .btn-submit-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(163, 230, 53, 0.35);
+    }
+    
+    .btn-submit-modern:hover::before {
+        left: 100%;
+    }
+    
+    .btn-submit-modern:active {
+        transform: translateY(0);
+    }
+    
+    .btn-submit-modern:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Info Card */
+    .info-card {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 32px;
+        display: flex;
+        gap: 16px;
+    }
+    
+    .info-card-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(59, 130, 246, 0.15);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        flex-shrink: 0;
+    }
+    
+    .info-card-content h5 {
+        margin: 0 0 4px 0;
+        font-size: 0.95rem;
+        color: white;
+    }
+    
+    .info-card-content p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-header-modern {
+            padding: 24px;
+        }
+        
+        .form-progress {
+            padding: 16px;
+        }
+        
+        .step-label {
+            display: none !important;
+        }
+        
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: 12px;
+        }
+        
+        .btn-back, .btn-submit-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Background -->
+<div class="form-page-bg">
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+</div>
 
 <div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
     
     <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold text-white mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 12px rgba(0,0,0,0.3);">Nouveau Projet</h1>
-        <p class="lead text-white-50" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Façonnez l'avenir de votre exploitation agricole.</p>
+        <h1 class="display-4 fw-bold text-white mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
+        <p class="lead text-white-50" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
     </div>
 
     {% if messages %}
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 {% for message in messages %}
-                    <div class="alert alert-modern mb-4">{{ message }}</div>
+                    <div class="alert alert-modern mb-4 animate__animated animate__shakeX">{{ message }}</div>
                 {% endfor %}
             </div>
         </div>
@@ -24,122 +537,195 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="glass-form-card shadow-lg animate__animated animate__fadeInUp">
+            <div class="glass-form-card animate__animated animate__fadeInUp">
+                
+                <!-- Header -->
                 <div class="card-header-modern">
-                    <h4 class="mb-0"><i class="fas fa-leaf text-accent me-2"></i> Détails de la culture</h4>
+                    <div class="header-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="header-text">
+                        <h4>Details du Projet</h4>
+                        <p>Remplissez les informations de votre projet agricole</p>
+                    </div>
+                </div>
+                
+                <!-- Progress Steps -->
+                <div class="form-progress">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-circle">1</div>
+                        <span class="step-label">Informations</span>
+                    </div>
+                    <div class="step-connector"></div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-circle">2</div>
+                        <span class="step-label">Specifications</span>
+                    </div>
+                    <div class="step-connector"></div>
+                    <div class="progress-step" data-step="3">
+                        <div class="step-circle"><i class="fas fa-check"></i></div>
+                        <span class="step-label">Confirmation</span>
+                    </div>
                 </div>
                 
                 <div class="card-body p-4 p-md-5">
-                    <form method="post" novalidate autocomplete="off" class="modern-form">
+                    <form method="post" novalidate autocomplete="off" class="modern-form" id="projectForm">
                         {% csrf_token %}
 
-                        <div class="form-section mb-5">
-                            <h5 class="form-section-title"><i class="fas fa-info-circle"></i> Informations Générales</h5>
+                        <!-- Info Card -->
+                        <div class="info-card">
+                            <div class="info-card-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="info-card-content">
+                                <h5>Conseil</h5>
+                                <p>Plus vos informations sont precises, plus nos predictions IA seront pertinentes pour optimiser votre rendement.</p>
+                            </div>
+                        </div>
+
+                        <!-- Section 1: General Info -->
+                        <div class="form-section visible mb-5" data-section="1">
+                            <h5 class="form-section-title">
+                                <i class="fas fa-info-circle"></i> 
+                                Informations Generales
+                            </h5>
                             <div class="row g-4">
                                 <div class="col-md-12">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.nom.id_for_label }}" class="form-label-modern">Nom du projet</label>
-                                        <div class="input-wrapper">
+                                        <label for="{{ projet_form.nom.id_for_label }}" class="form-label-modern">
+                                            Nom du projet
+                                            <span class="required">*</span>
+                                            <span class="form-label-hint">Ex: Riziere Nord 2024</span>
+                                        </label>
+                                        <div class="input-wrapper" id="nomWrapper">
                                             <i class="fas fa-signature input-icon"></i>
                                             {{ projet_form.nom }}
+                                            <i class="fas fa-check validation-icon success"></i>
+                                            <i class="fas fa-exclamation-circle validation-icon error"></i>
                                         </div>
                                         {% if projet_form.nom.errors %}
-                                            <div class="form-error">{{ projet_form.nom.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.nom.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.culture.id_for_label }}" class="form-label-modern">Culture</label>
-                                        <div class="input-wrapper">
+                                        <label for="{{ projet_form.culture.id_for_label }}" class="form-label-modern">
+                                            Culture
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
                                             <i class="fas fa-seedling input-icon"></i>
                                             {{ projet_form.culture }}
                                         </div>
                                         {% if projet_form.culture.errors %}
-                                            <div class="form-error">{{ projet_form.culture.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.culture.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.localite.id_for_label }}" class="form-label-modern">Localité</label>
-                                        <div class="input-wrapper">
+                                        <label for="{{ projet_form.localite.id_for_label }}" class="form-label-modern">
+                                            Localite
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
                                             <i class="fas fa-map-marker-alt input-icon"></i>
                                             {{ projet_form.localite }}
                                         </div>
                                         {% if projet_form.localite.errors %}
-                                            <div class="form-error">{{ projet_form.localite.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.localite.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-section mb-5">
-                            <h5 class="form-section-title"><i class="fas fa-chart-area"></i> Spécifications Techniques</h5>
+                        <!-- Section 2: Technical Specs -->
+                        <div class="form-section visible mb-5" data-section="2">
+                            <h5 class="form-section-title">
+                                <i class="fas fa-chart-area"></i> 
+                                Specifications Techniques
+                            </h5>
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.superficie.id_for_label }}" class="form-label-modern">Superficie (ha)</label>
+                                        <label for="{{ projet_form.superficie.id_for_label }}" class="form-label-modern">
+                                            Superficie (ha)
+                                            <span class="required">*</span>
+                                        </label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-ruler-combined input-icon"></i>
                                             {{ projet_form.superficie }}
                                         </div>
                                         {% if projet_form.superficie.errors %}
-                                            <div class="form-error">{{ projet_form.superficie.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.superficie.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.rendement.id_for_label }}" class="form-label-modern">Rendement estimé (kg/ha)</label>
+                                        <label for="{{ projet_form.rendement.id_for_label }}" class="form-label-modern">
+                                            Rendement estime (kg/ha)
+                                            <span class="form-label-hint">Optionnel</span>
+                                        </label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-weight-hanging input-icon"></i>
                                             {{ projet_form.rendement }}
                                         </div>
                                         {% if projet_form.rendement.errors %}
-                                            <div class="form-error">{{ projet_form.rendement.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.rendement.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.date_lancement.id_for_label }}" class="form-label-modern">Date de lancement</label>
+                                        <label for="{{ projet_form.date_lancement.id_for_label }}" class="form-label-modern">
+                                            Date de lancement
+                                            <span class="required">*</span>
+                                        </label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-calendar-alt input-icon"></i>
                                             {{ projet_form.date_lancement }}
                                         </div>
                                         {% if projet_form.date_lancement.errors %}
-                                            <div class="form-error">{{ projet_form.date_lancement.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.date_lancement.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.statut.id_for_label }}" class="form-label-modern">Statut</label>
-                                        <div class="input-wrapper">
+                                        <label for="{{ projet_form.statut.id_for_label }}" class="form-label-modern">
+                                            Statut
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
                                             <i class="fas fa-tasks input-icon"></i>
                                             {{ projet_form.statut }}
                                         </div>
                                         {% if projet_form.statut.errors %}
-                                            <div class="form-error">{{ projet_form.statut.errors.0 }}</div>
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.statut.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-5 pt-3 border-top border-light border-opacity-10 d-flex justify-content-end gap-3">
-                            <a href="{% url 'liste_projets' %}" class="btn-modern btn-outline-modern px-4">
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <a href="{% url 'liste_projets' %}" class="btn-back">
+                                <i class="fas fa-arrow-left"></i>
                                 Annuler
                             </a>
-                            <button type="submit" class="btn-modern btn-primary-modern px-5">
-                                <i class="fas fa-check-circle me-2"></i> Créer le projet
+                            <button type="submit" class="btn-submit-modern" id="submitBtn">
+                                <i class="fas fa-rocket"></i>
+                                Creer le projet
+                                <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
                     </form>
@@ -149,131 +735,100 @@
     </div>
 </div>
 
-<style>
-    /* Dedicated Page Background for Forms */
-    .form-page-bg {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, #020617 0%, #022c22 100%);
-        z-index: 0;
-    }
-    .form-page-bg::after {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: 
-            radial-gradient(at 0% 0%, rgba(163, 230, 53, 0.1) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, rgba(2, 44, 34, 0.05) 0px, transparent 50%);
-    }
-
-    /* Glass Form Card */
-    .glass-form-card {
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--radius-card);
-        overflow: hidden;
-    }
-
-    .card-header-modern {
-        background: rgba(2, 44, 34, 0.6);
-        padding: 24px 32px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: white;
-        font-family: var(--font-display);
-    }
-
-    /* Modern Form Components */
-    .form-section-title {
-        color: var(--accent);
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 24px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .form-label-modern {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.9rem;
-        font-weight: 500;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    .input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--radius-pill);
-        transition: all var(--transition);
-        overflow: hidden;
-    }
-
-    .input-wrapper:focus-within {
-        border-color: var(--accent);
-        background: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
-    }
-
-    .input-icon {
-        color: rgba(255, 255, 255, 0.5);
-        padding-left: 20px;
-        width: 44px;
-        text-align: center;
-    }
-
-    .input-wrapper:focus-within .input-icon { color: var(--accent); }
-
-    .modern-form input,
-    .modern-form select,
-    .modern-form textarea {
-        background: transparent !important;
-        border: none !important;
-        color: white !important;
-        width: 100%;
-        padding: 16px 20px 16px 12px;
-        font-size: 1rem;
-        box-shadow: none !important;
-        outline: none !important;
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('projectForm');
+    const inputs = form.querySelectorAll('input, select');
+    const progressSteps = document.querySelectorAll('.progress-step');
+    const connectors = document.querySelectorAll('.step-connector');
+    
+    // Animate sections on load
+    const sections = document.querySelectorAll('.form-section');
+    sections.forEach((section, index) => {
+        setTimeout(() => {
+            section.classList.add('visible');
+        }, 100 * index);
+    });
+    
+    // Real-time validation
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateInput(this);
+        });
+        
+        input.addEventListener('input', function() {
+            const wrapper = this.closest('.input-wrapper');
+            if (wrapper) {
+                wrapper.classList.remove('error', 'success');
+            }
+        });
+    });
+    
+    function validateInput(input) {
+        const wrapper = input.closest('.input-wrapper');
+        if (!wrapper) return;
+        
+        const isRequired = input.hasAttribute('required') || 
+                          input.closest('.input-modern-group')?.querySelector('.required');
+        const value = input.value.trim();
+        
+        if (isRequired && !value) {
+            wrapper.classList.add('error');
+            wrapper.classList.remove('success');
+        } else if (value) {
+            wrapper.classList.add('success');
+            wrapper.classList.remove('error');
+        }
+        
+        updateProgress();
     }
     
-    .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
+    function updateProgress() {
+        // Check section 1
+        const section1Inputs = document.querySelectorAll('[data-section="1"] input, [data-section="1"] select');
+        const section1Complete = Array.from(section1Inputs).every(input => input.value.trim());
+        
+        // Check section 2
+        const section2Inputs = document.querySelectorAll('[data-section="2"] input:not([type="hidden"]), [data-section="2"] select');
+        const requiredSection2 = Array.from(section2Inputs).filter(input => {
+            return input.closest('.input-modern-group')?.querySelector('.required');
+        });
+        const section2Complete = requiredSection2.every(input => input.value.trim());
+        
+        // Update progress UI
+        if (section1Complete) {
+            progressSteps[0].classList.add('completed');
+            progressSteps[0].classList.remove('active');
+            progressSteps[1].classList.add('active');
+            connectors[0].classList.add('active');
+        } else {
+            progressSteps[0].classList.remove('completed');
+            progressSteps[0].classList.add('active');
+            progressSteps[1].classList.remove('active');
+            connectors[0].classList.remove('active');
+        }
+        
+        if (section1Complete && section2Complete) {
+            progressSteps[1].classList.add('completed');
+            progressSteps[1].classList.remove('active');
+            progressSteps[2].classList.add('active');
+            connectors[1].classList.add('active');
+        } else if (section1Complete) {
+            progressSteps[1].classList.remove('completed');
+            progressSteps[2].classList.remove('active');
+            connectors[1].classList.remove('active');
+        }
     }
-
-    .modern-form select option {
-        background: var(--primary);
-        color: white;
-    }
-
-    .form-error {
-        color: #ef4444;
-        font-size: 0.85rem;
-        margin-top: 6px;
-        margin-left: 16px;
-    }
-
-    /* Overrides for Django Widget Renderer */
-    .modern-form .form-control { background: transparent; border: none; color: white; border-radius: 0; box-shadow: none; padding: 16px 20px 16px 12px; }
-    .modern-form .form-control:focus { background: transparent; color: white; border: none; box-shadow: none; }
-    .modern-form .form-select { background-color: transparent; border: none; color: white; border-radius: 0; box-shadow: none; padding: 16px 20px 16px 12px; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); }
-    .modern-form .form-select:focus { border: none; box-shadow: none; }
     
-    .btn-outline-modern {
-        background: transparent;
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-    .btn-outline-modern:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border-color: white;
-    }
-</style>
+    // Form submission animation
+    form.addEventListener('submit', function(e) {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creation en cours...';
+        btn.disabled = true;
+    });
+    
+    // Initialize progress
+    updateProgress();
+});
+</script>
 {% endblock %}
