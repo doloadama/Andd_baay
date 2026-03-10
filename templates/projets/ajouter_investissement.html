@@ -1,64 +1,625 @@
 {% extends 'base.html' %}
+{% block title %}Ajouter un Investissement | Andd Baay{% endblock %}
 
 {% block content %}
-<h1>Ajouter un investissement au projet : {{ projet.nom }}</h1>
+<style>
+    /* ===== INVESTMENT PAGE STYLES ===== */
+    .form-page-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(160deg, #020617 0%, #0f172a 50%, #022c22 100%);
+        z-index: 0;
+    }
+    
+    .form-page-bg::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            radial-gradient(at 80% 20%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+            radial-gradient(at 20% 80%, rgba(163, 230, 53, 0.08) 0px, transparent 50%);
+    }
 
-<form method="post" novalidate>
-    {% csrf_token %}
+    /* Investment Card Header with Project Info */
+    .project-summary-card {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(163, 230, 53, 0.05) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .project-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(16, 185, 129, 0.2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: #10b981;
+        flex-shrink: 0;
+    }
+    
+    .project-info h3 {
+        margin: 0 0 6px 0;
+        font-size: 1.3rem;
+        color: white;
+        font-family: var(--font-display);
+    }
+    
+    .project-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .project-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .project-meta i {
+        color: #10b981;
+        font-size: 0.8rem;
+    }
 
-    <!-- Afficher les erreurs de validation -->
-    {% if investissement_form.errors %}
-        <div class="alert alert-danger">
-            <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
-            <ul>
-                {% for field in investissement_form %}
-                    {% for error in field.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-            </ul>
+    /* Glass Form Card */
+    .glass-form-card {
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(16, 185, 129, 0.15);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-header-modern {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0.95) 100%);
+        padding: 32px 40px;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .header-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(16, 185, 129, 0.2);
+        border: 2px solid rgba(16, 185, 129, 0.35);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #10b981;
+    }
+    
+    .header-text h4 {
+        margin: 0;
+        font-size: 1.4rem;
+        color: white;
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+    
+    .header-text p {
+        margin: 4px 0 0 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Form Styles */
+    .form-section-title {
+        color: #10b981;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 28px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    
+    .form-section-title i {
+        width: 32px;
+        height: 32px;
+        background: rgba(16, 185, 129, 0.15);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .form-label-modern {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-label-modern .required {
+        color: #ef4444;
+        font-size: 0.7rem;
+    }
+    
+    .form-label-hint {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
+        margin-left: auto;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    
+    .input-wrapper:hover {
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .input-wrapper:focus-within {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+    
+    .input-wrapper.error {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .input-icon {
+        color: rgba(255, 255, 255, 0.4);
+        padding-left: 20px;
+        width: 48px;
+        text-align: center;
+        transition: color 0.3s ease;
+    }
+
+    .input-wrapper:focus-within .input-icon { 
+        color: #10b981; 
+    }
+    
+    /* Currency suffix */
+    .input-suffix {
+        padding-right: 20px;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .input-wrapper:focus-within .input-suffix {
+        color: #10b981;
+    }
+
+    .modern-form input,
+    .modern-form select,
+    .modern-form textarea {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        width: 100%;
+        padding: 18px 20px 18px 12px;
+        font-size: 1rem;
+        box-shadow: none !important;
+        outline: none !important;
+        font-weight: 500;
+    }
+    
+    .modern-form textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    .modern-form input::placeholder,
+    .modern-form textarea::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 8px;
+        margin-left: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Calculator Preview */
+    .investment-calculator {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 20px;
+        padding: 24px;
+        margin-top: 32px;
+    }
+    
+    .calc-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+    }
+    
+    .calc-header i {
+        color: #10b981;
+        font-size: 1.2rem;
+    }
+    
+    .calc-header h5 {
+        margin: 0;
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    
+    .calc-row:last-child {
+        border-bottom: none;
+        padding-top: 16px;
+        margin-top: 8px;
+        border-top: 2px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .calc-label {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+    }
+    
+    .calc-value {
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .calc-row:last-child .calc-label,
+    .calc-row:last-child .calc-value {
+        color: #10b981;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 32px;
+        margin-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 24px;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-back:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(-4px);
+    }
+    
+    .btn-submit-modern {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-submit-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .btn-submit-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.35);
+    }
+    
+    .btn-submit-modern:hover::before {
+        left: 100%;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .project-summary-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .project-meta {
+            justify-content: center;
+        }
+        
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: 12px;
+        }
+        
+        .btn-back, .btn-submit-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Background -->
+<div class="form-page-bg"></div>
+
+<div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
+    
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-white mb-3" style="font-family: var(--font-display);">Nouvel Investissement</h1>
+        <p class="text-white-50">Enregistrez vos depenses pour suivre la rentabilite de votre projet.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Project Summary Card -->
+            <div class="project-summary-card animate__animated animate__fadeInDown">
+                <div class="project-icon">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="project-info">
+                    <h3>{{ projet.nom }}</h3>
+                    <div class="project-meta">
+                        <span><i class="fas fa-leaf"></i> {{ projet.culture.nom }}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom }}</span>
+                        <span><i class="fas fa-ruler-combined"></i> {{ projet.superficie }} ha</span>
+                        <span><i class="fas fa-calendar"></i> Lance le {{ projet.date_lancement|date:"d M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="glass-form-card animate__animated animate__fadeInUp">
+                
+                <!-- Header -->
+                <div class="card-header-modern">
+                    <div class="header-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="header-text">
+                        <h4>Details de l'Investissement</h4>
+                        <p>Ajoutez les informations de votre investissement</p>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    
+                    <!-- Error Display -->
+                    {% if investissement_form.errors %}
+                        <div class="alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 16px; margin-bottom: 24px; color: #fca5a5;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                                <strong>Veuillez corriger les erreurs suivantes :</strong>
+                            </div>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                {% for field in investissement_form %}
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" novalidate class="modern-form" id="investmentForm">
+                        {% csrf_token %}
+
+                        <div class="form-section mb-4">
+                            <h5 class="form-section-title">
+                                <i class="fas fa-file-alt"></i> 
+                                Informations
+                            </h5>
+                            
+                            <div class="row g-4">
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <div class="input-modern-group">
+                                        <label for="id_description" class="form-label-modern">
+                                            Description
+                                            <span class="required">*</span>
+                                            <span class="form-label-hint">Ex: Achat de semences, engrais...</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-align-left input-icon" style="align-self: flex-start; padding-top: 18px;"></i>
+                                            {{ investissement_form.description }}
+                                        </div>
+                                        {% if investissement_form.description.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.description.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Cost per hectare -->
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="id_cout_par_hectare" class="form-label-modern">
+                                            Cout par hectare
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-money-bill-wave input-icon"></i>
+                                            {{ investissement_form.cout_par_hectare }}
+                                            <span class="input-suffix">FCFA</span>
+                                        </div>
+                                        {% if investissement_form.cout_par_hectare.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.cout_par_hectare.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Date -->
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="id_date_investissement" class="form-label-modern">
+                                            Date de l'investissement
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-calendar-alt input-icon"></i>
+                                            {{ investissement_form.date_investissement }}
+                                        </div>
+                                        {% if investissement_form.date_investissement.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.date_investissement.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Calculator -->
+                        <div class="investment-calculator">
+                            <div class="calc-header">
+                                <i class="fas fa-calculator"></i>
+                                <h5>Estimation du cout total</h5>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Superficie du projet</span>
+                                <span class="calc-value" id="calcSuperficie">{{ projet.superficie }} ha</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Cout par hectare</span>
+                                <span class="calc-value" id="calcCoutHa">0 FCFA</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Cout total estime</span>
+                                <span class="calc-value" id="calcTotal">0 FCFA</span>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <a href="{% url 'detail_projet' projet.id %}" class="btn-back">
+                                <i class="fas fa-arrow-left"></i>
+                                Retour au projet
+                            </a>
+                            <button type="submit" class="btn-submit-modern" id="submitBtn">
+                                <i class="fas fa-plus-circle"></i>
+                                Ajouter l'investissement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    {% endif %}
-
-    <div class="form-group">
-        <label for="description">Description :</label>
-        {{ investissement_form.description }}
-        {% if investissement_form.description.errors %}
-            <div class="text-danger">
-                {% for error in investissement_form.description.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
     </div>
+</div>
 
-    <!-- Champ pour le coût par hectare -->
-    <div class="form-group">
-        <label for="cout_par_hectare">Coût par hectare (FCFA) :</label>
-        {{ investissement_form.cout_par_hectare }}
-        {% if investissement_form.cout_par_hectare.errors %}
-            <div class="text-danger">
-                {% for error in investissement_form.cout_par_hectare.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Champ pour la date de l'investissement -->
-    <div class="form-group">
-        <label for="date_investissement">Date de l'investissement :</label>
-        {{ investissement_form.date_investissement }}
-        {% if investissement_form.date_investissement.errors %}
-            <div class="text-danger">
-                {% for error in investissement_form.date_investissement.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </div>
-
-    <button type="submit" class="btn btn-primary">Ajouter l'investissement</button>
-</form>
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const coutInput = document.getElementById('id_cout_par_hectare');
+    const superficie = {{ projet.superficie|default:0 }};
+    
+    function updateCalculation() {
+        const coutHa = parseFloat(coutInput.value) || 0;
+        const total = coutHa * superficie;
+        
+        document.getElementById('calcCoutHa').textContent = 
+            new Intl.NumberFormat('fr-FR').format(coutHa) + ' FCFA';
+        document.getElementById('calcTotal').textContent = 
+            new Intl.NumberFormat('fr-FR').format(total) + ' FCFA';
+        
+        // Animate the total
+        const totalEl = document.getElementById('calcTotal');
+        totalEl.style.transform = 'scale(1.05)';
+        setTimeout(() => totalEl.style.transform = 'scale(1)', 200);
+    }
+    
+    if (coutInput) {
+        coutInput.addEventListener('input', updateCalculation);
+        // Initialize
+        updateCalculation();
+    }
+    
+    // Form submission
+    const form = document.getElementById('investmentForm');
+    form.addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout en cours...';
+        btn.disabled = true;
+    });
+    
+    // Input focus effects
+    const inputs = document.querySelectorAll('.input-wrapper input, .input-wrapper textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.closest('.input-wrapper').style.transform = 'scale(1.01)';
+        });
+        input.addEventListener('blur', function() {
+            this.closest('.input-wrapper').style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
 {% endblock %}
