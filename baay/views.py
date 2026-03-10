@@ -22,7 +22,10 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.metrics import mean_squared_error
 import pickle
-from django.db.models import Sum
+from django.db.models import Sum, Count, Avg
+from django.db.models.functions import TruncMonth
+from django.views.decorators.http import require_GET
+from decimal import Decimal
 
 # Vue pour la page d'accueil
 def home_view(request):
@@ -234,16 +237,37 @@ def dashboard(request):
         # Crée un profil si nécessaire
         utilisateur = Profile.objects.create(user=request.user)
 
-    projets = Projet.objects.filter(utilisateur=utilisateur)
+    projets = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite')
 
     superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
     rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+    
+    # Get investissements total
+    from baay.models import Investissement
+    investissement_total = Investissement.objects.filter(
+        projet__in=projets
+    ).aggregate(total=Sum('cout_par_hectare'))['total'] or 0
+    
+    # Projects by status count
+    projets_en_cours = projets.filter(statut='en_cours').count()
+    projets_en_pause = projets.filter(statut='en_pause').count()
+    projets_finis = projets.filter(statut='fini').count()
+    
+    # Get unique cultures for filter
+    cultures = ProduitAgricole.objects.filter(
+        projet__utilisateur=utilisateur
+    ).distinct()
 
     context = {
         'projets': projets,
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
+        'investissement_total': investissement_total,
         'utilisateur': utilisateur,
+        'projets_en_cours': projets_en_cours,
+        'projets_en_pause': projets_en_pause,
+        'projets_finis': projets_finis,
+        'cultures': cultures,
     }
 
     return render(request, 'projets/dashboard.html', context)
@@ -456,3 +480,212 @@ def evaluer_modele(model, X_test, y_test):
 
     logger.info(f"Model Evaluation - RMSE: {rmse:.2f}, R²: {r2:.2f}, MAE: {mae:.2f}")
     return {'rmse': rmse, 'r2': r2, 'mae': mae}
+
+
+# ===================== DASHBOARD API ENDPOINTS =====================
+
+@login_required
+@require_GET
+def dashboard_stats_api(request):
+    """API endpoint for dashboard statistics with filtering"""
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+    
+    # Get filter parameters
+    statut_filter = request.GET.get('statut', '')
+    culture_filter = request.GET.get('culture', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    projets = Projet.objects.filter(utilisateur=utilisateur)
+    
+    # Apply filters
+    if statut_filter:
+        projets = projets.filter(statut=statut_filter)
+    if culture_filter:
+        projets = projets.filter(culture__id=culture_filter)
+    if date_from:
+        projets = projets.filter(date_lancement__gte=date_from)
+    if date_to:
+        projets = projets.filter(date_lancement__lte=date_to)
+    
+    # Calculate statistics
+    superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or Decimal('0')
+    rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or Decimal('0')
+    
+    # Get investissements total
+    from baay.models import Investissement
+    investissement_total = Investissement.objects.filter(
+        projet__in=projets
+    ).aggregate(total=Sum('cout_par_hectare'))['total'] or Decimal('0')
+    
+    # Projects by status
+    projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))
+    
+    # Projects by culture
+    projets_par_culture = list(projets.values('culture__nom').annotate(
+        count=Count('id'),
+        superficie=Sum('superficie'),
+        rendement=Sum('rendement_estime')
+    ))
+    
+    # Monthly trends (last 12 months)
+    monthly_data = list(projets.annotate(
+        month=TruncMonth('date_lancement')
+    ).values('month').annotate(
+        count=Count('id'),
+        superficie=Sum('superficie'),
+        rendement=Sum('rendement_estime')
+    ).order_by('month'))
+    
+    # Convert Decimal to float for JSON serialization
+    def decimal_to_float(obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return obj
+    
+    data = {
+        'superficie_totale': decimal_to_float(superficie_totale),
+        'rendement_total': decimal_to_float(rendement_total),
+        'investissement_total': decimal_to_float(investissement_total),
+        'nb_projets': projets.count(),
+        'projets_par_statut': projets_par_statut,
+        'projets_par_culture': [
+            {
+                'culture': p['culture__nom'],
+                'count': p['count'],
+                'superficie': decimal_to_float(p['superficie']),
+                'rendement': decimal_to_float(p['rendement'])
+            } for p in projets_par_culture
+        ],
+        'monthly_trends': [
+            {
+                'month': p['month'].strftime('%Y-%m') if p['month'] else None,
+                'count': p['count'],
+                'superficie': decimal_to_float(p['superficie']),
+                'rendement': decimal_to_float(p['rendement'])
+            } for p in monthly_data
+        ]
+    }
+    
+    return JsonResponse(data)
+
+
+@login_required
+@require_GET
+def dashboard_projets_api(request):
+    """API endpoint for projects list with search and pagination"""
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+    
+    search = request.GET.get('search', '')
+    statut = request.GET.get('statut', '')
+    sort_by = request.GET.get('sort', '-date_lancement')
+    page = int(request.GET.get('page', 1))
+    per_page = int(request.GET.get('per_page', 10))
+    
+    projets = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite')
+    
+    if search:
+        projets = projets.filter(nom__icontains=search)
+    if statut:
+        projets = projets.filter(statut=statut)
+    
+    # Sorting
+    valid_sorts = ['date_lancement', '-date_lancement', 'superficie', '-superficie', 
+                   'rendement_estime', '-rendement_estime', 'nom', '-nom']
+    if sort_by in valid_sorts:
+        projets = projets.order_by(sort_by)
+    
+    # Pagination
+    total = projets.count()
+    start = (page - 1) * per_page
+    end = start + per_page
+    projets_page = projets[start:end]
+    
+    projets_data = []
+    for p in projets_page:
+        # Get prediction if exists
+        prediction = None
+        try:
+            if hasattr(p, 'prediction'):
+                prediction = p.prediction.rendement_estime
+        except:
+            pass
+        
+        projets_data.append({
+            'id': str(p.id),
+            'nom': p.nom,
+            'statut': p.statut,
+            'culture': p.culture.nom if p.culture else None,
+            'localite': p.localite.nom if p.localite else None,
+            'superficie': float(p.superficie) if p.superficie else 0,
+            'rendement_estime': float(p.rendement_estime) if p.rendement_estime else 0,
+            'prediction': prediction,
+            'date_lancement': p.date_lancement.strftime('%Y-%m-%d') if p.date_lancement else None,
+        })
+    
+    return JsonResponse({
+        'projets': projets_data,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page
+    })
+
+
+@login_required
+@require_GET 
+def dashboard_filters_api(request):
+    """API endpoint to get available filter options"""
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+    
+    # Get unique cultures for this user's projects
+    cultures = list(ProduitAgricole.objects.filter(
+        projet__utilisateur=utilisateur
+    ).distinct().values('id', 'nom'))
+    
+    # Get status options
+    statuts = [
+        {'value': 'en_cours', 'label': 'En cours'},
+        {'value': 'en_pause', 'label': 'En pause'},
+        {'value': 'fini', 'label': 'Fini'},
+    ]
+    
+    return JsonResponse({
+        'cultures': [{'id': str(c['id']), 'nom': c['nom']} for c in cultures],
+        'statuts': statuts
+    })
+
+
+@login_required
+def update_projet_statut_api(request, projet_id):
+    """API endpoint to update project status"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        nouveau_statut = data.get('statut')
+        
+        if nouveau_statut not in ['en_cours', 'en_pause', 'fini']:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+        
+        projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+        projet.statut = nouveau_statut
+        projet.save(update_fields=['statut'])
+        
+        return JsonResponse({
+            'success': True,
+            'projet_id': str(projet.id),
+            'nouveau_statut': nouveau_statut
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

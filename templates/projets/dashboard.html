@@ -1,29 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard | Bento Box{% endblock %}
+{% block title %}Dashboard | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
+    /* ===== ENHANCED DASHBOARD STYLES ===== */
+    
     /* Bento Box Dashboard Grid */
     .bento-dashboard {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: auto;
         gap: 24px;
         margin-bottom: 60px;
-        /* Define areas:
-           Row 1: chart chart chart action
-           Row 2: kpi1 kpi2 kpi3 projects
-        */
-        grid-auto-flow: dense;
     }
 
     /* Bento Tiles Base Styling */
     .bento-tile {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 32px; /* Extra rounded for modern look */
-        padding: 32px;
+        border-radius: 32px;
+        padding: 28px;
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         box-shadow: var(--shadow-soft);
@@ -55,31 +51,14 @@
     .bento-content { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; }
 
     /* Grid Area Assignments */
-    .tile-chart { grid-column: span 3; grid-row: span 2; min-height: 400px; }
-    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(2, 6, 23, 0.9) 100%); text-align: center; justify-content: center; align-items: center; border: 1px solid rgba(163, 230, 53, 0.2); }
-    .tile-kpi { grid-column: span 1; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-    .tile-projects { grid-column: span 1; grid-row: span 2; max-height: 600px; overflow-y: auto; }
+    .tile-chart { grid-column: span 2; grid-row: span 2; min-height: 400px; }
+    .tile-chart-pie { grid-column: span 2; grid-row: span 2; min-height: 400px; }
+    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(135deg, rgba(2, 44, 34, 0.9) 0%, rgba(2, 6, 23, 0.95) 100%); text-align: center; justify-content: center; align-items: center; border: 1px solid rgba(163, 230, 53, 0.2); }
+    .tile-kpi { grid-column: span 1; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
+    .tile-projects { grid-column: span 2; grid-row: span 2; max-height: 600px; overflow: hidden; }
+    .tile-filters { grid-column: span 4; grid-row: span 1; }
 
-    /* Custom Scrollbar for Tile Projects */
-    .tile-projects::-webkit-scrollbar { width: 6px; }
-    .tile-projects::-webkit-scrollbar-track { background: transparent; }
-    .tile-projects::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.2); border-radius: 10px; }
-    .tile-projects:hover::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.5); }
-
-    /* Typography inside Bento */
-    .bento-title {
-        font-family: var(--font-display);
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .bento-title i { color: var(--accent); }
-
-    /* KPI Specifics */
+    /* KPI Specifics with Animation */
     .kpi-bento-icon {
         width: 64px; height: 64px;
         background: rgba(163, 230, 53, 0.1);
@@ -88,58 +67,369 @@
         display: flex; align-items: center; justify-content: center;
         font-size: 28px;
         margin-bottom: 16px;
+        transition: all 0.3s ease;
     }
-    .kpi-bento-value { font-size: 3rem; font-weight: 800; color: var(--text-main); line-height: 1; font-family: var(--font-display); margin-bottom: 8px; }
-    .kpi-bento-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-
-    /* Mini Project Cards (replaces table) */
-    .mini-project-list {
-        display: flex; flex-direction: column; gap: 16px;
+    
+    .bento-tile:hover .kpi-bento-icon {
+        transform: scale(1.1) rotate(5deg);
     }
-    .mini-project-card {
-        background: var(--bg-main);
-        border: 1px solid var(--border-color);
+    
+    .kpi-bento-value { 
+        font-size: 2.8rem; 
+        font-weight: 800; 
+        color: var(--text-main); 
+        line-height: 1; 
+        font-family: var(--font-display); 
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .kpi-bento-value.counting {
+        color: var(--accent);
+    }
+    
+    .kpi-bento-label { 
+        font-size: 0.85rem; 
+        color: var(--text-muted); 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em; 
+        font-weight: 600; 
+    }
+    
+    .kpi-trend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        margin-top: 8px;
+        padding: 4px 10px;
         border-radius: 20px;
-        padding: 16px;
+        font-weight: 600;
+    }
+    
+    .kpi-trend.up {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    
+    .kpi-trend.down {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    /* Typography inside Bento */
+    .bento-title {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .bento-title i { color: var(--accent); }
+
+    /* Filter Bar */
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .filter-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .filter-select, .filter-input {
+        padding: 10px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-main);
+        color: var(--text-main);
+        font-size: 0.9rem;
+        min-width: 150px;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-select:focus, .filter-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(163, 230, 53, 0.15);
+    }
+    
+    .filter-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 12px;
+        background: var(--accent);
+        color: #022c22;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow);
+    }
+    
+    .filter-btn.secondary {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+    }
+    
+    .filter-btn.secondary:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        box-shadow: none;
+    }
+
+    /* Projects List with Search */
+    .projects-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        position: relative;
+        flex: 1;
+        max-width: 250px;
+    }
+    
+    .search-box input {
+        width: 100%;
+        padding: 10px 16px 10px 40px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-main);
+        color: var(--text-main);
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    
+    .search-box i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    /* Mini Project Cards */
+    .mini-project-list {
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px;
+        max-height: 450px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+    
+    .mini-project-list::-webkit-scrollbar { width: 6px; }
+    .mini-project-list::-webkit-scrollbar-track { background: transparent; }
+    .mini-project-list::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.2); border-radius: 10px; }
+    .mini-project-list:hover::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.5); }
+    
+    .mini-project-card {
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
         flex-direction: column;
         gap: 12px;
+        position: relative;
+        overflow: hidden;
     }
+    
+    .mini-project-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--accent);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
     .mini-project-card:hover {
         background: rgba(163, 230, 53, 0.05);
         border-color: rgba(163, 230, 53, 0.4);
-        transform: scale(1.02);
+        transform: translateX(4px);
+    }
+    
+    .mini-project-card:hover::after {
+        opacity: 1;
     }
     
     .mini-p-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .mini-p-title { font-weight: 700; color: var(--text-main); font-size: 1rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-    .mini-p-culture { font-size: 0.8rem; color: var(--text-muted); }
+    .mini-p-title { font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin: 0; }
+    .mini-p-culture { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
     
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .status-dot.active { background: #10b981; box-shadow: 0 0 8px #10b981; }
-    .status-dot.pending { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
-    .status-dot.completed { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
-
-    .mini-p-stats { display: flex; gap: 12px; font-size: 0.85rem; color: var(--text-main); font-weight: 600; }
-    .mini-p-stats span { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px 10px; border-radius: 8px; }
-    .mini-p-stats i { color: var(--text-muted); }
-
-    /* Responsive Grid */
-    @media (max-width: 1200px) {
-        .bento-dashboard { grid-template-columns: repeat(3, 1fr); }
-        .tile-chart { grid-column: span 3; grid-row: span 2; }
-        .tile-action { grid-column: span 3; grid-row: span 1; flex-direction: row; gap: 24px; padding: 24px; }
-        .tile-projects { grid-column: span 3; grid-row: span 1; max-height: 400px; }
-    }
-    @media (max-width: 768px) {
-        .bento-dashboard { grid-template-columns: 1fr; }
-        .tile-chart, .tile-kpi, .tile-action, .tile-projects { grid-column: span 1; grid-row: auto; }
-        .kpi-bento-icon { width: 48px; height: 48px; font-size: 20px; }
-        .kpi-bento-value { font-size: 2rem; }
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
     }
     
+    .status-badge.en_cours { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .status-badge.en_pause { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .status-badge.fini { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+    .mini-p-stats { 
+        display: flex; 
+        gap: 16px; 
+        font-size: 0.85rem; 
+        color: var(--text-main); 
+    }
+    
+    .mini-p-stats span { 
+        display: flex; 
+        align-items: center; 
+        gap: 6px;
+    }
+    
+    .mini-p-stats i { color: var(--text-muted); font-size: 0.8rem; }
+    
+    .mini-p-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.2s ease;
+    }
+    
+    .mini-project-card:hover .mini-p-actions {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .action-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .action-btn.primary {
+        background: var(--accent);
+        color: #022c22;
+        border-color: var(--accent);
+    }
+    
+    .action-btn.primary:hover {
+        background: var(--accent-hover);
+    }
+
+    /* Status Dropdown */
+    .status-dropdown {
+        position: relative;
+    }
+    
+    .status-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 8px;
+        min-width: 140px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+    }
+    
+    .status-dropdown:hover .status-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(4px);
+    }
+    
+    .status-option {
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .status-option:hover {
+        background: rgba(163, 230, 53, 0.1);
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .status-dot.en_cours { background: #10b981; }
+    .status-dot.en_pause { background: #f59e0b; }
+    .status-dot.fini { background: #3b82f6; }
+
+    /* Chart Container */
+    .chart-container {
+        flex: 1;
+        position: relative;
+        width: 100%;
+        min-height: 300px;
+    }
+
     /* Elegant Header */
     .dashboard-header-modern {
         display: flex;
@@ -149,114 +439,404 @@
         padding-bottom: 24px;
         border-bottom: 1px solid var(--border-color);
     }
-    .db-title h1 { font-family: var(--font-display); font-weight: 800; font-size: 2.5rem; margin: 0; color: var(--text-main); }
-    .db-title p { color: var(--accent); font-weight: 500; margin: 8px 0 0 0; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; }
+    
+    .db-title h1 { 
+        font-family: var(--font-display); 
+        font-weight: 800; 
+        font-size: 2.5rem; 
+        margin: 0; 
+        color: var(--text-main); 
+    }
+    
+    .db-title p { 
+        color: var(--accent); 
+        font-weight: 500; 
+        margin: 8px 0 0 0; 
+        text-transform: uppercase; 
+        letter-spacing: 0.1em; 
+        font-size: 0.85rem; 
+    }
+    
+    .db-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Loading State */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--card-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+        color: var(--border-color);
+        margin-bottom: 16px;
+    }
+    
+    .empty-state h4 {
+        color: var(--text-main);
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    /* Responsive Grid */
+    @media (max-width: 1200px) {
+        .bento-dashboard { grid-template-columns: repeat(2, 1fr); }
+        .tile-chart, .tile-chart-pie { grid-column: span 2; }
+        .tile-projects { grid-column: span 2; }
+        .tile-filters { grid-column: span 2; }
+    }
+    
+    @media (max-width: 768px) {
+        .bento-dashboard { grid-template-columns: 1fr; }
+        .tile-chart, .tile-chart-pie, .tile-kpi, .tile-action, .tile-projects, .tile-filters { 
+            grid-column: span 1; 
+        }
+        .kpi-bento-value { font-size: 2rem; }
+        .filter-bar { flex-direction: column; align-items: stretch; }
+        .filter-group { width: 100%; }
+        .filter-select, .filter-input { width: 100%; }
+    }
+
+    /* Pulse Animation for Live Data */
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .live-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: #10b981;
+        font-weight: 600;
+    }
+    
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    /* Toast Notification */
+    .toast-container {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .toast {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        transform: translateX(-120%);
+        transition: transform 0.3s ease;
+    }
+    
+    .toast.show {
+        transform: translateX(0);
+    }
+    
+    .toast.success { border-left: 4px solid #10b981; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    
+    .toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .toast.success .toast-icon { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .toast.error .toast-icon { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 </style>
 
+<!-- Header -->
 <div class="dashboard-header-modern animate__animated animate__fadeInDown">
     <div class="db-title">
         <h1>Dashboard</h1>
         <p>Espace Analytique</p>
     </div>
-    <div class="db-date text-muted" style="font-weight: 500; font-size: 0.9rem;">
-        <i class="far fa-calendar-alt me-2"></i> {% now "j F Y" %}
+    <div class="db-actions">
+        <span class="live-indicator">
+            <span class="live-dot"></span>
+            Donnees en direct
+        </span>
+        <div class="db-date text-muted" style="font-weight: 500; font-size: 0.9rem;">
+            <i class="far fa-calendar-alt me-2"></i> {% now "j F Y" %}
+        </div>
     </div>
 </div>
 
-<div class="bento-dashboard animate__animated animate__fadeInUp">
+<!-- Bento Grid Dashboard -->
+<div class="bento-dashboard">
     
-    <!-- TILE 1: Main Chart -->
-    <div class="bento-tile tile-chart">
+    <!-- Filter Bar -->
+    <div class="bento-tile tile-filters animate__animated animate__fadeInDown">
+        <div class="bento-content">
+            <form id="filterForm" class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">Statut</span>
+                    <select class="filter-select" name="statut" id="filterStatut">
+                        <option value="">Tous les statuts</option>
+                        <option value="en_cours">En cours</option>
+                        <option value="en_pause">En pause</option>
+                        <option value="fini">Termine</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <span class="filter-label">Culture</span>
+                    <select class="filter-select" name="culture" id="filterCulture">
+                        <option value="">Toutes les cultures</option>
+                        {% for culture in cultures %}
+                        <option value="{{ culture.id }}">{{ culture.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <span class="filter-label">Date debut</span>
+                    <input type="date" class="filter-input" name="date_from" id="filterDateFrom">
+                </div>
+                
+                <div class="filter-group">
+                    <span class="filter-label">Date fin</span>
+                    <input type="date" class="filter-input" name="date_to" id="filterDateTo">
+                </div>
+                
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <span class="filter-label">&nbsp;</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="submit" class="filter-btn">
+                            <i class="fas fa-filter"></i> Filtrer
+                        </button>
+                        <button type="button" class="filter-btn secondary" id="resetFilters">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- KPI: Total Projects -->
+    <div class="bento-tile tile-kpi animate__animated animate__fadeInUp" style="animation-delay: 0.1s;" onclick="filterByStatus('')">
+        <div class="bento-content">
+            <div class="kpi-bento-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <div class="kpi-bento-value" data-count="{{ projets|length }}">{{ projets|length }}</div>
+            <div class="kpi-bento-label">Projets Totaux</div>
+        </div>
+    </div>
+    
+    <!-- KPI: Hectares -->
+    <div class="bento-tile tile-kpi animate__animated animate__fadeInUp" style="animation-delay: 0.15s;">
+        <div class="bento-content">
+            <div class="kpi-bento-icon"><i class="fas fa-map"></i></div>
+            <div class="kpi-bento-value" data-count="{{ superficie_totale }}">{{ superficie_totale|floatformat:0 }}</div>
+            <div class="kpi-bento-label">Hectares geres</div>
+        </div>
+    </div>
+
+    <!-- KPI: Yield -->
+    <div class="bento-tile tile-kpi animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+        <div class="bento-content">
+            <div class="kpi-bento-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="kpi-bento-value" data-count="{{ rendement_total }}">{{ rendement_total|floatformat:0 }}</div>
+            <div class="kpi-bento-label">Kg Estimes</div>
+        </div>
+    </div>
+    
+    <!-- KPI: Investment -->
+    <div class="bento-tile tile-kpi animate__animated animate__fadeInUp" style="animation-delay: 0.25s;">
+        <div class="bento-content">
+            <div class="kpi-bento-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="kpi-bento-value" data-count="{{ investissement_total }}">{{ investissement_total|floatformat:0 }}</div>
+            <div class="kpi-bento-label">CFA Investis</div>
+        </div>
+    </div>
+
+    <!-- Main Chart: Yield Analysis -->
+    <div class="bento-tile tile-chart animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
         <div class="bento-content">
             <h3 class="bento-title"><i class="fas fa-chart-area"></i> Analyse des Rendements</h3>
             {% if projets %}
-                <div style="flex: 1; position: relative; width: 100%; min-height: 300px;">
+                <div class="chart-container">
                     <canvas id="rendementChart"></canvas>
                 </div>
             {% else %}
-                <div class="alert alert-modern m-auto text-center" style="width: 100%; max-width: 400px;">
-                    <i class="fas fa-seedling fa-2x mb-3" style="color: var(--text-muted);"></i>
-                    <p>Aucune donnée disponible. Lancez votre premier projet d'IA agricole.</p>
+                <div class="empty-state">
+                    <i class="fas fa-seedling"></i>
+                    <h4>Aucune donnee disponible</h4>
+                    <p>Lancez votre premier projet agricole pour voir les analyses.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- TILE 2: Quick Action -->
-    <div class="bento-tile tile-action">
+    <!-- Pie Chart: Status Distribution -->
+    <div class="bento-tile tile-chart-pie animate__animated animate__fadeInUp" style="animation-delay: 0.35s;">
+        <div class="bento-content">
+            <h3 class="bento-title"><i class="fas fa-chart-pie"></i> Repartition par Statut</h3>
+            {% if projets %}
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-chart-pie"></i>
+                    <h4>Pas de donnees</h4>
+                    <p>Creez des projets pour voir la repartition.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Action -->
+    <div class="bento-tile tile-action animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
         <div class="bento-content text-center">
             <div style="width: 80px; height: 80px; background: rgba(163, 230, 53, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
                 <i class="fas fa-bolt fa-2x" style="color: var(--accent);"></i>
             </div>
-            <h4 style="color: white; font-family: var(--font-display); font-weight: 700; margin-bottom: 12px;">Nouvelle Ère ?</h4>
-            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">Lancez une nouvelle prédiction IA pour vos cultures.</p>
+            <h4 style="color: white; font-family: var(--font-display); font-weight: 700; margin-bottom: 12px;">Nouveau Projet</h4>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">Lancez une prediction IA pour vos cultures.</p>
             <a href="{% url 'creer_projet' %}" class="btn-modern" style="background: var(--accent); color: #022c22; font-weight: 800; width: 100%;">
-                <i class="fas fa-plus me-2"></i> Créer
+                <i class="fas fa-plus me-2"></i> Creer
             </a>
         </div>
     </div>
 
-    <!-- TILE 3: KPI Area -->
-    <div class="bento-tile tile-kpi">
+    <!-- Projects List -->
+    <div class="bento-tile tile-projects animate__animated animate__fadeInUp" style="animation-delay: 0.45s;">
         <div class="bento-content">
-            <div class="kpi-bento-icon"><i class="fas fa-map"></i></div>
-            <div class="kpi-bento-value">{{ superficie_totale|default:"0" }}</div>
-            <div class="kpi-bento-label">Hectares gérés</div>
-        </div>
-    </div>
-
-    <!-- TILE 4: KPI Yield -->
-    <div class="bento-tile tile-kpi">
-        <div class="bento-content">
-            <div class="kpi-bento-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);"><i class="fas fa-boxes"></i></div>
-            <div class="kpi-bento-value" style="color: #3b82f6;">{{ rendement_total|default:"0" }}</div>
-            <div class="kpi-bento-label">Kg Estimés</div>
-        </div>
-    </div>
-
-    <!-- TILE 5: KPI Projects -->
-    <div class="bento-tile tile-kpi">
-        <div class="bento-content">
-            <div class="kpi-bento-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i class="fas fa-seedling"></i></div>
-            <div class="kpi-bento-value text-main">{{ projets|length }}</div>
-            <div class="kpi-bento-label">Projets Actifs</div>
-        </div>
-    </div>
-
-    <!-- TILE 6: Projects List (Vertical Timeline Style) -->
-    <div class="bento-tile tile-projects">
-        <div class="bento-content">
-            <h3 class="bento-title" style="margin-bottom: 20px;"><i class="fas fa-layer-group"></i> Projets Récents</h3>
+            <div class="projects-header">
+                <h3 class="bento-title" style="margin-bottom: 0;"><i class="fas fa-layer-group"></i> Mes Projets</h3>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="projectSearch" placeholder="Rechercher...">
+                </div>
+            </div>
+            
+            <div class="loading-overlay" id="projectsLoading">
+                <div class="spinner"></div>
+            </div>
             
             {% if projets %}
-                <div class="mini-project-list">
-                    {% for projet in projets|slice:":6" %}
-                    <div class="mini-project-card" onclick="window.location='{% url 'detail_projet' projet.id %}'">
+                <div class="mini-project-list" id="projectsList">
+                    {% for projet in projets %}
+                    <div class="mini-project-card" data-id="{{ projet.id }}" data-status="{{ projet.statut }}">
                         <div class="mini-p-header">
                             <div>
                                 <h4 class="mini-p-title">{{ projet.nom }}</h4>
                                 <span class="mini-p-culture">{{ projet.culture.nom }}</span>
                             </div>
-                            
-                            {% if projet.statut == 'En cours' or projet.statut == 'EN_COURS' %}
-                                <div class="status-dot active" title="En cours"></div>
-                            {% elif projet.statut == 'Planifié' or projet.statut == 'PLANIFIE' %}
-                                <div class="status-dot pending" title="Planifié"></div>
-                            {% else %}
-                                <div class="status-dot completed" title="Terminé"></div>
-                            {% endif %}
+                            <div class="status-dropdown">
+                                <span class="status-badge {{ projet.statut }}">
+                                    {% if projet.statut == 'en_cours' %}En cours
+                                    {% elif projet.statut == 'en_pause' %}En pause
+                                    {% else %}Termine{% endif %}
+                                </span>
+                                <div class="status-dropdown-menu">
+                                    <div class="status-option" onclick="updateStatus('{{ projet.id }}', 'en_cours', event)">
+                                        <span class="status-dot en_cours"></span> En cours
+                                    </div>
+                                    <div class="status-option" onclick="updateStatus('{{ projet.id }}', 'en_pause', event)">
+                                        <span class="status-dot en_pause"></span> En pause
+                                    </div>
+                                    <div class="status-option" onclick="updateStatus('{{ projet.id }}', 'fini', event)">
+                                        <span class="status-dot fini"></span> Termine
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="mini-p-stats">
-                            <span title="Superficie"><i class="fas fa-crop-alt"></i> {{ projet.superficie }} ha</span>
-                            <span title="Rendement estimé"><i class="fas fa-weight"></i> {{ projet.rendement_estime|default:"-" }} kg</span>
+                            <span><i class="fas fa-crop-alt"></i> {{ projet.superficie }} ha</span>
+                            <span><i class="fas fa-weight"></i> {{ projet.rendement_estime|default:"-" }} kg</span>
+                            <span><i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom }}</span>
+                        </div>
+                        <div class="mini-p-actions">
+                            <a href="{% url 'detail_projet' projet.id %}" class="action-btn primary" onclick="event.stopPropagation();">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="action-btn" onclick="event.stopPropagation();">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="{% url 'generer_prediction' projet.id %}" class="action-btn" onclick="event.stopPropagation();">
+                                <i class="fas fa-robot"></i> Predire
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-folder-open fa-2x mb-3" style="color: var(--border-color);"></i>
-                    <p style="color: var(--text-muted); font-size: 0.95rem;">Aucun projet en cours.</p>
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h4>Aucun projet</h4>
+                    <p>Commencez par creer votre premier projet agricole.</p>
+                    <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern mt-3">
+                        <i class="fas fa-plus me-2"></i> Creer un projet
+                    </a>
                 </div>
             {% endif %}
         </div>
@@ -264,77 +844,289 @@
 
 </div>
 
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
 <!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof Chart === 'undefined') return;
+document.addEventListener('DOMContentLoaded', function () {
+    // ===== Counter Animation =====
+    const counters = document.querySelectorAll('.kpi-bento-value[data-count]');
+    counters.forEach(counter => {
+        const target = parseFloat(counter.getAttribute('data-count')) || 0;
+        const duration = 1500;
+        const start = 0;
+        const startTime = performance.now();
+        
+        counter.classList.add('counting');
+        
+        function updateCounter(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(start + (target - start) * easeOut);
+            
+            counter.textContent = current.toLocaleString('fr-FR');
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.classList.remove('counting');
+            }
+        }
+        
+        requestAnimationFrame(updateCounter);
+    });
 
-        const labels = [{% for projet in projets %}'{{ projet.nom|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}];
-        const data = [{% for projet in projets %}{{ projet.rendement_estime|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
-
-        if (labels.length === 0 || data.every(value => value === 0)) return;
-
+    // ===== Charts =====
+    if (typeof Chart !== 'undefined') {
         const isDark = document.body.classList.contains('dark-mode');
         const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
         const textColor = isDark ? '#94a3b8' : '#64748b';
 
-        const ctx = document.getElementById('rendementChart').getContext('2d');
-        
-        // Gradient fill
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(163, 230, 53, 0.8)');
-        gradient.addColorStop(1, 'rgba(163, 230, 53, 0.1)');
+        // Yield Chart
+        const rendementCtx = document.getElementById('rendementChart');
+        if (rendementCtx) {
+            const labels = [{% for projet in projets %}'{{ projet.nom|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+            const data = [{% for projet in projets %}{{ projet.rendement_estime|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+            
+            if (labels.length > 0) {
+                const ctx = rendementCtx.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(163, 230, 53, 0.8)');
+                gradient.addColorStop(1, 'rgba(163, 230, 53, 0.1)');
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Rendement Estimé (kg)',
-                    data: data,
-                    backgroundColor: gradient,
-                    borderColor: '#a3e635',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false,
-                    barPercentage: 0.6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 2000, easing: 'easeOutQuart' },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor, drawBorder: false },
-                        ticks: { color: textColor, font: { family: "'Inter', sans-serif" } },
-                        title: { display: true, text: 'Rendement (kg)', color: textColor, font: { weight: '600', family: "'Outfit'" } }
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Rendement Estime (kg)',
+                            data: data,
+                            backgroundColor: gradient,
+                            borderColor: '#a3e635',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.6
+                        }]
                     },
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: textColor, font: { family: "'Inter', sans-serif" } }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 2000, easing: 'easeOutQuart' },
+                        interaction: { intersect: false, mode: 'index' },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor, drawBorder: false },
+                                ticks: { color: textColor, font: { family: "'Inter', sans-serif" } },
+                                title: { display: true, text: 'Rendement (kg)', color: textColor, font: { weight: '600', family: "'Outfit'" } }
+                            },
+                            x: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { color: textColor, font: { family: "'Inter', sans-serif" }, maxRotation: 45 }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                                titleColor: isDark ? '#fff' : '#000',
+                                bodyColor: isDark ? '#94a3b8' : '#64748b',
+                                borderColor: 'rgba(163, 230, 53, 0.5)',
+                                borderWidth: 1,
+                                padding: 16,
+                                cornerRadius: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    label: (context) => `Rendement: ${context.raw.toLocaleString('fr-FR')} kg`
+                                }
+                            }
+                        }
                     }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                        titleColor: isDark ? '#fff' : '#000',
-                        bodyColor: isDark ? '#94a3b8' : '#64748b',
-                        borderColor: 'rgba(163, 230, 53, 0.5)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        usePointStyle: true,
-                        callbacks: {
-                            label: function (context) { return ` ${context.raw} kg`; }
+                });
+            }
+        }
+
+        // Status Pie Chart
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx) {
+            const statusData = {
+                labels: ['En cours', 'En pause', 'Termine'],
+                datasets: [{
+                    data: [{{ projets_en_cours }}, {{ projets_en_pause }}, {{ projets_finis }}],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ],
+                    borderColor: [
+                        '#10b981',
+                        '#f59e0b',
+                        '#3b82f6'
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            };
+
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: statusData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    animation: { animateRotate: true, animateScale: true, duration: 2000 },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                color: textColor,
+                                font: { family: "'Inter', sans-serif", weight: 500 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            titleColor: isDark ? '#fff' : '#000',
+                            bodyColor: isDark ? '#94a3b8' : '#64748b',
+                            borderColor: 'rgba(163, 230, 53, 0.5)',
+                            borderWidth: 1,
+                            padding: 16,
+                            cornerRadius: 12,
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.raw} projet(s)`
+                            }
                         }
                     }
                 }
-            }
+            });
+        }
+    }
+
+    // ===== Search Filter =====
+    const searchInput = document.getElementById('projectSearch');
+    const projectCards = document.querySelectorAll('.mini-project-card');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            projectCards.forEach(card => {
+                const title = card.querySelector('.mini-p-title').textContent.toLowerCase();
+                const culture = card.querySelector('.mini-p-culture').textContent.toLowerCase();
+                const matches = title.includes(query) || culture.includes(query);
+                card.style.display = matches ? 'flex' : 'none';
+            });
         });
+    }
+
+    // ===== Filter Form =====
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            applyFilters();
+        });
+    }
+    
+    const resetBtn = document.getElementById('resetFilters');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            document.getElementById('filterStatut').value = '';
+            document.getElementById('filterCulture').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            projectCards.forEach(card => card.style.display = 'flex');
+            showToast('Filtres reinitialises', 'success');
+        });
+    }
+});
+
+// ===== Apply Filters (Client-side) =====
+function applyFilters() {
+    const statut = document.getElementById('filterStatut').value;
+    const projectCards = document.querySelectorAll('.mini-project-card');
+    let visibleCount = 0;
+    
+    projectCards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        const matches = !statut || cardStatus === statut;
+        card.style.display = matches ? 'flex' : 'none';
+        if (matches) visibleCount++;
     });
+    
+    showToast(`${visibleCount} projet(s) affiche(s)`, 'success');
+}
+
+// ===== Update Status =====
+function updateStatus(projetId, newStatus, event) {
+    event.stopPropagation();
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    
+    fetch(`/api/projet/${projetId}/statut/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ statut: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the card
+            const card = document.querySelector(`.mini-project-card[data-id="${projetId}"]`);
+            if (card) {
+                card.setAttribute('data-status', newStatus);
+                const badge = card.querySelector('.status-badge');
+                badge.className = `status-badge ${newStatus}`;
+                badge.textContent = newStatus === 'en_cours' ? 'En cours' : 
+                                   newStatus === 'en_pause' ? 'En pause' : 'Termine';
+            }
+            showToast('Statut mis a jour', 'success');
+        } else {
+            showToast('Erreur lors de la mise a jour', 'error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Erreur de connexion', 'error');
+    });
+}
+
+// ===== Filter by Status (click on KPI) =====
+function filterByStatus(status) {
+    document.getElementById('filterStatut').value = status;
+    applyFilters();
+}
+
+// ===== Toast Notification =====
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}"></i>
+        </div>
+        <span>${message}</span>
+    `;
+    container.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 </script>
+
+{% csrf_token %}
 {% endblock %}

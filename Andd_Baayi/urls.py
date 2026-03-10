@@ -29,6 +29,12 @@ urlpatterns = [
     path('projet/<uuid:projet_id>/supprimer/', supprimer_projet, name='supprimer_projet'),
     path('projets/supprimer/', views.supprimer_projets, name='supprimer_projets'),
     path('api/chatbot/', views.ask_chatbot, name='ask_chatbot'),
+    
+    # Dashboard API endpoints
+    path('api/dashboard/stats/', views.dashboard_stats_api, name='dashboard_stats_api'),
+    path('api/dashboard/projets/', views.dashboard_projets_api, name='dashboard_projets_api'),
+    path('api/dashboard/filters/', views.dashboard_filters_api, name='dashboard_filters_api'),
+    path('api/projet/<uuid:projet_id>/statut/', views.update_projet_statut_api, name='update_projet_statut_api'),
 ]
 
 
