@@ -963,6 +963,11 @@
                                     <i class="fas fa-folder"></i> Projets
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link-modern {% if 'semis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_semis' %}">
+                                    <i class="fas fa-seedling"></i> Semis
+                                </a>
+                            </li>
                             <li class="nav-item me-lg-2">
                                 <a class="btn-nav btn-nav-primary" href="{% url 'creer_projet' %}">
                                     <i class="fas fa-plus"></i> Nouveau
