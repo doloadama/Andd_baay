@@ -274,12 +274,12 @@
                             <p class="text-white-50 small mb-3">Selectionnez un ou plusieurs produits pour ce projet</p>
                             <div class="product-checkbox-grid">
                                 {% for produit in produits %}
-                                <label class="product-checkbox-item {% if produit.id in projet_form.fields.produits_selection.initial %}selected{% endif %}">
+                                <label class="product-checkbox-item {% for pp in projet.projet_produits.all %}{% if pp.produit_id == produit.id %}selected{% endif %}{% endfor %}">
                                     <div class="d-flex align-items-center gap-3">
                                         <input type="checkbox" 
                                                name="produits_selection" 
                                                value="{{ produit.id }}"
-                                               {% if produit.id in projet_form.fields.produits_selection.initial %}checked{% endif %}
+                                               {% for pp in projet.projet_produits.all %}{% if pp.produit_id == produit.id %}checked{% endif %}{% endfor %}
                                                onchange="this.closest('.product-checkbox-item').classList.toggle('selected', this.checked)">
                                         <div>
                                             <div class="text-white fw-bold">{{ produit.nom }}</div>
