@@ -18,8 +18,8 @@ from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
-from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, SemisForm
+from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement, Semis
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -814,3 +814,150 @@ def update_projet_statut_api(request, projet_id):
     except Exception as e:
         logger.error(f"Error in update_projet_statut_api: {type(e).__name__}: {e}")
         return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
+
+
+# ============ SEMIS (Sowing) Management Views ============
+
+@login_required
+def liste_semis(request):
+    """List all sowings for the current user"""
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+    
+    # Get filter parameters
+    statut_filter = request.GET.get('statut', '')
+    culture_filter = request.GET.get('culture', '')
+    search_query = request.GET.get('q', '')
+    
+    # Base queryset
+    semis_list = Semis.objects.filter(utilisateur=utilisateur).select_related('culture', 'projet')
+    
+    # Apply filters
+    if statut_filter:
+        semis_list = semis_list.filter(statut=statut_filter)
+    
+    if culture_filter:
+        semis_list = semis_list.filter(culture_id=culture_filter)
+    
+    if search_query:
+        semis_list = semis_list.filter(culture__nom__icontains=search_query)
+    
+    # Pagination
+    paginator = Paginator(semis_list, 12)
+    page = request.GET.get('page', 1)
+    semis = paginator.get_page(page)
+    
+    # Get available cultures for filter dropdown
+    cultures = ProduitAgricole.objects.filter(
+        semis__utilisateur=utilisateur
+    ).distinct()
+    
+    # Statistics
+    stats = {
+        'total': semis_list.count(),
+        'planifies': semis_list.filter(statut='planifie').count(),
+        'en_croissance': semis_list.filter(statut='en_croissance').count(),
+        'recoltes': semis_list.filter(statut='recolte').count(),
+    }
+    
+    context = {
+        'semis': semis,
+        'cultures': cultures,
+        'stats': stats,
+        'current_statut': statut_filter,
+        'current_culture': culture_filter,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'semis/liste_semis.html', context)
+
+
+@login_required
+def creer_semis(request):
+    """Create a new sowing"""
+    if request.method == 'POST':
+        form = SemisForm(request.POST, user=request.user)
+        if form.is_valid():
+            semis = form.save(commit=False)
+            semis.utilisateur = request.user.profile
+            semis.save()
+            messages.success(request, 'Semis créé avec succès!')
+            return redirect('liste_semis')
+    else:
+        form = SemisForm(user=request.user)
+    
+    return render(request, 'semis/creer_semis.html', {'form': form})
+
+
+@login_required
+def modifier_semis(request, semis_id):
+    """Edit an existing sowing"""
+    semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
+    
+    if request.method == 'POST':
+        form = SemisForm(request.POST, instance=semis, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Semis modifié avec succès!')
+            return redirect('liste_semis')
+    else:
+        form = SemisForm(instance=semis, user=request.user)
+    
+    return render(request, 'semis/modifier_semis.html', {'form': form, 'semis': semis})
+
+
+@login_required
+def detail_semis(request, semis_id):
+    """View details of a sowing"""
+    semis = get_object_or_404(
+        Semis.objects.select_related('culture', 'projet', 'utilisateur'),
+        id=semis_id, 
+        utilisateur=request.user.profile
+    )
+    
+    return render(request, 'semis/detail_semis.html', {'semis': semis})
+
+
+@login_required
+def supprimer_semis(request, semis_id):
+    """Delete a sowing"""
+    semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
+    
+    if request.method == 'POST':
+        semis.delete()
+        messages.success(request, 'Semis supprimé avec succès!')
+        return redirect('liste_semis')
+    
+    return render(request, 'semis/confirmer_suppression_semis.html', {'semis': semis})
+
+
+@login_required
+def update_semis_statut(request, semis_id):
+    """Quick update of sowing status"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        nouveau_statut = data.get('statut')
+        
+        valid_statuts = ['planifie', 'seme', 'en_croissance', 'recolte', 'echec']
+        if nouveau_statut not in valid_statuts:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+        
+        semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
+        semis.statut = nouveau_statut
+        semis.save(update_fields=['statut'])
+        
+        return JsonResponse({
+            'success': True,
+            'semis_id': str(semis.id),
+            'nouveau_statut': nouveau_statut
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Error updating semis status: {e}")
+        return JsonResponse({'error': 'An error occurred'}, status=500)

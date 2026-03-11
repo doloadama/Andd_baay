@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% block title %}Modifier Semis | Andd Baay{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        margin-bottom: 32px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 8px;
+    }
+    
+    .page-subtitle {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+    
+    .form-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 32px;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .form-section {
+        margin-bottom: 32px;
+    }
+    
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .section-title {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-title i {
+        color: var(--accent);
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .form-label .required {
+        color: var(--danger);
+        margin-left: 2px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-input);
+        background: var(--bg-secondary);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        transition: all var(--transition-fast);
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--card-bg-solid);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+    }
+    
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+    
+    select.form-control {
+        cursor: pointer;
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-hint {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+    
+    .form-error {
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-top: 6px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-submit {
+        padding: 14px 32px;
+        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
+        color: var(--text-inverse);
+        border: none;
+        border-radius: var(--radius-input);
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(163, 230, 53, 0.3);
+    }
+    
+    .btn-cancel {
+        padding: 14px 32px;
+        background: var(--bg-secondary);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-input);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all var(--transition);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-cancel:hover {
+        background: var(--border-color);
+        color: var(--text-main);
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+        
+        .form-card {
+            padding: 20px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-submit, .btn-cancel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <div class="page-header animate__animated animate__fadeInDown">
+        <h1 class="page-title">Modifier Semis</h1>
+        <p class="page-subtitle">{{ semis.culture.nom }} - Seme le {{ semis.date_semis|date:"d/m/Y" }}</p>
+    </div>
+    
+    <div class="form-card animate__animated animate__fadeInUp">
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            
+            <!-- Section Culture -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-seedling"></i> Culture et Projet
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Culture <span class="required">*</span>
+                        </label>
+                        {{ form.culture }}
+                        {% if form.culture.errors %}
+                        <div class="form-error">{{ form.culture.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Projet associe</label>
+                        {{ form.projet }}
+                        <div class="form-hint">Optionnel - Liez ce semis a un projet existant</div>
+                        {% if form.projet.errors %}
+                        <div class="form-error">{{ form.projet.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section Quantites -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-balance-scale"></i> Quantites
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Quantite de semences (kg) <span class="required">*</span>
+                        </label>
+                        {{ form.quantite_semences }}
+                        {% if form.quantite_semences.errors %}
+                        <div class="form-error">{{ form.quantite_semences.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Superficie semee (ha) <span class="required">*</span>
+                        </label>
+                        {{ form.superficie_semee }}
+                        {% if form.superficie_semee.errors %}
+                        <div class="form-error">{{ form.superficie_semee.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section Dates -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-calendar-alt"></i> Dates
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Date du semis <span class="required">*</span>
+                        </label>
+                        {{ form.date_semis }}
+                        {% if form.date_semis.errors %}
+                        <div class="form-error">{{ form.date_semis.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Date de recolte prevue</label>
+                        {{ form.date_recolte_prevue }}
+                        {% if form.date_recolte_prevue.errors %}
+                        <div class="form-error">{{ form.date_recolte_prevue.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Date de recolte effective</label>
+                        {{ form.date_recolte_effective }}
+                        <div class="form-hint">A remplir lors de la recolte</div>
+                        {% if form.date_recolte_effective.errors %}
+                        <div class="form-error">{{ form.date_recolte_effective.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rendement obtenu (kg)</label>
+                        {{ form.rendement_obtenu }}
+                        <div class="form-hint">A remplir lors de la recolte</div>
+                        {% if form.rendement_obtenu.errors %}
+                        <div class="form-error">{{ form.rendement_obtenu.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section Statut -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-flag"></i> Statut et Notes
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Statut</label>
+                        {{ form.statut }}
+                        {% if form.statut.errors %}
+                        <div class="form-error">{{ form.statut.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                        <div class="form-error">{{ form.notes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="margin-top: 20px; padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: var(--radius-sm); color: var(--danger);">
+                {% for error in form.non_field_errors %}
+                <p style="margin: 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="form-actions">
+                <a href="{% url 'liste_semis' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
