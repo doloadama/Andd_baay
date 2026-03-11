@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+import pickle
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView
@@ -10,22 +13,36 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
-import os
-from google import genai
-from sklearn.metrics import r2_score, mean_absolute_error
-import numpy as np
-from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
-from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import RandomizedSearchCV, train_test_split
-from sklearn.metrics import mean_squared_error
-import pickle
 from django.db.models import Sum, Count, Avg
 from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
-from decimal import Decimal
+
+from Andd_Baayi import settings
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm
+from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement
+
+# Optional ML imports - these are large dependencies that may not be available in serverless
+ML_AVAILABLE = False
+try:
+    import numpy as np
+    import pandas as pd
+    from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.model_selection import RandomizedSearchCV, train_test_split
+    ML_AVAILABLE = True
+except ImportError:
+    np = None
+    pd = None
+    logging.warning("ML dependencies (numpy, pandas, scikit-learn) not available. ML features disabled.")
+
+# Optional Gemini import
+try:
+    from google import genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    genai = None
+    GEMINI_AVAILABLE = False
+    logging.warning("Google Generative AI not available. Chatbot disabled.")
 
 # Vue pour la page d'accueil
 def home_view(request):
@@ -83,10 +100,15 @@ class CustomPasswordResetView(PasswordResetView):
 
 
 
-# Créer le client Gemini avec la clé depuis settings
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
 logger = logging.getLogger(__name__)
+
+# Create Gemini client only if available
+client = None
+if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+    try:
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    except Exception as e:
+        logger.warning(f"Failed to initialize Gemini client: {e}")
 
 # Maximum allowed prompt length for chatbot
 MAX_PROMPT_LENGTH = 4000
@@ -113,6 +135,9 @@ def _sanitize_chatbot_input(prompt):
 # Chatbot — CSRF enabled, login required for security
 @login_required
 def ask_chatbot(request):
+    if not client:
+        return JsonResponse({'error': 'Chatbot is not available. Please configure GEMINI_API_KEY.'}, status=503)
+    
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -351,6 +376,11 @@ def get_produit_agricole_details(request):
 
 
 def collect_training_data():
+    """Collect training data from projects. Requires ML dependencies."""
+    if not ML_AVAILABLE:
+        logger.warning("ML dependencies not available. Cannot collect training data.")
+        return None
+    
     projets = Projet.objects.select_related('culture', 'localite', 'utilisateur').all()
     data = []
 
@@ -371,15 +401,17 @@ def collect_training_data():
     return df
 
 def entrainer_modele():
-    df = collect_training_data()
-    if df.empty:
-        logger.error("Les données d'entraînement sont vides.")
-    else:
-        logger.info(f"Données d'entraînement collectées : {df.shape[0]} lignes, {df.shape[1]} colonnes.")
-
-    if df.empty:
-        logger.error("No data available for training!")
+    """Train the ML model. Requires ML dependencies."""
+    if not ML_AVAILABLE:
+        logger.error("ML dependencies not available. Cannot train model.")
         return None
+    
+    df = collect_training_data()
+    if df is None or df.empty:
+        logger.error("Les données d'entraînement sont vides.")
+        return None
+    
+    logger.info(f"Données d'entraînement collectées : {df.shape[0]} lignes, {df.shape[1]} colonnes.")
 
     df = pd.get_dummies(df, columns=['type_sol', 'conditions_meteo'], drop_first=True)
 
@@ -429,6 +461,11 @@ def _compute_file_hash(filepath):
 def get_model():
     """Load and cache the ML model with thread-safety and integrity validation."""
     global _model_cache
+    
+    # ML dependencies required for unpickling sklearn models
+    if not ML_AVAILABLE:
+        logger.debug("ML dependencies not available. Using fallback predictions.")
+        return None
     
     if _model_cache is not None:
         return _model_cache
