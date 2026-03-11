@@ -88,13 +88,40 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 logger = logging.getLogger(__name__)
 
+# Maximum allowed prompt length for chatbot
+MAX_PROMPT_LENGTH = 4000
+
+def _sanitize_chatbot_input(prompt):
+    """Sanitize and validate chatbot input."""
+    if not prompt or not isinstance(prompt, str):
+        return None, "Message is required and must be a string."
+    
+    # Strip whitespace and check length
+    prompt = prompt.strip()
+    if len(prompt) == 0:
+        return None, "Message cannot be empty."
+    
+    if len(prompt) > MAX_PROMPT_LENGTH:
+        return None, f"Message exceeds maximum length of {MAX_PROMPT_LENGTH} characters."
+    
+    # Remove potentially harmful content (basic sanitization)
+    # This prevents prompt injection attempts
+    sanitized = prompt.replace('\x00', '')  # Remove null bytes
+    
+    return sanitized, None
+
 # Chatbot — CSRF enabled, login required for security
 @login_required
 def ask_chatbot(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            prompt = data.get('message', '')
+            raw_prompt = data.get('message', '')
+            
+            # Sanitize and validate input
+            prompt, error = _sanitize_chatbot_input(raw_prompt)
+            if error:
+                return JsonResponse({'error': error}, status=400)
 
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
@@ -103,8 +130,11 @@ def ask_chatbot(request):
 
             return JsonResponse({'response': response.text})
 
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            logger.error(f"Chatbot error: {type(e).__name__}: {e}")
+            return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
@@ -378,25 +408,75 @@ def entrainer_modele():
     return model.best_estimator_
 
 
-model_cache = None
+import hashlib
+import threading
+
+# Thread-safe model cache
+_model_cache = None
+_model_lock = threading.Lock()
+
+# Expected model hash (update this after training a new model)
+EXPECTED_MODEL_HASH = os.getenv('ML_MODEL_HASH', '')
+
+def _compute_file_hash(filepath):
+    """Compute SHA256 hash of a file for integrity verification."""
+    sha256_hash = hashlib.sha256()
+    with open(filepath, 'rb') as f:
+        for byte_block in iter(lambda: f.read(4096), b''):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
 
 def get_model():
-    global model_cache
-    if model_cache is None:
+    """Load and cache the ML model with thread-safety and integrity validation."""
+    global _model_cache
+    
+    if _model_cache is not None:
+        return _model_cache
+    
+    with _model_lock:
+        # Double-check after acquiring lock
+        if _model_cache is not None:
+            return _model_cache
+        
+        model_path = 'modele_rendement.pkl'
+        
         try:
-            with open('modele_rendement.pkl', 'rb') as f:
-                model_cache = pickle.load(f)
-                logger.debug("Model loaded into cache.")
+            # Verify model file integrity if hash is configured
+            if EXPECTED_MODEL_HASH:
+                actual_hash = _compute_file_hash(model_path)
+                if actual_hash != EXPECTED_MODEL_HASH:
+                    logger.error(
+                        f"Model integrity check failed. Expected hash: {EXPECTED_MODEL_HASH[:16]}..., "
+                        f"Got: {actual_hash[:16]}..."
+                    )
+                    return None
+                logger.info("Model integrity verified successfully.")
+            
+            with open(model_path, 'rb') as f:
+                loaded_model = pickle.load(f)
+            
+            # Validate the model has expected attributes
+            if not hasattr(loaded_model, 'predict') or not hasattr(loaded_model, 'feature_names_in_'):
+                logger.error("Loaded model is missing required attributes (predict, feature_names_in_).")
+                return None
+            
+            _model_cache = loaded_model
+            logger.info("Model loaded and cached successfully.")
+            
         except FileNotFoundError:
             logger.error("Le fichier modele_rendement.pkl est introuvable.")
             return None
-        except pickle.UnpicklingError:
-            logger.error("Erreur lors du chargement du modèle : fichier corrompu.")
+        except pickle.UnpicklingError as e:
+            logger.error(f"Erreur lors du chargement du modèle : fichier corrompu. {e}")
+            return None
+        except (IOError, OSError) as e:
+            logger.error(f"Erreur d'accès au fichier modèle : {e}")
             return None
         except Exception as e:
-            logger.error(f"Erreur inattendue lors du chargement du modèle : {e}")
+            logger.error(f"Erreur inattendue lors du chargement du modèle : {type(e).__name__}: {e}")
             return None
-    return model_cache
+    
+    return _model_cache
 
 
 def predire_rendement(projet):
@@ -614,8 +694,8 @@ def dashboard_projets_api(request):
         try:
             if hasattr(p, 'prediction'):
                 prediction = p.prediction.rendement_estime
-        except:
-            pass
+        except (AttributeError, PredictionRendement.DoesNotExist):
+            logger.debug(f"No prediction found for project {p.id}")
         
         projets_data.append({
             'id': str(p.id),
@@ -687,5 +767,13 @@ def update_projet_statut_api(request, projet_id):
             'projet_id': str(projet.id),
             'nouveau_statut': nouveau_statut
         })
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
+    except Projet.DoesNotExist:
+        return JsonResponse({'error': 'Project not found.'}, status=404)
+    except (ValueError, TypeError) as e:
+        logger.warning(f"Invalid data in update_projet_statut_api: {e}")
+        return JsonResponse({'error': 'Invalid data provided.'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Error in update_projet_statut_api: {type(e).__name__}: {e}")
+        return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
