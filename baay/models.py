@@ -111,64 +111,6 @@ class PredictionRendement(models.Model):
         return f"Prédiction pour {self.projet.nom}"
 
 
-class Semis(models.Model):
-    """Model to track sowings/plantings by users"""
-    STATUT_CHOICES = [
-        ('planifie', 'Planifié'),
-        ('seme', 'Semé'),
-        ('en_croissance', 'En croissance'),
-        ('recolte', 'Récolté'),
-        ('echec', 'Échec'),
-    ]
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='semis')
-    culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='semis')
-    projet = models.ForeignKey(Projet, on_delete=models.SET_NULL, null=True, blank=True, related_name='semis')
-    
-    quantite_semences = models.DecimalField(max_digits=10, decimal_places=2, help_text="Quantité de semences en kg")
-    superficie_semee = models.DecimalField(max_digits=10, decimal_places=2, help_text="Superficie semée en hectares")
-    
-    date_semis = models.DateField(help_text="Date du semis")
-    date_recolte_prevue = models.DateField(null=True, blank=True, help_text="Date de récolte prévue")
-    date_recolte_effective = models.DateField(null=True, blank=True, help_text="Date de récolte effective")
-    
-    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='planifie')
-    
-    notes = models.TextField(blank=True, null=True, help_text="Notes et observations")
-    
-    rendement_obtenu = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Rendement obtenu en kg")
-    
-    date_creation = models.DateTimeField(auto_now_add=True)
-    date_modification = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-date_semis']
-        verbose_name = 'Semis'
-        verbose_name_plural = 'Semis'
-    
-    def __str__(self):
-        return f"Semis de {self.culture.nom} - {self.date_semis}"
-    
-    @property
-    def jours_depuis_semis(self):
-        """Calcule le nombre de jours depuis le semis"""
-        from datetime import date
-        if self.date_semis:
-            return (date.today() - self.date_semis).days
-        return 0
-    
-    @property
-    def jours_avant_recolte(self):
-        """Calcule le nombre de jours avant la récolte prévue"""
-        from datetime import date
-        if self.date_recolte_prevue:
-            delta = (self.date_recolte_prevue - date.today()).days
-            return max(0, delta)
-        return None
-
-
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
