@@ -77,14 +77,69 @@ class Projet(models.Model):
     nom = models.CharField(max_length=200)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE)
+    # Keep culture for backwards compatibility, but produits will be the main relation
+    culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, null=True, blank=True)
     localite = models.ForeignKey(Localite, on_delete=models.CASCADE)
     superficie = models.DecimalField(max_digits=10, decimal_places=2)
     date_lancement = models.DateField()
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Multiple products relation
+    produits = models.ManyToManyField(ProduitAgricole, through='ProjetProduit', related_name='projets_multi')
 
     def __str__(self):
-        return f"Projet {self.nom} - {self.culture.nom} by {self.utilisateur.user.username}"
+        cultures = self.projet_produits.all()
+        if cultures.exists():
+            culture_names = ", ".join([pp.produit.nom for pp in cultures[:2]])
+            if cultures.count() > 2:
+                culture_names += f" (+{cultures.count() - 2})"
+            return f"Projet {self.nom} - {culture_names} by {self.utilisateur.user.username}"
+        elif self.culture:
+            return f"Projet {self.nom} - {self.culture.nom} by {self.utilisateur.user.username}"
+        return f"Projet {self.nom} by {self.utilisateur.user.username}"
+    
+    @property
+    def rendement_total_final(self):
+        """Calcule le rendement final total de tous les produits du projet"""
+        total = self.projet_produits.aggregate(total=models.Sum('rendement_final'))['total']
+        return total or 0
+
+
+class ProjetProduit(models.Model):
+    """Model to link products to projects with sowing and harvest data"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='projet_produits')
+    produit = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='projet_produits')
+    
+    # Sowing data
+    quantite_semences = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Quantite de semences en kg")
+    superficie_allouee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie allouee a ce produit en hectares")
+    date_semis = models.DateField(null=True, blank=True, help_text="Date du semis")
+    date_recolte_prevue = models.DateField(null=True, blank=True, help_text="Date de recolte prevue")
+    
+    # Harvest data (filled when project is finished)
+    rendement_final = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Rendement final obtenu en kg")
+    date_recolte_effective = models.DateField(null=True, blank=True, help_text="Date de recolte effective")
+    notes = models.TextField(blank=True, null=True, help_text="Notes et observations")
+    
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date_creation']
+        unique_together = ['projet', 'produit']
+        verbose_name = 'Produit du Projet'
+        verbose_name_plural = 'Produits du Projet'
+    
+    def __str__(self):
+        return f"{self.produit.nom} - {self.projet.nom}"
+    
+    @property
+    def rendement_estime(self):
+        """Calcule le rendement estime base sur la superficie et le rendement moyen du produit"""
+        if self.superficie_allouee and self.produit.rendement_moyen:
+            return float(self.superficie_allouee * self.produit.rendement_moyen)
+        return 0
 
 
 
@@ -111,61 +166,7 @@ class PredictionRendement(models.Model):
         return f"Prédiction pour {self.projet.nom}"
 
 
-class Semis(models.Model):
-    """Model to track sowings/plantings by users"""
-    STATUT_CHOICES = [
-        ('planifie', 'Planifié'),
-        ('seme', 'Semé'),
-        ('en_croissance', 'En croissance'),
-        ('recolte', 'Récolté'),
-        ('echec', 'Échec'),
-    ]
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='semis')
-    culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='semis')
-    projet = models.ForeignKey(Projet, on_delete=models.SET_NULL, null=True, blank=True, related_name='semis')
-    
-    quantite_semences = models.DecimalField(max_digits=10, decimal_places=2, help_text="Quantité de semences en kg")
-    superficie_semee = models.DecimalField(max_digits=10, decimal_places=2, help_text="Superficie semée en hectares")
-    
-    date_semis = models.DateField(help_text="Date du semis")
-    date_recolte_prevue = models.DateField(null=True, blank=True, help_text="Date de récolte prévue")
-    date_recolte_effective = models.DateField(null=True, blank=True, help_text="Date de récolte effective")
-    
-    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='planifie')
-    
-    notes = models.TextField(blank=True, null=True, help_text="Notes et observations")
-    
-    rendement_obtenu = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Rendement obtenu en kg")
-    
-    date_creation = models.DateTimeField(auto_now_add=True)
-    date_modification = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-date_semis']
-        verbose_name = 'Semis'
-        verbose_name_plural = 'Semis'
-    
-    def __str__(self):
-        return f"Semis de {self.culture.nom} - {self.date_semis}"
-    
-    @property
-    def jours_depuis_semis(self):
-        """Calcule le nombre de jours depuis le semis"""
-        from datetime import date
-        if self.date_semis:
-            return (date.today() - self.date_semis).days
-        return 0
-    
-    @property
-    def jours_avant_recolte(self):
-        """Calcule le nombre de jours avant la récolte prévue"""
-        from datetime import date
-        if self.date_recolte_prevue:
-            delta = (self.date_recolte_prevue - date.today()).days
-            return max(0, delta)
-        return None
+
 
 
 

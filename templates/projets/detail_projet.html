@@ -19,7 +19,12 @@
         <h1 class="display-3 fw-bold text-white mb-3 text-shadow-lg animate__animated animate__fadeInUp" style="font-family: var(--font-display);">{{ projet.nom }}</h1>
         <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
             <i class="fas fa-map-marker-alt text-accent me-2"></i> {{ projet.localite.nom }} &nbsp;&bull;&nbsp; 
-            <i class="fas fa-seedling text-accent me-2"></i> {{ projet.culture.nom }}
+            <i class="fas fa-seedling text-accent me-2"></i> 
+            {% for pp in projet_produits %}
+                {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                {% if projet.culture %}{{ projet.culture.nom }}{% else %}Aucun produit{% endif %}
+            {% endfor %}
         </p>
     </div>
 </div>
@@ -36,6 +41,11 @@
         <a href="{% url 'ajouter_investissement' projet.id %}" class="btn-modern btn-accent px-4 shadow-sm" style="background: var(--accent); color: var(--primary);">
             <i class="fas fa-plus"></i> Investissement
         </a>
+        {% if projet.statut != 'fini' %}
+        <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="btn-modern px-4 shadow-sm" style="background: #10b981; color: white;">
+            <i class="fas fa-check-circle"></i> Terminer & Saisir Recolte
+        </a>
+        {% endif %}
         <a href="{% url 'supprimer_projet' projet.id %}" class="btn-modern btn-danger-modern px-4 shadow-sm" style="background: #ef4444; color: white;">
             <i class="fas fa-trash"></i>
         </a>
@@ -73,12 +83,25 @@
                         <div class="col-sm-12">
                             <div class="info-block">
                                 <div class="info-icon"><i class="fas fa-leaf"></i></div>
-                                <div>
-                                    <div class="info-label">Culture</div>
+                                <div class="w-100">
+                                    <div class="info-label">Produits Cultives ({{ projet_produits.count }})</div>
                                     <div class="info-value-text">
-                                        <a href="#" class="produit-agricole-tooltip text-decoration-none text-primary fw-bold" data-produit-id="{{ projet.culture.id }}">
-                                            {{ projet.culture.nom }}
-                                        </a>
+                                        {% for pp in projet_produits %}
+                                            <span class="badge bg-success text-dark me-1 mb-1" style="font-size: 0.9rem;">
+                                                {{ pp.produit.nom }}
+                                                {% if pp.rendement_final %}
+                                                    <span class="badge bg-light text-success ms-1">{{ pp.rendement_final }} kg</span>
+                                                {% endif %}
+                                            </span>
+                                        {% empty %}
+                                            {% if projet.culture %}
+                                                <a href="#" class="produit-agricole-tooltip text-decoration-none text-primary fw-bold" data-produit-id="{{ projet.culture.id }}">
+                                                    {{ projet.culture.nom }}
+                                                </a>
+                                            {% else %}
+                                                Aucun produit
+                                            {% endif %}
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
@@ -163,6 +186,89 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Products/Semis Section (Full Width) -->
+    <div class="row mb-5 animate__animated animate__fadeInUp">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="mb-0"><i class="fas fa-seedling text-accent me-2"></i> Produits & Semis</h5>
+                    {% if projet.statut == 'fini' %}
+                    <span class="badge bg-success">Recolte terminee</span>
+                    {% endif %}
+                </div>
+                <div class="glass-card-body">
+                    {% if projet_produits %}
+                        <div class="table-responsive">
+                            <table class="table-modern w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Produit</th>
+                                        <th class="text-center">Semences (kg)</th>
+                                        <th class="text-center">Superficie</th>
+                                        <th class="text-center">Date Semis</th>
+                                        <th class="text-center">Rendement Estime</th>
+                                        <th class="text-center">Rendement Final</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pp in projet_produits %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ pp.produit.nom }}</strong>
+                                                {% if pp.notes %}<br><small class="text-muted">{{ pp.notes|truncatewords:10 }}</small>{% endif %}
+                                            </td>
+                                            <td class="text-center">{{ pp.quantite_semences|default:"-" }}</td>
+                                            <td class="text-center">{{ pp.superficie_allouee|default:"-" }} ha</td>
+                                            <td class="text-center">{{ pp.date_semis|date:"d/m/Y"|default:"-" }}</td>
+                                            <td class="text-center">
+                                                {% if pp.rendement_estime %}
+                                                    {{ pp.rendement_estime|floatformat:0 }} kg
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                {% if pp.rendement_final %}
+                                                    <span class="badge bg-success">{{ pp.rendement_final }} kg</span>
+                                                {% else %}
+                                                    <span class="text-muted">Non saisi</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{% url 'modifier_semis' pp.id %}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                {% if projet.statut == 'fini' %}
+                                <tfoot>
+                                    <tr style="background: rgba(163, 230, 53, 0.1);">
+                                        <td colspan="5" class="text-end fw-bold">Total Rendement Final:</td>
+                                        <td class="text-center fw-bold text-success">{{ projet.rendement_total_final }} kg</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                                {% endif %}
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="icon-circle mx-auto mb-3 text-muted"><i class="fas fa-seedling fs-2"></i></div>
+                            <h5 class="text-muted">Aucun produit</h5>
+                            <p class="text-muted text-sm mb-4">Ajoutez des produits a ce projet.</p>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-outline-modern bg-surface shadow-sm">
+                                <i class="fas fa-plus text-accent"></i> Modifier le projet
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 

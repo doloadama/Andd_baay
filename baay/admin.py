@@ -8,6 +8,7 @@ from .models import (
     ProduitAgricole,
     Localite,
     Investissement,
+    ProjetProduit,
 )
 
 
@@ -30,3 +31,4 @@ class PhotoProduitAgricoleAdmin(admin.ModelAdmin):
 admin.site.register(Projet)
 admin.site.register(Localite)
 admin.site.register(Investissement)
+admin.site.register(ProjetProduit)

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Mes Semis | Andd Baay{% endblock %}
+{% block title %}Mes Produits & Semis | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
@@ -58,9 +58,9 @@
     }
     
     .stat-icon.total { background: rgba(163, 230, 53, 0.15); color: var(--accent); }
-    .stat-icon.planifie { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-    .stat-icon.croissance { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-    .stat-icon.recolte { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .stat-icon.en_cours { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .stat-icon.en_pause { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .stat-icon.fini { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
     
     .stat-value {
         font-size: 1.75rem;
@@ -193,29 +193,19 @@
         letter-spacing: 0.05em;
     }
 
-    .status-planifie {
-        background: rgba(107, 114, 128, 0.15);
-        color: #6b7280;
-    }
-    
-    .status-seme {
+    .status-en_cours {
         background: rgba(59, 130, 246, 0.15);
         color: #3b82f6;
     }
     
-    .status-en_croissance {
-        background: rgba(34, 197, 94, 0.15);
-        color: #22c55e;
-    }
-    
-    .status-recolte {
+    .status-en_pause {
         background: rgba(245, 158, 11, 0.15);
         color: #f59e0b;
     }
     
-    .status-echec {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
+    .status-fini {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
     }
 
     .semis-card-body {
@@ -249,32 +239,6 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-top: 2px;
-    }
-
-    .semis-progress {
-        margin-top: 12px;
-    }
-
-    .progress-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-bottom: 6px;
-    }
-
-    .progress-bar-bg {
-        height: 6px;
-        background: var(--bg-secondary);
-        border-radius: var(--radius-pill);
-        overflow: hidden;
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent), #84cc16);
-        border-radius: var(--radius-pill);
-        transition: width 0.5s ease;
     }
 
     .semis-card-footer {
@@ -322,16 +286,6 @@
     .btn-card-secondary:hover {
         background: var(--border-color);
         color: var(--text-main);
-    }
-
-    .btn-card-danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
-
-    .btn-card-danger:hover {
-        background: var(--danger);
-        color: white;
     }
 
     /* Empty State */
@@ -437,11 +391,11 @@
 
 <div class="page-header animate__animated animate__fadeInDown">
     <div>
-        <h1 class="page-title">Mes Semis</h1>
-        <p class="page-subtitle">Gerez et suivez tous vos semis et plantations</p>
+        <h1 class="page-title">Mes Produits & Semis</h1>
+        <p class="page-subtitle">Suivez tous vos produits cultives dans vos projets</p>
     </div>
-    <a href="{% url 'creer_semis' %}" class="btn-modern btn-primary-modern">
-        <i class="fas fa-plus me-2"></i> Nouveau semis
+    <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern">
+        <i class="fas fa-plus me-2"></i> Nouveau projet
     </a>
 </div>
 
@@ -452,28 +406,28 @@
             <i class="fas fa-seedling"></i>
         </div>
         <div class="stat-value">{{ stats.total }}</div>
-        <div class="stat-label">Total semis</div>
+        <div class="stat-label">Total produits</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon planifie">
-            <i class="fas fa-calendar-alt"></i>
+        <div class="stat-icon en_cours">
+            <i class="fas fa-spinner"></i>
         </div>
-        <div class="stat-value">{{ stats.planifies }}</div>
-        <div class="stat-label">Planifies</div>
+        <div class="stat-value">{{ stats.en_cours }}</div>
+        <div class="stat-label">En cours</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon croissance">
-            <i class="fas fa-leaf"></i>
+        <div class="stat-icon en_pause">
+            <i class="fas fa-pause"></i>
         </div>
-        <div class="stat-value">{{ stats.en_croissance }}</div>
-        <div class="stat-label">En croissance</div>
+        <div class="stat-value">{{ stats.en_pause }}</div>
+        <div class="stat-label">En pause</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon recolte">
+        <div class="stat-icon fini">
             <i class="fas fa-check-circle"></i>
         </div>
-        <div class="stat-value">{{ stats.recoltes }}</div>
-        <div class="stat-label">Recoltes</div>
+        <div class="stat-value">{{ stats.finis }}</div>
+        <div class="stat-label">Termines</div>
     </div>
 </div>
 
@@ -481,20 +435,18 @@
 <form method="GET" class="filter-bar animate__animated animate__fadeInUp">
     <div class="search-box">
         <i class="fas fa-search"></i>
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher une culture...">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un produit...">
     </div>
     
     <select name="statut" class="filter-select" onchange="this.form.submit()">
         <option value="">Tous les statuts</option>
-        <option value="planifie" {% if current_statut == 'planifie' %}selected{% endif %}>Planifie</option>
-        <option value="seme" {% if current_statut == 'seme' %}selected{% endif %}>Seme</option>
-        <option value="en_croissance" {% if current_statut == 'en_croissance' %}selected{% endif %}>En croissance</option>
-        <option value="recolte" {% if current_statut == 'recolte' %}selected{% endif %}>Recolte</option>
-        <option value="echec" {% if current_statut == 'echec' %}selected{% endif %}>Echec</option>
+        <option value="en_cours" {% if current_statut == 'en_cours' %}selected{% endif %}>En cours</option>
+        <option value="en_pause" {% if current_statut == 'en_pause' %}selected{% endif %}>En pause</option>
+        <option value="fini" {% if current_statut == 'fini' %}selected{% endif %}>Termine</option>
     </select>
     
     <select name="culture" class="filter-select" onchange="this.form.submit()">
-        <option value="">Toutes les cultures</option>
+        <option value="">Tous les produits</option>
         {% for culture in cultures %}
         <option value="{{ culture.id }}" {% if current_culture == culture.id|stringformat:"s" %}selected{% endif %}>{{ culture.nom }}</option>
         {% endfor %}
@@ -518,63 +470,60 @@
     <div class="semis-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|divisibleby:3 }}00ms;">
         <div class="semis-card-header">
             <div>
-                <h3 class="semis-card-title">{{ s.culture.nom }}</h3>
+                <h3 class="semis-card-title">{{ s.produit.nom }}</h3>
                 <p class="semis-card-date">
-                    <i class="fas fa-calendar"></i> Seme le {{ s.date_semis|date:"d/m/Y" }}
+                    <i class="fas fa-folder"></i> {{ s.projet.nom }}
                 </p>
             </div>
-            <span class="semis-status status-{{ s.statut }}">
-                {{ s.get_statut_display }}
+            <span class="semis-status status-{{ s.projet.statut }}">
+                {{ s.projet.get_statut_display }}
             </span>
         </div>
         
         <div class="semis-card-body">
             <div class="semis-stats">
                 <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.quantite_semences }} kg</div>
+                    <div class="semis-stat-value">{{ s.quantite_semences|default:"-" }} {% if s.quantite_semences %}kg{% endif %}</div>
                     <div class="semis-stat-label">Semences</div>
                 </div>
                 <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.superficie_semee }} ha</div>
+                    <div class="semis-stat-value">{{ s.superficie_allouee|default:"-" }} {% if s.superficie_allouee %}ha{% endif %}</div>
                     <div class="semis-stat-label">Superficie</div>
                 </div>
             </div>
             
-            {% if s.date_recolte_prevue and s.statut != 'recolte' and s.statut != 'echec' %}
-            <div class="semis-progress">
-                <div class="progress-label">
-                    <span>{{ s.jours_depuis_semis }} jours depuis semis</span>
-                    {% if s.jours_avant_recolte is not None %}
-                    <span>{{ s.jours_avant_recolte }} jours restants</span>
+            {% if s.date_semis %}
+            <div style="padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-bottom: 12px;">
+                <small style="color: var(--text-muted);">
+                    <i class="fas fa-calendar me-1"></i> Seme le {{ s.date_semis|date:"d/m/Y" }}
+                    {% if s.date_recolte_prevue %}
+                    | Recolte prevue: {{ s.date_recolte_prevue|date:"d/m/Y" }}
                     {% endif %}
-                </div>
-                {% with total_days=s.culture.duree_avant_recolte|default:90 %}
-                {% widthratio s.jours_depuis_semis total_days 100 as progress_percent %}
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: {% if progress_percent > 100 %}100{% else %}{{ progress_percent }}{% endif %}%;"></div>
-                </div>
-                {% endwith %}
+                </small>
             </div>
             {% endif %}
             
-            {% if s.projet %}
-            <div style="margin-top: 12px; padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm);">
+            {% if s.rendement_final %}
+            <div style="padding: 10px; background: rgba(34, 197, 94, 0.1); border-radius: var(--radius-sm); border: 1px solid rgba(34, 197, 94, 0.3);">
+                <div style="color: #22c55e; font-weight: 700;">
+                    <i class="fas fa-trophy me-1"></i> Rendement final: {{ s.rendement_final }} kg
+                </div>
+            </div>
+            {% elif s.rendement_estime %}
+            <div style="padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm);">
                 <small style="color: var(--text-muted);">
-                    <i class="fas fa-folder me-1"></i> Projet: {{ s.projet.nom }}
+                    <i class="fas fa-chart-line me-1"></i> Rendement estime: {{ s.rendement_estime|floatformat:0 }} kg
                 </small>
             </div>
             {% endif %}
         </div>
         
         <div class="semis-card-footer">
-            <a href="{% url 'detail_semis' s.id %}" class="btn-card btn-card-primary">
-                <i class="fas fa-eye"></i> Details
+            <a href="{% url 'detail_projet' s.projet.id %}" class="btn-card btn-card-primary">
+                <i class="fas fa-eye"></i> Projet
             </a>
             <a href="{% url 'modifier_semis' s.id %}" class="btn-card btn-card-secondary">
                 <i class="fas fa-edit"></i> Modifier
-            </a>
-            <a href="{% url 'supprimer_semis' s.id %}" class="btn-card btn-card-danger" onclick="return confirm('Supprimer ce semis ?');">
-                <i class="fas fa-trash"></i>
             </a>
         </div>
     </div>
@@ -614,10 +563,10 @@
     <div class="empty-state-icon">
         <i class="fas fa-seedling"></i>
     </div>
-    <h3>Aucun semis pour l'instant</h3>
-    <p>Commencez par enregistrer votre premier semis</p>
-    <a href="{% url 'creer_semis' %}" class="btn-modern btn-primary-modern">
-        <i class="fas fa-plus me-2"></i> Creer un semis
+    <h3>Aucun produit pour l'instant</h3>
+    <p>Creez un projet et ajoutez des produits pour commencer</p>
+    <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern">
+        <i class="fas fa-plus me-2"></i> Creer un projet
     </a>
 </div>
 {% endif %}

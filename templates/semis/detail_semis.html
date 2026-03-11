@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ semis.culture.nom }} | Andd Baay{% endblock %}
+{% block title %}{{ projet_produit.produit.nom }} | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
@@ -47,29 +47,19 @@
         letter-spacing: 0.05em;
     }
 
-    .status-planifie {
-        background: rgba(107, 114, 128, 0.15);
-        color: #6b7280;
-    }
-    
-    .status-seme {
+    .status-en_cours {
         background: rgba(59, 130, 246, 0.15);
         color: #3b82f6;
     }
     
-    .status-en_croissance {
-        background: rgba(34, 197, 94, 0.15);
-        color: #22c55e;
-    }
-    
-    .status-recolte {
+    .status-en_pause {
         background: rgba(245, 158, 11, 0.15);
         color: #f59e0b;
     }
     
-    .status-echec {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
+    .status-fini {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
     }
     
     .detail-grid {
@@ -132,48 +122,6 @@
         font-weight: 700;
         color: var(--text-main);
         font-family: var(--font-display);
-    }
-    
-    .info-value.small {
-        font-size: 0.95rem;
-        font-weight: 500;
-    }
-
-    /* Progress Section */
-    .progress-section {
-        margin-top: 24px;
-        padding: 20px;
-        background: var(--bg-secondary);
-        border-radius: var(--radius-sm);
-    }
-    
-    .progress-title {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-main);
-        margin-bottom: 12px;
-    }
-    
-    .progress-bar-bg {
-        height: 10px;
-        background: var(--border-color);
-        border-radius: var(--radius-pill);
-        overflow: hidden;
-        margin-bottom: 12px;
-    }
-    
-    .progress-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent), #84cc16);
-        border-radius: var(--radius-pill);
-        transition: width 0.5s ease;
-    }
-    
-    .progress-stats {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        color: var(--text-muted);
     }
 
     /* Sidebar Card */
@@ -291,16 +239,6 @@
         background: var(--border-color);
         color: var(--text-main);
     }
-    
-    .btn-action-danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
-    
-    .btn-action-danger:hover {
-        background: var(--danger);
-        color: white;
-    }
 
     /* Notes Section */
     .notes-content {
@@ -315,6 +253,28 @@
     .no-notes {
         color: var(--text-muted);
         font-style: italic;
+    }
+    
+    /* Rendement Final Card */
+    .rendement-card {
+        background: rgba(34, 197, 94, 0.1);
+        border: 2px solid rgba(34, 197, 94, 0.3);
+        border-radius: var(--radius-card);
+        padding: 24px;
+        margin-top: 24px;
+        text-align: center;
+    }
+    
+    .rendement-card h4 {
+        color: #22c55e;
+        margin-bottom: 8px;
+    }
+    
+    .rendement-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #22c55e;
+        font-family: var(--font-display);
     }
 
     @media (max-width: 900px) {
@@ -340,19 +300,17 @@
     <div class="page-header animate__animated animate__fadeInDown">
         <div>
             <h1 class="page-title">
-                {{ semis.culture.nom }}
-                <span class="semis-status status-{{ semis.statut }}">{{ semis.get_statut_display }}</span>
+                {{ projet_produit.produit.nom }}
+                <span class="semis-status status-{{ projet_produit.projet.statut }}">{{ projet_produit.projet.get_statut_display }}</span>
             </h1>
             <p class="page-subtitle">
-                <i class="fas fa-calendar me-1"></i> Seme le {{ semis.date_semis|date:"d F Y" }}
-                {% if semis.projet %}
-                <span class="ms-3"><i class="fas fa-folder me-1"></i> {{ semis.projet.nom }}</span>
-                {% endif %}
+                <i class="fas fa-folder me-1"></i> Projet: {{ projet_produit.projet.nom }}
+                <span class="ms-3"><i class="fas fa-map-marker-alt me-1"></i> {{ projet_produit.projet.localite.nom }}</span>
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'liste_semis' %}" class="btn-modern btn-secondary-modern" style="padding: 12px 20px;">
-                <i class="fas fa-arrow-left"></i> Retour
+            <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-modern btn-secondary-modern" style="padding: 12px 20px;">
+                <i class="fas fa-arrow-left"></i> Retour au projet
             </a>
         </div>
     </div>
@@ -363,66 +321,61 @@
             <!-- Info Card -->
             <div class="detail-card animate__animated animate__fadeInUp">
                 <h3 class="card-title">
-                    <i class="fas fa-info-circle"></i> Informations du Semis
+                    <i class="fas fa-seedling"></i> Informations de Semis
                 </h3>
                 
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Quantite de semences</div>
-                        <div class="info-value">{{ semis.quantite_semences }} kg</div>
+                        <div class="info-value">{{ projet_produit.quantite_semences|default:"-" }} {% if projet_produit.quantite_semences %}kg{% endif %}</div>
                     </div>
                     
                     <div class="info-item">
-                        <div class="info-label">Superficie semee</div>
-                        <div class="info-value">{{ semis.superficie_semee }} ha</div>
+                        <div class="info-label">Superficie allouee</div>
+                        <div class="info-value">{{ projet_produit.superficie_allouee|default:"-" }} {% if projet_produit.superficie_allouee %}ha{% endif %}</div>
                     </div>
                     
                     <div class="info-item">
                         <div class="info-label">Date du semis</div>
-                        <div class="info-value">{{ semis.date_semis|date:"d/m/Y" }}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">Recolte prevue</div>
                         <div class="info-value">
-                            {% if semis.date_recolte_prevue %}
-                            {{ semis.date_recolte_prevue|date:"d/m/Y" }}
+                            {% if projet_produit.date_semis %}
+                            {{ projet_produit.date_semis|date:"d/m/Y" }}
                             {% else %}
                             <span style="color: var(--text-muted);">Non definie</span>
                             {% endif %}
                         </div>
                     </div>
                     
-                    {% if semis.date_recolte_effective %}
+                    <div class="info-item">
+                        <div class="info-label">Recolte prevue</div>
+                        <div class="info-value">
+                            {% if projet_produit.date_recolte_prevue %}
+                            {{ projet_produit.date_recolte_prevue|date:"d/m/Y" }}
+                            {% else %}
+                            <span style="color: var(--text-muted);">Non definie</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if projet_produit.date_recolte_effective %}
                     <div class="info-item">
                         <div class="info-label">Date recolte effective</div>
-                        <div class="info-value">{{ semis.date_recolte_effective|date:"d/m/Y" }}</div>
+                        <div class="info-value">{{ projet_produit.date_recolte_effective|date:"d/m/Y" }}</div>
                     </div>
                     {% endif %}
                     
-                    {% if semis.rendement_obtenu %}
+                    {% if projet_produit.rendement_estime %}
                     <div class="info-item">
-                        <div class="info-label">Rendement obtenu</div>
-                        <div class="info-value">{{ semis.rendement_obtenu }} kg</div>
+                        <div class="info-label">Rendement estime</div>
+                        <div class="info-value">{{ projet_produit.rendement_estime|floatformat:0 }} kg</div>
                     </div>
                     {% endif %}
                 </div>
                 
-                {% if semis.date_recolte_prevue and semis.statut != 'recolte' and semis.statut != 'echec' %}
-                <div class="progress-section">
-                    <div class="progress-title">Progression du cycle de croissance</div>
-                    {% with total_days=semis.culture.duree_avant_recolte|default:90 %}
-                    {% widthratio semis.jours_depuis_semis total_days 100 as progress_percent %}
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: {% if progress_percent > 100 %}100{% else %}{{ progress_percent }}{% endif %}%;"></div>
-                    </div>
-                    <div class="progress-stats">
-                        <span><i class="fas fa-seedling me-1"></i> {{ semis.jours_depuis_semis }} jours depuis le semis</span>
-                        {% if semis.jours_avant_recolte is not None %}
-                        <span><i class="fas fa-calendar-check me-1"></i> {{ semis.jours_avant_recolte }} jours restants</span>
-                        {% endif %}
-                    </div>
-                    {% endwith %}
+                {% if projet_produit.rendement_final %}
+                <div class="rendement-card">
+                    <h4><i class="fas fa-trophy me-2"></i> Rendement Final</h4>
+                    <div class="rendement-value">{{ projet_produit.rendement_final }} kg</div>
                 </div>
                 {% endif %}
             </div>
@@ -433,10 +386,10 @@
                     <i class="fas fa-sticky-note"></i> Notes et Observations
                 </h3>
                 
-                {% if semis.notes %}
-                <div class="notes-content">{{ semis.notes }}</div>
+                {% if projet_produit.notes %}
+                <div class="notes-content">{{ projet_produit.notes }}</div>
                 {% else %}
-                <p class="no-notes">Aucune note ajoutee pour ce semis.</p>
+                <p class="no-notes">Aucune note ajoutee pour ce produit.</p>
                 {% endif %}
             </div>
         </div>
@@ -447,62 +400,49 @@
                 <div class="culture-icon">
                     <i class="fas fa-seedling"></i>
                 </div>
-                <h2 class="culture-name">{{ semis.culture.nom }}</h2>
+                <h2 class="culture-name">{{ projet_produit.produit.nom }}</h2>
                 <p class="culture-meta">
-                    {% if semis.culture.saison %}
-                    Saison: {{ semis.culture.saison }}
+                    {% if projet_produit.produit.saison %}
+                    Saison: {{ projet_produit.produit.saison }}
                     {% endif %}
                 </p>
                 
                 <div class="quick-stats">
-                    <div class="quick-stat">
-                        <span class="quick-stat-label">
-                            <i class="fas fa-clock"></i> Jours depuis semis
-                        </span>
-                        <span class="quick-stat-value">{{ semis.jours_depuis_semis }}</span>
-                    </div>
-                    
-                    {% if semis.culture.duree_avant_recolte %}
+                    {% if projet_produit.produit.duree_avant_recolte %}
                     <div class="quick-stat">
                         <span class="quick-stat-label">
                             <i class="fas fa-hourglass-half"></i> Duree culture
                         </span>
-                        <span class="quick-stat-value">{{ semis.culture.duree_avant_recolte }} jours</span>
+                        <span class="quick-stat-value">{{ projet_produit.produit.duree_avant_recolte }} jours</span>
                     </div>
                     {% endif %}
                     
-                    {% if semis.culture.prix_par_kg %}
+                    {% if projet_produit.produit.prix_par_kg %}
                     <div class="quick-stat">
                         <span class="quick-stat-label">
                             <i class="fas fa-tag"></i> Prix/kg
                         </span>
-                        <span class="quick-stat-value">{{ semis.culture.prix_par_kg }} FCFA</span>
+                        <span class="quick-stat-value">{{ projet_produit.produit.prix_par_kg }} FCFA</span>
                     </div>
                     {% endif %}
                     
-                    {% if semis.culture.rendement_moyen %}
+                    {% if projet_produit.produit.rendement_moyen %}
                     <div class="quick-stat">
                         <span class="quick-stat-label">
                             <i class="fas fa-chart-line"></i> Rendement moyen
                         </span>
-                        <span class="quick-stat-value">{{ semis.culture.rendement_moyen }} kg/ha</span>
+                        <span class="quick-stat-value">{{ projet_produit.produit.rendement_moyen }} kg/ha</span>
                     </div>
                     {% endif %}
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="{% url 'modifier_semis' semis.id %}" class="btn-action btn-action-primary">
+                    <a href="{% url 'modifier_semis' projet_produit.id %}" class="btn-action btn-action-primary">
                         <i class="fas fa-edit"></i> Modifier
                     </a>
                     
-                    {% if semis.projet %}
-                    <a href="{% url 'detail_projet' semis.projet.id %}" class="btn-action btn-action-secondary">
+                    <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-action btn-action-secondary">
                         <i class="fas fa-folder-open"></i> Voir le projet
-                    </a>
-                    {% endif %}
-                    
-                    <a href="{% url 'supprimer_semis' semis.id %}" class="btn-action btn-action-danger" onclick="return confirm('Supprimer ce semis ?');">
-                        <i class="fas fa-trash"></i> Supprimer
                     </a>
                 </div>
             </div>

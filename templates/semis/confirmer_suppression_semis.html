@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Supprimer Semis | Andd Baay{% endblock %}
+{% block title %}Retirer Produit | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
@@ -136,37 +136,47 @@
             <i class="fas fa-exclamation-triangle"></i>
         </div>
         
-        <h1 class="confirm-title">Supprimer ce semis ?</h1>
+        <h1 class="confirm-title">Retirer ce produit du projet ?</h1>
         <p class="confirm-message">
-            Cette action est irreversible. Toutes les donnees associees a ce semis seront definitivement supprimees.
+            Cette action retirera le produit et ses informations de semis/recolte de ce projet.
         </p>
         
         <div class="semis-info">
             <div class="semis-info-item">
-                <span class="semis-info-label">Culture</span>
-                <span class="semis-info-value">{{ semis.culture.nom }}</span>
+                <span class="semis-info-label">Produit</span>
+                <span class="semis-info-value">{{ projet_produit.produit.nom }}</span>
             </div>
+            <div class="semis-info-item">
+                <span class="semis-info-label">Projet</span>
+                <span class="semis-info-value">{{ projet_produit.projet.nom }}</span>
+            </div>
+            {% if projet_produit.date_semis %}
             <div class="semis-info-item">
                 <span class="semis-info-label">Date de semis</span>
-                <span class="semis-info-value">{{ semis.date_semis|date:"d/m/Y" }}</span>
+                <span class="semis-info-value">{{ projet_produit.date_semis|date:"d/m/Y" }}</span>
             </div>
+            {% endif %}
+            {% if projet_produit.superficie_allouee %}
             <div class="semis-info-item">
                 <span class="semis-info-label">Superficie</span>
-                <span class="semis-info-value">{{ semis.superficie_semee }} ha</span>
+                <span class="semis-info-value">{{ projet_produit.superficie_allouee }} ha</span>
             </div>
+            {% endif %}
+            {% if projet_produit.rendement_final %}
             <div class="semis-info-item">
-                <span class="semis-info-label">Statut</span>
-                <span class="semis-info-value">{{ semis.get_statut_display }}</span>
+                <span class="semis-info-label">Rendement final</span>
+                <span class="semis-info-value">{{ projet_produit.rendement_final }} kg</span>
             </div>
+            {% endif %}
         </div>
         
         <form method="POST" class="confirm-actions">
             {% csrf_token %}
-            <a href="{% url 'liste_semis' %}" class="btn-cancel">
+            <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-cancel">
                 <i class="fas fa-times me-2"></i> Annuler
             </a>
             <button type="submit" class="btn-delete">
-                <i class="fas fa-trash me-2"></i> Supprimer
+                <i class="fas fa-trash me-2"></i> Retirer
             </button>
         </form>
     </div>
