@@ -40,7 +40,7 @@ SECRET_KEY = _secret_key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'andd-baay.onrender.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'andd-baay.onrender.com,andd-baay.vercel.app,.vercel.app,localhost,127.0.0.1').split(',')
 
 
 INSTALLED_APPS = [
@@ -76,7 +76,9 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://andd-baay.onrender.com"
+    "https://andd-baay.onrender.com",
+    "https://andd-baay.vercel.app",
+    "https://*.vercel.app",
 ]
 
 ROOT_URLCONF = 'Andd_Baayi.urls'
