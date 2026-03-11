@@ -18,8 +18,8 @@ from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, SemisForm
-from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement, Semis
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm
+from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement, ProjetProduit
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -168,50 +168,106 @@ def creer_projet(request):
     if request.method == 'POST':
         projet_form = ProjetForm(request.POST)
         if projet_form.is_valid():
-            # Sauvegarder le projet en associant l'utilisateur connecté
+            # Sauvegarder le projet en associant l'utilisateur connecte
             projet = projet_form.save(commit=False)
-            projet.utilisateur = request.user.profile  # Associer le profil de l'utilisateur connecté
-            
-            # Calcul automatique du rendement estimé si non fourni
-            if not projet.rendement_estime and projet.culture and projet.culture.rendement_moyen:
-                projet.rendement_estime = projet.superficie * projet.culture.rendement_moyen
-                
+            projet.utilisateur = request.user.profile
             projet.save()
-            messages.success(request, "Le projet a été créé avec succès.")
+            
+            # Create ProjetProduit entries for each selected product
+            produits = projet_form.cleaned_data.get('produits_selection', [])
+            rendement_total = 0
+            for produit in produits:
+                pp = ProjetProduit.objects.create(
+                    projet=projet,
+                    produit=produit
+                )
+                # Calculate estimated yield based on product average and total area
+                if produit.rendement_moyen:
+                    rendement_total += float(projet.superficie / len(produits)) * float(produit.rendement_moyen)
+            
+            # Set backwards compatibility - use first product as main culture
+            if produits:
+                projet.culture = produits[0]
+                if not projet.rendement_estime:
+                    projet.rendement_estime = rendement_total
+                projet.save()
+                
+            messages.success(request, "Le projet a ete cree avec succes.")
             return redirect('liste_projets')
     else:
         projet_form = ProjetForm()
 
     return render(request, 'projets/creer_projet.html', {
         'projet_form': projet_form,
+        'produits': ProduitAgricole.objects.all(),
     })
 
 
 @login_required
 def modifier_projet(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    rendement_form = None
+    
+    # If project is being finished, show the harvest yield form
+    show_rendement_form = request.GET.get('finish') == '1' or projet.statut == 'fini'
 
     if request.method == 'POST':
         projet_form = ProjetForm(request.POST, instance=projet)
-        if projet_form.is_valid():
+        
+        # Handle rendement final form if present
+        if 'save_rendement' in request.POST:
+            rendement_form = RendementFinalForm(request.POST, projet=projet)
+            if rendement_form.is_valid():
+                for pp in projet.projet_produits.all():
+                    rendement_key = f'rendement_{pp.id}'
+                    date_key = f'date_recolte_{pp.id}'
+                    if rendement_key in rendement_form.cleaned_data:
+                        pp.rendement_final = rendement_form.cleaned_data[rendement_key]
+                    if date_key in rendement_form.cleaned_data:
+                        pp.date_recolte_effective = rendement_form.cleaned_data[date_key]
+                    pp.save()
+                messages.success(request, "Les rendements finaux ont ete enregistres.")
+                return redirect('detail_projet', projet_id=projet.id)
+        
+        elif projet_form.is_valid():
             projet = projet_form.save(commit=False)
-            
-            # Recalculer le rendement lors d'une modification
-            if projet.culture and projet.culture.rendement_moyen:
-                projet.rendement_estime = projet.superficie * projet.culture.rendement_moyen
-                
             projet.save()
-            messages.success(request, "Le projet a été modifié avec succès.")
-            logger.debug(f"Projet {projet.id} modifié avec succès.")
+            
+            # Update products
+            produits = projet_form.cleaned_data.get('produits_selection', [])
+            existing_produits = set(projet.projet_produits.values_list('produit_id', flat=True))
+            new_produits = set(p.id for p in produits)
+            
+            # Remove products no longer selected
+            for pp in projet.projet_produits.filter(produit_id__in=existing_produits - new_produits):
+                pp.delete()
+            
+            # Add new products
+            for produit in produits:
+                if produit.id not in existing_produits:
+                    ProjetProduit.objects.create(projet=projet, produit=produit)
+            
+            # Update backwards compatibility culture field
+            if produits:
+                projet.culture = produits[0]
+                projet.save()
+                
+            messages.success(request, "Le projet a ete modifie avec succes.")
+            logger.debug(f"Projet {projet.id} modifie avec succes.")
             return redirect('detail_projet', projet_id=projet.id)
         else:
             logger.error(f"Erreurs dans le formulaire : {projet_form.errors}")
     else:
         projet_form = ProjetForm(instance=projet)
+        if show_rendement_form:
+            rendement_form = RendementFinalForm(projet=projet)
 
     return render(request, 'projets/modifier_projet.html', {
         'projet_form': projet_form,
         'projet': projet,
+        'rendement_form': rendement_form,
+        'show_rendement_form': show_rendement_form,
+        'produits': ProduitAgricole.objects.all(),
     })
 
 @login_required
@@ -260,19 +316,23 @@ def ajouter_investissement(request, projet_id):
 
 @login_required
 def detail_projet(request, projet_id):
-    # Récupérer le projet pour l'utilisateur connecté
+    # Recuperer le projet pour l'utilisateur connecte
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
 
-    # Récupérer les investissements associés au projet
+    # Recuperer les investissements associes au projet
     investissements = projet.investissement_set.all()
 
-    # Récupérer la prédiction de rendement (s'il y en a une)
+    # Recuperer la prediction de rendement (s'il y en a une)
     prediction = PredictionRendement.objects.filter(projet=projet).first()
+    
+    # Recuperer les produits du projet
+    projet_produits = projet.projet_produits.select_related('produit').all()
 
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'investissements': investissements,
-        'prediction': prediction,  # Ajout de la prédiction au contexte
+        'prediction': prediction,
+        'projet_produits': projet_produits,
     })
 
 @login_required
@@ -816,11 +876,12 @@ def update_projet_statut_api(request, projet_id):
         return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
 
-# ============ SEMIS (Sowing) Management Views ============
+# ============ SEMIS (Sowing/Products) Management Views ============
+# Now integrated with projects - semis are managed as products within projects
 
 @login_required
 def liste_semis(request):
-    """List all sowings for the current user"""
+    """List all project products (sowings) for the current user"""
     try:
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
@@ -831,35 +892,37 @@ def liste_semis(request):
     culture_filter = request.GET.get('culture', '')
     search_query = request.GET.get('q', '')
     
-    # Base queryset
-    semis_list = Semis.objects.filter(utilisateur=utilisateur).select_related('culture', 'projet')
+    # Base queryset - get all products in user's projects
+    projet_produits = ProjetProduit.objects.filter(
+        projet__utilisateur=utilisateur
+    ).select_related('produit', 'projet')
     
     # Apply filters
     if statut_filter:
-        semis_list = semis_list.filter(statut=statut_filter)
+        projet_produits = projet_produits.filter(projet__statut=statut_filter)
     
     if culture_filter:
-        semis_list = semis_list.filter(culture_id=culture_filter)
+        projet_produits = projet_produits.filter(produit_id=culture_filter)
     
     if search_query:
-        semis_list = semis_list.filter(culture__nom__icontains=search_query)
+        projet_produits = projet_produits.filter(produit__nom__icontains=search_query)
     
     # Pagination
-    paginator = Paginator(semis_list, 12)
+    paginator = Paginator(projet_produits, 12)
     page = request.GET.get('page', 1)
     semis = paginator.get_page(page)
     
     # Get available cultures for filter dropdown
     cultures = ProduitAgricole.objects.filter(
-        semis__utilisateur=utilisateur
+        projet_produits__projet__utilisateur=utilisateur
     ).distinct()
     
     # Statistics
     stats = {
-        'total': semis_list.count(),
-        'planifies': semis_list.filter(statut='planifie').count(),
-        'en_croissance': semis_list.filter(statut='en_croissance').count(),
-        'recoltes': semis_list.filter(statut='recolte').count(),
+        'total': projet_produits.count(),
+        'en_cours': projet_produits.filter(projet__statut='en_cours').count(),
+        'en_pause': projet_produits.filter(projet__statut='en_pause').count(),
+        'finis': projet_produits.filter(projet__statut='fini').count(),
     }
     
     context = {
@@ -876,88 +939,94 @@ def liste_semis(request):
 
 @login_required
 def creer_semis(request):
-    """Create a new sowing"""
-    if request.method == 'POST':
-        form = SemisForm(request.POST, user=request.user)
-        if form.is_valid():
-            semis = form.save(commit=False)
-            semis.utilisateur = request.user.profile
-            semis.save()
-            messages.success(request, 'Semis créé avec succès!')
-            return redirect('liste_semis')
-    else:
-        form = SemisForm(user=request.user)
-    
-    return render(request, 'semis/creer_semis.html', {'form': form})
+    """Redirect to create project - products are now added within projects"""
+    messages.info(request, "Les semis sont maintenant geres au niveau des projets. Creez un nouveau projet pour ajouter des produits.")
+    return redirect('creer_projet')
 
 
 @login_required
 def modifier_semis(request, semis_id):
-    """Edit an existing sowing"""
-    semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
+    """Edit a project product's sowing/harvest details"""
+    projet_produit = get_object_or_404(
+        ProjetProduit, 
+        id=semis_id, 
+        projet__utilisateur=request.user.profile
+    )
     
     if request.method == 'POST':
-        form = SemisForm(request.POST, instance=semis, user=request.user)
+        form = ProjetProduitForm(request.POST, instance=projet_produit)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Semis modifié avec succès!')
-            return redirect('liste_semis')
+            messages.success(request, 'Informations mises a jour avec succes!')
+            return redirect('detail_projet', projet_id=projet_produit.projet.id)
     else:
-        form = SemisForm(instance=semis, user=request.user)
+        form = ProjetProduitForm(instance=projet_produit)
     
-    return render(request, 'semis/modifier_semis.html', {'form': form, 'semis': semis})
+    return render(request, 'semis/modifier_semis.html', {
+        'form': form, 
+        'semis': projet_produit,
+        'projet_produit': projet_produit
+    })
 
 
 @login_required
 def detail_semis(request, semis_id):
-    """View details of a sowing"""
-    semis = get_object_or_404(
-        Semis.objects.select_related('culture', 'projet', 'utilisateur'),
+    """View details of a project product"""
+    projet_produit = get_object_or_404(
+        ProjetProduit.objects.select_related('produit', 'projet', 'projet__utilisateur'),
         id=semis_id, 
-        utilisateur=request.user.profile
+        projet__utilisateur=request.user.profile
     )
     
-    return render(request, 'semis/detail_semis.html', {'semis': semis})
+    return render(request, 'semis/detail_semis.html', {
+        'semis': projet_produit,
+        'projet_produit': projet_produit
+    })
 
 
 @login_required
 def supprimer_semis(request, semis_id):
-    """Delete a sowing"""
-    semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
+    """Remove a product from a project"""
+    projet_produit = get_object_or_404(
+        ProjetProduit, 
+        id=semis_id, 
+        projet__utilisateur=request.user.profile
+    )
+    projet_id = projet_produit.projet.id
     
     if request.method == 'POST':
-        semis.delete()
-        messages.success(request, 'Semis supprimé avec succès!')
-        return redirect('liste_semis')
+        projet_produit.delete()
+        messages.success(request, 'Produit retire du projet avec succes!')
+        return redirect('detail_projet', projet_id=projet_id)
     
-    return render(request, 'semis/confirmer_suppression_semis.html', {'semis': semis})
+    return render(request, 'semis/confirmer_suppression_semis.html', {
+        'semis': projet_produit,
+        'projet_produit': projet_produit
+    })
 
 
 @login_required
 def update_semis_statut(request, semis_id):
-    """Quick update of sowing status"""
+    """Quick update - redirects to project status since products inherit project status"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
     try:
-        data = json.loads(request.body)
-        nouveau_statut = data.get('statut')
+        projet_produit = get_object_or_404(
+            ProjetProduit, 
+            id=semis_id, 
+            projet__utilisateur=request.user.profile
+        )
         
-        valid_statuts = ['planifie', 'seme', 'en_croissance', 'recolte', 'echec']
-        if nouveau_statut not in valid_statuts:
-            return JsonResponse({'error': 'Invalid status'}, status=400)
-        
-        semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
-        semis.statut = nouveau_statut
-        semis.save(update_fields=['statut'])
-        
+        # Return project status info
         return JsonResponse({
             'success': True,
-            'semis_id': str(semis.id),
-            'nouveau_statut': nouveau_statut
+            'projet_produit_id': str(projet_produit.id),
+            'projet_statut': projet_produit.projet.statut,
+            'message': 'Le statut est gere au niveau du projet'
         })
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        logger.error(f"Error updating semis status: {e}")
+        logger.error(f"Error in update_semis_statut: {e}")
         return JsonResponse({'error': 'An error occurred'}, status=500)

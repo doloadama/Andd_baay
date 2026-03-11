@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Modifier Semis | Andd Baay{% endblock %}
+{% block title %}Modifier Produit | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
@@ -30,6 +30,41 @@
         border-radius: var(--radius-card);
         padding: 32px;
         box-shadow: var(--shadow-sm);
+    }
+    
+    .product-info {
+        background: rgba(163, 230, 53, 0.1);
+        border: 1px solid rgba(163, 230, 53, 0.2);
+        border-radius: var(--radius-card);
+        padding: 20px;
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .product-icon {
+        width: 56px;
+        height: 56px;
+        background: var(--accent);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--text-inverse);
+    }
+    
+    .product-details h4 {
+        color: var(--text-main);
+        margin: 0 0 4px 0;
+        font-weight: 700;
+    }
+    
+    .product-details p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 0.9rem;
     }
     
     .form-section {
@@ -79,11 +114,6 @@
         font-size: 0.9rem;
     }
     
-    .form-label .required {
-        color: var(--danger);
-        margin-left: 2px;
-    }
-    
     .form-control {
         width: 100%;
         padding: 14px 16px;
@@ -100,14 +130,6 @@
         border-color: var(--accent);
         background: var(--card-bg-solid);
         box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
-    }
-    
-    .form-control::placeholder {
-        color: var(--text-muted);
-    }
-    
-    select.form-control {
-        cursor: pointer;
     }
     
     textarea.form-control {
@@ -203,51 +225,33 @@
 
 <div class="form-container">
     <div class="page-header animate__animated animate__fadeInDown">
-        <h1 class="page-title">Modifier Semis</h1>
-        <p class="page-subtitle">{{ semis.culture.nom }} - Seme le {{ semis.date_semis|date:"d/m/Y" }}</p>
+        <h1 class="page-title">Modifier les informations du produit</h1>
+        <p class="page-subtitle">Mettez a jour les details de semis et de recolte</p>
     </div>
     
     <div class="form-card animate__animated animate__fadeInUp">
+        <!-- Product Info Banner -->
+        <div class="product-info">
+            <div class="product-icon">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <div class="product-details">
+                <h4>{{ projet_produit.produit.nom }}</h4>
+                <p>Projet: {{ projet_produit.projet.nom }} | Localite: {{ projet_produit.projet.localite.nom }}</p>
+            </div>
+        </div>
+        
         <form method="POST" novalidate>
             {% csrf_token %}
             
-            <!-- Section Culture -->
+            <!-- Section Semis -->
             <div class="form-section">
                 <h3 class="section-title">
-                    <i class="fas fa-seedling"></i> Culture et Projet
+                    <i class="fas fa-seedling"></i> Informations de Semis
                 </h3>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">
-                            Culture <span class="required">*</span>
-                        </label>
-                        {{ form.culture }}
-                        {% if form.culture.errors %}
-                        <div class="form-error">{{ form.culture.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Projet associe</label>
-                        {{ form.projet }}
-                        <div class="form-hint">Optionnel - Liez ce semis a un projet existant</div>
-                        {% if form.projet.errors %}
-                        <div class="form-error">{{ form.projet.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Section Quantites -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-balance-scale"></i> Quantites
-                </h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">
-                            Quantite de semences (kg) <span class="required">*</span>
-                        </label>
+                        <label class="form-label">Quantite de semences (kg)</label>
                         {{ form.quantite_semences }}
                         {% if form.quantite_semences.errors %}
                         <div class="form-error">{{ form.quantite_semences.errors.0 }}</div>
@@ -255,27 +259,15 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">
-                            Superficie semee (ha) <span class="required">*</span>
-                        </label>
-                        {{ form.superficie_semee }}
-                        {% if form.superficie_semee.errors %}
-                        <div class="form-error">{{ form.superficie_semee.errors.0 }}</div>
+                        <label class="form-label">Superficie allouee (ha)</label>
+                        {{ form.superficie_allouee }}
+                        {% if form.superficie_allouee.errors %}
+                        <div class="form-error">{{ form.superficie_allouee.errors.0 }}</div>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-            
-            <!-- Section Dates -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-calendar-alt"></i> Dates
-                </h3>
-                <div class="form-grid">
+                    
                     <div class="form-group">
-                        <label class="form-label">
-                            Date du semis <span class="required">*</span>
-                        </label>
+                        <label class="form-label">Date du semis</label>
                         {{ form.date_semis }}
                         {% if form.date_semis.errors %}
                         <div class="form-error">{{ form.date_semis.errors.0 }}</div>
@@ -289,48 +281,44 @@
                         <div class="form-error">{{ form.date_recolte_prevue.errors.0 }}</div>
                         {% endif %}
                     </div>
-                    
+                </div>
+            </div>
+            
+            <!-- Section Recolte -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-trophy"></i> Informations de Recolte
+                </h3>
+                <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">Date de recolte effective</label>
-                        {{ form.date_recolte_effective }}
-                        <div class="form-hint">A remplir lors de la recolte</div>
-                        {% if form.date_recolte_effective.errors %}
-                        <div class="form-error">{{ form.date_recolte_effective.errors.0 }}</div>
+                        <label class="form-label">Rendement final (kg)</label>
+                        {{ form.rendement_final }}
+                        <div class="form-hint">La quantite totale recoltee pour ce produit</div>
+                        {% if form.rendement_final.errors %}
+                        <div class="form-error">{{ form.rendement_final.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Rendement obtenu (kg)</label>
-                        {{ form.rendement_obtenu }}
-                        <div class="form-hint">A remplir lors de la recolte</div>
-                        {% if form.rendement_obtenu.errors %}
-                        <div class="form-error">{{ form.rendement_obtenu.errors.0 }}</div>
+                        <label class="form-label">Date de recolte effective</label>
+                        {{ form.date_recolte_effective }}
+                        {% if form.date_recolte_effective.errors %}
+                        <div class="form-error">{{ form.date_recolte_effective.errors.0 }}</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <!-- Section Statut -->
+            <!-- Section Notes -->
             <div class="form-section">
                 <h3 class="section-title">
-                    <i class="fas fa-flag"></i> Statut et Notes
+                    <i class="fas fa-sticky-note"></i> Notes et Observations
                 </h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Statut</label>
-                        {{ form.statut }}
-                        {% if form.statut.errors %}
-                        <div class="form-error">{{ form.statut.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label class="form-label">Notes</label>
-                        {{ form.notes }}
-                        {% if form.notes.errors %}
-                        <div class="form-error">{{ form.notes.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+                <div class="form-group">
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <div class="form-error">{{ form.notes.errors.0 }}</div>
+                    {% endif %}
                 </div>
             </div>
             
@@ -343,7 +331,7 @@
             {% endif %}
             
             <div class="form-actions">
-                <a href="{% url 'liste_semis' %}" class="btn-cancel">
+                <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-cancel">
                     <i class="fas fa-times"></i> Annuler
                 </a>
                 <button type="submit" class="btn-submit">

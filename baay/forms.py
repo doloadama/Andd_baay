@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, Semis
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -69,16 +69,23 @@ class ProjetForm(forms.ModelForm):
     statut = forms.ChoiceField(
         choices=Projet.STATUT_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'}),
-        initial='en_cours',  # Valeur par défaut
+        initial='en_cours',
+    )
+    
+    # Multiple products selection
+    produits_selection = forms.ModelMultipleChoiceField(
+        queryset=ProduitAgricole.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False,
+        label="Produits cultives"
     )
 
     class Meta:
         model = Projet
-        fields = ['nom','localite', 'culture', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
+        fields = ['nom', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
-            'culture': forms.Select(attrs={'class': 'form-control'}),
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -87,39 +94,42 @@ class ProjetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Afficher les noms des cultures dans le formulaire
-        self.fields['culture'].queryset = ProduitAgricole.objects.all()
-        self.fields['culture'].label_from_instance = lambda obj: obj.nom
-
-        # Afficher les noms des localités dans le formulaire
+        # Afficher les noms des localites dans le formulaire
         self.fields['localite'].queryset = Localite.objects.all()
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
-
+        
+        # Pre-select products if editing existing project
+        if self.instance and self.instance.pk:
+            self.fields['produits_selection'].initial = self.instance.projet_produits.values_list('produit_id', flat=True)
 
     def clean_superficie(self):
         superficie = self.cleaned_data['superficie']
         if superficie <= 0:
-            raise forms.ValidationError("La superficie doit être positive.")
+            raise forms.ValidationError("La superficie doit etre positive.")
         return superficie
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        produits = cleaned_data.get('produits_selection')
+        if not produits or len(produits) == 0:
+            raise forms.ValidationError("Vous devez selectionner au moins un produit.")
+        return cleaned_data
 
 
-class SemisForm(forms.ModelForm):
-    """Form for creating and editing sowings"""
+class ProjetProduitForm(forms.ModelForm):
+    """Form for editing product details within a project (sowing and harvest data)"""
     
     class Meta:
-        model = Semis
-        fields = ['culture', 'projet', 'quantite_semences', 'superficie_semee', 
-                  'date_semis', 'date_recolte_prevue', 'statut', 'notes', 
-                  'date_recolte_effective', 'rendement_obtenu']
+        model = ProjetProduit
+        fields = ['quantite_semences', 'superficie_allouee', 'date_semis', 
+                  'date_recolte_prevue', 'date_recolte_effective', 'rendement_final', 'notes']
         widgets = {
-            'culture': forms.Select(attrs={'class': 'form-control'}),
-            'projet': forms.Select(attrs={'class': 'form-control'}),
             'quantite_semences': forms.NumberInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Quantité en kg',
+                'placeholder': 'Quantite en kg',
                 'step': '0.01'
             }),
-            'superficie_semee': forms.NumberInput(attrs={
+            'superficie_allouee': forms.NumberInput(attrs={
                 'class': 'form-control', 
                 'placeholder': 'Superficie en hectares',
                 'step': '0.01'
@@ -136,46 +146,38 @@ class SemisForm(forms.ModelForm):
                 'type': 'date', 
                 'class': 'form-control'
             }),
-            'statut': forms.Select(attrs={'class': 'form-control'}),
+            'rendement_final': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Rendement final en kg',
+                'step': '0.01'
+            }),
             'notes': forms.Textarea(attrs={
                 'class': 'form-control', 
                 'rows': 3,
-                'placeholder': 'Notes et observations sur ce semis...'
-            }),
-            'rendement_obtenu': forms.NumberInput(attrs={
-                'class': 'form-control', 
-                'placeholder': 'Rendement en kg',
-                'step': '0.01'
+                'placeholder': 'Notes et observations...'
             }),
         }
     
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['culture'].queryset = ProduitAgricole.objects.all()
-        self.fields['culture'].label_from_instance = lambda obj: obj.nom
-        
-        # Filter projects by user if provided
-        if user:
-            self.fields['projet'].queryset = Projet.objects.filter(utilisateur=user.profile)
-        else:
-            self.fields['projet'].queryset = Projet.objects.none()
-        
-        self.fields['projet'].label_from_instance = lambda obj: obj.nom
-        self.fields['projet'].required = False
         self.fields['date_recolte_prevue'].required = False
         self.fields['date_recolte_effective'].required = False
-        self.fields['rendement_obtenu'].required = False
+        self.fields['rendement_final'].required = False
+        self.fields['quantite_semences'].required = False
+        self.fields['superficie_allouee'].required = False
+        self.fields['date_semis'].required = False
+        self.fields['notes'].required = False
     
     def clean_quantite_semences(self):
         quantite = self.cleaned_data.get('quantite_semences')
         if quantite is not None and quantite <= 0:
-            raise forms.ValidationError("La quantité de semences doit être positive.")
+            raise forms.ValidationError("La quantite de semences doit etre positive.")
         return quantite
     
-    def clean_superficie_semee(self):
-        superficie = self.cleaned_data.get('superficie_semee')
+    def clean_superficie_allouee(self):
+        superficie = self.cleaned_data.get('superficie_allouee')
         if superficie is not None and superficie <= 0:
-            raise forms.ValidationError("La superficie semée doit être positive.")
+            raise forms.ValidationError("La superficie allouee doit etre positive.")
         return superficie
     
     def clean(self):
@@ -185,7 +187,37 @@ class SemisForm(forms.ModelForm):
         
         if date_semis and date_recolte_prevue and date_recolte_prevue < date_semis:
             raise forms.ValidationError(
-                "La date de récolte prévue ne peut pas être antérieure à la date de semis."
+                "La date de recolte prevue ne peut pas etre anterieure a la date de semis."
             )
         
         return cleaned_data
+
+
+class RendementFinalForm(forms.Form):
+    """Form for inputting final harvest yields when project is finished"""
+    
+    def __init__(self, *args, projet=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if projet:
+            for pp in projet.projet_produits.all():
+                self.fields[f'rendement_{pp.id}'] = forms.DecimalField(
+                    label=f"Rendement final - {pp.produit.nom}",
+                    max_digits=10,
+                    decimal_places=2,
+                    required=False,
+                    initial=pp.rendement_final,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'form-control',
+                        'placeholder': 'Quantite recoltee en kg',
+                        'step': '0.01'
+                    })
+                )
+                self.fields[f'date_recolte_{pp.id}'] = forms.DateField(
+                    label=f"Date de recolte - {pp.produit.nom}",
+                    required=False,
+                    initial=pp.date_recolte_effective,
+                    widget=forms.DateInput(attrs={
+                        'type': 'date',
+                        'class': 'form-control'
+                    })
+                )

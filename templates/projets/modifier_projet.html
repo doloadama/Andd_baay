@@ -1,140 +1,361 @@
 {% extends 'base.html' %}
 {% load rest_framework %}
 {% block content %}
-<div class="container py-4" style="position: relative;">
-    <!-- Background Overlay -->
-    <div style="background: rgba(0, 0, 0, 0.5); position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
-
-    <h1 class="my-4 text-center ">Modifier le projet : {{ projet.nom }}</h1>
-    <form method="post" class="needs-validation" novalidate style="background-color: var(--card-background-color); color: wheat; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-        {% csrf_token %}
-
-        <!-- Afficher les erreurs générales du formulaire -->
-        {% if projet_form.errors %}
-        <div class="alert alert-danger">
-            <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
-        </div>
-        {% endif %}
-
-        <!-- Form Fields -->
-        <div class="form-group mb-3">
-            <label for="nom" class="form-label">Nom :</label>
-            {{ projet_form.nom|add_class:"form-control" }}
-            {% if projet_form.nom.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.nom.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="localite" class="form-label">Localité :</label>
-            {{ projet_form.localite|add_class:"form-control" }}
-            {% if projet_form.localite.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.localite.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="culture" class="form-label">Culture :</label>
-            {{ projet_form.culture|add_class:"form-control" }}
-            {% if projet_form.culture.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.culture.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="superficie" class="form-label">Superficie (en hectares) :</label>
-            {{ projet_form.superficie|add_class:"form-control" }}
-            {% if projet_form.superficie.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.superficie.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="date_lancement" class="form-label">Date de lancement :</label>
-            {{ projet_form.date_lancement|add_class:"form-control" }}
-            {% if projet_form.date_lancement.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.date_lancement.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="rendement_estime" class="form-label">Rendement estimé (en kg) :</label>
-            {{ projet_form.rendement_estime|add_class:"form-control" }}
-            {% if projet_form.rendement_estime.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.rendement_estime.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="statut" class="form-label">Statut :</label>
-            {{ projet_form.statut|add_class:"form-control" }}
-            {% if projet_form.statut.errors %}
-            <div class="invalid-feedback">
-                {{ projet_form.statut.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="form-group mb-3 text-center">
-            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-            <a href="{% url 'detail_projet' projet.id %}" class="btn btn-secondary">Annuler</a>
-        </div>
-    </form>
-</div>
-
 <style>
-    .parallax {
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        padding: 50px 0;
-        border-radius: 15px;
+    .form-page-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(135deg, #020617 0%, #022c22 50%, #0f172a 100%);
+        z-index: 0;
     }
-
-    .parallax::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
+    
+    .glass-form-card {
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(163, 230, 53, 0.15);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .card-header-modern {
+        background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        padding: 32px 40px;
+        border-bottom: 1px solid rgba(163, 230, 53, 0.2);
+    }
+    
+    .card-header-modern h4 {
+        margin: 0;
+        font-size: 1.4rem;
+        color: white;
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+    
+    .form-label-modern {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s;
+        overflow: hidden;
+    }
+    
+    .input-wrapper:focus-within {
+        border-color: var(--accent);
+        background: rgba(163, 230, 53, 0.05);
+    }
+    
+    .input-icon {
+        color: rgba(255, 255, 255, 0.4);
+        padding-left: 20px;
+        width: 48px;
+        text-align: center;
+    }
+    
+    .input-wrapper:focus-within .input-icon { 
+        color: var(--accent); 
+    }
+    
+    .modern-form input,
+    .modern-form select,
+    .modern-form textarea {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
         width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5); /* Couleur de superposition */
-        z-index: -1; /* Placer derrière le contenu */
-        border-radius: 15px;
+        padding: 18px 20px 18px 12px;
+        font-size: 1rem;
+        box-shadow: none !important;
+        outline: none !important;
     }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        border-radius: 15px;
-        color: bisque;
+    
+    .modern-form select option {
+        background: #0f172a;
+        color: white;
     }
-
-    .btn-primary {
-        background-color: var(--btn-primary-color);
-        border-color: var(--btn-primary-color);
+    
+    .btn-submit-modern {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
+        border: none;
+        border-radius: 14px;
+        color: #022c22;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.4s;
     }
-
-    .btn-secondary {
-        background-color: var(--card-border-color);
-        color: var(--text-color);
+    
+    .btn-submit-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(163, 230, 53, 0.35);
     }
-
-    .btn-primary:hover, .btn-secondary:hover {
-        opacity: 0.9;
+    
+    .product-checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .product-checkbox-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .product-checkbox-item:hover {
+        border-color: rgba(163, 230, 53, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .product-checkbox-item.selected {
+        border-color: var(--accent);
+        background: rgba(163, 230, 53, 0.1);
+    }
+    
+    .product-checkbox-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--accent);
+    }
+    
+    .rendement-section {
+        background: rgba(16, 185, 129, 0.1);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .rendement-section h5 {
+        color: #10b981;
+        margin-bottom: 20px;
+    }
+    
+    .rendement-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .rendement-card h6 {
+        color: var(--accent);
+        margin-bottom: 16px;
     }
 </style>
+
+<div class="form-page-bg"></div>
+
+<div class="container py-5" style="position: relative; z-index: 10;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-form-card">
+                <div class="card-header-modern">
+                    <h4>
+                        <i class="fas fa-edit text-accent me-2"></i>
+                        {% if show_rendement_form %}
+                            Terminer le Projet & Saisir la Recolte
+                        {% else %}
+                            Modifier le projet : {{ projet.nom }}
+                        {% endif %}
+                    </h4>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    {% if projet_form.errors %}
+                    <div class="alert alert-danger mb-4">
+                        <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
+                        {{ projet_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if show_rendement_form and rendement_form %}
+                    <!-- Rendement Final Form -->
+                    <div class="rendement-section">
+                        <h5><i class="fas fa-trophy me-2"></i> Saisir les Rendements Finaux</h5>
+                        <p class="text-white-50 mb-4">Entrez la quantite recoltee pour chaque produit de ce projet.</p>
+                        
+                        <form method="post" class="modern-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="save_rendement" value="1">
+                            
+                            {% for pp in projet.projet_produits.all %}
+                            <div class="rendement-card">
+                                <h6><i class="fas fa-seedling me-2"></i> {{ pp.produit.nom }}</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-modern">Rendement Final (kg)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-weight input-icon"></i>
+                                            <input type="number" name="rendement_{{ pp.id }}" 
+                                                   value="{{ pp.rendement_final|default:'' }}"
+                                                   class="form-control" 
+                                                   placeholder="Quantite recoltee en kg"
+                                                   step="0.01">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-modern">Date de Recolte</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-calendar input-icon"></i>
+                                            <input type="date" name="date_recolte_{{ pp.id }}" 
+                                                   value="{{ pp.date_recolte_effective|date:'Y-m-d'|default:'' }}"
+                                                   class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if pp.rendement_estime %}
+                                <small class="text-white-50 mt-2 d-block">
+                                    <i class="fas fa-chart-line me-1"></i> Rendement estime: {{ pp.rendement_estime|floatformat:0 }} kg
+                                </small>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            
+                            <div class="d-flex gap-3 mt-4">
+                                <button type="submit" class="btn-submit-modern">
+                                    <i class="fas fa-check-circle"></i> Enregistrer les Rendements
+                                </button>
+                                <a href="{% url 'detail_projet' projet.id %}" class="btn btn-outline-light px-4">
+                                    Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <hr class="border-secondary my-4">
+                    {% endif %}
+                    
+                    <!-- Main Project Form -->
+                    <form method="post" class="modern-form" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="nom" class="form-label-modern">Nom du Projet</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-signature input-icon"></i>
+                                {{ projet_form.nom }}
+                            </div>
+                            {% if projet_form.nom.errors %}
+                            <div class="text-danger small mt-1">{{ projet_form.nom.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="localite" class="form-label-modern">Localite</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-map-marker-alt input-icon"></i>
+                                {{ projet_form.localite }}
+                            </div>
+                            {% if projet_form.localite.errors %}
+                            <div class="text-danger small mt-1">{{ projet_form.localite.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-modern">Produits Cultives <span class="text-danger">*</span></label>
+                            <p class="text-white-50 small mb-3">Selectionnez un ou plusieurs produits pour ce projet</p>
+                            <div class="product-checkbox-grid">
+                                {% for produit in produits %}
+                                <label class="product-checkbox-item {% if produit.id in projet_form.fields.produits_selection.initial %}selected{% endif %}">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="checkbox" 
+                                               name="produits_selection" 
+                                               value="{{ produit.id }}"
+                                               {% if produit.id in projet_form.fields.produits_selection.initial %}checked{% endif %}
+                                               onchange="this.closest('.product-checkbox-item').classList.toggle('selected', this.checked)">
+                                        <div>
+                                            <div class="text-white fw-bold">{{ produit.nom }}</div>
+                                            {% if produit.rendement_moyen %}
+                                            <small class="text-white-50">~{{ produit.rendement_moyen }} kg/ha</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% if projet_form.errors.produits_selection %}
+                            <div class="text-danger small mt-2">{{ projet_form.errors.produits_selection }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label for="superficie" class="form-label-modern">Superficie (hectares)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-ruler-combined input-icon"></i>
+                                    {{ projet_form.superficie }}
+                                </div>
+                                {% if projet_form.superficie.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.superficie.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="date_lancement" class="form-label-modern">Date de Lancement</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar input-icon"></i>
+                                    {{ projet_form.date_lancement }}
+                                </div>
+                                {% if projet_form.date_lancement.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.date_lancement.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label for="rendement_estime" class="form-label-modern">Rendement Estime (kg)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-chart-line input-icon"></i>
+                                    {{ projet_form.rendement_estime }}
+                                </div>
+                                {% if projet_form.rendement_estime.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.rendement_estime.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="statut" class="form-label-modern">Statut</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-flag input-icon"></i>
+                                    {{ projet_form.statut }}
+                                </div>
+                                {% if projet_form.statut.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.statut.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn-submit-modern">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                            <a href="{% url 'detail_projet' projet.id %}" class="btn btn-outline-light px-4">
+                                Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
