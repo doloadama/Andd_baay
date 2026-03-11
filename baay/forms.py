@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, Semis
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -101,3 +101,91 @@ class ProjetForm(forms.ModelForm):
         if superficie <= 0:
             raise forms.ValidationError("La superficie doit être positive.")
         return superficie
+
+
+class SemisForm(forms.ModelForm):
+    """Form for creating and editing sowings"""
+    
+    class Meta:
+        model = Semis
+        fields = ['culture', 'projet', 'quantite_semences', 'superficie_semee', 
+                  'date_semis', 'date_recolte_prevue', 'statut', 'notes', 
+                  'date_recolte_effective', 'rendement_obtenu']
+        widgets = {
+            'culture': forms.Select(attrs={'class': 'form-control'}),
+            'projet': forms.Select(attrs={'class': 'form-control'}),
+            'quantite_semences': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Quantité en kg',
+                'step': '0.01'
+            }),
+            'superficie_semee': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Superficie en hectares',
+                'step': '0.01'
+            }),
+            'date_semis': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'date_recolte_prevue': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'date_recolte_effective': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'statut': forms.Select(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 3,
+                'placeholder': 'Notes et observations sur ce semis...'
+            }),
+            'rendement_obtenu': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Rendement en kg',
+                'step': '0.01'
+            }),
+        }
+    
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['culture'].queryset = ProduitAgricole.objects.all()
+        self.fields['culture'].label_from_instance = lambda obj: obj.nom
+        
+        # Filter projects by user if provided
+        if user:
+            self.fields['projet'].queryset = Projet.objects.filter(utilisateur=user.profile)
+        else:
+            self.fields['projet'].queryset = Projet.objects.none()
+        
+        self.fields['projet'].label_from_instance = lambda obj: obj.nom
+        self.fields['projet'].required = False
+        self.fields['date_recolte_prevue'].required = False
+        self.fields['date_recolte_effective'].required = False
+        self.fields['rendement_obtenu'].required = False
+    
+    def clean_quantite_semences(self):
+        quantite = self.cleaned_data.get('quantite_semences')
+        if quantite is not None and quantite <= 0:
+            raise forms.ValidationError("La quantité de semences doit être positive.")
+        return quantite
+    
+    def clean_superficie_semee(self):
+        superficie = self.cleaned_data.get('superficie_semee')
+        if superficie is not None and superficie <= 0:
+            raise forms.ValidationError("La superficie semée doit être positive.")
+        return superficie
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        date_semis = cleaned_data.get('date_semis')
+        date_recolte_prevue = cleaned_data.get('date_recolte_prevue')
+        
+        if date_semis and date_recolte_prevue and date_recolte_prevue < date_semis:
+            raise forms.ValidationError(
+                "La date de récolte prévue ne peut pas être antérieure à la date de semis."
+            )
+        
+        return cleaned_data
