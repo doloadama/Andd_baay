@@ -1,0 +1,23 @@
+.git/
+.github/
+.idea/
+
+# Local env / caches
+env/
+venv/
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Local secrets and data
+.env
+db.sqlite3
+identifier.sqlite
+
+# Generated/static build output
+staticfiles/
+media/
+
+# ML artifacts
+*.pkl

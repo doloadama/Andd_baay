@@ -3,6 +3,7 @@ from django.urls import path, include
 from Andd_Baayi import settings
 from baay import views
 from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
 from django.conf.urls.static import static
 
 from baay.views import CustomPasswordResetView, supprimer_projet
@@ -19,9 +20,24 @@ urlpatterns = [
     path('projet/<uuid:projet_id>/ajouter-investissement/', views.ajouter_investissement, name='ajouter_investissement'),
     path('projet/<uuid:projet_id>/modifier/', views.modifier_projet, name='modifier_projet'),
     path('password_reset/', CustomPasswordResetView.as_view(), name='password_reset'),
-    path('password_reset/done/', CustomPasswordResetView.as_view(), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', CustomPasswordResetView.as_view(), name='password_reset_confirm'),
-    path('reset/done/', CustomPasswordResetView.as_view(), name='password_reset_complete'),
+    path(
+        'password_reset/done/',
+        auth_views.PasswordResetDoneView.as_view(template_name='auth/password_reset_done.html'),
+        name='password_reset_done',
+    ),
+    path(
+        'reset/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='auth/password_reset_confirm.html',
+            success_url=reverse_lazy('password_reset_complete'),
+        ),
+        name='password_reset_confirm',
+    ),
+    path(
+        'reset/done/',
+        auth_views.PasswordResetCompleteView.as_view(template_name='auth/password_reset_complete.html'),
+        name='password_reset_complete',
+    ),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profil/', views.profil_view, name='profil'),
     path('get-produit-agricole-details/', views.get_produit_agricole_details, name='get_produit_agricole_details'),
