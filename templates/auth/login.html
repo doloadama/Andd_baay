@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load socialaccount %}
+{% load static %}
 
 {% block title %}Connexion | Andd Baay{% endblock %}
 
@@ -283,12 +284,15 @@
             </div>
             {% endif %}
 
+            {% get_providers as socialaccount_providers %}
+            {% if socialaccount_providers %}
             <a href="{% provider_login_url 'google' %}" class="btn-google">
                 <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width: 20px; height: 20px;">
                 Continuer avec Google
             </a>
 
             <div class="divider">ou connectez-vous par email</div>
+            {% endif %}
 
             <form method="post" class="form-modern" novalidate>
                 {% csrf_token %}
