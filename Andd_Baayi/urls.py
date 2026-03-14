@@ -10,10 +10,11 @@ from baay.views import CustomPasswordResetView, supprimer_projet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', views.login_view, name='login'),  # URL pour la connexion
-    path('register/', views.register_view, name='register'),  # URL pour l'inscription
-    path('logout/', views.logout_view, name='logout'),  # URL pour la déconnexion
-    path('', views.home_view, name='home'),  # Page d'accueil
+    path('accounts/', include('allauth.urls')),
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    path('', views.home_view, name='home'),
     path('creer-projet/', views.creer_projet, name='creer_projet'),
     path('liste-projets/', views.liste_projets, name='liste_projets'),
     path('projet/<uuid:projet_id>/', views.detail_projet, name='detail_projet'),
@@ -60,7 +61,6 @@ urlpatterns = [
     path('semis/<uuid:semis_id>/supprimer/', views.supprimer_semis, name='supprimer_semis'),
     path('api/semis/<uuid:semis_id>/statut/', views.update_semis_statut, name='update_semis_statut'),
 ]
-
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

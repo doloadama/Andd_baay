@@ -774,13 +774,13 @@
 <!-- Header -->
 <div class="dashboard-header-modern animate__animated animate__fadeInDown">
     <div class="db-title">
-        <h1>Dashboard</h1>
-        <p>Espace Analytique</p>
+        <p style="margin-bottom: 4px;">Espace Analytique</p>
+        <h1>Bonjour, {{ user.first_name|default:user.username }} 👋</h1>
     </div>
     <div class="db-actions">
         <span class="live-indicator">
             <span class="live-dot"></span>
-            Donnees en direct
+            Données en direct
         </span>
         <div class="db-date text-muted" style="font-weight: 500; font-size: 0.9rem;">
             <i class="far fa-calendar-alt me-2"></i> {% now "j F Y" %}

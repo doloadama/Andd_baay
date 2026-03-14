@@ -1,237 +1,306 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Inscription | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
-    .auth-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 70vh;
-        padding: 40px 0;
+    .auth-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: calc(100vh - 120px);
     }
 
-    .auth-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        padding: 48px;
-        width: 100%;
-        max-width: 650px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+    /* Left visual panel */
+    .auth-visual {
+        background: linear-gradient(160deg, #022c22 0%, #030712 60%, #0f172a 100%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 60px 48px; position: relative; overflow: hidden;
     }
 
-    .auth-header { text-align: center; margin-bottom: 32px; }
-
-    .auth-header .icon-wrap {
-        width: 64px; height: 64px; margin: 0 auto 20px auto;
-        background: rgba(163, 230, 53, 0.15); color: var(--primary);
-        border-radius: 20px; display: flex; align-items: center; justify-content: center;
-        font-size: 28px; border: 1px solid rgba(163, 230, 53, 0.3);
+    .auth-visual::before {
+        content: ''; position: absolute; top: -30%; right: -20%;
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(163, 230, 53, 0.15) 0%, transparent 60%);
+        border-radius: 50%; animation: gentlePulse 8s ease-in-out infinite alternate;
     }
-    .dark-mode .auth-header .icon-wrap { color: var(--accent); }
 
-    .auth-header h2 { font-size: 2rem; margin-bottom: 8px; color: var(--text-main); }
+    .auth-visual::after {
+        content: ''; position: absolute; bottom: -20%; left: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(163, 230, 53, 0.08) 0%, transparent 60%);
+        border-radius: 50%; animation: gentlePulse 10s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes gentlePulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(1.2); opacity: 1; }
+    }
+
+    .auth-visual-content { position: relative; z-index: 2; text-align: center; max-width: 420px; }
+
+    .visual-icon {
+        width: 80px; height: 80px;
+        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.25);
+        border-radius: 24px; display: flex; align-items: center; justify-content: center;
+        font-size: 36px; color: #a3e635; margin: 0 auto 32px auto;
+    }
+
+    .visual-title { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: white; line-height: 1.2; margin-bottom: 16px; }
+    .visual-subtitle { color: rgba(255,255,255,0.6); font-size: 1rem; line-height: 1.6; margin-bottom: 40px; }
+
+    .visual-steps { display: flex; flex-direction: column; gap: 20px; text-align: left; }
+    .visual-step { display: flex; align-items: flex-start; gap: 16px; color: rgba(255,255,255,0.8); }
+
+    .step-num {
+        width: 36px; height: 36px; min-width: 36px;
+        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.3);
+        border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        color: #a3e635; font-family: var(--font-display); font-weight: 800; font-size: 0.9rem;
+    }
+
+    .step-text strong { display: block; color: white; margin-bottom: 2px; }
+    .step-text span { font-size: 0.88rem; color: rgba(255,255,255,0.55); }
+
+    /* Right form panel */
+    .auth-form-panel {
+        display: flex; align-items: center; justify-content: center;
+        padding: 40px 48px; background: var(--bg-main); overflow-y: auto;
+    }
+
+    .auth-form-container { width: 100%; max-width: 480px; }
+
+    .auth-header { margin-bottom: 28px; }
+    .auth-header h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
     .auth-header p { color: var(--text-muted); font-size: 0.95rem; }
 
-    .form-modern .form-label {
-        font-family: var(--font-display); font-weight: 600; font-size: 0.85rem;
-        color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
-    }
+    .form-modern .form-label { font-family: var(--font-display); font-weight: 600; font-size: 0.82rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .form-modern .input-group { border-radius: var(--radius-input); overflow: hidden; border: 2px solid var(--border-color); background: var(--bg-main); transition: all var(--transition); }
+    .form-modern .input-group:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.12); }
+    .form-modern .input-group-text { background: transparent; border: none; color: var(--text-muted); padding-left: 18px; }
+    .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
+    .form-modern .form-control { background: transparent; border: none; padding: 13px 18px 13px 8px; font-size: 0.95rem; color: var(--text-main); box-shadow: none; }
+    .form-modern .form-control::placeholder { color: var(--text-muted); opacity: 0.5; }
+    .form-modern .btn-toggle-pass { background: transparent; border: none; color: var(--text-muted); padding-right: 18px; cursor: pointer; }
 
-    .form-modern .input-group {
-        border-radius: var(--radius-input); overflow: hidden;
-        border: 2px solid var(--border-color); background: var(--bg-main); transition: all var(--transition);
-    }
+    .btn-submit { width: 100%; padding: 16px; border-radius: var(--radius-input); font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-top: 8px; }
 
-    .form-modern .input-group:focus-within {
-        border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
-    }
-
-    .form-modern .input-group-text { background: transparent; border: none; color: var(--text-muted); padding-left: 20px; }
-    .form-modern .input-group:focus-within .input-group-text { color: var(--primary); }
-    .dark-mode .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
-
-    .form-modern .form-control {
-        background: transparent; border: none; padding: 14px 20px 14px 10px; font-size: 0.95rem; color: var(--text-main); box-shadow: none;
-    }
-    .form-modern .form-control::placeholder { color: var(--text-muted); opacity: 0.6; }
-    
-    .form-modern .btn-toggle-pass { background: transparent; border: none; color: var(--text-muted); padding-right: 20px; cursor: pointer; }
-
-    .btn-submit { width: 100%; padding: 16px; border-radius: var(--radius-input); font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-top: 10px; }
-
-    .auth-footer { text-align: center; margin-top: 32px; font-size: 0.95rem; color: var(--text-muted); }
-    .auth-footer a { font-weight: 600; color: var(--primary); }
-    .dark-mode .auth-footer a { color: var(--accent); }
-    .auth-footer a:hover { text-decoration: underline; }
-
-    .form-check-input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; border: 2px solid var(--border-color); background-color: var(--bg-main); }
-    .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
-    .dark-mode .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+    .form-check-input { width: 1.15rem; height: 1.15rem; border: 2px solid var(--border-color); background-color: var(--bg-main); }
+    .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
 
     .password-strength .progress { height: 6px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
+
+    .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--text-muted); font-size: 0.82rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
+    .divider:not(:empty)::before { margin-right: .6em; }
+    .divider:not(:empty)::after { margin-left: .6em; }
+
+    .btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 14px; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-input); color: #374151; font-weight: 600; font-size: 0.95rem; transition: all 0.3s; text-decoration: none; }
+    .btn-google:hover { background: #f9fafb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: #374151; }
+    .dark-mode .btn-google { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; }
+    .dark-mode .btn-google:hover { background: rgba(255,255,255,0.1); }
+
+    .auth-footer { text-align: center; margin-top: 24px; font-size: 0.95rem; color: var(--text-muted); }
+    .auth-footer a { font-weight: 600; color: var(--accent); }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 992px) {
+        .auth-split { grid-template-columns: 1fr; }
+        .auth-visual { display: none; }
+        .auth-form-panel { min-height: 80vh; }
+    }
 </style>
 
-<div class="auth-wrapper">
-    <div class="auth-card animate__animated animate__zoomIn" style="animation-duration: 0.4s;">
-        <div class="auth-header">
-            <div class="icon-wrap"><i class="fas fa-user-plus"></i></div>
-            <h2>Créer un compte</h2>
-            <p>Rejoignez la nouvelle ère agricole</p>
+<div class="auth-split">
+    <!-- Left Visual Panel -->
+    <div class="auth-visual">
+        <div class="auth-visual-content animate__animated animate__fadeInLeft">
+            <div class="visual-icon"><i class="fas fa-rocket"></i></div>
+            <h2 class="visual-title">Rejoignez l'aventure</h2>
+            <p class="visual-subtitle">En quelques étapes, accédez à des outils conçus pour l'agriculture moderne.</p>
+            <div class="visual-steps">
+                <div class="visual-step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <strong>Créez votre compte</strong>
+                        <span>Inscription rapide en quelques secondes</span>
+                    </div>
+                </div>
+                <div class="visual-step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <strong>Ajoutez vos projets</strong>
+                        <span>Configurez vos parcelles et cultures</span>
+                    </div>
+                </div>
+                <div class="visual-step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        <strong>Laissez l'IA agir</strong>
+                        <span>Obtenez des prédictions et optimisez vos récoltes</span>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        {% if form.errors %}
-        <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
-            <ul class="mb-0 ps-3">
-                {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
-                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+    <!-- Right Form Panel -->
+    <div class="auth-form-panel">
+        <div class="auth-form-container animate__animated animate__fadeInRight">
+            <div class="auth-header">
+                <h2>Créer un compte</h2>
+                <p>Rejoignez la nouvelle ère agricole</p>
+            </div>
 
-        <form method="post" class="form-modern needs-validation" id="registerForm" novalidate>
-            {% csrf_token %}
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+                <ul class="mb-0 ps-3">
+                    {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+                    {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
 
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <label for="username" class="form-label">Nom d'utilisateur</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-at"></i></span>
-                        <input type="text" name="username" class="form-control" id="username" placeholder="Pseudo" required>
+            <a href="{% provider_login_url 'google' %}" class="btn-google">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width: 20px; height: 20px;">
+                Continuer avec Google
+            </a>
+
+            <div class="divider">ou créez un compte manuellement</div>
+
+            <form method="post" class="form-modern needs-validation" id="registerForm" novalidate>
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="username" class="form-label">Nom d'utilisateur</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-at"></i></span>
+                            <input type="text" name="username" class="form-control" id="username" placeholder="Pseudo" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="email" class="form-control" id="email" placeholder="votre@email.com" required>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <label for="email" class="form-label">Email</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        <input type="email" name="email" class="form-control" id="email" placeholder="votre@email.com" required>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label">Prénom</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Prénom" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label">Nom</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Nom" required>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <label for="first_name" class="form-label">Prénom</label>
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label">Numéro de téléphone</label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" name="first_name" class="form-control" id="first_name" placeholder="Prénom" required>
+                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        <input type="tel" name="phone_number" class="form-control" id="phone_number" placeholder="+221 XX XXX XX XX" required pattern="[0-9]{9}">
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <label for="last_name" class="form-label">Nom</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" name="last_name" class="form-control" id="last_name" placeholder="Nom" required>
+
+                <div class="mb-3">
+                    <label for="password1" class="form-label">Mot de passe</label>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" name="password1" class="form-control" id="password1" placeholder="••••••••" required minlength="8">
+                        <button type="button" class="btn-toggle-pass toggle-pass"><i class="fas fa-eye eye-icon"></i></button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="progress"><div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;"></div></div>
+                        <small id="passwordStrengthText" class="mt-1 d-block text-muted" style="font-size: 0.75rem;">Force du mot de passe</small>
                     </div>
                 </div>
-            </div>
 
-            <div class="mb-4">
-                <label for="phone_number" class="form-label">Numéro de téléphone</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                    <input type="tel" name="phone_number" class="form-control" id="phone_number" placeholder="+221 XX XXX XX XX" required pattern="[0-9]{9}">
+                <div class="mb-3">
+                    <label for="password2" class="form-label">Confirmer le mot de passe</label>
+                    <div class="input-group mb-1">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" name="password2" class="form-control" id="password2" placeholder="••••••••" required>
+                        <button type="button" class="btn-toggle-pass toggle-pass"><i class="fas fa-eye eye-icon"></i></button>
+                    </div>
+                    <small id="passwordMatchText" class="d-none" style="font-size: 0.8rem;"></small>
                 </div>
-            </div>
 
-            <div class="mb-4">
-                <label for="password1" class="form-label">Mot de passe</label>
-                <div class="input-group mb-2">
-                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password1" class="form-control" id="password1" placeholder="••••••••" required minlength="8">
-                    <button type="button" class="btn-toggle-pass toggle-pass">
-                        <i class="fas fa-eye eye-icon"></i>
-                    </button>
+                <div class="mb-3 form-check d-flex gap-2">
+                    <input type="checkbox" class="form-check-input" id="termsCheck" name="terms_accepted" required>
+                    <label class="form-check-label text-muted" for="termsCheck" style="font-size: 0.85rem; line-height: 1.4;">
+                        J'accepte les <a href="#" style="color: var(--accent);">conditions</a> et la <a href="#" style="color: var(--accent);">politique de confidentialité</a>
+                    </label>
                 </div>
-                <div class="password-strength">
-                    <div class="progress"><div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;"></div></div>
-                    <small id="passwordStrengthText" class="mt-1 d-block text-muted" style="font-size: 0.75rem;">Force du mot de passe</small>
-                </div>
+
+                <button type="submit" class="btn-modern btn-primary-modern btn-submit">
+                    S'inscrire <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Déjà membre ? <a href="{% url 'login' %}">Se connecter</a>
             </div>
-
-            <div class="mb-4">
-                <label for="password2" class="form-label">Confirmer le mot de passe</label>
-                <div class="input-group mb-1">
-                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password2" class="form-control" id="password2" placeholder="••••••••" required>
-                    <button type="button" class="btn-toggle-pass toggle-pass">
-                        <i class="fas fa-eye eye-icon"></i>
-                    </button>
-                </div>
-                <small id="passwordMatchText" class="d-none" style="font-size: 0.8rem;"></small>
-            </div>
-
-            <div class="mb-4 form-check d-flex gap-2">
-                <input type="checkbox" class="form-check-input" id="termsCheck" name="terms_accepted" required>
-                <label class="form-check-label text-muted" for="termsCheck" style="font-size: 0.85rem; line-height: 1.4;">
-                    J'accepte les <a href="#">conditions</a> et la <a href="#">politique de confidentialité</a>
-                </label>
-            </div>
-
-            <button type="submit" class="btn-modern btn-primary-modern btn-submit">
-                S'inscrire <i class="fas fa-arrow-right ms-2"></i>
-            </button>
-        </form>
-
-        <div class="auth-footer">
-            Déjà membre ? <a href="{% url 'login' %}">Se connecter</a>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Form Validation & Match checks
-        const form = document.querySelector('.needs-validation');
-        const p1 = document.getElementById('password1');
-        const p2 = document.getElementById('password2');
-        const pMatch = document.getElementById('passwordMatchText');
-        const pStrBar = document.getElementById('passwordStrengthBar');
-        const pStrText = document.getElementById('passwordStrengthText');
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.needs-validation');
+    const p1 = document.getElementById('password1');
+    const p2 = document.getElementById('password2');
+    const pMatch = document.getElementById('passwordMatchText');
+    const pStrBar = document.getElementById('passwordStrengthBar');
+    const pStrText = document.getElementById('passwordStrengthText');
 
-        form.addEventListener('submit', function(e) {
-            if (p1.value !== p2.value) {
-                e.preventDefault();
-                p2.style.borderColor = '#ef4444';
-            }
-        });
+    form.addEventListener('submit', function(e) {
+        if (p1.value !== p2.value) { e.preventDefault(); p2.style.borderColor = '#ef4444'; }
+    });
 
-        document.querySelectorAll('.toggle-pass').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const input = this.previousElementSibling;
-                const icon = this.querySelector('.eye-icon');
-                if(input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
-                else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
-            });
-        });
-
-        p2.addEventListener('input', () => {
-            pMatch.classList.remove('d-none');
-            if(p2.value === '') pMatch.classList.add('d-none');
-            else if(p1.value === p2.value) { pMatch.style.color = 'var(--accent)'; pMatch.innerText = 'Les mots de passe correspondent.'; }
-            else { pMatch.style.color = '#ef4444'; pMatch.innerText = 'Les mots de passe ne correspondent pas.'; }
-        });
-
-        p1.addEventListener('input', function() {
-            let val = this.value;
-            let str = 0;
-            if (val.length >= 8) str += 25;
-            if (/[a-z]/.test(val)) str += 25;
-            if (/[A-Z]/.test(val)) str += 25;
-            if (/[0-9]/.test(val)) str += 12.5;
-            if (/[^a-zA-Z0-9]/.test(val)) str += 12.5;
-
-            pStrBar.style.width = str + '%';
-            pStrBar.style.transition = 'width 0.3s ease';
-
-            if (str < 30) { pStrBar.style.background = '#ef4444'; pStrText.innerText = 'Faible'; pStrText.style.color = '#ef4444'; }
-            else if (str < 60) { pStrBar.style.background = '#f59e0b'; pStrText.innerText = 'Moyen'; pStrText.style.color = '#f59e0b'; }
-            else { pStrBar.style.background = 'var(--accent)'; pStrText.innerText = 'Fort'; pStrText.style.color = 'var(--primary)'; }
-            
-            p2.dispatchEvent(new Event('input')); // trigger match check
+    document.querySelectorAll('.toggle-pass').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('.eye-icon');
+            if(input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+            else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
         });
     });
+
+    p2.addEventListener('input', () => {
+        pMatch.classList.remove('d-none');
+        if(p2.value === '') pMatch.classList.add('d-none');
+        else if(p1.value === p2.value) { pMatch.style.color = 'var(--accent)'; pMatch.innerText = 'Les mots de passe correspondent.'; }
+        else { pMatch.style.color = '#ef4444'; pMatch.innerText = 'Les mots de passe ne correspondent pas.'; }
+    });
+
+    p1.addEventListener('input', function() {
+        let val = this.value, str = 0;
+        if (val.length >= 8) str += 25;
+        if (/[a-z]/.test(val)) str += 25;
+        if (/[A-Z]/.test(val)) str += 25;
+        if (/[0-9]/.test(val)) str += 12.5;
+        if (/[^a-zA-Z0-9]/.test(val)) str += 12.5;
+
+        pStrBar.style.width = str + '%';
+        pStrBar.style.transition = 'width 0.3s ease';
+
+        if (str < 30) { pStrBar.style.background = '#ef4444'; pStrText.innerText = 'Faible'; pStrText.style.color = '#ef4444'; }
+        else if (str < 60) { pStrBar.style.background = '#f59e0b'; pStrText.innerText = 'Moyen'; pStrText.style.color = '#f59e0b'; }
+        else { pStrBar.style.background = 'var(--accent)'; pStrText.innerText = 'Fort'; pStrText.style.color = 'var(--primary)'; }
+
+        p2.dispatchEvent(new Event('input'));
+    });
+});
 </script>
 {% endblock %}

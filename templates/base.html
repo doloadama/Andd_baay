@@ -1152,7 +1152,7 @@
                 </a>
                 
                 <div class="d-flex align-items-center gap-2 d-lg-none">
-                    <button id="themeToggleMobile" class="theme-toggle" aria-label="Changer de theme">
+                    <button id="themeToggleMobile" class="theme-toggle" aria-label="Changer de thème">
                         <i class="fas fa-moon icon-moon"></i>
                         <i class="fas fa-sun icon-sun"></i>
                     </button>
@@ -1187,13 +1187,13 @@
                             <li class="nav-item">
                                 <a href="{% url 'profil' %}" class="user-avatar text-decoration-none">
                                     <div class="user-avatar-icon">
-                                        <i class="fas fa-user"></i>
+                                        {{ user.first_name|make_list|first|default:user.username|make_list|first|upper }}
                                     </div>
                                     <span class="user-avatar-name">{{ user.first_name|default:user.username }}</span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Deconnexion">
+                                <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Déconnexion">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </a>
                             </li>
@@ -1206,7 +1206,7 @@
                             </li>
                         {% endif %}
                         <li class="nav-item d-none d-lg-block">
-                            <button id="themeToggle" class="theme-toggle" aria-label="Changer de theme">
+                            <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
                                 <i class="fas fa-moon icon-moon"></i>
                                 <i class="fas fa-sun icon-sun"></i>
                             </button>

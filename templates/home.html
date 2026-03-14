@@ -3,12 +3,15 @@
 
 {% block content %}
 <style>
+    /* ===== HERO SECTION ===== */
     .hero-section {
         min-height: calc(100vh - 200px);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 0;
+        padding: 60px 0 40px;
+        position: relative;
+        overflow: hidden;
     }
 
     .hero-container {
@@ -16,64 +19,66 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        max-width: 800px;
+        max-width: 850px;
         margin: 0 auto;
+        position: relative;
+        z-index: 2;
     }
 
     .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(163, 230, 53, 0.15);
+        background: rgba(163, 230, 53, 0.12);
         color: var(--primary);
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: var(--radius-pill);
         font-weight: 700;
-        font-size: 0.9rem;
-        margin-bottom: 24px;
-        border: 1px solid rgba(163, 230, 53, 0.3);
-        letter-spacing: 0.02em;
+        font-size: 0.85rem;
+        margin-bottom: 28px;
+        border: 1px solid rgba(163, 230, 53, 0.25);
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+        backdrop-filter: blur(10px);
     }
-    
     .dark-mode .hero-badge { color: var(--accent); }
 
     .hero-title {
-        font-size: clamp(3.2rem, 8vw, 5rem);
-        line-height: 1.05;
+        font-size: clamp(3rem, 7vw, 4.5rem);
+        line-height: 1.08;
         margin-bottom: 24px;
         color: var(--text-main);
         letter-spacing: -0.04em;
+        font-family: var(--font-display);
+        font-weight: 900;
     }
 
-    .hero-title span {
+    .hero-title .highlight {
         color: var(--accent);
         position: relative;
         display: inline-block;
     }
-    
-    /* Subtle underline effect for the span */
-    .hero-title span::after {
+
+    .hero-title .highlight::after {
         content: '';
         position: absolute;
-        bottom: 8px;
+        bottom: 4px;
         left: 0;
         width: 100%;
-        height: 8px;
-        background: var(--primary);
+        height: 12px;
+        background: var(--accent);
         z-index: -1;
-        opacity: 0.2;
-        border-radius: 4px;
+        opacity: 0.15;
+        border-radius: 6px;
+        transform: skewX(-3deg);
     }
-    
-    .dark-mode .hero-title span::after { background: var(--accent); }
 
     .hero-subtitle {
-        font-size: clamp(1.1rem, 2vw, 1.25rem);
+        font-size: clamp(1.05rem, 2vw, 1.2rem);
         color: var(--text-muted);
-        line-height: 1.6;
+        line-height: 1.7;
         margin-bottom: 40px;
-        max-width: 650px;
+        max-width: 620px;
     }
 
     .hero-actions {
@@ -85,41 +90,291 @@
 
     .btn-hero {
         padding: 16px 36px;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         border-radius: var(--radius-pill);
         font-family: var(--font-display);
         font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Floating illustration or shapes */
+    .btn-hero:hover {
+        transform: translateY(-3px);
+    }
+
+    /* Floating shapes */
     .float-shape {
         position: absolute;
         border-radius: 50%;
-        background: var(--accent);
-        filter: blur(80px);
-        opacity: 0.15;
-        z-index: -1;
+        filter: blur(100px);
+        opacity: 0.12;
+        z-index: 0;
+        animation: floatShape 12s ease-in-out infinite alternate;
     }
-    
-    .shape-1 { width: 400px; height: 400px; top: -100px; left: -150px; }
-    .shape-2 { width: 300px; height: 300px; bottom: 0; right: -100px; background: var(--primary); }
+
+    .shape-1 { width: 500px; height: 500px; top: -180px; left: -200px; background: var(--accent); }
+    .shape-2 { width: 350px; height: 350px; bottom: -100px; right: -120px; background: var(--primary); animation-delay: -4s; }
+    .shape-3 { width: 200px; height: 200px; top: 40%; left: 60%; background: var(--accent); opacity: 0.08; animation-delay: -8s; }
+
+    @keyframes floatShape {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(30px, -20px) scale(1.1); }
+    }
+
+    /* ===== FEATURE CARDS SECTION ===== */
+    .features-section {
+        padding: 80px 0 60px;
+        position: relative;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 16px;
+        letter-spacing: -0.03em;
+    }
+
+    .section-subtitle {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        max-width: 550px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .feature-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        padding: 36px 28px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: radial-gradient(circle at top left, rgba(163, 230, 53, 0.08), transparent 60%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(163, 230, 53, 0.3);
+        box-shadow: 0 20px 60px -15px rgba(163, 230, 53, 0.15);
+    }
+
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(163, 230, 53, 0.12);
+        color: var(--accent);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin-bottom: 24px;
+        transition: all 0.4s ease;
+        border: 1px solid rgba(163, 230, 53, 0.15);
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+        background: rgba(163, 230, 53, 0.2);
+    }
+
+    .feature-title {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 12px;
+    }
+
+    .feature-desc {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        line-height: 1.65;
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        padding: 60px 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+        background: var(--border-color);
+        border-radius: var(--radius-card);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-item {
+        background: var(--card-bg);
+        padding: 40px 24px;
+        text-align: center;
+        backdrop-filter: blur(20px);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background: rgba(163, 230, 53, 0.05);
+    }
+
+    .stat-value {
+        font-family: var(--font-display);
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+
+    .stat-value .counter-suffix {
+        color: var(--accent);
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* ===== CTA SECTION ===== */
+    .cta-section {
+        padding: 80px 0;
+    }
+
+    .cta-card {
+        background: linear-gradient(135deg, rgba(2, 44, 34, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+        border: 1px solid rgba(163, 230, 53, 0.2);
+        border-radius: 32px;
+        padding: 64px 48px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle at center, rgba(163, 230, 53, 0.06) 0%, transparent 50%);
+        animation: rotateBg 20s linear infinite;
+    }
+
+    @keyframes rotateBg {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .cta-card > * { position: relative; z-index: 1; }
+
+    .cta-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-weight: 800;
+        color: white;
+        margin-bottom: 16px;
+    }
+
+    .cta-text {
+        color: rgba(255,255,255,0.7);
+        font-size: 1.05rem;
+        max-width: 500px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+    }
+
+    .cta-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 40px;
+        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
+        color: #022c22;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.1rem;
+        border-radius: var(--radius-pill);
+        text-decoration: none;
+        transition: all 0.4s ease;
+    }
+
+    .cta-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(163, 230, 53, 0.3);
+        color: #022c22;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 992px) {
+        .features-grid { grid-template-columns: 1fr; gap: 16px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid { grid-template-columns: 1fr; }
+        .cta-card { padding: 40px 24px; }
+    }
 </style>
 
-<div class="hero-section position-relative">
+<!-- ===== HERO ===== -->
+<div class="hero-section">
     <div class="float-shape shape-1"></div>
     <div class="float-shape shape-2"></div>
+    <div class="float-shape shape-3"></div>
 
     <div class="hero-container animate__animated animate__fadeInUp">
         <div class="hero-badge">
-            <i class="fas fa-bolt text-accent"></i> Nouvelle ère agricole
+            <i class="fas fa-bolt"></i> Plateforme Agricole Intelligente
         </div>
-        
+
         <h1 class="hero-title">
-            L'intelligence au service de vos <span>récoltes</span>
+            L'intelligence au service de vos <span class="highlight">récoltes</span>
         </h1>
-        
+
         <p class="hero-subtitle">
-            Gérez vos projets agricoles, anticipez la météo, prédisez vos rendements grâce à l'IA et maximisez la réussite de votre ferme.
+            Gérez vos projets agricoles, prédisez vos rendements grâce à l'IA et maximisez la réussite de votre exploitation.
         </p>
 
         <div class="hero-actions">
@@ -132,14 +387,14 @@
                 </a>
             {% else %}
                 <a href="{% url 'register' %}" class="btn-modern btn-primary-modern btn-hero">
-                    Créer un compte <i class="fas fa-arrow-right ms-2"></i>
+                    Commencer gratuitement <i class="fas fa-arrow-right ms-2"></i>
                 </a>
                 <a href="{% url 'login' %}" class="btn-modern btn-outline-modern btn-hero">
                     Se connecter
                 </a>
             {% endif %}
         </div>
-        
+
         {% if user.is_authenticated %}
             <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s">
                 <span class="text-muted" style="font-size: 0.95rem;">Connecté en tant que <strong>{{ user.username }}</strong></span>
@@ -147,4 +402,104 @@
         {% endif %}
     </div>
 </div>
+
+<!-- ===== FEATURES ===== -->
+<div class="features-section">
+    <div class="container">
+        <div class="section-header animate__animated animate__fadeInUp">
+            <div class="section-label"><i class="fas fa-sparkles"></i> Fonctionnalités</div>
+            <h2 class="section-title">Tout ce qu'il faut pour réussir</h2>
+            <p class="section-subtitle">Des outils puissants pour piloter votre exploitation agricole avec précision</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                <h3 class="feature-title">Prédictions IA</h3>
+                <p class="feature-desc">Anticipez vos rendements grâce à nos modèles de Machine Learning entraînés sur des données agricoles régionales.</p>
+            </div>
+
+            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="feature-icon"><i class="fas fa-chart-area"></i></div>
+                <h3 class="feature-title">Suivi en temps réel</h3>
+                <p class="feature-desc">Dashboard analytique avec graphiques interactifs pour visualiser l'évolution de vos projets et investissements.</p>
+            </div>
+
+            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <div class="feature-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                <h3 class="feature-title">Gestion financière</h3>
+                <p class="feature-desc">Suivez vos investissements, gérez vos budgets et optimisez la rentabilité de chaque parcelle cultivée.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div class="stats-section">
+    <div class="container">
+        <div class="stats-grid animate__animated animate__fadeInUp">
+            <div class="stat-item">
+                <div class="stat-value"><span class="counter" data-target="500">0</span><span class="counter-suffix">+</span></div>
+                <div class="stat-label">Agriculteurs</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value"><span class="counter" data-target="1200">0</span><span class="counter-suffix">+</span></div>
+                <div class="stat-label">Projets Créés</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value"><span class="counter" data-target="95">0</span><span class="counter-suffix">%</span></div>
+                <div class="stat-label">Précision IA</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value"><span class="counter" data-target="15">0</span><span class="counter-suffix">+</span></div>
+                <div class="stat-label">Régions couvertes</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CTA ===== -->
+{% if not user.is_authenticated %}
+<div class="cta-section">
+    <div class="container">
+        <div class="cta-card animate__animated animate__fadeInUp">
+            <h2 class="cta-title">Prêt à transformer votre agriculture ?</h2>
+            <p class="cta-text">Rejoignez des centaines d'agriculteurs qui utilisent l'IA pour optimiser leurs récoltes.</p>
+            <a href="{% url 'register' %}" class="cta-btn">
+                Créer mon compte <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Animated counter
+document.addEventListener('DOMContentLoaded', () => {
+    const counters = document.querySelectorAll('.counter');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const counter = entry.target;
+                const target = +counter.getAttribute('data-target');
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                const update = () => {
+                    current += step;
+                    if (current < target) {
+                        counter.textContent = Math.ceil(current);
+                        requestAnimationFrame(update);
+                    } else {
+                        counter.textContent = target;
+                    }
+                };
+                update();
+                observer.unobserve(counter);
+            }
+        });
+    }, { threshold: 0.5 });
+    counters.forEach(c => observer.observe(c));
+});
+</script>
 {% endblock %}

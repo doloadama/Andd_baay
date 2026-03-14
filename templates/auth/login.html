@@ -1,54 +1,134 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Connexion | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
-    .auth-wrapper {
+    .auth-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: calc(100vh - 120px);
+        gap: 0;
+    }
+
+    /* Left side — Visual panel */
+    .auth-visual {
+        background: linear-gradient(160deg, #022c22 0%, #030712 60%, #0f172a 100%);
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        min-height: 70vh;
-        padding: 40px 0;
+        justify-content: center;
+        padding: 60px 48px;
+        position: relative;
+        overflow: hidden;
     }
 
-    .auth-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        padding: 48px;
-        width: 100%;
-        max-width: 480px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+    .auth-visual::before {
+        content: '';
+        position: absolute;
+        top: -30%; right: -20%;
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(163, 230, 53, 0.15) 0%, transparent 60%);
+        border-radius: 50%;
+        animation: gentlePulse 8s ease-in-out infinite alternate;
     }
 
-    .auth-header {
+    .auth-visual::after {
+        content: '';
+        position: absolute;
+        bottom: -20%; left: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(163, 230, 53, 0.08) 0%, transparent 60%);
+        border-radius: 50%;
+        animation: gentlePulse 10s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes gentlePulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(1.2); opacity: 1; }
+    }
+
+    .auth-visual-content {
+        position: relative;
+        z-index: 2;
         text-align: center;
-        margin-bottom: 32px;
+        max-width: 420px;
     }
 
-    .auth-header .icon-wrap {
-        width: 64px;
-        height: 64px;
+    .visual-icon {
+        width: 80px; height: 80px;
         background: rgba(163, 230, 53, 0.15);
-        color: var(--primary);
-        border-radius: 20px;
+        border: 1px solid rgba(163, 230, 53, 0.25);
+        border-radius: 24px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px; color: #a3e635;
+        margin: 0 auto 32px auto;
+    }
+
+    .visual-title {
+        font-family: var(--font-display);
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1.2;
+        margin-bottom: 16px;
+    }
+
+    .visual-subtitle {
+        color: rgba(255,255,255,0.6);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 40px;
+    }
+
+    .visual-features {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        text-align: left;
+    }
+
+    .visual-feature {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+    }
+
+    .visual-feature i {
+        width: 36px; height: 36px;
+        background: rgba(163, 230, 53, 0.12);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: #a3e635;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    /* Right side — Form panel */
+    .auth-form-panel {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
-        margin: 0 auto 20px auto;
-        border: 1px solid rgba(163, 230, 53, 0.3);
+        padding: 48px;
+        background: var(--bg-main);
     }
-    
-    .dark-mode .auth-header .icon-wrap { color: var(--accent); }
 
+    .auth-form-container {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .auth-header { margin-bottom: 36px; }
     .auth-header h2 {
+        font-family: var(--font-display);
         font-size: 2rem;
-        margin-bottom: 8px;
+        font-weight: 800;
         color: var(--text-main);
+        margin-bottom: 8px;
     }
-
     .auth-header p {
         color: var(--text-muted);
         font-size: 0.95rem;
@@ -57,7 +137,7 @@
     .form-modern .form-label {
         font-family: var(--font-display);
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         color: var(--text-main);
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -74,39 +154,26 @@
 
     .form-modern .input-group:focus-within {
         border-color: var(--accent);
-        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.12);
     }
 
     .form-modern .input-group-text {
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        padding-left: 20px;
+        background: transparent; border: none;
+        color: var(--text-muted); padding-left: 18px;
     }
-    
-    .form-modern .input-group:focus-within .input-group-text { color: var(--primary); }
-    .dark-mode .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
+
+    .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
 
     .form-modern .form-control {
-        background: transparent;
-        border: none;
-        padding: 14px 20px 14px 10px;
-        font-size: 0.95rem;
-        color: var(--text-main);
-        box-shadow: none;
+        background: transparent; border: none;
+        padding: 14px 18px 14px 8px;
+        font-size: 0.95rem; color: var(--text-main); box-shadow: none;
     }
-
-    .form-modern .form-control::placeholder {
-        color: var(--text-muted);
-        opacity: 0.6;
-    }
+    .form-modern .form-control::placeholder { color: var(--text-muted); opacity: 0.5; }
 
     .form-modern .btn-toggle-pass {
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        padding-right: 20px;
-        cursor: pointer;
+        background: transparent; border: none;
+        color: var(--text-muted); padding-right: 18px; cursor: pointer;
     }
 
     .btn-submit {
@@ -114,118 +181,168 @@
         padding: 16px;
         border-radius: var(--radius-input);
         font-family: var(--font-display);
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 700;
-        margin-top: 10px;
+        margin-top: 8px;
     }
 
-    .auth-footer {
-        text-align: center;
-        margin-top: 32px;
-        font-size: 0.95rem;
-        color: var(--text-muted);
+    .form-extras {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
     }
 
-    .auth-footer a {
-        font-weight: 600;
-        color: var(--primary);
-    }
-    
-    .dark-mode .auth-footer a { color: var(--accent); }
-    .auth-footer a:hover { text-decoration: underline; }
-
-    /* Custom Checkbox */
     .form-check-input {
-        width: 1.2rem;
-        height: 1.2rem;
-        margin-top: 0.15rem;
+        width: 1.15rem; height: 1.15rem;
         border: 2px solid var(--border-color);
         background-color: var(--bg-main);
     }
-    .form-check-input:checked {
-        background-color: var(--primary);
-        border-color: var(--primary);
+    .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+
+    /* Divider */
+    .divider {
+        display: flex; align-items: center; text-align: center;
+        margin: 24px 0; color: var(--text-muted); font-size: 0.82rem;
     }
-    .dark-mode .form-check-input:checked {
-        background-color: var(--accent);
-        border-color: var(--accent);
+    .divider::before, .divider::after {
+        content: ''; flex: 1; border-bottom: 1px solid var(--border-color);
+    }
+    .divider:not(:empty)::before { margin-right: .6em; }
+    .divider:not(:empty)::after { margin-left: .6em; }
+
+    /* Google btn */
+    .btn-google {
+        display: flex; align-items: center; justify-content: center;
+        gap: 12px; width: 100%; padding: 14px;
+        background: white; border: 1px solid #e5e7eb;
+        border-radius: var(--radius-input);
+        color: #374151; font-weight: 600; font-size: 0.95rem;
+        transition: all 0.3s; text-decoration: none;
+    }
+    .btn-google:hover {
+        background: #f9fafb; transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: #374151;
+    }
+    .dark-mode .btn-google {
+        background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white;
+    }
+    .dark-mode .btn-google:hover { background: rgba(255,255,255,0.1); }
+
+    .auth-footer {
+        text-align: center; margin-top: 28px;
+        font-size: 0.95rem; color: var(--text-muted);
+    }
+    .auth-footer a { font-weight: 600; color: var(--accent); }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .auth-split { grid-template-columns: 1fr; }
+        .auth-visual { display: none; }
+        .auth-form-panel { min-height: 80vh; }
     }
 </style>
 
-<div class="auth-wrapper">
-    <div class="auth-card animate__animated animate__zoomIn" style="animation-duration: 0.4s;">
-        <div class="auth-header">
-            <div class="icon-wrap">
-                <i class="fas fa-fingerprint"></i>
+<div class="auth-split">
+    <!-- Left Visual Panel -->
+    <div class="auth-visual">
+        <div class="auth-visual-content animate__animated animate__fadeInLeft">
+            <div class="visual-icon"><i class="fas fa-seedling"></i></div>
+            <h2 class="visual-title">Bienvenue sur Andd Baay</h2>
+            <p class="visual-subtitle">La plateforme intelligente qui révolutionne la gestion agricole au Sénégal.</p>
+            <div class="visual-features">
+                <div class="visual-feature">
+                    <i class="fas fa-brain"></i>
+                    <span>Prédictions de rendement par Intelligence Artificielle</span>
+                </div>
+                <div class="visual-feature">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard analytique en temps réel</span>
+                </div>
+                <div class="visual-feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Données sécurisées et confidentielles</span>
+                </div>
             </div>
-            <h2>Connexion</h2>
-            <p>Accédez à votre espace sécurisé</p>
         </div>
+    </div>
 
-        {% if form.errors %}
-        <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
-            <i class="fas fa-exclamation-triangle me-2"></i>Identifiants incorrects.
-        </div>
-        {% endif %}
-
-        <form method="post" class="form-modern needs-validation" novalidate>
-            {% csrf_token %}
-
-            <div class="mb-4 position-relative">
-                <label for="username" class="form-label">Nom d'utilisateur</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-at"></i></span>
-                    <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre nom d'utilisateur" required>
-                </div>
+    <!-- Right Form Panel -->
+    <div class="auth-form-panel">
+        <div class="auth-form-container animate__animated animate__fadeInRight">
+            <div class="auth-header">
+                <h2>Connexion</h2>
+                <p>Accédez à votre espace agricole</p>
             </div>
 
-            <div class="mb-4 position-relative">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label for="password" class="form-label mb-0">Mot de passe</label>
-                    <a href="{% url 'password_reset' %}" style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">Oublié ?</a>
-                </div>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
-                    <button type="button" class="btn-toggle-pass" id="togglePassword">
-                        <i class="fas fa-eye" id="eyeIcon"></i>
-                    </button>
-                </div>
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Identifiants incorrects. Veuillez réessayer.
             </div>
+            {% endif %}
 
-            <div class="mb-4 form-check d-flex align-items-center gap-2">
-                <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
-                <label class="form-check-label text-muted" for="rememberMe" style="font-size: 0.9rem;">Rester connecté</label>
+            <a href="{% provider_login_url 'google' %}" class="btn-google">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style="width: 20px; height: 20px;">
+                Continuer avec Google
+            </a>
+
+            <div class="divider">ou connectez-vous par email</div>
+
+            <form method="post" class="form-modern" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre identifiant" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassword(this)">
+                            <i class="fas fa-eye eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-extras mb-3">
+                    <div class="form-check d-flex align-items-center gap-2">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label text-muted" for="rememberMe" style="font-size: 0.88rem;">Rester connecté</label>
+                    </div>
+                    <a href="{% url 'password_reset' %}" style="font-size: 0.88rem; color: var(--accent); font-weight: 600;">Mot de passe oublié ?</a>
+                </div>
+
+                <button type="submit" class="btn-modern btn-primary-modern btn-submit">
+                    Connexion <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Nouveau ici ? <a href="{% url 'register' %}">Créer un compte</a>
             </div>
-
-            <button type="submit" class="btn-modern btn-primary-modern btn-submit">
-                Connexion <i class="fas fa-arrow-right ms-2"></i>
-            </button>
-        </form>
-
-        <div class="auth-footer">
-            Nouveau ici ? <a href="{% url 'register' %}">Créer un compte</a>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const togglePassword = document.getElementById('togglePassword');
-        const password = document.getElementById('password');
-        const eyeIcon = document.getElementById('eyeIcon');
-
-        togglePassword.addEventListener('click', function() {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            eyeIcon.classList.toggle('fa-eye');
-            eyeIcon.classList.toggle('fa-eye-slash');
-        });
-        
-        // Auto-focus on first empty field
-        const username = document.getElementById('username');
-        if(!username.value) username.focus();
-        else password.focus();
-    });
+function togglePassword(btn) {
+    const input = btn.previousElementSibling;
+    const icon = btn.querySelector('.eye-icon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
 </script>
 {% endblock %}
