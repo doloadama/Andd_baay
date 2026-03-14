@@ -1,11 +1,42 @@
 {% extends 'base.html' %}
-{% block content %}
-<h1>Supprimer le projet : {{ projet.nom }}</h1>
-<p>Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.</p>
+{% block title %}Supprimer Projet | Andd Baay{% endblock %}
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Oui, supprimer</button>
-    <a href="{% url 'detail_projet' projet.id %}" class="btn btn-secondary">Non, annuler</a>
-</form>
+{% block content %}
+<div class="center-wrap animate__animated animate__fadeIn">
+    <div class="surface-card text-center">
+        <div class="surface-icon danger">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+
+        <h1 class="surface-title">Supprimer ce projet ?</h1>
+        <p class="surface-subtitle">
+            Vous etes sur le point de supprimer <strong>{{ projet.nom }}</strong>. Cette action est irreversible.
+        </p>
+
+        <div class="p-3 mb-4 rounded-3" style="background: var(--bg-secondary); border: 1px solid var(--border-color); text-align: left;">
+            <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid var(--border-color);">
+                <span style="color: var(--text-muted);">Statut</span>
+                <span class="status-chip {{ projet.statut }}">{{ projet.get_statut_display }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid var(--border-color);">
+                <span style="color: var(--text-muted);">Localite</span>
+                <span style="font-weight: 700; color: var(--text-main);">{{ projet.localite.nom }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2">
+                <span style="color: var(--text-muted);">Superficie</span>
+                <span style="font-weight: 700; color: var(--text-main);">{{ projet.superficie }} ha</span>
+            </div>
+        </div>
+
+        <form method="post" class="actions-row">
+            {% csrf_token %}
+            <a href="{% url 'detail_projet' projet.id %}" class="btn-modern btn-outline-modern" style="min-width: 180px;">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+            <button type="submit" class="btn-modern" style="min-width: 180px; background: var(--danger); color: #fff;">
+                <i class="fas fa-trash me-1"></i> Supprimer
+            </button>
+        </form>
+    </div>
+</div>
 {% endblock %}
