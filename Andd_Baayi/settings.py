@@ -57,7 +57,6 @@ if IS_VERCEL and VERCEL_URL:
     if VERCEL_URL not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(VERCEL_URL)
 
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -65,7 +64,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'baay',
+    'baay.apps.BaayConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',             # Pour django-cors-headers
@@ -74,8 +73,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Middleware pour servir les fichiers statiques
-    'corsheaders.middleware.CorsMiddleware',        # CORS avant CommonMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

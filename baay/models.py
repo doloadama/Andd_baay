@@ -1,9 +1,7 @@
 from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 import uuid
-from django.dispatch import receiver
 from django.utils.timezone import now
-from django.db.models.signals import post_save
 
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -170,12 +168,5 @@ class PredictionRendement(models.Model):
 
 
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
 

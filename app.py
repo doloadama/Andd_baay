@@ -5,13 +5,13 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Andd_Baayi.settings')
 django.setup()
 
-from baay.models import ProduitAgricole
+from baay.models import ProduitAgricole, PhotoProduitAgricole
 
 # Données des produits agricoles avec leurs photos
 produits_photos = [
     {
         "id": "d07bf2020e9f440bb28a1ab5e8b70926",
-        "photo": "mil.jpg"  # Nom du fichier image dans le dossier media/produits/
+        "photo": "mil.jpg"
     },
     {
         "id": "ed540fadb7e2477699212d34e86744c8",
@@ -52,15 +52,20 @@ produits_photos = [
 ]
 
 # Mettre à jour les produits agricoles avec les photos
+count = 0
 for produit_data in produits_photos:
-    produit = ProduitAgricole.objects.get(id=produit_data["id"])
-    produit.photo = f"produits/{produit_data['photo']}"  # Chemin relatif vers l'image
-    produit.save()
+    try:
+        produit = ProduitAgricole.objects.get(id=produit_data["id"])
+        # Update or create photo
+        photo_obj, created = PhotoProduitAgricole.objects.get_or_create(
+            produit=produit,
+            defaults={'image': f"produits/{produit_data['photo']}"}
+        )
+        if not created:
+            photo_obj.image = f"produits/{produit_data['photo']}"
+            photo_obj.save()
+        count += 1
+    except ProduitAgricole.DoesNotExist:
+        print(f"Produit ID {produit_data['id']} introuvable.")
 
-
-print("10 produits agricoles ont été ajoutés à la base de données.")
-
-
-
-def ready(self):
-    import baay.signals
+print(f"{count} photos de produits agricoles ont été mises à jour ou ajoutées.")

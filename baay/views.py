@@ -191,7 +191,8 @@ def creer_projet(request):
                 projet.culture = produits[0]
                 if not projet.rendement_estime:
                     projet.rendement_estime = rendement_total
-                projet.save()
+            
+            projet.save()
                 
             messages.success(request, "Le projet a ete cree avec succes.")
             return redirect('liste_projets')
@@ -254,7 +255,6 @@ def modifier_projet(request, projet_id):
                 projet.save()
                 
             messages.success(request, "Le projet a ete modifie avec succes.")
-            logger.debug(f"Projet {projet.id} modifie avec succes.")
             return redirect('detail_projet', projet_id=projet.id)
         else:
             logger.error(f"Erreurs dans le formulaire : {projet_form.errors}")
@@ -619,15 +619,8 @@ def predire_rendement(projet):
         logger.error(f"Erreur lors de la prédiction : {e}")
         return 0
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
-@receiver(post_save, sender=Projet)
-def creer_prediction_rendement(sender, instance, created, **kwargs):
-    if created:
-        logger.debug(f"Signal triggered for project {instance.id}")
-        rendement_pred = predire_rendement(instance)
-        PredictionRendement.objects.create(projet=instance, rendement_estime=rendement_pred)
+
         
 @login_required
 def generer_prediction(request, projet_id):
