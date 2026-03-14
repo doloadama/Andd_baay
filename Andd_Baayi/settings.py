@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 # Charger les variables du fichier .env
 load_dotenv()
@@ -133,6 +134,16 @@ DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
 if DATABASE_URL:
     import dj_database_url
+
+    # Supabase/Vercel env vars sometimes include non-libpq query params like `supa` / `pgbouncer`.
+    # psycopg will error on unknown connection options, so we strip them defensively.
+    try:
+        parts = urlsplit(DATABASE_URL)
+        query = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k not in {"supa", "pgbouncer"}]
+        DATABASE_URL = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+    except Exception:
+        # If parsing fails, fall back to the raw value and let Django surface the error.
+        pass
 
     DATABASES = {
         "default": dj_database_url.parse(DATABASE_URL, conn_max_age=60, ssl_require=True),
