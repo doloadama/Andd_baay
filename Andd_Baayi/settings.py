@@ -22,6 +22,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 IS_VERCEL = os.getenv("VERCEL") == "1"
+VERCEL_URL = os.getenv("VERCEL_URL", "").strip()  # e.g. "my-app.vercel.app" (no scheme)
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -50,6 +51,10 @@ ALLOWED_HOSTS = [
     ).split(',')
     if h.strip()
 ]
+if IS_VERCEL and VERCEL_URL:
+    # Ensure the current deployment host is always accepted.
+    if VERCEL_URL not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(VERCEL_URL)
 
 
 INSTALLED_APPS = [
@@ -95,6 +100,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://andd-baay.vercel.app",
     "https://*.vercel.app",
 ]
+if IS_VERCEL and VERCEL_URL:
+    origin = f"https://{VERCEL_URL}"
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 ROOT_URLCONF = 'Andd_Baayi.urls'
 
