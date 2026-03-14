@@ -21,6 +21,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+IS_VERCEL = os.getenv("VERCEL") == "1"
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -40,7 +42,14 @@ SECRET_KEY = _secret_key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'andd-baay.onrender.com,andd-baay.vercel.app,.vercel.app,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv(
+        'ALLOWED_HOSTS',
+        'andd-baay.onrender.com,andd-baay.vercel.app,.vercel.app,localhost,127.0.0.1',
+    ).split(',')
+    if h.strip()
+]
 
 
 INSTALLED_APPS = [
@@ -69,7 +78,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# On Vercel, we typically do not run `collectstatic` during build for Python serverless,
+# and static assets are served via `@vercel/static` routes. Avoid manifest strictness.
+if IS_VERCEL:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    WHITENOISE_MANIFEST_STRICT = False
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8501"
@@ -105,7 +120,15 @@ WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if os.getenv('ENV') == 'production':
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=60, ssl_require=True),
+    }
+elif os.getenv('ENV') == 'production':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
