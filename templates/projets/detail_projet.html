@@ -91,6 +91,7 @@
                                         {% for pp in projet_produits %}
                                             <span class="tag tag-accent me-1 mb-1" style="font-size: 0.9rem;">
                                                 <i class="fas fa-seedling"></i> {{ pp.produit.nom }}
+                                                {% if pp.age_plant %}<span class="ms-1" style="opacity: 0.8;">({{ pp.age_plant }} jrs)</span>{% endif %}
                                                 {% if pp.rendement_final %}
                                                     <span class="tag tag-success ms-1">{{ pp.rendement_final }} kg</span>
                                                 {% endif %}
@@ -115,32 +116,38 @@
             <!-- Carousel Details -->
             <div class="glass-card flex-fill">
                 <div class="glass-card-header">
-                    <h5><i class="fas fa-camera text-accent me-2"></i> Galerie de Culture</h5>
+                    <h5><i class="fas fa-camera text-accent me-2"></i> Suivi des plants (Photos)</h5>
                 </div>
                 <div class="glass-card-body p-3">
-                    {% if projet.culture.photos.all %}
+                    {% if plant_photos %}
                         <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel" style="border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                             <div class="carousel-inner">
-                                {% for photo in projet.culture.photos.all %}
+                                {% for photo in plant_photos %}
                                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                        <img src="{{ photo.image.url }}" alt="{{ projet.culture.nom }}" class="d-block w-100 object-fit-cover" style="height: 350px;" {% if photo.description %}data-bs-toggle="tooltip" title="{{ photo.description }}"{% endif %}>
+                                        <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover" style="height: 350px;" data-bs-toggle="tooltip" title="{{ photo.subtitle }}">
+                                        <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.6); border-radius: 12px; padding: 10px; bottom: 20px;">
+                                            <h6 class="mb-1 text-white">{{ photo.title }}</h6>
+                                            {% if photo.subtitle %}<p class="mb-0 small text-white-50">{{ photo.subtitle }}</p>{% endif %}
+                                        </div>
                                     </div>
                                 {% endfor %}
                             </div>
+                            {% if plant_photos|length > 1 %}
                             <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon shadow-sm" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px;"></span>
                             </button>
                             <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
                                 <span class="carousel-control-next-icon shadow-sm" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px;"></span>
                             </button>
+                            {% endif %}
                         </div>
                     {% else %}
                         <div class="text-center py-5 text-muted">
                             <i class="fas fa-image fs-1 mb-3 opacity-50"></i>
-                            <p>Aucune photo disponible pour cette culture.</p>
+                            <p>Aucune photo n'a été ajoutée à ce projet.</p>
                         </div>
                     {% endif %}
-                </div>
+</div>
             </div>
 
         </div>

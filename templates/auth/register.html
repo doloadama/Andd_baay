@@ -16,7 +16,7 @@
     .auth-visual {
         background: linear-gradient(160deg, #022c22 0%, #030712 60%, #0f172a 100%);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: 60px 48px; position: relative; overflow: hidden;
+        padding: 40px 36px; position: relative; overflow: hidden;
     }
 
     .auth-visual::before {
@@ -41,23 +41,23 @@
     .auth-visual-content { position: relative; z-index: 2; text-align: center; max-width: 420px; }
 
     .visual-icon {
-        width: 80px; height: 80px;
+        width: 56px; height: 56px;
         background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.25);
-        border-radius: 24px; display: flex; align-items: center; justify-content: center;
-        font-size: 36px; color: #a3e635; margin: 0 auto 32px auto;
+        border-radius: 16px; display: flex; align-items: center; justify-content: center;
+        font-size: 24px; color: #a3e635; margin: 0 auto 24px auto;
     }
 
-    .visual-title { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: white; line-height: 1.2; margin-bottom: 16px; }
-    .visual-subtitle { color: rgba(255,255,255,0.6); font-size: 1rem; line-height: 1.6; margin-bottom: 40px; }
+    .visual-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: white; line-height: 1.2; margin-bottom: 12px; }
+    .visual-subtitle { color: rgba(255,255,255,0.6); font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px; }
 
-    .visual-steps { display: flex; flex-direction: column; gap: 20px; text-align: left; }
-    .visual-step { display: flex; align-items: flex-start; gap: 16px; color: rgba(255,255,255,0.8); }
+    .visual-steps { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+    .visual-step { display: flex; align-items: flex-start; gap: 12px; color: rgba(255,255,255,0.8); }
 
     .step-num {
-        width: 36px; height: 36px; min-width: 36px;
+        width: 30px; height: 30px; min-width: 30px;
         background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.3);
-        border-radius: 10px; display: flex; align-items: center; justify-content: center;
-        color: #a3e635; font-family: var(--font-display); font-weight: 800; font-size: 0.9rem;
+        border-radius: 8px; display: flex; align-items: center; justify-content: center;
+        color: #a3e635; font-family: var(--font-display); font-weight: 800; font-size: 0.8rem;
     }
 
     .step-text strong { display: block; color: white; margin-bottom: 2px; }
@@ -66,25 +66,25 @@
     /* Right form panel */
     .auth-form-panel {
         display: flex; align-items: center; justify-content: center;
-        padding: 40px 48px; background: var(--bg-main); overflow-y: auto;
+        padding: 28px 36px; background: var(--bg-main); overflow-y: auto;
     }
 
     .auth-form-container { width: 100%; max-width: 480px; }
 
-    .auth-header { margin-bottom: 28px; }
-    .auth-header h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
-    .auth-header p { color: var(--text-muted); font-size: 0.95rem; }
+    .auth-header { margin-bottom: 20px; }
+    .auth-header h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
+    .auth-header p { color: var(--text-muted); font-size: 0.85rem; }
 
     .form-modern .form-label { font-family: var(--font-display); font-weight: 600; font-size: 0.82rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     .form-modern .input-group { border-radius: var(--radius-input); overflow: hidden; border: 2px solid var(--border-color); background: var(--bg-main); transition: all var(--transition); }
     .form-modern .input-group:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.12); }
     .form-modern .input-group-text { background: transparent; border: none; color: var(--text-muted); padding-left: 18px; }
     .form-modern .input-group:focus-within .input-group-text { color: var(--accent); }
-    .form-modern .form-control { background: transparent; border: none; padding: 13px 18px 13px 8px; font-size: 0.95rem; color: var(--text-main); box-shadow: none; }
+    .form-modern .form-control { background: transparent; border: none; padding: 10px 14px 10px 6px; font-size: 0.875rem; color: var(--text-main); box-shadow: none; }
     .form-modern .form-control::placeholder { color: var(--text-muted); opacity: 0.5; }
     .form-modern .btn-toggle-pass { background: transparent; border: none; color: var(--text-muted); padding-right: 18px; cursor: pointer; }
 
-    .btn-submit { width: 100%; padding: 16px; border-radius: var(--radius-input); font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-top: 8px; }
+    .btn-submit { width: 100%; padding: 12px; border-radius: var(--radius-input); font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin-top: 8px; }
 
     .form-check-input { width: 1.15rem; height: 1.15rem; border: 2px solid var(--border-color); background-color: var(--bg-main); }
     .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
@@ -96,7 +96,7 @@
     .divider:not(:empty)::before { margin-right: .6em; }
     .divider:not(:empty)::after { margin-left: .6em; }
 
-    .btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 14px; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-input); color: #374151; font-weight: 600; font-size: 0.95rem; transition: all 0.3s; text-decoration: none; }
+    .btn-google { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-input); color: #374151; font-weight: 600; font-size: 0.875rem; transition: all 0.3s; text-decoration: none; }
     .btn-google:hover { background: #f9fafb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: #374151; }
     .dark-mode .btn-google { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; }
     .dark-mode .btn-google:hover { background: rgba(255,255,255,0.1); }

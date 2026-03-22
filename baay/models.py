@@ -51,8 +51,17 @@ class PhotoProduitAgricole(models.Model):
 
 
 
+class Pays(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nom = models.CharField(max_length=100, unique=True)
+    code_iso = models.CharField(max_length=5, blank=True, null=True)
+
+    def __str__(self):
+        return self.nom
+
 class Localite(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pays = models.ForeignKey(Pays, on_delete=models.CASCADE, null=True, blank=True, related_name='localites')
     nom = models.CharField(max_length=100, unique=True)
     type_sol = models.CharField(max_length=50, null=True, blank=True)
     conditions_meteo = models.CharField(max_length=100, null=True, blank=True)
@@ -75,6 +84,7 @@ class Projet(models.Model):
     nom = models.CharField(max_length=200)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    pays = models.ForeignKey(Pays, on_delete=models.SET_NULL, null=True, blank=True)
     # Keep culture for backwards compatibility, but produits will be the main relation
     culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, null=True, blank=True)
     localite = models.ForeignKey(Localite, on_delete=models.CASCADE)
@@ -114,6 +124,10 @@ class ProjetProduit(models.Model):
     superficie_allouee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie allouee a ce produit en hectares")
     date_semis = models.DateField(null=True, blank=True, help_text="Date du semis")
     date_recolte_prevue = models.DateField(null=True, blank=True, help_text="Date de recolte prevue")
+
+    # Current state
+    image = models.ImageField(upload_to='plants_photos/', null=True, blank=True, help_text="Photo du plant")
+    age_plant = models.IntegerField(null=True, blank=True, help_text="Age du plant (ex: en jours)")
     
     # Harvest data (filled when project is finished)
     rendement_final = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Rendement final obtenu en kg")

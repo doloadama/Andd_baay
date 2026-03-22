@@ -646,6 +646,22 @@
 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
+                                        <label for="{{ projet_form.pays.id_for_label }}" class="form-label-modern">
+                                            Pays
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-globe-africa input-icon"></i>
+                                            {{ projet_form.pays }}
+                                        </div>
+                                        {% if projet_form.pays.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.pays.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
                                         <label for="{{ projet_form.localite.id_for_label }}" class="form-label-modern">
                                             Localite
                                             <span class="required">*</span>
@@ -687,16 +703,16 @@
 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.rendement.id_for_label }}" class="form-label-modern">
-                                            Rendement estime (kg/ha)
+                                        <label for="{{ projet_form.rendement_estime.id_for_label }}" class="form-label-modern">
+                                            Rendement estime (kg)
                                             <span class="form-label-hint">Optionnel</span>
                                         </label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-weight-hanging input-icon"></i>
-                                            {{ projet_form.rendement }}
+                                            {{ projet_form.rendement_estime }}
                                         </div>
-                                        {% if projet_form.rendement.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.rendement.errors.0 }}</div>
+                                        {% if projet_form.rendement_estime.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.rendement_estime.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -848,6 +864,46 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize progress
     updateProgress();
+});
+
+// Dynamic filtering for Pays -> Localite
+document.addEventListener('DOMContentLoaded', function() {
+    const paysSelect = document.getElementById('{{ projet_form.pays.id_for_label }}');
+    const localiteSelect = document.getElementById('{{ projet_form.localite.id_for_label }}');
+    
+    if (paysSelect && localiteSelect) {
+        const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({
+            value: opt.value,
+            text: opt.text,
+            selected: opt.selected
+        }));
+        
+        const localitesMapping = {
+            {% for loc in projet_form.localite.field.queryset %}
+                "{{ loc.id }}": "{{ loc.pays_id|default:'' }}",
+            {% endfor %}
+        };
+        
+        function filterLocalites() {
+            const selectedPays = paysSelect.value;
+            const currentSelectedLocalite = localiteSelect.value;
+            
+            localiteSelect.innerHTML = '';
+            
+            allLocaliteOptions.forEach(opt => {
+                if (!opt.value || localitesMapping[opt.value] === selectedPays) {
+                    const option = new Option(opt.text, opt.value);
+                    if (opt.value === currentSelectedLocalite && localitesMapping[opt.value] === selectedPays) {
+                        option.selected = true;
+                    }
+                    localiteSelect.add(option);
+                }
+            });
+        }
+        
+        paysSelect.addEventListener('change', filterLocalites);
+        filterLocalites(); // Apply filter initially
+    }
 });
 </script>
 {% endblock %}

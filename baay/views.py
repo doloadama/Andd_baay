@@ -18,7 +18,7 @@ from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm
 from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement, ProjetProduit
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
@@ -59,7 +59,7 @@ def register_view(request):
             profile = user.profile
             profile.phone_number = form.cleaned_data['phone_number']
             profile.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
             return redirect('home')
     else:
@@ -209,6 +209,7 @@ def creer_projet(request):
 def modifier_projet(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
     rendement_form = None
+    plant_details_form = None
     
     # If project is being finished, show the harvest yield form
     show_rendement_form = request.GET.get('finish') == '1' or projet.statut == 'fini'
@@ -232,6 +233,23 @@ def modifier_projet(request, projet_id):
                 return redirect('detail_projet', projet_id=projet.id)
         
         elif projet_form.is_valid():
+            plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
+            if plant_details_form.is_valid():
+                for pp in projet.projet_produits.all():
+                    image_key = f'image_{pp.id}'
+                    age_key = f'age_plant_{pp.id}'
+                    
+                    if image_key in request.FILES:
+                        pp.image = request.FILES[image_key]
+                    elif image_key in plant_details_form.cleaned_data and plant_details_form.cleaned_data[image_key] is False:
+                        if pp.image:
+                            pp.image.delete()
+                            
+                    if age_key in plant_details_form.cleaned_data:
+                        pp.age_plant = plant_details_form.cleaned_data[age_key]
+                        
+                    pp.save()
+
             projet = projet_form.save(commit=False)
             projet.save()
             
@@ -260,14 +278,26 @@ def modifier_projet(request, projet_id):
             logger.error(f"Erreurs dans le formulaire : {projet_form.errors}")
     else:
         projet_form = ProjetForm(instance=projet)
+        plant_details_form = PlantDetailsForm(projet=projet)
         if show_rendement_form:
             rendement_form = RendementFinalForm(projet=projet)
+            
+    plants_data = []
+    if plant_details_form:
+        for pp in projet.projet_produits.all():
+            plants_data.append({
+                'nom': pp.produit.nom,
+                'image_field': plant_details_form[f'image_{pp.id}'],
+                'age_field': plant_details_form[f'age_plant_{pp.id}']
+            })
 
     return render(request, 'projets/modifier_projet.html', {
         'projet_form': projet_form,
         'projet': projet,
         'rendement_form': rendement_form,
         'show_rendement_form': show_rendement_form,
+        'plant_details_form': plant_details_form,
+        'plants_data': plants_data,
         'produits': ProduitAgricole.objects.all(),
     })
 
@@ -328,12 +358,34 @@ def detail_projet(request, projet_id):
     
     # Recuperer les produits du projet
     projet_produits = projet.projet_produits.select_related('produit').all()
+    
+    # Pre-calculate photos
+    plant_photos = []
+    for pp in projet_produits:
+        if pp.image:
+            plant_photos.append({
+                'url': pp.image.url,
+                'title': pp.produit.nom,
+                'subtitle': f"Age: {pp.age_plant} jours" if pp.age_plant else ""
+            })
+            
+    if projet.culture:
+        for photo in projet.culture.photos.all():
+            try:
+                plant_photos.append({
+                    'url': photo.image.url,
+                    'title': projet.culture.nom,
+                    'subtitle': photo.description or ""
+                })
+            except Exception:
+                pass
 
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'investissements': investissements,
         'prediction': prediction,
         'projet_produits': projet_produits,
+        'plant_photos': plant_photos,
     })
 
 @login_required

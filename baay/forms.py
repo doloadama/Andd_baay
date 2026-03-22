@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -82,9 +82,10 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
+        fields = ['nom', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
+            'pays': forms.Select(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -94,8 +95,11 @@ class ProjetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Afficher les noms des localites dans le formulaire
-        self.fields['localite'].queryset = Localite.objects.all()
+        # Afficher les noms des pays et localites dans le formulaire
+        if 'pays' in self.fields:
+            self.fields['pays'].queryset = Pays.objects.all().order_by('nom')
+            self.fields['pays'].label_from_instance = lambda obj: obj.nom
+        self.fields['localite'].queryset = Localite.objects.all().order_by('nom')
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
         
         # Pre-select products if editing existing project
@@ -219,5 +223,31 @@ class RendementFinalForm(forms.Form):
                     widget=forms.DateInput(attrs={
                         'type': 'date',
                         'class': 'form-control'
+                    })
+                )
+
+class PlantDetailsForm(forms.Form):
+    """Form for inputting plant images and age in project details"""
+    
+    def __init__(self, *args, projet=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if projet:
+            for pp in projet.projet_produits.all():
+                self.fields[f'image_{pp.id}'] = forms.ImageField(
+                    label=f"Photo - {pp.produit.nom}",
+                    required=False,
+                    widget=forms.ClearableFileInput(attrs={
+                        'class': 'form-control',
+                        'accept': 'image/*'
+                    })
+                )
+                self.fields[f'age_plant_{pp.id}'] = forms.IntegerField(
+                    label=f"Age (jours) - {pp.produit.nom}",
+                    required=False,
+                    min_value=0,
+                    initial=pp.age_plant,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'form-control',
+                        'placeholder': 'Age approximatif en jours'
                     })
                 )
