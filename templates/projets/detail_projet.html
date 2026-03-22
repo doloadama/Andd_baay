@@ -18,8 +18,8 @@
             </span>
             {{ projet.get_statut_display }}
         </div>
-        <h1 class="display-3 fw-bold text-white mb-3 text-shadow-lg animate__animated animate__fadeInUp" style="font-family: var(--font-display);">{{ projet.nom }}</h1>
-        <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <h1 class="display-3 fw-bold  mb-3 text-shadow-lg animate__animated animate__fadeInUp" style="font-family: var(--font-display);">{{ projet.nom }}</h1>
+        <p class="lead text-muted text-shadow-md animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
             <i class="fas fa-map-marker-alt text-accent me-2"></i> {{ projet.localite.nom }} &nbsp;&bull;&nbsp; 
             <i class="fas fa-seedling text-accent me-2"></i> 
             {% for pp in projet_produits %}
@@ -34,7 +34,7 @@
 <div class="container project-content-wrapper">
     <!-- Action Buttons Row -->
     <div class="d-flex flex-wrap gap-3 justify-content-center mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.2s; margin-top: -30px; position: relative; z-index: 20;">
-        <a href="{% url 'liste_projets' %}" class="btn-modern btn-outline-modern bg-surface shadow-sm text-dark px-4">
+        <a href="{% url 'liste_projets' %}" class="btn-modern btn-outline-modern bg-surface shadow-sm  px-4">
             <i class="fas fa-arrow-left text-muted"></i> Retour
         </a>
         <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-primary-modern px-4">
@@ -126,8 +126,8 @@
                                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
                                         <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover" style="height: 350px;" data-bs-toggle="tooltip" title="{{ photo.subtitle }}">
                                         <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.6); border-radius: 12px; padding: 10px; bottom: 20px;">
-                                            <h6 class="mb-1 text-white">{{ photo.title }}</h6>
-                                            {% if photo.subtitle %}<p class="mb-0 small text-white-50">{{ photo.subtitle }}</p>{% endif %}
+                                            <h6 class="mb-1 ">{{ photo.title }}</h6>
+                                            {% if photo.subtitle %}<p class="mb-0 small text-muted">{{ photo.subtitle }}</p>{% endif %}
                                         </div>
                                     </div>
                                 {% endfor %}
@@ -157,20 +157,20 @@
             
             <!-- Prediction Card -->
             <div class="glass-card prediction-card bg-gradient-premium">
-                <div class="glass-card-header border-bottom border-light border-opacity-10 text-white">
+                <div class="glass-card-header border-bottom border-light border-opacity-10 ">
                     <h5 class="mb-0"><i class="fas fa-magic text-accent me-2"></i> Prédiction IA</h5>
                 </div>
-                <div class="glass-card-body text-white">
+                <div class="glass-card-body ">
                     {% if prediction %}
                         <div class="text-center mb-4">
                             <div class="text-uppercase tracking-widest text-accent text-sm fw-bold mb-2">Rendement Estimé</div>
                             <div class="display-3 fw-bold" style="font-family: var(--font-display);">
-                                {{ prediction.rendement_estime }} <span class="fs-4 text-white-50">kg</span>
+                                {{ prediction.rendement_estime }} <span class="fs-4 text-muted">kg</span>
                             </div>
-                            <div class="text-sm text-white-50 mt-2">Prédit le {{ prediction.date_prediction|date:"d/m/Y" }}</div>
+                            <div class="text-sm text-muted mt-2">Prédit le {{ prediction.date_prediction|date:"d/m/Y" }}</div>
                         </div>
                     {% else %}
-                        <div class="text-center py-4 text-white-50">
+                        <div class="text-center py-4 text-muted">
                             <i class="fas fa-robot fs-1 mb-3 opacity-50"></i>
                             <p>L'IA n'a pas encore analysé ce projet. Cliquez pour estimer votre future récolte.</p>
                         </div>
@@ -338,7 +338,7 @@
 <style>
     .project-hero-bg {
         position: absolute; top: 0; left: 0; width: 100%; height: 40vh; min-height: 350px;
-        background: linear-gradient(135deg, #020617 0%, #022c22 100%);
+        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
         z-index: 0;
     }
     .project-hero-bg .hero-overlay {
@@ -369,7 +369,7 @@
         border-bottom: 1px solid var(--border-color);
     }
     .glass-card-header h5 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--text-main); }
-    .dark-mode .glass-card-header h5 { color: white; }
+    .dark-mode .glass-card-header h5 { color: var(--text-main); }
 
     .glass-card-body { padding: 32px; }
 
@@ -386,7 +386,7 @@
     .info-value-text { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
 
     .bg-gradient-premium {
-        background: linear-gradient(135deg, #022c22 0%, #064e3b 100%);
+        background: var(--primary-light);
         border: 1px solid rgba(163, 230, 53, 0.2);
     }
 
@@ -402,13 +402,13 @@
 
     .badge-modern {
         background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white; padding: 6px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem;
+        color: var(--text-main); padding: 6px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem;
         display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display);
     }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
     .bg-surface { background: var(--bg-main); }
-    .text-dark { color: var(--text-main) !important; }
+    . { color: var(--text-main) !important; }
 
     @media (max-width: 991px) {
         .project-content-wrapper { padding-top: max(30vh, 250px); }

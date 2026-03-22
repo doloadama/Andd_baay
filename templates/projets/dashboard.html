@@ -53,7 +53,7 @@
     /* Grid Area Assignments */
     .tile-chart { grid-column: span 2; grid-row: span 2; min-height: 400px; }
     .tile-chart-pie { grid-column: span 2; grid-row: span 2; min-height: 400px; }
-    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(135deg, rgba(2, 44, 34, 0.9) 0%, rgba(2, 6, 23, 0.95) 100%); text-align: center; justify-content: center; align-items: center; border: 1px solid rgba(163, 230, 53, 0.2); }
+    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%); text-align: center; justify-content: center; align-items: center; border: 1px solid rgba(163, 230, 53, 0.2); }
     .tile-kpi { grid-column: span 1; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
     .tile-projects { grid-column: span 2; grid-row: span 2; max-height: 600px; overflow: hidden; }
     .tile-filters { grid-column: span 4; grid-row: span 1; }
@@ -163,7 +163,7 @@
         outline: none;
         border-color: var(--accent);
         box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
     }
     
     .filter-select option {
@@ -209,7 +209,7 @@
     .filter-btn.secondary:hover {
         border-color: var(--accent);
         color: var(--accent);
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
         box-shadow: none;
     }
     
@@ -353,7 +353,7 @@
     }
     
     .mini-project-card:hover {
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
         border-color: rgba(163, 230, 53, 0.4);
         transform: translateX(4px);
     }
@@ -432,7 +432,7 @@
     
     .action-btn:hover {
         background: var(--primary);
-        color: white;
+        color: var(--text-main);
         border-color: var(--primary);
     }
     
@@ -630,7 +630,7 @@
     
     .modal-project-item:hover {
         border-color: var(--accent);
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
         transform: translateX(8px);
     }
     
@@ -934,7 +934,7 @@
             <div style="width: 80px; height: 80px; background: rgba(163, 230, 53, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
                 <i class="fas fa-bolt fa-2x" style="color: var(--accent);"></i>
             </div>
-            <h4 style="color: white; font-family: var(--font-display); font-weight: 700; margin-bottom: 12px;">Nouveau Projet</h4>
+            <h4 style="color: var(--text-main); font-family: var(--font-display); font-weight: 700; margin-bottom: 12px;">Nouveau Projet</h4>
             <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">Lancez une prediction IA pour vos cultures.</p>
             <a href="{% url 'creer_projet' %}" class="btn-modern" style="background: var(--accent); color: #022c22; font-weight: 800; width: 100%;">
                 <i class="fas fa-plus me-2"></i> Creer

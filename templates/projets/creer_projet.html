@@ -7,7 +7,7 @@
     .form-page-bg {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, #020617 0%, #022c22 50%, #0f172a 100%);
+        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
         z-index: 0;
     }
     
@@ -53,19 +53,19 @@
 
     /* Glass Form Card */
     .glass-form-card {
-        background: rgba(15, 23, 42, 0.75);
+        background: var(--card-bg);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(163, 230, 53, 0.15);
+        border: 1px solid var(--border-color);
         border-radius: 32px;
         overflow: hidden;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
     .card-header-modern {
-        background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        background: var(--card-bg-solid);
         padding: 32px 40px;
-        border-bottom: 1px solid rgba(163, 230, 53, 0.2);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 16px;
@@ -87,7 +87,7 @@
     .header-text h4 {
         margin: 0;
         font-size: 1.4rem;
-        color: white;
+        color: var(--text-main);
         font-family: var(--font-display);
         font-weight: 700;
     }
@@ -95,7 +95,7 @@
     .header-text p {
         margin: 4px 0 0 0;
         font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
     }
 
     /* Progress Steps */
@@ -104,7 +104,7 @@
         justify-content: center;
         gap: 8px;
         padding: 24px 40px;
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
     }
     
     .progress-step {
@@ -117,14 +117,14 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: var(--bg-main);
+        border: 2px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-muted);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
@@ -144,7 +144,7 @@
     .step-label {
         font-size: 0.8rem;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         display: none;
     }
     
@@ -156,7 +156,7 @@
     .step-connector {
         width: 40px;
         height: 2px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--bg-main);
         margin: 0 4px;
     }
     
@@ -203,7 +203,7 @@
     }
 
     .form-label-modern {
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-main);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 10px;
@@ -219,7 +219,7 @@
     
     .form-label-hint {
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 400;
         margin-left: auto;
     }
@@ -228,8 +228,8 @@
         position: relative;
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
         border-radius: 16px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
@@ -237,12 +237,12 @@
     
     .input-wrapper:hover {
         border-color: rgba(163, 230, 53, 0.3);
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--bg-secondary);
     }
 
     .input-wrapper:focus-within {
         border-color: var(--accent);
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
         box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.1);
     }
     
@@ -256,7 +256,7 @@
     }
 
     .input-icon {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         padding-left: 20px;
         width: 48px;
         text-align: center;
@@ -272,7 +272,7 @@
     .modern-form textarea {
         background: transparent !important;
         border: none !important;
-        color: white !important;
+        color: var(--text-main) !important;
         width: 100%;
         padding: 18px 20px 18px 12px;
         font-size: 1rem;
@@ -282,7 +282,7 @@
     }
     
     .modern-form input::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--text-muted); opacity: 0.6;
     }
     
     .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
@@ -297,8 +297,8 @@
     }
 
     .modern-form select option {
-        background: #0f172a;
-        color: white;
+        background: var(--card-bg-solid);
+        color: var(--text-main);
         padding: 12px;
     }
 
@@ -341,7 +341,7 @@
         right: 16px;
         bottom: -20px;
         font-size: 0.7rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
     }
 
     /* Custom select styling */
@@ -357,7 +357,7 @@
         right: 20px;
         top: 50%;
         transform: translateY(-50%);
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         pointer-events: none;
         transition: transform 0.3s ease;
     }
@@ -383,17 +383,17 @@
         gap: 8px;
         padding: 14px 24px;
         background: transparent;
-        border: 2px solid rgba(255, 255, 255, 0.15);
+        border: 2px solid var(--border-color);
         border-radius: 14px;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-muted);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
     }
     
     .btn-back:hover {
-        border-color: rgba(255, 255, 255, 0.3);
-        color: white;
+        border-color: var(--text-muted); opacity: 0.6;
+        color: var(--text-main);
         transform: translateX(-4px);
     }
     
@@ -470,13 +470,13 @@
     .info-card-content h5 {
         margin: 0 0 4px 0;
         font-size: 0.95rem;
-        color: white;
+        color: var(--text-main);
     }
     
     .info-card-content p {
         margin: 0;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         line-height: 1.5;
     }
 
@@ -521,8 +521,8 @@
 <div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
     
     <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold text-white mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
-        <p class="lead text-white-50" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
+        <h1 class="display-4 fw-bold  mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
+        <p class="lead text-muted" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
     </div>
 
     {% if messages %}
@@ -618,7 +618,7 @@
                                         </label>
                                         <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 12px;">
                                             {% for produit in produits %}
-                                            <label class="product-checkbox-item" style="background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
+                                            <label class="product-checkbox-item" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
                                                 <div class="d-flex align-items-center gap-3">
                                                     <input type="checkbox" 
                                                            name="produits_selection" 
@@ -626,9 +626,9 @@
                                                            style="width: 20px; height: 20px; accent-color: var(--accent);"
                                                            onchange="this.closest('.product-checkbox-item').style.borderColor = this.checked ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)'; this.closest('.product-checkbox-item').style.background = this.checked ? 'rgba(163, 230, 53, 0.1)' : 'rgba(255, 255, 255, 0.05)';">
                                                     <div>
-                                                        <div class="text-white fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
+                                                        <div class=" fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
                                                         {% if produit.rendement_moyen %}
-                                                        <small class="text-white-50">~{{ produit.rendement_moyen }} kg/ha</small>
+                                                        <small class="text-muted">~{{ produit.rendement_moyen }} kg/ha</small>
                                                         {% endif %}
                                                     </div>
                                                 </div>

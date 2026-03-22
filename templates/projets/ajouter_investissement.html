@@ -48,7 +48,7 @@
     .project-info h3 {
         margin: 0 0 6px 0;
         font-size: 1.3rem;
-        color: white;
+        color: var(--text-main);
         font-family: var(--font-display);
     }
     
@@ -73,7 +73,7 @@
 
     /* Glass Form Card */
     .glass-form-card {
-        background: rgba(15, 23, 42, 0.75);
+        background: var(--card-bg);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         border: 1px solid rgba(16, 185, 129, 0.15);
@@ -107,7 +107,7 @@
     .header-text h4 {
         margin: 0;
         font-size: 1.4rem;
-        color: white;
+        color: var(--text-main);
         font-family: var(--font-display);
         font-weight: 700;
     }
@@ -145,7 +145,7 @@
     }
 
     .form-label-modern {
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-main);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 10px;
@@ -161,7 +161,7 @@
     
     .form-label-hint {
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 400;
         margin-left: auto;
     }
@@ -170,8 +170,8 @@
         position: relative;
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
         border-radius: 16px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
@@ -179,7 +179,7 @@
     
     .input-wrapper:hover {
         border-color: rgba(16, 185, 129, 0.3);
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--bg-secondary);
     }
 
     .input-wrapper:focus-within {
@@ -194,7 +194,7 @@
     }
 
     .input-icon {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         padding-left: 20px;
         width: 48px;
         text-align: center;
@@ -208,7 +208,7 @@
     /* Currency suffix */
     .input-suffix {
         padding-right: 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 600;
         font-size: 0.9rem;
     }
@@ -222,7 +222,7 @@
     .modern-form textarea {
         background: transparent !important;
         border: none !important;
-        color: white !important;
+        color: var(--text-main) !important;
         width: 100%;
         padding: 18px 20px 18px 12px;
         font-size: 1rem;
@@ -283,7 +283,7 @@
     
     .calc-header h5 {
         margin: 0;
-        color: white;
+        color: var(--text-main);
         font-size: 1rem;
     }
     
@@ -308,7 +308,7 @@
     }
     
     .calc-value {
-        color: white;
+        color: var(--text-main);
         font-weight: 600;
         font-size: 1rem;
     }
@@ -347,7 +347,7 @@
     
     .btn-back:hover {
         border-color: rgba(255, 255, 255, 0.3);
-        color: white;
+        color: var(--text-main);
         transform: translateX(-4px);
     }
     
@@ -359,7 +359,7 @@
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         border: none;
         border-radius: 14px;
-        color: white;
+        color: var(--text-main);
         font-weight: 700;
         font-size: 1rem;
         cursor: pointer;
@@ -417,8 +417,8 @@
 <div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
     
     <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold text-white mb-3" style="font-family: var(--font-display);">Nouvel Investissement</h1>
-        <p class="text-white-50">Enregistrez vos depenses pour suivre la rentabilite de votre projet.</p>
+        <h1 class="display-5 fw-bold  mb-3" style="font-family: var(--font-display);">Nouvel Investissement</h1>
+        <p class="text-muted">Enregistrez vos depenses pour suivre la rentabilite de votre projet.</p>
     </div>
 
     <div class="row justify-content-center">
