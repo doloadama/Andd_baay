@@ -7,7 +7,7 @@
     .form-page-bg {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(160deg, #020617 0%, #0f172a 50%, #022c22 100%);
+        background: linear-gradient(160deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
         z-index: 0;
     }
     
@@ -57,7 +57,7 @@
         flex-wrap: wrap;
         gap: 16px;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
     }
     
     .project-meta span {
@@ -79,11 +79,11 @@
         border: 1px solid rgba(16, 185, 129, 0.15);
         border-radius: 32px;
         overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-lg);
     }
 
     .card-header-modern {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0.95) 100%);
+        background: var(--card-bg-solid);
         padding: 32px 40px;
         border-bottom: 1px solid rgba(16, 185, 129, 0.2);
         display: flex;
@@ -115,7 +115,7 @@
     .header-text p {
         margin: 4px 0 0 0;
         font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
     }
 
     /* Form Styles */
@@ -238,7 +238,8 @@
     
     .modern-form input::placeholder,
     .modern-form textarea::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--text-muted);
+        opacity: 0.5;
     }
     
     .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
@@ -292,7 +293,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px 0;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        border-bottom: 1px dashed var(--border-color);
     }
     
     .calc-row:last-child {
@@ -303,7 +304,7 @@
     }
     
     .calc-label {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         font-size: 0.9rem;
     }
     
@@ -327,7 +328,7 @@
         align-items: center;
         padding-top: 32px;
         margin-top: 40px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid var(--border-color);
     }
     
     .btn-back {
@@ -336,9 +337,9 @@
         gap: 8px;
         padding: 14px 24px;
         background: transparent;
-        border: 2px solid rgba(255, 255, 255, 0.15);
+        border: 2px solid var(--border-color);
         border-radius: 14px;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-muted);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -346,7 +347,7 @@
     }
     
     .btn-back:hover {
-        border-color: rgba(255, 255, 255, 0.3);
+        border-color: var(--accent);
         color: var(--text-main);
         transform: translateX(-4px);
     }
