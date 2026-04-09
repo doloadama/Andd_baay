@@ -46,7 +46,31 @@ except ImportError:
 
 # Vue pour la page d'accueil
 def home_view(request):
-    return render(request, 'home.html')
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    context = {
+        'stats': {
+            'nb_users': User.objects.count(),
+            'nb_projets': Projet.objects.count(),
+        }
+    }
+
+    if request.user.is_authenticated:
+        try:
+            projets_actifs = Projet.objects.filter(
+                utilisateur=request.user.profile, statut='en_cours'
+            ).count()
+            prochain_semis = Projet.objects.filter(
+                utilisateur=request.user.profile
+            ).order_by('-date_lancement').first()
+            context['projets_actifs'] = projets_actifs
+            context['prochain_projet'] = prochain_semis
+        except Exception:
+            context['projets_actifs'] = 0
+            context['prochain_projet'] = None
+
+    return render(request, 'home.html', context)
 
 # Vue pour l'inscription
 def register_view(request):

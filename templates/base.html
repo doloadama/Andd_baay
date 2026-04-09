@@ -22,9 +22,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet : charge conditionnellement par chaque template qui en a besoin -->
+    {% block extra_head %}{% endblock %}
 
     <style>
         /* ===== MODERN DESIGN SYSTEM WITH FULL DARK/LIGHT MODE ===== */
@@ -105,6 +104,11 @@
             --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             --shadow-glow: 0 0 50px rgba(163, 230, 53, 0.2);
+        }
+
+        /* 2.4 — Filtre dark mode images (exclure avec data-no-filter) */
+        .dark-mode img:not([data-no-filter]) {
+            filter: brightness(0.85) contrast(1.05);
         }
 
         /* ===== BASE STYLES ===== */
@@ -639,7 +643,7 @@
 
         .btn-primary-modern {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: var(--text-inverse) !important;
+            color: #022c22 !important;
             box-shadow: 0 4px 14px rgba(163, 230, 53, 0.3);
         }
 
@@ -1332,7 +1336,8 @@
             let messageHistory = [];
             let unreadMessages = 0;
             
-            if (localStorage.getItem('chatState') === 'open') {
+            // Ne pas rouvrir automatiquement sur mobile (évite de bloquer l'interface)
+            if (localStorage.getItem('chatState') === 'open' && window.innerWidth > 768) {
                 setTimeout(openChat, 100);
             }
             
@@ -1368,6 +1373,7 @@
             clearChatButton.addEventListener('click', () => {
                 if(messageHistory.length && confirm('Effacer la discussion ?')) {
                     messageHistory = [];
+                    localStorage.removeItem('chatHistory');
                     chatMessages.innerHTML = '';
                     chatMessages.appendChild(welcomeMessage);
                     welcomeMessage.style.display = 'block';
@@ -1389,16 +1395,21 @@
                 return cookieValue;
             }
 
-            function sendMessage() {
-                const message = messageInput.value.trim();
+            let lastUserMessage = '';
+
+            function sendMessage(retryText = null) {
+                const message = retryText || messageInput.value.trim();
                 if (!message) return;
-                
+
+                lastUserMessage = message;
+
                 if (welcomeMessage) welcomeMessage.style.display = 'none';
-                addMessage(message, 'user');
-                
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                
+                if (!retryText) {
+                    addMessage(message, 'user');
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                }
+
                 sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 sendButton.disabled = true;
 
@@ -1407,43 +1418,134 @@
                     headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
                     body: JSON.stringify({ message: message }),
                 })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('server_error');
+                    return res.json();
+                })
                 .then(data => {
-                    addMessage(data.response || "Aucune reponse.", 'assistant');
+                    if (data.error) throw new Error('api_error');
+                    addMessage(data.response || "Aucune réponse.", 'assistant');
                     if (!chatWindow.classList.contains('open')) {
                         unreadMessages++;
                         chatNotification.textContent = unreadMessages;
                         chatNotification.classList.add('show');
                     }
                 })
-                .catch(err => addMessage("Erreur : " + err.message, 'assistant', true))
+                .catch(() => renderError("Une erreur est survenue. Veuillez réessayer.", lastUserMessage))
                 .finally(() => {
                     sendButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
                     sendButton.disabled = false;
                 });
             }
-            
-            function addMessage(text, sender, isError = false) {
+
+            function renderError(friendlyMessage, retryMessage) {
                 const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                messageHistory.push({ text, sender, timestamp });
-                
                 const messageEl = document.createElement('div');
-                messageEl.className = `message ${sender}`;
-                
+                messageEl.className = 'message assistant';
+
                 const contentEl = document.createElement('div');
                 contentEl.className = 'message-content';
-                if (isError) { contentEl.style.borderColor = 'var(--danger)'; contentEl.style.color = 'var(--danger)'; }
-                contentEl.innerHTML = text.replace(/\n/g, '<br>');
-                
+                contentEl.style.borderColor = 'var(--danger)';
+                contentEl.style.color = 'var(--danger)';
+
+                const retryBtn = document.createElement('button');
+                retryBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Réessayer';
+                retryBtn.style.cssText = 'margin-top:8px; padding:5px 12px; border-radius:8px; border:1px solid var(--danger); background:transparent; color:var(--danger); font-size:0.8rem; cursor:pointer; display:block;';
+                retryBtn.onclick = () => {
+                    messageEl.remove();
+                    sendMessage(retryMessage);
+                };
+
+                contentEl.textContent = friendlyMessage;
+                contentEl.appendChild(retryBtn);
+
                 const timeEl = document.createElement('div');
                 timeEl.className = 'message-time';
                 timeEl.textContent = timestamp;
-                
+
                 messageEl.appendChild(contentEl);
                 messageEl.appendChild(timeEl);
                 chatMessages.appendChild(messageEl);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
+            
+            // ===== Persistance localStorage =====
+            const CHAT_HISTORY_KEY = 'chatHistory';
+            const MAX_HISTORY = 50;
+
+            function saveChatHistory() {
+                // Garder seulement les MAX_HISTORY derniers messages
+                const toSave = messageHistory.slice(-MAX_HISTORY);
+                try {
+                    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(toSave));
+                } catch(e) {
+                    // Ignorer les erreurs de quota localStorage
+                }
+            }
+
+            function restoreChatHistory() {
+                try {
+                    const saved = localStorage.getItem(CHAT_HISTORY_KEY);
+                    if (!saved) return;
+                    const history = JSON.parse(saved);
+                    if (!Array.isArray(history) || history.length === 0) return;
+
+                    // Masquer le message de bienvenue
+                    if (welcomeMessage) welcomeMessage.style.display = 'none';
+
+                    history.forEach(msg => {
+                        renderMessage(msg.text, msg.sender, msg.timestamp, false);
+                        messageHistory.push(msg);
+                    });
+                } catch(e) {
+                    localStorage.removeItem(CHAT_HISTORY_KEY);
+                }
+            }
+
+            function renderMessage(text, sender, timestamp, scroll = true) {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${sender}`;
+
+                const contentEl = document.createElement('div');
+                contentEl.className = 'message-content';
+                contentEl.innerHTML = text.replace(/\n/g, '<br>');
+
+                const timeEl = document.createElement('div');
+                timeEl.className = 'message-time';
+                timeEl.textContent = timestamp;
+
+                messageEl.appendChild(contentEl);
+                messageEl.appendChild(timeEl);
+                chatMessages.appendChild(messageEl);
+                if (scroll) chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function addMessage(text, sender, isError = false) {
+                const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const msgData = { text, sender, timestamp };
+                messageHistory.push(msgData);
+                saveChatHistory();
+
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${sender}`;
+
+                const contentEl = document.createElement('div');
+                contentEl.className = 'message-content';
+                if (isError) { contentEl.style.borderColor = 'var(--danger)'; contentEl.style.color = 'var(--danger)'; }
+                contentEl.innerHTML = text.replace(/\n/g, '<br>');
+
+                const timeEl = document.createElement('div');
+                timeEl.className = 'message-time';
+                timeEl.textContent = timestamp;
+
+                messageEl.appendChild(contentEl);
+                messageEl.appendChild(timeEl);
+                chatMessages.appendChild(messageEl);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Restaurer l'historique au chargement
+            restoreChatHistory();
             
             setTimeout(() => {
                 if (!chatWindow.classList.contains('open')) {
