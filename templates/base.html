@@ -1668,17 +1668,26 @@
                 sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 sendButton.disabled = true;
 
+                // Build history payload from recent messageHistory
+                const historyPayload = messageHistory.slice(-12).map(m => ({
+                    role: m.role === 'user' ? 'user' : 'assistant',
+                    text: m.text || m.content || ''
+                }));
+
                 fetch("/api/chatbot/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
-                    body: JSON.stringify({ message: message }),
+                    body: JSON.stringify({ message: message, history: historyPayload }),
                 })
-                .then(res => {
-                    if (!res.ok) throw new Error('server_error');
-                    return res.json();
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok || data.error) {
+                        // Show the server's French error message directly
+                        throw { serverMessage: data.error || 'Une erreur est survenue.' };
+                    }
+                    return data;
                 })
                 .then(data => {
-                    if (data.error) throw new Error('api_error');
                     addMessage(data.response || "Aucune réponse.", 'assistant');
                     if (!chatWindow.classList.contains('open')) {
                         unreadMessages++;
@@ -1686,7 +1695,10 @@
                         chatNotification.classList.add('show');
                     }
                 })
-                .catch(() => renderError("Une erreur est survenue. Veuillez réessayer.", lastUserMessage))
+                .catch(err => {
+                    const msg = err.serverMessage || "Une erreur est survenue. Veuillez réessayer.";
+                    renderError(msg, lastUserMessage);
+                })
                 .finally(() => {
                     sendButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
                     sendButton.disabled = false;

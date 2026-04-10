@@ -138,55 +138,116 @@ if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_
 # Maximum allowed prompt length for chatbot
 MAX_PROMPT_LENGTH = 4000
 
+# Gemini models to try in order (free tier quota varies per model)
+GEMINI_MODELS = [
+    "gemini-3-flash-preview"
+]
+
+SYSTEM_PROMPT = """Tu es Baay AI, l'assistant agricole intelligent de la plateforme Andd Baay. 
+Tu aides les agriculteurs sénégalais et ouest-africains avec :
+- Les cultures locales : mil, sorgho, maïs, arachide, niébé, riz, manioc, igname, coton, sésame, pastèque
+- Les techniques de semis, irrigation, fertilisation et récolte adaptées au Sahel
+- Les maladies et ravageurs courants (mildiou, chenille légionnaire, etc.)
+- La météo agricole et les saisons des pluies (hivernage)
+- Les prédictions de rendement et la gestion financière des exploitations
+- Les conseils en wolof ou français selon la préférence
+
+Réponds toujours en français (sauf si la question est en wolof). 
+Sois précis, pratique et adapté aux réalités locales. 
+Limite tes réponses à 300 mots maximum.
+Si une question n'est pas agricole, redirige poliment vers ton domaine d'expertise."""
+
 def _sanitize_chatbot_input(prompt):
     """Sanitize and validate chatbot input."""
     if not prompt or not isinstance(prompt, str):
         return None, "Message is required and must be a string."
-    
-    # Strip whitespace and check length
     prompt = prompt.strip()
     if len(prompt) == 0:
         return None, "Message cannot be empty."
-    
     if len(prompt) > MAX_PROMPT_LENGTH:
         return None, f"Message exceeds maximum length of {MAX_PROMPT_LENGTH} characters."
-    
-    # Remove potentially harmful content (basic sanitization)
-    # This prevents prompt injection attempts
-    sanitized = prompt.replace('\x00', '')  # Remove null bytes
-    
+    sanitized = prompt.replace('\x00', '')
     return sanitized, None
+
+def _call_gemini(full_prompt):
+    """Try Gemini models in order, return (text, model_used) or raise last exception."""
+    last_error = None
+    for model in GEMINI_MODELS:
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=full_prompt,
+            )
+            return response.text, model
+        except Exception as e:
+            last_error = e
+            error_str = str(e)
+            # Only retry on quota/rate-limit errors
+            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str or 'rate' in error_str.lower():
+                logger.warning(f"Model {model} quota exceeded, trying next...")
+                continue
+            # For other errors (auth, invalid, etc.) fail immediately
+            raise
+    raise last_error
 
 # Chatbot — CSRF enabled, login required for security
 @login_required
 def ask_chatbot(request):
     if not client:
-        return JsonResponse({'error': 'Chatbot is not available. Please configure GEMINI_API_KEY.'}, status=503)
-    
+        return JsonResponse({
+            'error': 'Le chatbot IA est temporairement indisponible. Clé API non configurée.'
+        }, status=503)
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             raw_prompt = data.get('message', '')
-            
-            # Sanitize and validate input
+            history = data.get('history', [])  # List of {role, text} from frontend
+
+            # Sanitize input
             prompt, error = _sanitize_chatbot_input(raw_prompt)
             if error:
                 return JsonResponse({'error': error}, status=400)
 
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-            )
+            # Build conversation with system context + history
+            conversation_parts = [SYSTEM_PROMPT, "\n\n"]
+            for msg in history[-6:]:  # Keep last 6 exchanges to avoid token bloat
+                role = msg.get('role', 'user')
+                text = msg.get('text', '')[:500]  # Trim history messages
+                if role == 'user':
+                    conversation_parts.append(f"Utilisateur: {text}")
+                else:
+                    conversation_parts.append(f"Baay AI: {text}")
+            conversation_parts.append(f"\nUtilisateur: {prompt}\nBaay AI:")
 
-            return JsonResponse({'response': response.text})
+            full_prompt = "\n".join(conversation_parts)
+
+            text, model_used = _call_gemini(full_prompt)
+            logger.info(f"Chatbot answered via {model_used}")
+            return JsonResponse({'response': text, 'model': model_used})
 
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
+            return JsonResponse({'error': 'Requête invalide.'}, status=400)
         except Exception as e:
+            error_str = str(e)
             logger.error(f"Chatbot error: {type(e).__name__}: {e}")
-            return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+            # User-friendly French error messages
+            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str:
+                return JsonResponse({
+                    'error': '⏳ Le quota de l\'assistant IA est temporairement épuisé. Réessayez dans quelques minutes.'
+                }, status=429)
+            elif '401' in error_str or 'API_KEY' in error_str or 'auth' in error_str.lower():
+                return JsonResponse({
+                    'error': '🔑 Clé API invalide. Contactez l\'administrateur.'
+                }, status=503)
+            else:
+                return JsonResponse({
+                    'error': '❌ Une erreur est survenue. Veuillez réessayer.'
+                }, status=500)
+
+    return JsonResponse({'error': 'Méthode non autorisée.'}, status=405)
+
 
 @login_required
 def creer_projet(request):
