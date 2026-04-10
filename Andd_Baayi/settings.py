@@ -207,13 +207,18 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
         'OAUTH_PKCE_ENABLED': True,
-        'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
-            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
-            'key': '',
-        },
+        # Les credentials (client_id/secret) sont stockés en base via SocialApp
+        # Ne pas les dupliquer ici pour éviter MultipleObjectsReturned
     }
 }
+
+# Créer un compte auto si l'email Google est nouveau
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# Pas de page de confirmation intermédiaire après Google OAuth
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# Rediriger vers le dashboard après connexion sociale
+LOGIN_REDIRECT_URL = '/dashboard/'
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 
 # REST Framework configuration
 REST_FRAMEWORK = {
@@ -237,7 +242,7 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/static/media')
-LOGIN_REDIRECT_URL = '/dashboard/'
+
 
 # Logging configuration
 LOGGING = {
