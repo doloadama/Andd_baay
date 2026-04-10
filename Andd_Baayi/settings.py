@@ -147,13 +147,17 @@ if DATABASE_URL:
     try:
         parts = urlsplit(DATABASE_URL)
         query = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k not in {"supa", "pgbouncer"}]
-        DATABASE_URL = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+        # Switch to Transaction pooler (port 6543) to fix MaxClientsInSessionMode on Supabase.
+        # Session mode (port 5432) is capped; Transaction mode handles serverless much better.
+        netloc = parts.netloc.replace(":5432", ":6543")
+        DATABASE_URL = urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), parts.fragment))
     except Exception:
         # If parsing fails, fall back to the raw value and let Django surface the error.
         pass
 
     DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=60, ssl_require=True),
+        # conn_max_age=0: no persistent connections between serverless Vercel invocations.
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=0, ssl_require=True),
     }
 elif os.getenv('ENV') == 'production':
     DATABASES = {
