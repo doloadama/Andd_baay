@@ -14,7 +14,7 @@
 
     /* Left visual panel */
     .auth-visual {
-        background: linear-gradient(160deg, var(--primary) 0%, var(--bg-main) 60%, var(--bg-secondary) 100%);
+        background: linear-gradient(160deg, #022c22 0%, #054c38 40%, #0a2540 100%);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         padding: 40px 36px; position: relative; overflow: hidden;
     }
@@ -22,14 +22,14 @@
     .auth-visual::before {
         content: ''; position: absolute; top: -30%; right: -20%;
         width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(163, 230, 53, 0.15) 0%, transparent 60%);
+        background: radial-gradient(circle, rgba(163, 230, 53, 0.18) 0%, transparent 60%);
         border-radius: 50%; animation: gentlePulse 8s ease-in-out infinite alternate;
     }
 
     .auth-visual::after {
         content: ''; position: absolute; bottom: -20%; left: -10%;
         width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(163, 230, 53, 0.08) 0%, transparent 60%);
+        background: radial-gradient(circle, rgba(163, 230, 53, 0.1) 0%, transparent 60%);
         border-radius: 50%; animation: gentlePulse 10s ease-in-out infinite alternate-reverse;
     }
 
@@ -42,26 +42,26 @@
 
     .visual-icon {
         width: 56px; height: 56px;
-        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.25);
+        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.3);
         border-radius: 16px; display: flex; align-items: center; justify-content: center;
         font-size: 24px; color: #a3e635; margin: 0 auto 24px auto;
     }
 
-    .visual-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: white; line-height: 1.2; margin-bottom: 12px; }
-    .visual-subtitle { color: rgba(255,255,255,0.6); font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px; }
+    .visual-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: #f8fafc; line-height: 1.2; margin-bottom: 12px; }
+    .visual-subtitle { color: rgba(248, 250, 252, 0.65); font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px; }
 
     .visual-steps { display: flex; flex-direction: column; gap: 14px; text-align: left; }
-    .visual-step { display: flex; align-items: flex-start; gap: 12px; color: rgba(255,255,255,0.8); }
+    .visual-step { display: flex; align-items: flex-start; gap: 12px; }
 
     .step-num {
         width: 30px; height: 30px; min-width: 30px;
-        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.3);
+        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.35);
         border-radius: 8px; display: flex; align-items: center; justify-content: center;
         color: #a3e635; font-family: var(--font-display); font-weight: 800; font-size: 0.8rem;
     }
 
-    .step-text strong { display: block; color: white; margin-bottom: 2px; }
-    .step-text span { font-size: 0.88rem; color: rgba(255,255,255,0.55); }
+    .step-text strong { display: block; color: #f8fafc; margin-bottom: 2px; font-weight: 700; }
+    .step-text span { font-size: 0.88rem; color: rgba(248, 250, 252, 0.58); }
 
     /* Right form panel */
     .auth-form-panel {

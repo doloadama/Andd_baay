@@ -1140,6 +1140,218 @@
                 padding: 24px 0;
             }
         }
+        /* ===== ONBOARDING TOUR ===== */
+        .tour-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        .tour-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .tour-modal {
+            background: var(--card-bg);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            max-width: 520px;
+            width: 100%;
+            max-height: min(620px, 92vh);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.45), 0 0 0 1px rgba(163,230,53,0.1);
+            transform: scale(0.93) translateY(16px);
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .tour-overlay.active .tour-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Header compact: icône + texte en ligne */
+        .tour-header {
+            background: linear-gradient(135deg, #022c22 0%, #054c38 55%, #0a2540 100%);
+            padding: 20px 24px 18px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .tour-header::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -15%;
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(163,230,53,0.18) 0%, transparent 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .tour-header-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative; z-index: 1;
+        }
+
+        .tour-icon {
+            width: 48px; height: 48px; min-width: 48px;
+            background: rgba(163,230,53,0.15);
+            border: 1.5px solid rgba(163,230,53,0.3);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: #a3e635;
+        }
+
+        .tour-header-text { flex: 1; min-width: 0; }
+
+        .tour-step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(163,230,53,0.15);
+            border: 1px solid rgba(163,230,53,0.3);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #a3e635;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 5px;
+        }
+
+        .tour-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #f8fafc;
+            margin: 0 0 3px 0;
+            line-height: 1.2;
+        }
+
+        .tour-description {
+            color: rgba(248,250,252,0.65);
+            font-size: 0.78rem;
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        /* Body scrollable */
+        .tour-body {
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .tour-body::-webkit-scrollbar { width: 4px; }
+        .tour-body::-webkit-scrollbar-track { background: transparent; }
+        .tour-body::-webkit-scrollbar-thumb { background: rgba(163,230,53,0.25); border-radius: 4px; }
+
+        .tour-tips {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tour-tip {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 13px;
+            background: rgba(163,230,53,0.05);
+            border: 1px solid rgba(163,230,53,0.1);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .tour-tip:hover {
+            background: rgba(163,230,53,0.09);
+            border-color: rgba(163,230,53,0.22);
+        }
+
+        .tour-tip-icon {
+            width: 30px; height: 30px; min-width: 30px;
+            background: rgba(163,230,53,0.1);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+            font-size: 12px;
+        }
+
+        .tour-tip-text { flex: 1; }
+        .tour-tip-text strong { display: block; color: var(--text-main); font-size: 0.82rem; margin-bottom: 1px; font-weight: 700; }
+        .tour-tip-text span { color: var(--text-muted); font-size: 0.76rem; line-height: 1.4; }
+
+        /* Footer fixe */
+        .tour-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px 16px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+            background: var(--card-bg);
+        }
+
+        .tour-progress { display: flex; gap: 5px; align-items: center; }
+
+        .tour-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tour-dot.active { width: 20px; border-radius: 4px; background: var(--accent); }
+        .tour-dot.done { background: rgba(163,230,53,0.4); }
+
+        .tour-actions { display: flex; gap: 8px; align-items: center; }
+
+        .tour-skip {
+            background: none; border: none;
+            color: var(--text-muted); font-size: 0.8rem;
+            cursor: pointer; padding: 7px 10px;
+            border-radius: 8px; transition: all 0.2s ease; font-weight: 600;
+        }
+        .tour-skip:hover { color: var(--text-main); background: var(--bg-secondary); }
+
+        .tour-next {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 9px 20px;
+            background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
+            color: #022c22;
+            font-family: var(--font-display); font-weight: 700; font-size: 0.84rem;
+            border: none; border-radius: var(--radius-pill);
+            cursor: pointer; transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .tour-next:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(163,230,53,0.35); }
+
+        @media (max-width: 576px) {
+            .tour-modal { border-radius: 18px; max-height: 88vh; }
+            .tour-header { padding: 16px 18px 14px; }
+            .tour-icon { width: 40px; height: 40px; min-width: 40px; font-size: 18px; border-radius: 11px; }
+            .tour-title { font-size: 0.98rem; }
+            .tour-body { padding: 14px 18px; }
+            .tour-footer { padding: 10px 18px 14px; }
+        }
     </style>
 </head>
 
@@ -1147,6 +1359,44 @@
     <a class="skip-link" href="#main">Aller au contenu</a>
     <!-- Global Background Wrapper -->
     <div class="background-container"></div>
+
+    <!-- ===== ONBOARDING TOUR MODAL ===== -->
+    {% if user.is_authenticated %}
+    <div id="tourOverlay" class="tour-overlay" role="dialog" aria-modal="true" aria-label="Guide utilisateur">
+        <div class="tour-modal">
+            <!-- Header compact: icône + texte côte à côte -->
+            <div class="tour-header" id="tourHeader">
+                <div class="tour-header-top">
+                    <div class="tour-icon" id="tourIcon"><i id="tourIconEl" class="fas fa-seedling"></i></div>
+                    <div class="tour-header-text">
+                        <div class="tour-step-badge">
+                            <i class="fas fa-map-signs"></i>
+                            <span id="tourStepLabel">Étape 1 sur 5</span>
+                        </div>
+                        <h2 class="tour-title" id="tourTitle">Bienvenue sur Andd Baay 🌱</h2>
+                        <p class="tour-description" id="tourDesc">La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body dynamique -->
+            <div class="tour-body">
+                <div class="tour-tips" id="tourTips"></div>
+            </div>
+
+            <!-- Footer -->
+            <div class="tour-footer">
+                <div class="tour-progress" id="tourProgress"></div>
+                <div class="tour-actions">
+                    <button class="tour-skip" id="tourSkip" onclick="closeTour()">Passer le guide</button>
+                    <button class="tour-next" id="tourNext" onclick="nextStep()">
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Enhanced Floating Navbar -->
     <div class="navbar-wrapper">
@@ -1202,6 +1452,11 @@
                                 <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Déconnexion">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </a>
+                            </li>
+                            <li class="nav-item">
+                                <button id="openGuideBtn" class="theme-toggle" title="Guide utilisateur" onclick="startTour()" style="font-size: 0.8rem; font-weight: 800; color: var(--accent);">
+                                    <i class="fas fa-question"></i>
+                                </button>
                             </li>
                         {% else %}
                             <li class="nav-item">
@@ -1554,5 +1809,144 @@
             }, 3000);
         });
     </script>
+
+    <!-- ===== ONBOARDING TOUR SCRIPT ===== -->
+    {% if user.is_authenticated %}
+    <script>
+    const TOUR_KEY = 'anddbaay_tour_done_v1';
+
+    const tourSteps = [
+        {
+            icon: 'fa-seedling',
+            title: 'Bienvenue sur Andd Baay 🌱',
+            desc: 'La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte.',
+            tips: [
+                { icon: 'fa-map', title: 'Une plateforme tout-en-un', text: 'Gérez vos projets agricoles, suivez vos semis et obtenez des prédictions de rendement basées sur l\'IA.' },
+                { icon: 'fa-moon', title: 'Mode jour / nuit', text: 'Utilisez le bouton 🌙 en haut à droite pour changer de thème selon vos préférences.' },
+                { icon: 'fa-question-circle', title: 'Ce guide toujours accessible', text: 'Cliquez à tout moment sur le bouton <strong>?</strong> dans la barre de navigation pour relancer ce guide.' },
+            ]
+        },
+        {
+            icon: 'fa-folder-plus',
+            title: 'Créer votre premier projet',
+            desc: 'Un projet représente une parcelle agricole avec ses cultures, sa superficie et ses objectifs de rendement.',
+            tips: [
+                { icon: 'fa-plus', title: 'Bouton « Nouveau »', text: 'Cliquez sur <strong>Nouveau</strong> dans la navbar ou sur la page Projets pour créer votre premier projet.' },
+                { icon: 'fa-map-marker-alt', title: 'Sélectionner une localité', text: 'Choisissez votre région pour que nos algorithmes utilisent les données météo et sol adaptées.' },
+                { icon: 'fa-leaf', title: 'Choisir vos cultures', text: 'Sélectionnez une ou plusieurs cultures. Le système calcule automatiquement le rendement estimé.' },
+            ]
+        },
+        {
+            icon: 'fa-chart-pie',
+            title: 'Le Dashboard analytique',
+            desc: 'Votre centre de commande : statistiques, graphiques et suivi en temps réel de tous vos projets.',
+            tips: [
+                { icon: 'fa-chart-bar', title: 'Graphiques interactifs', text: 'Analysez l\'évolution de vos superficies et rendements mois par mois avec les graphiques du dashboard.' },
+                { icon: 'fa-sliders-h', title: 'Filtres avancés', text: 'Filtrez par statut, culture ou période pour affiner votre analyse.' },
+                { icon: 'fa-mouse-pointer', title: 'Cliquez sur les KPI', text: 'Cliquez sur les tuiles (superficie, rendement...) pour voir les projets correspondants.' },
+            ]
+        },
+        {
+            icon: 'fa-seedling',
+            title: 'Suivi de vos Semis',
+            desc: 'Enregistrez chaque semis avec sa date, sa superficie et suivez l\'évolution jusqu\'à la récolte.',
+            tips: [
+                { icon: 'fa-calendar-alt', title: 'Dates de semis et récolte', text: 'Saisissez les dates de semis et récolte prévues pour chaque culture de vos projets.' },
+                { icon: 'fa-camera', title: 'Photos de vos plants', text: 'Ajoutez des photos au fil des semaines pour documenter l\'évolution de vos cultures.' },
+                { icon: 'fa-check-circle', title: 'Clôturer un projet', text: 'Quand la récolte est terminée, saisissez le rendement final pour entraîner le modèle IA.' },
+            ]
+        },
+        {
+            icon: 'fa-robot',
+            title: 'L\'Assistant IA 🤖',
+            desc: 'Posez vos questions agricoles en langage naturel — météo, maladies, conseils, prédictions.',
+            tips: [
+                { icon: 'fa-comment-dots', title: 'Disponible partout', text: 'Cliquez sur le bouton vert en bas à droite pour ouvrir l\'assistant à tout moment.' },
+                { icon: 'fa-history', title: 'Historique conservé', text: 'Vos conversations sont sauvegardées localement et restaurées à chaque visite.' },
+                { icon: 'fa-lightbulb', title: 'Exemples de questions', text: '"Quand irriguer le mil ?" — "Quels semences pour la saison sèche ?" — "Analyse mon rendement."' },
+            ]
+        }
+    ];
+
+    let currentStep = 0;
+
+    function renderStep(step) {
+        const s = tourSteps[step];
+        const total = tourSteps.length;
+
+        document.getElementById('tourStepLabel').textContent = `Étape ${step + 1} sur ${total}`;
+        document.getElementById('tourIconEl').className = `fas ${s.icon}`;
+        document.getElementById('tourTitle').textContent = s.title;
+        document.getElementById('tourDesc').textContent = s.desc;
+
+        // Tips
+        const tipsEl = document.getElementById('tourTips');
+        tipsEl.innerHTML = s.tips.map(t => `
+            <div class="tour-tip">
+                <div class="tour-tip-icon"><i class="fas ${t.icon}"></i></div>
+                <div class="tour-tip-text">
+                    <strong>${t.title}</strong>
+                    <span>${t.text}</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Progress dots
+        const progEl = document.getElementById('tourProgress');
+        progEl.innerHTML = tourSteps.map((_, i) => `
+            <div class="tour-dot ${i === step ? 'active' : i < step ? 'done' : ''}" onclick="goToStep(${i})"></div>
+        `).join('');
+
+        // Next button
+        const btn = document.getElementById('tourNext');
+        if (step === total - 1) {
+            btn.innerHTML = `C'est parti ! <i class="fas fa-check ms-1"></i>`;
+            btn.onclick = closeTour;
+            document.getElementById('tourSkip').style.display = 'none';
+        } else {
+            btn.innerHTML = `Suivant <i class="fas fa-arrow-right"></i>`;
+            btn.onclick = nextStep;
+            document.getElementById('tourSkip').style.display = '';
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < tourSteps.length - 1) {
+            currentStep++;
+            renderStep(currentStep);
+        }
+    }
+
+    function goToStep(i) {
+        currentStep = i;
+        renderStep(currentStep);
+    }
+
+    function startTour() {
+        currentStep = 0;
+        renderStep(0);
+        document.getElementById('tourOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeTour() {
+        document.getElementById('tourOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+        localStorage.setItem(TOUR_KEY, '1');
+    }
+
+    // Fermeture en cliquant l'overlay
+    document.getElementById('tourOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeTour();
+    });
+
+    // Auto-show à la première visite (délai pour laisser la page charger)
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!localStorage.getItem(TOUR_KEY)) {
+            setTimeout(startTour, 800);
+        }
+    });
+    </script>
+    {% endif %}
 </body>
 </html>
