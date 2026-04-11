@@ -175,6 +175,10 @@
                                 <span class="text-sm fw-bold" style="color: var(--text-muted);">{{ prediction.indice_confiance|floatformat:0 }}% Confiance</span>
                             </div>
 
+                            <div class="mt-4" style="height: 120px;">
+                                <canvas id="growthCurveChart"></canvas>
+                            </div>
+
                             <div class="text-sm text-muted mt-3">
                                 <i class="fas fa-calendar-check me-1"></i> Récolte prévue : <strong>{{ prediction.date_recolte_prevue|date:"d M Y"|default:"À déterminer" }}</strong>
                             </div>
@@ -486,16 +490,46 @@
                         barPercentage: 0.5
                     }]
                 },
+        // Growth Curve Chart (Predictive)
+        const growthCtx = document.getElementById('growthCurveChart');
+        if (growthCtx) {
+            const ctx = growthCtx.getContext('2d');
+            const totalDays = 90; // Fallback cycle duration
+            const labels = Array.from({length: 10}, (_, i) => Math.round(i * (totalDays / 9)));
+            
+            // Sigmoid function for S-Curve
+            const sigmoid = (x) => 1 / (1 + Math.exp(-0.7 * (x - 5)));
+            const dataPoints = labels.map((_, i) => sigmoid(i) * 100);
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 100);
+            gradient.addColorStop(0, 'rgba(57, 255, 20, 0.4)');
+            gradient.addColorStop(1, 'rgba(57, 255, 20, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Croissance (%)',
+                        data: dataPoints,
+                        borderColor: '#39FF14',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.4
+                    }]
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
-                        x: { grid: { display: false }, ticks: { color: textColor } }
+                        y: { display: false, min: 0, max: 110 },
+                        x: { display: false }
                     },
                     plugins: {
                         legend: { display: false },
-                        tooltip: { backgroundColor: isDark ? '#0f172a' : '#fff', titleColor: isDark ? '#fff' : '#000', bodyColor: isDark ? '#94a3b8' : '#64748b', overlay: true }
+                        tooltip: { enabled: false }
                     }
                 }
             });

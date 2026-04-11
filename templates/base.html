@@ -28,51 +28,63 @@
     <style>
         /* ===== MODERN DESIGN SYSTEM WITH FULL DARK/LIGHT MODE ===== */
         :root {
-            /* Afro-Tech Palette (Terre & Tech) */
-            --tech-green: #39FF14;
+            /* Palette Premium Afro-Tech */
+            --bg-deep: #0a0d0a;
+            --card-glass: rgba(22, 27, 19, 0.7);
+            --neon-green: #39FF14;
             --tech-green-glow: rgba(57, 255, 20, 0.3);
-            --terroir-ocre: #E2725B;
-            --terroir-brun: #1A1410;
+            --safran-ocre: #E2725B;
             --sun-yellow: #FFD700;
+            --border-glass: rgba(255, 255, 255, 0.08);
             
-            --primary: var(--tech-green);
-            --accent: var(--tech-green);
-            --accent-hover: #bef264;
-            
-            --bg-main: #f8fafc;
-            --bg-secondary: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --card-bg-solid: #ffffff;
-            
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            
-            --border-color: #e2e8f0;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            
+            /* Typography & Spacing */
+            --font-main: 'Inter', sans-serif;
             --font-display: 'Space Grotesk', sans-serif;
-            --font-body: 'Inter', sans-serif;
-            
-            --shadow-glow: 0 0 20px var(--tech-green-glow);
+            --radius-card: 22px;
+            --radius-pill: 40px;
+
+            /* Legacy & Functional Aliases */
+            --primary: var(--neon-green);
+            --accent: var(--neon-green);
+            --accent-hover: #bef264;
+            --bg-main: var(--bg-deep);
+            --bg-secondary: #0f120e;
+            --card-bg: var(--card-glass);
+            --text-main: #e0e0e0;
+            --text-muted: #94a3b8;
+            --border-color: var(--border-glass);
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1a2e1a 0%, var(--bg-deep) 60%);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* La touche Africaine : Motif en background */
+        .african-pattern-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40L40 0H20L0 20M40 40V20L20 40" fill="%23ffffff" fill-opacity="0.015" fill-rule="evenodd"/></svg>');
+            pointer-events: none;
+            z-index: -1;
         }
 
         /* ===== DARK MODE (Afro-Tech Default) ===== */
         .dark-mode {
-            --bg-main: #0f120e;      /* Noir terreux profond */
-            --bg-secondary: #161b13;  /* Brun-vert très sombre */
-            --card-bg: rgba(22, 27, 19, 0.7);
-            --card-bg-solid: #161b13;
-            
+            --bg-main: var(--bg-deep);
+            --bg-secondary: #161b13;
+            --card-bg: var(--card-glass);
             --text-main: #e0e0e0;
             --text-secondary: #cbd5e1;
             --text-muted: #94a3b8;
-            
-            --border-color: rgba(57, 255, 20, 0.1);
-            --border-light: rgba(255, 255, 255, 0.05);
-            
+            --border-color: var(--border-glass);
             --glass-bg: rgba(22, 27, 19, 0.6);
+        }
             --glass-border: rgba(57, 255, 20, 0.2);
             
             --shadow-glow: 0 0 30px rgba(57, 255, 20, 0.15);
@@ -1337,7 +1349,8 @@
     </style>
 </head>
 
-<body>
+<body class="dark-mode">
+    <div class="african-pattern-overlay"></div>
     <a class="skip-link" href="#main">Aller au contenu</a>
     <!-- Global Background Wrapper -->
     <div class="background-container"></div>
