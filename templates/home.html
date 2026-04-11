@@ -54,36 +54,37 @@
         align-items: center;
         gap: 8px;
         background: var(--card-bg);
-        color: var(--terroir-ocre);
+        color: var(--safran-ocre);
         padding: 8px 18px;
         border-radius: var(--radius-pill);
         font-weight: 600;
         font-size: 0.85rem;
         margin-bottom: 30px;
-        border: 1px solid var(--terroir-ocre);
+        border: 1px solid var(--safran-ocre);
         letter-spacing: 0.08em;
         text-transform: uppercase;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
 
     .hero-title {
         font-size: clamp(2.5rem, 6vw, 4rem);
         line-height: 1.1;
         margin-bottom: 24px;
-        color: #F8F9FA;
+        color: var(--text-main);
         letter-spacing: -0.02em;
         font-family: var(--font-display);
         font-weight: 800;
-        text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        background: linear-gradient(to right, #ffffff, var(--neon-green));
+        text-shadow: 0 10px 30px var(--shadow-glow);
+        background: linear-gradient(to right, var(--text-main), var(--accent-dark));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
     .hero-title .highlight {
-        color: var(--tech-green);
+        color: var(--accent-dark);
+        -webkit-text-fill-color: var(--accent-dark);
         position: relative;
         display: inline-block;
         text-shadow: 0 0 30px var(--tech-green-glow);
@@ -91,11 +92,11 @@
 
     .hero-subtitle {
         font-size: clamp(1rem, 1.8vw, 1.15rem);
-        color: rgba(255, 255, 255, 0.75);
+        color: var(--text-secondary);
         line-height: 1.6;
         margin-bottom: 40px;
         max-width: 650px;
-        font-weight: 300;
+        font-weight: 500;
     }
 
     .hero-actions {
@@ -133,35 +134,33 @@
 
     .btn-ocre {
         padding: 14px 32px;
-        background-color: rgba(26, 20, 16, 0.5);
-        color: #DAA520;
+        background-color: transparent;
+        color: var(--safran-ocre);
         font-size: 1rem;
         border-radius: var(--radius-pill);
         font-family: var(--font-display);
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s ease;
-        border: 1px solid rgba(218, 165, 32, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid var(--safran-ocre);
         display: inline-flex;
         align-items: center;
         gap: 10px;
     }
 
     .btn-ocre:hover {
-        background-color: rgba(218, 165, 32, 0.1);
-        border-color: #DAA520;
-        color: #DAA520;
+        background-color: rgba(226, 114, 91, 0.1);
+        border-color: var(--safran-ocre);
+        color: var(--safran-ocre);
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     /* WIDGETS GLASSMORPHISM FLOTTANTS */
     .glass-widget {
         position: absolute;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--card-glass);
+        border: 1px solid var(--border-glass);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border-radius: 20px;
@@ -169,8 +168,8 @@
         display: flex;
         align-items: center;
         gap: 15px;
-        color: #FFF;
-        box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        color: var(--text-main);
+        box-shadow: var(--shadow-md);
         z-index: 5;
         animation: floatWidget 6s ease-in-out infinite alternate;
     }
@@ -205,7 +204,7 @@
 
     .widget-data .label {
         font-size: 0.75rem;
-        color: rgba(255,255,255,0.6);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 4px;
@@ -220,7 +219,7 @@
 
     .widget-data .trend {
         font-size: 0.75rem;
-        color: #39FF14;
+        color: var(--accent-dark);
         margin-top: 4px;
         display: flex;
         align-items: center;
@@ -572,7 +571,7 @@
         <div class="widget-data">
             <span class="label">Humidité du sol</span>
             <span class="value">Optimale</span>
-            <span class="trend" style="color: #DAA520;"><i class="fas fa-check-circle"></i> Zone Sahel</span>
+            <span class="trend" style="color: var(--safran-ocre);"><i class="fas fa-check-circle"></i> Zone Sahel</span>
         </div>
     </div>
 
@@ -608,8 +607,8 @@
         </div>
 
         {% if user.is_authenticated %}
-            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s text-white-50" style="position: relative; z-index: 20;">
-                <span style="font-size: 0.95rem;">Connecté en tant que <strong>{{ user.username }}</strong></span>
+            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s" style="position: relative; z-index: 20; color: var(--text-muted);">
+                <span style="font-size: 0.95rem;">Connecté en tant que <strong style="color: var(--text-main);">{{ user.username }}</strong></span>
             </div>
         {% endif %}
     </div>

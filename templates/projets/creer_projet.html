@@ -576,7 +576,7 @@
                 </div>
                 
                 <div class="card-body p-4 p-md-5">
-                    <form method="post" novalidate autocomplete="off" class="modern-form" id="projectForm">
+                    <form method="post" enctype="multipart/form-data" novalidate autocomplete="off" class="modern-form" id="projectForm">
                         {% csrf_token %}
 
                         <!-- Info Card -->
@@ -612,6 +612,22 @@
                                         </div>
                                         {% if projet_form.nom.errors %}
                                             <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.nom.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">
+                                            Photo de la Ferme 
+                                            <span class="form-label-hint">Peut être utilisée comme fond du projet</span>
+                                        </label>
+                                        <div class="input-wrapper" style="padding: 10px;">
+                                            <i class="fas fa-image input-icon" style="margin-right: 15px;"></i>
+                                            {{ projet_form.image_fond }}
+                                        </div>
+                                        {% if projet_form.image_fond.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.image_fond.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>

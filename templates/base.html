@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,13 +16,15 @@
     <!-- Google Fonts: Space Grotesk for Display, Inter for Body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
-    
+
     <!-- Leaflet : charge conditionnellement par chaque template qui en a besoin -->
     {% block extra_head %}{% endblock %}
 
@@ -33,16 +36,29 @@
             --safran-ocre: #E2725B;
             --sun-yellow: #FFD700;
             --tech-green-glow: rgba(57, 255, 20, 0.3);
-            
+
+            /* Couleurs de statut */
+            --danger: #ef4444;
+            --success: #22c55e;
+            --info: #3b82f6;
+            --warning: #f59e0b;
+
             /* Mode Clair (Par défaut) */
-            --bg-deep: #F8F9FB;
-            --bg-secondary: #FFFFFF;
-            --card-glass: rgba(255, 255, 255, 0.8);
+            --bg-deep: #f4f3ef;
+            --bg-secondary: #fcfcfb;
+            --card-glass: rgba(252, 252, 251, 0.85);
+            --card-bg-solid: #fcfcfb;
             --text-main: #0F172A;
             --text-secondary: #334155;
             --text-muted: #64748B;
+            --text-inverse: #022c22;
             --border-glass: rgba(0, 0, 0, 0.08);
-            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-bg: rgba(252, 252, 251, 0.75);
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
             --shadow-glow: 0 10px 30px rgba(0, 0, 0, 0.05);
 
             /* Typography & Spacing */
@@ -50,13 +66,18 @@
             --font-display: 'Space Grotesk', sans-serif;
             --radius-card: 22px;
             --radius-pill: 40px;
+            --radius-input: 12px;
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            
+            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
             /* Aliases fonctionnels */
             --primary: var(--neon-green);
             --accent: var(--neon-green);
+            --accent-dark: #2db300;
+            --accent-hover: #66ff40;
             --bg-main: var(--bg-deep);
             --border-color: var(--border-glass);
+            --glass-border: var(--border-glass);
             --card-bg: var(--card-glass);
         }
 
@@ -65,11 +86,16 @@
             --bg-deep: #0a0d0a;
             --bg-secondary: #161b13;
             --card-glass: rgba(22, 27, 19, 0.7);
+            --card-bg-solid: #161b13;
             --text-main: #F1F5F9;
             --text-secondary: #CBD5E1;
             --text-muted: #94A3B8;
+            --text-inverse: #022c22;
             --border-glass: rgba(255, 255, 255, 0.08);
             --glass-bg: rgba(22, 27, 19, 0.7);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
             --shadow-glow: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
 
@@ -95,6 +121,7 @@
             color: #022c22 !important;
             box-shadow: 0 4px 15px rgba(57, 255, 20, 0.25);
         }
+
         .btn-baay-primary:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(57, 255, 20, 0.4);
@@ -105,6 +132,7 @@
             color: #FFFFFF !important;
             box-shadow: 0 4px 15px rgba(226, 114, 91, 0.25);
         }
+
         .btn-baay-secondary:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(226, 114, 91, 0.4);
@@ -115,6 +143,7 @@
             border: 2px solid var(--border-glass);
             color: var(--text-main) !important;
         }
+
         .btn-baay-outline:hover {
             border-color: var(--neon-green);
             background: rgba(57, 255, 20, 0.05);
@@ -125,6 +154,7 @@
             background: transparent;
             color: var(--text-muted) !important;
         }
+
         .btn-baay-ghost:hover {
             background: rgba(148, 163, 184, 0.1);
             color: var(--text-main) !important;
@@ -143,14 +173,25 @@
         /* Overlay Pattern */
         .african-pattern-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40L40 0H20L0 20M40 40V20L20 40" fill="%23ffffff" fill-opacity="0.015" fill-rule="evenodd"/></svg>');
             pointer-events: none;
             z-index: -1;
             opacity: 0.5;
         }
-        .dark-mode .african-pattern-overlay { opacity: 1; filter: invert(0); }
-        .light-mode .african-pattern-overlay { filter: invert(1); opacity: 0.3; }
+
+        .dark-mode .african-pattern-overlay {
+            opacity: 1;
+            filter: invert(0);
+        }
+
+        .light-mode .african-pattern-overlay {
+            filter: invert(1);
+            opacity: 0.3;
+        }
 
         .glass-card {
             background: var(--glass-bg);
@@ -162,7 +203,10 @@
             transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
-        button, input, select, textarea {
+        button,
+        input,
+        select,
+        textarea {
             font-family: inherit;
         }
 
@@ -181,9 +225,11 @@
             transition: transform var(--transition-fast);
             z-index: 2000;
         }
+
         .skip-link:focus {
             transform: translateY(0);
         }
+
         :focus-visible {
             outline: 3px solid rgba(163, 230, 53, 0.5);
             outline-offset: 3px;
@@ -194,6 +240,7 @@
             max-width: 480px;
             margin: 40px auto;
         }
+
         .surface-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -203,6 +250,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
         }
+
         .surface-icon {
             width: 64px;
             height: 64px;
@@ -214,16 +262,19 @@
             font-size: 1.5rem;
             border: 1px solid var(--border-color);
         }
+
         .surface-icon.danger {
             background: rgba(239, 68, 68, 0.12);
             color: var(--danger);
             border-color: rgba(239, 68, 68, 0.25);
         }
+
         .surface-icon.info {
             background: rgba(163, 230, 53, 0.12);
             color: var(--accent);
             border-color: rgba(163, 230, 53, 0.25);
         }
+
         .surface-title {
             font-family: var(--font-display);
             font-weight: 800;
@@ -232,29 +283,43 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
         .surface-subtitle {
             color: var(--text-muted);
             text-align: center;
             margin-bottom: 26px;
         }
+
         .actions-row {
             display: flex;
             gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .btn-mini {
             padding: 10px 14px;
             border-radius: 14px;
             font-size: 0.85rem;
             gap: 8px;
         }
-        .text-success-modern { color: var(--success) !important; }
-        .text-danger-modern { color: var(--danger) !important; }
-        .text-info-modern { color: var(--info) !important; }
+
+        .text-success-modern {
+            color: var(--success) !important;
+        }
+
+        .text-danger-modern {
+            color: var(--danger) !important;
+        }
+
+        .text-info-modern {
+            color: var(--info) !important;
+        }
+
         .surface-card form p {
             margin-bottom: 14px;
         }
+
         .surface-card label {
             display: block;
             font-family: var(--font-display);
@@ -265,6 +330,7 @@
             letter-spacing: 0.05em;
             margin-bottom: 8px;
         }
+
         .surface-card input,
         .surface-card select,
         .surface-card textarea {
@@ -276,6 +342,7 @@
             color: var(--text-main);
             transition: all var(--transition-fast);
         }
+
         .surface-card input:focus,
         .surface-card select:focus,
         .surface-card textarea:focus {
@@ -296,6 +363,7 @@
             border-radius: var(--radius-card);
             box-shadow: var(--shadow-sm);
         }
+
         .table-modern thead th {
             font-family: var(--font-display);
             font-weight: 700;
@@ -307,23 +375,29 @@
             border-bottom: 1px solid var(--border-color);
             background: rgba(2, 44, 34, 0.02);
         }
+
         .dark-mode .table-modern thead th {
             background: rgba(255, 255, 255, 0.03);
         }
+
         .table-modern tbody td {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-secondary);
         }
+
         .table-modern tbody tr:nth-child(odd) td {
             background: rgba(148, 163, 184, 0.06);
         }
+
         .dark-mode .table-modern tbody tr:nth-child(odd) td {
             background: rgba(148, 163, 184, 0.08);
         }
+
         .table-modern tbody tr:hover td {
             background: rgba(163, 230, 53, 0.08);
         }
+
         .table-modern tbody tr:last-child td {
             border-bottom: none;
         }
@@ -341,9 +415,24 @@
             letter-spacing: 0.05em;
             border: 1px solid transparent;
         }
-        .status-chip.en_cours { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: rgba(59, 130, 246, 0.25); }
-        .status-chip.en_pause { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-color: rgba(245, 158, 11, 0.25); }
-        .status-chip.fini { background: rgba(34, 197, 94, 0.15); color: #22c55e; border-color: rgba(34, 197, 94, 0.25); }
+
+        .status-chip.en_cours {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+        .status-chip.en_pause {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.25);
+        }
+
+        .status-chip.fini {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.25);
+        }
 
         /* Neutral tags/pills (shared) */
         .tag {
@@ -358,14 +447,17 @@
             background: var(--bg-secondary);
             color: var(--text-main);
         }
+
         .tag-accent {
             background: rgba(163, 230, 53, 0.18);
             border-color: rgba(163, 230, 53, 0.25);
             color: var(--primary);
         }
+
         .dark-mode .tag-accent {
             color: var(--accent);
         }
+
         .tag-success {
             background: rgba(34, 197, 94, 0.14);
             border-color: rgba(34, 197, 94, 0.22);
@@ -375,24 +467,32 @@
         /* Mesh Background */
         .bg-mesh {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: -1;
             pointer-events: none;
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(163, 230, 53, 0.08) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(2, 44, 34, 0.05) 0px, transparent 50%);
             background-attachment: fixed;
             transition: background-image var(--transition);
         }
-        
+
         .dark-mode .bg-mesh {
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(163, 230, 53, 0.12) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(163, 230, 53, 0.05) 0px, transparent 50%);
         }
 
         /* Typography */
-        h1, h2, h3, h4, h5, h6 {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
             font-family: var(--font-display);
             font-weight: 700;
             letter-spacing: -0.02em;
@@ -400,15 +500,23 @@
             line-height: 1.2;
         }
 
-        a { 
-            text-decoration: none; 
-            color: var(--accent-dark); 
-            transition: color var(--transition-fast); 
+        a {
+            text-decoration: none;
+            color: var(--accent-dark);
+            transition: color var(--transition-fast);
         }
-        a:hover { color: var(--accent); }
-        
-        .dark-mode a { color: var(--accent); }
-        .dark-mode a:hover { color: var(--accent-hover); }
+
+        a:hover {
+            color: var(--accent);
+        }
+
+        .dark-mode a {
+            color: var(--accent);
+        }
+
+        .dark-mode a:hover {
+            color: var(--accent-hover);
+        }
 
         /* ===== ENHANCED FLOATING NAVBAR ===== */
         .navbar-wrapper {
@@ -487,12 +595,12 @@
             color: var(--text-main);
             background: var(--bg-secondary);
         }
-        
+
         .nav-link-modern.active {
             color: var(--text-inverse);
             background: var(--accent);
         }
-        
+
         .dark-mode .nav-link-modern:hover {
             background: var(--border-color);
         }
@@ -752,7 +860,7 @@
             box-shadow: var(--shadow-glow);
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             font-size: 22px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .chat-bubble:hover {
@@ -768,9 +876,18 @@
             box-shadow: var(--shadow-lg);
         }
 
-        .chat-bubble .close-icon { display: none; }
-        .chat-bubble.active .chat-icon { display: none; }
-        .chat-bubble.active .close-icon { display: block; transform: rotate(-90deg); }
+        .chat-bubble .close-icon {
+            display: none;
+        }
+
+        .chat-bubble.active .chat-icon {
+            display: none;
+        }
+
+        .chat-bubble.active .close-icon {
+            display: block;
+            transform: rotate(-90deg);
+        }
 
         .chat-notification {
             position: absolute;
@@ -879,8 +996,14 @@
             gap: 14px;
         }
 
-        .chat-messages::-webkit-scrollbar { width: 4px; }
-        .chat-messages::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
 
         .chat-welcome {
             text-align: center;
@@ -896,9 +1019,17 @@
         }
 
         @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
         }
 
         .welcome-title {
@@ -921,16 +1052,36 @@
         }
 
         @keyframes slideInX {
-            from { opacity: 0; transform: translateX(10px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
-        .message.user { align-self: flex-end; }
-        .message.assistant { align-self: flex-start; animation-name: slideInXLeft; }
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            animation-name: slideInXLeft;
+        }
 
         @keyframes slideInXLeft {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .message-content {
@@ -960,7 +1111,9 @@
             padding: 0 4px;
         }
 
-        .message.user .message-time { text-align: right; }
+        .message.user .message-time {
+            text-align: right;
+        }
 
         .chat-input-container {
             padding: 16px 20px;
@@ -1071,7 +1224,8 @@
         }
 
         /* ===== FORM ELEMENTS (Global) ===== */
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             background: var(--bg-secondary);
             border: 2px solid var(--border-color);
             border-radius: var(--radius-input);
@@ -1081,7 +1235,8 @@
             transition: all var(--transition-fast);
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             background: var(--card-bg-solid);
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
@@ -1119,9 +1274,17 @@
         }
 
         /* ===== UTILITIES ===== */
-        .text-accent { color: var(--accent) !important; }
-        .bg-accent { background: var(--accent) !important; }
-        .text-muted { color: var(--text-muted) !important; }
+        .text-accent {
+            color: var(--accent) !important;
+        }
+
+        .bg-accent {
+            background: var(--accent) !important;
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 991px) {
@@ -1129,7 +1292,7 @@
                 border-radius: var(--radius-card);
                 padding: 12px 16px;
             }
-            
+
             .navbar-collapse {
                 background: var(--card-bg-solid);
                 border-radius: var(--radius-input);
@@ -1137,18 +1300,18 @@
                 margin-top: 12px;
                 border: 1px solid var(--border-color);
             }
-            
+
             .nav-link-modern {
                 padding: 12px 16px;
                 border-radius: var(--radius-input);
             }
-            
+
             .btn-nav {
                 width: 100%;
                 justify-content: center;
                 margin-bottom: 8px;
             }
-            
+
             .user-avatar {
                 width: 100%;
                 justify-content: center;
@@ -1163,16 +1326,17 @@
                 right: 16px;
                 bottom: 100px;
             }
-            
+
             .chat-bubble-container {
                 bottom: 20px;
                 right: 20px;
             }
-            
+
             main {
                 padding: 24px 0;
             }
         }
+
         /* ===== ONBOARDING TOUR ===== */
         .tour-overlay {
             position: fixed;
@@ -1207,7 +1371,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 32px 64px rgba(0,0,0,0.45), 0 0 0 1px rgba(163,230,53,0.1);
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(163, 230, 53, 0.1);
             transform: scale(0.93) translateY(16px);
             transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
         }
@@ -1228,9 +1392,11 @@
         .tour-header::before {
             content: '';
             position: absolute;
-            top: -50%; right: -15%;
-            width: 260px; height: 260px;
-            background: radial-gradient(circle, rgba(163,230,53,0.18) 0%, transparent 65%);
+            top: -50%;
+            right: -15%;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(163, 230, 53, 0.18) 0%, transparent 65%);
             border-radius: 50%;
             pointer-events: none;
         }
@@ -1239,26 +1405,35 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            position: relative; z-index: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .tour-icon {
-            width: 48px; height: 48px; min-width: 48px;
-            background: rgba(163,230,53,0.15);
-            border: 1.5px solid rgba(163,230,53,0.3);
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            background: rgba(163, 230, 53, 0.15);
+            border: 1.5px solid rgba(163, 230, 53, 0.3);
             border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; color: #a3e635;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #a3e635;
         }
 
-        .tour-header-text { flex: 1; min-width: 0; }
+        .tour-header-text {
+            flex: 1;
+            min-width: 0;
+        }
 
         .tour-step-badge {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            background: rgba(163,230,53,0.15);
-            border: 1px solid rgba(163,230,53,0.3);
+            background: rgba(163, 230, 53, 0.15);
+            border: 1px solid rgba(163, 230, 53, 0.3);
             border-radius: 20px;
             padding: 2px 10px;
             font-size: 0.68rem;
@@ -1279,7 +1454,7 @@
         }
 
         .tour-description {
-            color: rgba(248,250,252,0.65);
+            color: rgba(248, 250, 252, 0.65);
             font-size: 0.78rem;
             line-height: 1.45;
             margin: 0;
@@ -1292,9 +1467,18 @@
             flex: 1;
         }
 
-        .tour-body::-webkit-scrollbar { width: 4px; }
-        .tour-body::-webkit-scrollbar-track { background: transparent; }
-        .tour-body::-webkit-scrollbar-thumb { background: rgba(163,230,53,0.25); border-radius: 4px; }
+        .tour-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tour-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tour-body::-webkit-scrollbar-thumb {
+            background: rgba(163, 230, 53, 0.25);
+            border-radius: 4px;
+        }
 
         .tour-tips {
             display: flex;
@@ -1307,29 +1491,47 @@
             align-items: flex-start;
             gap: 10px;
             padding: 10px 13px;
-            background: rgba(163,230,53,0.05);
-            border: 1px solid rgba(163,230,53,0.1);
+            background: rgba(163, 230, 53, 0.05);
+            border: 1px solid rgba(163, 230, 53, 0.1);
             border-radius: 12px;
             transition: all 0.2s ease;
         }
 
         .tour-tip:hover {
-            background: rgba(163,230,53,0.09);
-            border-color: rgba(163,230,53,0.22);
+            background: rgba(163, 230, 53, 0.09);
+            border-color: rgba(163, 230, 53, 0.22);
         }
 
         .tour-tip-icon {
-            width: 30px; height: 30px; min-width: 30px;
-            background: rgba(163,230,53,0.1);
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            background: rgba(163, 230, 53, 0.1);
             border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--accent);
             font-size: 12px;
         }
 
-        .tour-tip-text { flex: 1; }
-        .tour-tip-text strong { display: block; color: var(--text-main); font-size: 0.82rem; margin-bottom: 1px; font-weight: 700; }
-        .tour-tip-text span { color: var(--text-muted); font-size: 0.76rem; line-height: 1.4; }
+        .tour-tip-text {
+            flex: 1;
+        }
+
+        .tour-tip-text strong {
+            display: block;
+            color: var(--text-main);
+            font-size: 0.82rem;
+            margin-bottom: 1px;
+            font-weight: 700;
+        }
+
+        .tour-tip-text span {
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            line-height: 1.4;
+        }
 
         /* Footer fixe */
         .tour-footer {
@@ -1342,53 +1544,126 @@
             background: var(--card-bg);
         }
 
-        .tour-progress { display: flex; gap: 5px; align-items: center; }
+        .tour-progress {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
 
         .tour-dot {
-            width: 7px; height: 7px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: var(--border-color);
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
-        .tour-dot.active { width: 20px; border-radius: 4px; background: var(--accent); }
-        .tour-dot.done { background: rgba(163,230,53,0.4); }
+        .tour-dot.active {
+            width: 20px;
+            border-radius: 4px;
+            background: var(--accent);
+        }
 
-        .tour-actions { display: flex; gap: 8px; align-items: center; }
+        .tour-dot.done {
+            background: rgba(163, 230, 53, 0.4);
+        }
+
+        .tour-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
 
         .tour-skip {
-            background: none; border: none;
-            color: var(--text-muted); font-size: 0.8rem;
-            cursor: pointer; padding: 7px 10px;
-            border-radius: 8px; transition: all 0.2s ease; font-weight: 600;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 7px 10px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 600;
         }
-        .tour-skip:hover { color: var(--text-main); background: var(--bg-secondary); }
+
+        .tour-skip:hover {
+            color: var(--text-main);
+            background: var(--bg-secondary);
+        }
 
         .tour-next {
-            display: inline-flex; align-items: center; gap: 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
             padding: 9px 20px;
             background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
             color: #022c22;
-            font-family: var(--font-display); font-weight: 700; font-size: 0.84rem;
-            border: none; border-radius: var(--radius-pill);
-            cursor: pointer; transition: all 0.3s ease;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.84rem;
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            transition: all 0.3s ease;
             white-space: nowrap;
         }
-        .tour-next:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(163,230,53,0.35); }
+
+        .tour-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(163, 230, 53, 0.35);
+        }
 
         @media (max-width: 576px) {
-            .tour-modal { border-radius: 18px; max-height: 88vh; }
-            .tour-header { padding: 16px 18px 14px; }
-            .tour-icon { width: 40px; height: 40px; min-width: 40px; font-size: 18px; border-radius: 11px; }
-            .tour-title { font-size: 0.98rem; }
-            .tour-body { padding: 14px 18px; }
-            .tour-footer { padding: 10px 18px 14px; }
+            .tour-modal {
+                border-radius: 18px;
+                max-height: 88vh;
+            }
+
+            .tour-header {
+                padding: 16px 18px 14px;
+            }
+
+            .tour-icon {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+                font-size: 18px;
+                border-radius: 11px;
+            }
+
+            .tour-title {
+                font-size: 0.98rem;
+            }
+
+            .tour-body {
+                padding: 14px 18px;
+            }
+
+            .tour-footer {
+                padding: 10px 18px 14px;
+            }
         }
     </style>
+    <script>
+        // Anti-Flash : Applique le thème avant le rendu du body
+        const savedTheme = localStorage.getItem('theme');
+
+        // Default to dark mode for Andd Baay si non défini
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+            document.documentElement.classList.add('light-mode');
+            document.documentElement.classList.remove('dark-mode');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+            document.documentElement.classList.add('dark-mode');
+            document.documentElement.classList.remove('light-mode');
+        }
+    </script>
 </head>
 
-<body class="dark-mode">
+
+<body class="">
     <div class="african-pattern-overlay"></div>
     <a class="skip-link" href="#main">Aller au contenu</a>
     <!-- Global Background Wrapper -->
@@ -1408,7 +1683,8 @@
                             <span id="tourStepLabel">Étape 1 sur 5</span>
                         </div>
                         <h2 class="tour-title" id="tourTitle">Bienvenue sur Andd Baay 🌱</h2>
-                        <p class="tour-description" id="tourDesc">La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte.</p>
+                        <p class="tour-description" id="tourDesc">La plateforme intelligente pour gérer vos cultures,
+                            prédire vos rendements et optimiser chaque récolte.</p>
                     </div>
                 </div>
             </div>
@@ -1440,65 +1716,72 @@
                     <div class="brand-icon"><i class="fas fa-leaf"></i></div>
                     Andd Baay
                 </a>
-                
+
                 <div class="d-flex align-items-center gap-2 d-lg-none">
                     <button id="themeToggleMobile" class="theme-toggle" aria-label="Changer de thème">
                         <i class="fas fa-moon icon-moon"></i>
                         <i class="fas fa-sun icon-sun"></i>
                     </button>
-                    <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarNav">
                         <i class="fas fa-bars"></i>
                     </button>
                 </div>
-                
+
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 gap-2 mt-3 mt-lg-0">
                         {% if user.is_authenticated %}
-                            <li class="nav-item">
-                                <a class="nav-link-modern {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                                    <i class="fas fa-chart-pie"></i> Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link-modern {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" href="{% url 'liste_projets' %}">
-                                    <i class="fas fa-folder"></i> Projets
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link-modern {% if 'semis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_semis' %}">
-                                    <i class="fas fa-seedling"></i> Semis
-                                </a>
-                            </li>
-                            <li class="nav-item me-lg-2">
-                                <a class="btn-baay btn-baay-primary py-2 px-3" href="{% url 'creer_projet' %}">
-                                    <i class="fas fa-plus"></i> Nouveau
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{% url 'profil' %}" class="user-avatar text-decoration-none">
-                                    <div class="user-avatar-icon">
-                                        {{ user.first_name|make_list|first|default:user.username|make_list|first|upper }}
-                                    </div>
-                                    <span class="user-avatar-name">{{ user.first_name|default:user.username }}</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Déconnexion" style="color: var(--safran-ocre) !important;">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <button id="openGuideBtn" class="theme-toggle" title="Guide utilisateur" onclick="startTour()" style="font-size: 0.8rem; font-weight: 800; color: var(--accent);">
-                                    <i class="fas fa-question"></i>
-                                </button>
-                            </li>
+                        <li class="nav-item">
+                            <a class="nav-link-modern {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                                href="{% url 'dashboard' %}">
+                                <i class="fas fa-chart-pie"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-modern {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}"
+                                href="{% url 'liste_projets' %}">
+                                <i class="fas fa-folder"></i> Projets
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-modern {% if 'semis' in request.resolver_match.url_name %}active{% endif %}"
+                                href="{% url 'liste_semis' %}">
+                                <i class="fas fa-seedling"></i> Semis
+                            </a>
+                        </li>
+                        <li class="nav-item me-lg-2">
+                            <a class="btn-baay btn-baay-primary py-2 px-3" href="{% url 'creer_projet' %}">
+                                <i class="fas fa-plus"></i> Nouveau
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'profil' %}" class="user-avatar text-decoration-none">
+                                <div class="user-avatar-icon">
+                                    {{ user.first_name|make_list|first|default:user.username|make_list|first|upper }}
+                                </div>
+                                <span class="user-avatar-name">{{ user.first_name|default:user.username }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Déconnexion"
+                                style="color: var(--safran-ocre) !important;">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <button id="openGuideBtn" class="theme-toggle" title="Guide utilisateur"
+                                onclick="startTour()"
+                                style="font-size: 0.8rem; font-weight: 800; color: var(--accent);">
+                                <i class="fas fa-question"></i>
+                            </button>
+                        </li>
                         {% else %}
-                            <li class="nav-item">
-                                <a class="btn-nav btn-nav-outline" href="{% url 'login' %}">Connexion</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn-nav btn-nav-primary" href="{% url 'register' %}">Inscription</a>
-                            </li>
+                        <li class="nav-item">
+                            <a class="btn-nav btn-nav-outline" href="{% url 'login' %}">Connexion</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn-nav btn-nav-primary" href="{% url 'register' %}">Inscription</a>
+                        </li>
                         {% endif %}
                         <li class="nav-item d-none d-lg-block">
                             <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
@@ -1518,8 +1801,10 @@
             {% if messages %}
             <div class="messages mb-4">
                 {% for message in messages %}
-                <div class="alert alert-modern {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show d-flex align-items-center" role="alert">
-                    <i class="fas {% if message.tags == 'success' %}fa-check-circle text-success{% elif message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle text-danger{% else %}fa-info-circle text-accent{% endif %} me-3 fs-5"></i>
+                <div class="alert alert-modern {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show d-flex align-items-center"
+                    role="alert">
+                    <i
+                        class="fas {% if message.tags == 'success' %}fa-check-circle text-success{% elif message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle text-danger{% else %}fa-info-circle text-accent{% endif %} me-3 fs-5"></i>
                     <div>{{ message }}</div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
@@ -1567,15 +1852,16 @@
                 <button id="minimizeChat" title="Reduire"><i class="fas fa-chevron-down"></i></button>
             </div>
         </div>
-        
+
         <div id="chat-messages" class="chat-messages">
             <div id="welcome-message" class="chat-welcome">
                 <span class="welcome-emoji">🌾</span>
                 <h5 class="welcome-title">Bonjour chef !</h5>
-                <p class="welcome-text">Posez-moi vos questions sur les rendements, la meteo ou la gestion de vos cultures.</p>
+                <p class="welcome-text">Posez-moi vos questions sur les rendements, la meteo ou la gestion de vos
+                    cultures.</p>
             </div>
         </div>
-        
+
         <div class="chat-input-container">
             <textarea id="message" class="chat-input" placeholder="Ecrivez votre message..." rows="1"></textarea>
             <button id="sendMessage" class="chat-send-btn">
@@ -1591,24 +1877,38 @@
             // ===== Theme Toggle =====
             const themeToggle = document.getElementById('themeToggle');
             const themeToggleMobile = document.getElementById('themeToggleMobile');
-            const body = document.body;
+            const htmlElement = document.documentElement; // <-- Cible le <html>
             
-            // Check saved theme or system preference (Default to Dark for Afro-Tech)
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light') {
-                body.classList.remove('dark-mode');
+            // Sync body class initially
+            if (htmlElement.getAttribute('data-bs-theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
             } else {
-                body.classList.add('dark-mode');
-                if (!savedTheme) localStorage.setItem('theme', 'dark');
+                document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
             }
 
             function toggleTheme() {
-                body.classList.toggle('dark-mode');
-                const isDark = body.classList.contains('dark-mode');
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                
-                // Dispatch event for other components (charts, etc.)
-                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
+                const isCurrentlyDark = htmlElement.getAttribute('data-bs-theme') === 'dark';
+                const newTheme = isCurrentlyDark ? 'light' : 'dark';
+
+                // Applique le nouveau thème
+                htmlElement.setAttribute('data-bs-theme', newTheme);
+                if (newTheme === 'dark') {
+                    htmlElement.classList.add('dark-mode');
+                    htmlElement.classList.remove('light-mode');
+                    document.body.classList.add('dark-mode');
+                    document.body.classList.remove('light-mode');
+                } else {
+                    htmlElement.classList.add('light-mode');
+                    htmlElement.classList.remove('dark-mode');
+                    document.body.classList.add('light-mode');
+                    document.body.classList.remove('dark-mode');
+                }
+                localStorage.setItem('theme', newTheme);
+
+                // Dispatch event pour les graphiques (Chart.js etc.)
+                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: !isCurrentlyDark } }));
             }
 
             if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
@@ -1624,18 +1924,18 @@
             const chatMessages = document.getElementById('chat-messages');
             const welcomeMessage = document.getElementById('welcome-message');
             const clearChatButton = document.getElementById('clearChat');
-            
+
             let messageHistory = [];
             let unreadMessages = 0;
-            
+
             // Ne pas rouvrir automatiquement sur mobile (évite de bloquer l'interface)
             if (localStorage.getItem('chatState') === 'open' && window.innerWidth > 768) {
                 setTimeout(openChat, 100);
             }
-            
+
             chatBubble.addEventListener('click', () => chatWindow.classList.contains('open') ? closeChat() : openChat());
             minimizeChat.addEventListener('click', closeChat);
-            
+
             function openChat() {
                 chatWindow.classList.add('open');
                 chatBubble.classList.add('active');
@@ -1644,26 +1944,26 @@
                 chatNotification.classList.remove('show');
                 setTimeout(() => messageInput.focus(), 300);
             }
-            
+
             function closeChat() {
                 chatWindow.classList.remove('open');
                 chatBubble.classList.remove('active');
                 localStorage.setItem('chatState', 'closed');
             }
-            
-            messageInput.addEventListener('input', function() {
+
+            messageInput.addEventListener('input', function () {
                 this.style.height = 'auto';
                 this.style.height = (Math.min(this.scrollHeight, 100)) + 'px';
             });
-            
+
             messageInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
             });
-            
+
             sendButton.addEventListener('click', sendMessage);
-            
+
             clearChatButton.addEventListener('click', () => {
-                if(messageHistory.length && confirm('Effacer la discussion ?')) {
+                if (messageHistory.length && confirm('Effacer la discussion ?')) {
                     messageHistory = [];
                     localStorage.removeItem('chatHistory');
                     chatMessages.innerHTML = '';
@@ -1716,30 +2016,30 @@
                     headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie('csrftoken') },
                     body: JSON.stringify({ message: message, history: historyPayload }),
                 })
-                .then(async res => {
-                    const data = await res.json();
-                    if (!res.ok || data.error) {
-                        // Show the server's French error message directly
-                        throw { serverMessage: data.error || 'Une erreur est survenue.' };
-                    }
-                    return data;
-                })
-                .then(data => {
-                    addMessage(data.response || "Aucune réponse.", 'assistant');
-                    if (!chatWindow.classList.contains('open')) {
-                        unreadMessages++;
-                        chatNotification.textContent = unreadMessages;
-                        chatNotification.classList.add('show');
-                    }
-                })
-                .catch(err => {
-                    const msg = err.serverMessage || "Une erreur est survenue. Veuillez réessayer.";
-                    renderError(msg, lastUserMessage);
-                })
-                .finally(() => {
-                    sendButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
-                    sendButton.disabled = false;
-                });
+                    .then(async res => {
+                        const data = await res.json();
+                        if (!res.ok || data.error) {
+                            // Show the server's French error message directly
+                            throw { serverMessage: data.error || 'Une erreur est survenue.' };
+                        }
+                        return data;
+                    })
+                    .then(data => {
+                        addMessage(data.response || "Aucune réponse.", 'assistant');
+                        if (!chatWindow.classList.contains('open')) {
+                            unreadMessages++;
+                            chatNotification.textContent = unreadMessages;
+                            chatNotification.classList.add('show');
+                        }
+                    })
+                    .catch(err => {
+                        const msg = err.serverMessage || "Une erreur est survenue. Veuillez réessayer.";
+                        renderError(msg, lastUserMessage);
+                    })
+                    .finally(() => {
+                        sendButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                        sendButton.disabled = false;
+                    });
             }
 
             function renderError(friendlyMessage, retryMessage) {
@@ -1772,7 +2072,7 @@
                 chatMessages.appendChild(messageEl);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-            
+
             // ===== Persistance localStorage =====
             const CHAT_HISTORY_KEY = 'chatHistory';
             const MAX_HISTORY = 50;
@@ -1782,7 +2082,7 @@
                 const toSave = messageHistory.slice(-MAX_HISTORY);
                 try {
                     localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(toSave));
-                } catch(e) {
+                } catch (e) {
                     // Ignorer les erreurs de quota localStorage
                 }
             }
@@ -1801,7 +2101,7 @@
                         renderMessage(msg.text, msg.sender, msg.timestamp, false);
                         messageHistory.push(msg);
                     });
-                } catch(e) {
+                } catch (e) {
                     localStorage.removeItem(CHAT_HISTORY_KEY);
                 }
             }
@@ -1850,7 +2150,7 @@
 
             // Restaurer l'historique au chargement
             restoreChatHistory();
-            
+
             setTimeout(() => {
                 if (!chatWindow.classList.contains('open')) {
                     chatNotification.classList.add('show');
@@ -1862,75 +2162,75 @@
     <!-- ===== ONBOARDING TOUR SCRIPT ===== -->
     {% if user.is_authenticated %}
     <script>
-    const TOUR_KEY = 'anddbaay_tour_done_v1';
+        const TOUR_KEY = 'anddbaay_tour_done_v1';
 
-    const tourSteps = [
-        {
-            icon: 'fa-seedling',
-            title: 'Bienvenue sur Andd Baay 🌱',
-            desc: 'La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte.',
-            tips: [
-                { icon: 'fa-map', title: 'Une plateforme tout-en-un', text: 'Gérez vos projets agricoles, suivez vos semis et obtenez des prédictions de rendement basées sur l\'IA.' },
-                { icon: 'fa-moon', title: 'Mode jour / nuit', text: 'Utilisez le bouton 🌙 en haut à droite pour changer de thème selon vos préférences.' },
-                { icon: 'fa-question-circle', title: 'Ce guide toujours accessible', text: 'Cliquez à tout moment sur le bouton <strong>?</strong> dans la barre de navigation pour relancer ce guide.' },
-            ]
-        },
-        {
-            icon: 'fa-folder-plus',
-            title: 'Créer votre premier projet',
-            desc: 'Un projet représente une parcelle agricole avec ses cultures, sa superficie et ses objectifs de rendement.',
-            tips: [
-                { icon: 'fa-plus', title: 'Bouton « Nouveau »', text: 'Cliquez sur <strong>Nouveau</strong> dans la navbar ou sur la page Projets pour créer votre premier projet.' },
-                { icon: 'fa-map-marker-alt', title: 'Sélectionner une localité', text: 'Choisissez votre région pour que nos algorithmes utilisent les données météo et sol adaptées.' },
-                { icon: 'fa-leaf', title: 'Choisir vos cultures', text: 'Sélectionnez une ou plusieurs cultures. Le système calcule automatiquement le rendement estimé.' },
-            ]
-        },
-        {
-            icon: 'fa-chart-pie',
-            title: 'Le Dashboard analytique',
-            desc: 'Votre centre de commande : statistiques, graphiques et suivi en temps réel de tous vos projets.',
-            tips: [
-                { icon: 'fa-chart-bar', title: 'Graphiques interactifs', text: 'Analysez l\'évolution de vos superficies et rendements mois par mois avec les graphiques du dashboard.' },
-                { icon: 'fa-sliders-h', title: 'Filtres avancés', text: 'Filtrez par statut, culture ou période pour affiner votre analyse.' },
-                { icon: 'fa-mouse-pointer', title: 'Cliquez sur les KPI', text: 'Cliquez sur les tuiles (superficie, rendement...) pour voir les projets correspondants.' },
-            ]
-        },
-        {
-            icon: 'fa-seedling',
-            title: 'Suivi de vos Semis',
-            desc: 'Enregistrez chaque semis avec sa date, sa superficie et suivez l\'évolution jusqu\'à la récolte.',
-            tips: [
-                { icon: 'fa-calendar-alt', title: 'Dates de semis et récolte', text: 'Saisissez les dates de semis et récolte prévues pour chaque culture de vos projets.' },
-                { icon: 'fa-camera', title: 'Photos de vos plants', text: 'Ajoutez des photos au fil des semaines pour documenter l\'évolution de vos cultures.' },
-                { icon: 'fa-check-circle', title: 'Clôturer un projet', text: 'Quand la récolte est terminée, saisissez le rendement final pour entraîner le modèle IA.' },
-            ]
-        },
-        {
-            icon: 'fa-robot',
-            title: 'L\'Assistant IA 🤖',
-            desc: 'Posez vos questions agricoles en langage naturel — météo, maladies, conseils, prédictions.',
-            tips: [
-                { icon: 'fa-comment-dots', title: 'Disponible partout', text: 'Cliquez sur le bouton vert en bas à droite pour ouvrir l\'assistant à tout moment.' },
-                { icon: 'fa-history', title: 'Historique conservé', text: 'Vos conversations sont sauvegardées localement et restaurées à chaque visite.' },
-                { icon: 'fa-lightbulb', title: 'Exemples de questions', text: '"Quand irriguer le mil ?" — "Quels semences pour la saison sèche ?" — "Analyse mon rendement."' },
-            ]
-        }
-    ];
+        const tourSteps = [
+            {
+                icon: 'fa-seedling',
+                title: 'Bienvenue sur Andd Baay 🌱',
+                desc: 'La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte.',
+                tips: [
+                    { icon: 'fa-map', title: 'Une plateforme tout-en-un', text: 'Gérez vos projets agricoles, suivez vos semis et obtenez des prédictions de rendement basées sur l\'IA.' },
+                    { icon: 'fa-moon', title: 'Mode jour / nuit', text: 'Utilisez le bouton 🌙 en haut à droite pour changer de thème selon vos préférences.' },
+                    { icon: 'fa-question-circle', title: 'Ce guide toujours accessible', text: 'Cliquez à tout moment sur le bouton <strong>?</strong> dans la barre de navigation pour relancer ce guide.' },
+                ]
+            },
+            {
+                icon: 'fa-folder-plus',
+                title: 'Créer votre premier projet',
+                desc: 'Un projet représente une parcelle agricole avec ses cultures, sa superficie et ses objectifs de rendement.',
+                tips: [
+                    { icon: 'fa-plus', title: 'Bouton « Nouveau »', text: 'Cliquez sur <strong>Nouveau</strong> dans la navbar ou sur la page Projets pour créer votre premier projet.' },
+                    { icon: 'fa-map-marker-alt', title: 'Sélectionner une localité', text: 'Choisissez votre région pour que nos algorithmes utilisent les données météo et sol adaptées.' },
+                    { icon: 'fa-leaf', title: 'Choisir vos cultures', text: 'Sélectionnez une ou plusieurs cultures. Le système calcule automatiquement le rendement estimé.' },
+                ]
+            },
+            {
+                icon: 'fa-chart-pie',
+                title: 'Le Dashboard analytique',
+                desc: 'Votre centre de commande : statistiques, graphiques et suivi en temps réel de tous vos projets.',
+                tips: [
+                    { icon: 'fa-chart-bar', title: 'Graphiques interactifs', text: 'Analysez l\'évolution de vos superficies et rendements mois par mois avec les graphiques du dashboard.' },
+                    { icon: 'fa-sliders-h', title: 'Filtres avancés', text: 'Filtrez par statut, culture ou période pour affiner votre analyse.' },
+                    { icon: 'fa-mouse-pointer', title: 'Cliquez sur les KPI', text: 'Cliquez sur les tuiles (superficie, rendement...) pour voir les projets correspondants.' },
+                ]
+            },
+            {
+                icon: 'fa-seedling',
+                title: 'Suivi de vos Semis',
+                desc: 'Enregistrez chaque semis avec sa date, sa superficie et suivez l\'évolution jusqu\'à la récolte.',
+                tips: [
+                    { icon: 'fa-calendar-alt', title: 'Dates de semis et récolte', text: 'Saisissez les dates de semis et récolte prévues pour chaque culture de vos projets.' },
+                    { icon: 'fa-camera', title: 'Photos de vos plants', text: 'Ajoutez des photos au fil des semaines pour documenter l\'évolution de vos cultures.' },
+                    { icon: 'fa-check-circle', title: 'Clôturer un projet', text: 'Quand la récolte est terminée, saisissez le rendement final pour entraîner le modèle IA.' },
+                ]
+            },
+            {
+                icon: 'fa-robot',
+                title: 'L\'Assistant IA 🤖',
+                desc: 'Posez vos questions agricoles en langage naturel — météo, maladies, conseils, prédictions.',
+                tips: [
+                    { icon: 'fa-comment-dots', title: 'Disponible partout', text: 'Cliquez sur le bouton vert en bas à droite pour ouvrir l\'assistant à tout moment.' },
+                    { icon: 'fa-history', title: 'Historique conservé', text: 'Vos conversations sont sauvegardées localement et restaurées à chaque visite.' },
+                    { icon: 'fa-lightbulb', title: 'Exemples de questions', text: '"Quand irriguer le mil ?" — "Quels semences pour la saison sèche ?" — "Analyse mon rendement."' },
+                ]
+            }
+        ];
 
-    let currentStep = 0;
+        let currentStep = 0;
 
-    function renderStep(step) {
-        const s = tourSteps[step];
-        const total = tourSteps.length;
+        function renderStep(step) {
+            const s = tourSteps[step];
+            const total = tourSteps.length;
 
-        document.getElementById('tourStepLabel').textContent = `Étape ${step + 1} sur ${total}`;
-        document.getElementById('tourIconEl').className = `fas ${s.icon}`;
-        document.getElementById('tourTitle').textContent = s.title;
-        document.getElementById('tourDesc').textContent = s.desc;
+            document.getElementById('tourStepLabel').textContent = `Étape ${step + 1} sur ${total}`;
+            document.getElementById('tourIconEl').className = `fas ${s.icon}`;
+            document.getElementById('tourTitle').textContent = s.title;
+            document.getElementById('tourDesc').textContent = s.desc;
 
-        // Tips
-        const tipsEl = document.getElementById('tourTips');
-        tipsEl.innerHTML = s.tips.map(t => `
+            // Tips
+            const tipsEl = document.getElementById('tourTips');
+            tipsEl.innerHTML = s.tips.map(t => `
             <div class="tour-tip">
                 <div class="tour-tip-icon"><i class="fas ${t.icon}"></i></div>
                 <div class="tour-tip-text">
@@ -1940,62 +2240,63 @@
             </div>
         `).join('');
 
-        // Progress dots
-        const progEl = document.getElementById('tourProgress');
-        progEl.innerHTML = tourSteps.map((_, i) => `
+            // Progress dots
+            const progEl = document.getElementById('tourProgress');
+            progEl.innerHTML = tourSteps.map((_, i) => `
             <div class="tour-dot ${i === step ? 'active' : i < step ? 'done' : ''}" onclick="goToStep(${i})"></div>
         `).join('');
 
-        // Next button
-        const btn = document.getElementById('tourNext');
-        if (step === total - 1) {
-            btn.innerHTML = `C'est parti ! <i class="fas fa-check ms-1"></i>`;
-            btn.onclick = closeTour;
-            document.getElementById('tourSkip').style.display = 'none';
-        } else {
-            btn.innerHTML = `Suivant <i class="fas fa-arrow-right"></i>`;
-            btn.onclick = nextStep;
-            document.getElementById('tourSkip').style.display = '';
+            // Next button
+            const btn = document.getElementById('tourNext');
+            if (step === total - 1) {
+                btn.innerHTML = `C'est parti ! <i class="fas fa-check ms-1"></i>`;
+                btn.onclick = closeTour;
+                document.getElementById('tourSkip').style.display = 'none';
+            } else {
+                btn.innerHTML = `Suivant <i class="fas fa-arrow-right"></i>`;
+                btn.onclick = nextStep;
+                document.getElementById('tourSkip').style.display = '';
+            }
         }
-    }
 
-    function nextStep() {
-        if (currentStep < tourSteps.length - 1) {
-            currentStep++;
+        function nextStep() {
+            if (currentStep < tourSteps.length - 1) {
+                currentStep++;
+                renderStep(currentStep);
+            }
+        }
+
+        function goToStep(i) {
+            currentStep = i;
             renderStep(currentStep);
         }
-    }
 
-    function goToStep(i) {
-        currentStep = i;
-        renderStep(currentStep);
-    }
-
-    function startTour() {
-        currentStep = 0;
-        renderStep(0);
-        document.getElementById('tourOverlay').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeTour() {
-        document.getElementById('tourOverlay').classList.remove('active');
-        document.body.style.overflow = '';
-        localStorage.setItem(TOUR_KEY, '1');
-    }
-
-    // Fermeture en cliquant l'overlay
-    document.getElementById('tourOverlay').addEventListener('click', function(e) {
-        if (e.target === this) closeTour();
-    });
-
-    // Auto-show à la première visite (délai pour laisser la page charger)
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!localStorage.getItem(TOUR_KEY)) {
-            setTimeout(startTour, 800);
+        function startTour() {
+            currentStep = 0;
+            renderStep(0);
+            document.getElementById('tourOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
-    });
+
+        function closeTour() {
+            document.getElementById('tourOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+            localStorage.setItem(TOUR_KEY, '1');
+        }
+
+        // Fermeture en cliquant l'overlay
+        document.getElementById('tourOverlay').addEventListener('click', function (e) {
+            if (e.target === this) closeTour();
+        });
+
+        // Auto-show à la première visite (délai pour laisser la page charger)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem(TOUR_KEY)) {
+                setTimeout(startTour, 800);
+            }
+        });
     </script>
     {% endif %}
 </body>
+
 </html>

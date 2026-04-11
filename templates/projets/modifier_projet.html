@@ -305,6 +305,20 @@
                             {% endif %}
                         </div>
 
+                        <div class="mb-4">
+                            <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">Photo du projet / de la ferme</label>
+                            <div class="input-wrapper" style="padding: 10px;">
+                                <i class="fas fa-image input-icon" style="margin-right: 15px;"></i>
+                                {{ projet_form.image_fond }}
+                            </div>
+                            {% if projet_form.image_fond.errors %}
+                            <div class="text-danger small mt-1">{{ projet_form.image_fond.errors }}</div>
+                            {% endif %}
+                            {% if projet.image_fond %}
+                                <div class="mt-2 text-muted small"><i class="fas fa-check text-success"></i> Image actuelle enregistrée.</div>
+                            {% endif %}
+                        </div>
+
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label for="{{ projet_form.pays.id_for_label }}" class="form-label-modern">Pays</label>

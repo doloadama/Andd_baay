@@ -82,9 +82,10 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut', 'type_irrigation', 'type_engrais']
+        fields = ['nom', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut', 'type_irrigation', 'type_engrais']
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
+            'image_fond': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'pays': forms.Select(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),

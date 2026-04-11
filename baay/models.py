@@ -138,6 +138,9 @@ class Projet(models.Model):
     date_lancement = models.DateField()
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
+    # Image de fond du projet
+    image_fond = models.ImageField(upload_to='projets_fonds/', null=True, blank=True, help_text="Image de couverture du projet (optionnelle)")
+    
     # Pratiques Agronomiques
     type_irrigation = models.CharField(max_length=50, choices=TypeIrrigation.choices, default=TypeIrrigation.AUCUNE)
     type_engrais = models.CharField(max_length=50, choices=TypeEngrais.choices, default=TypeEngrais.AUCUN)
