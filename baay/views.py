@@ -140,7 +140,10 @@ MAX_PROMPT_LENGTH = 4000
 
 # Gemini models to try in order (free tier quota varies per model)
 GEMINI_MODELS = [
-    "gemini-3-flash-preview"
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash",
 ]
 
 SYSTEM_PROMPT = """Tu es Baay AI, l'assistant agricole intelligent de la plateforme Andd Baay. 
@@ -233,10 +236,19 @@ def ask_chatbot(request):
             logger.error(f"Chatbot error: {type(e).__name__}: {e}")
 
             # User-friendly French error messages
-            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str:
+            if '403' in error_str or 'permission_denied' in error_str.lower() or 'leaked' in error_str.lower():
                 return JsonResponse({
-                    'error': '⏳ Le quota de l\'assistant IA est temporairement épuisé. Réessayez dans quelques minutes.'
-                }, status=429)
+                    'error': '🚨 Votre clé API Gemini a été désactivée par Google car elle a fuité. Veuillez en créer une nouvelle.'
+                }, status=403)
+            elif '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str:
+                if 'limit: 0' in error_str:
+                    return JsonResponse({
+                        'error': '🚨 Le quota (Free Tier) est désactivé sur cette clé API (limit: 0). Il faut créer une nouvelle clé ou activer la facturation.'
+                    }, status=429)
+                else:
+                    return JsonResponse({
+                        'error': '⏳ Le quota de l\'assistant IA est temporairement épuisé. Réessayez dans quelques minutes.'
+                    }, status=429)
             elif '401' in error_str or 'API_KEY' in error_str or 'auth' in error_str.lower():
                 return JsonResponse({
                     'error': '🔑 Clé API invalide. Contactez l\'administrateur.'
