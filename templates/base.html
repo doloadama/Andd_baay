@@ -26,101 +26,140 @@
     {% block extra_head %}{% endblock %}
 
     <style>
-        /* ===== MODERN DESIGN SYSTEM WITH FULL DARK/LIGHT MODE ===== */
+        /* ===== MODERN DESIGN SYSTEM (PREMIUM AFRO-TECH) ===== */
         :root {
-            /* Palette Premium Afro-Tech */
-            --bg-deep: #0a0d0a;
-            --card-glass: rgba(22, 27, 19, 0.7);
+            /* Palette de base */
             --neon-green: #39FF14;
-            --tech-green-glow: rgba(57, 255, 20, 0.3);
             --safran-ocre: #E2725B;
             --sun-yellow: #FFD700;
-            --border-glass: rgba(255, 255, 255, 0.08);
+            --tech-green-glow: rgba(57, 255, 20, 0.3);
             
+            /* Mode Clair (Par défaut) */
+            --bg-deep: #F8F9FB;
+            --bg-secondary: #FFFFFF;
+            --card-glass: rgba(255, 255, 255, 0.8);
+            --text-main: #0F172A;
+            --text-secondary: #334155;
+            --text-muted: #64748B;
+            --border-glass: rgba(0, 0, 0, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --shadow-glow: 0 10px 30px rgba(0, 0, 0, 0.05);
+
             /* Typography & Spacing */
             --font-main: 'Inter', sans-serif;
             --font-display: 'Space Grotesk', sans-serif;
             --radius-card: 22px;
             --radius-pill: 40px;
-
-            /* Legacy & Functional Aliases */
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Aliases fonctionnels */
             --primary: var(--neon-green);
             --accent: var(--neon-green);
-            --accent-hover: #bef264;
             --bg-main: var(--bg-deep);
-            --bg-secondary: #0f120e;
-            --card-bg: var(--card-glass);
-            --text-main: #e0e0e0;
-            --text-muted: #94a3b8;
             --border-color: var(--border-glass);
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-bg: var(--card-glass);
+        }
+
+        /* Mode Sombre (Override) */
+        .dark-mode {
+            --bg-deep: #0a0d0a;
+            --bg-secondary: #161b13;
+            --card-glass: rgba(22, 27, 19, 0.7);
+            --text-main: #F1F5F9;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(22, 27, 19, 0.7);
+            --shadow-glow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ===== GLOBAL BUTTONS SYSTEM ===== */
+        .btn-baay {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all var(--transition);
+            cursor: pointer;
+            border: none;
+            text-decoration: none !important;
+        }
+
+        .btn-baay-primary {
+            background: linear-gradient(135deg, var(--neon-green), #2db300);
+            color: #022c22 !important;
+            box-shadow: 0 4px 15px rgba(57, 255, 20, 0.25);
+        }
+        .btn-baay-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(57, 255, 20, 0.4);
+        }
+
+        .btn-baay-secondary {
+            background: linear-gradient(135deg, var(--safran-ocre), #c2410c);
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 15px rgba(226, 114, 91, 0.25);
+        }
+        .btn-baay-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(226, 114, 91, 0.4);
+        }
+
+        .btn-baay-outline {
+            background: transparent;
+            border: 2px solid var(--border-glass);
+            color: var(--text-main) !important;
+        }
+        .btn-baay-outline:hover {
+            border-color: var(--neon-green);
+            background: rgba(57, 255, 20, 0.05);
+            color: var(--neon-green) !important;
+        }
+
+        .btn-baay-ghost {
+            background: transparent;
+            color: var(--text-muted) !important;
+        }
+        .btn-baay-ghost:hover {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-main) !important;
         }
 
         body {
-            background: radial-gradient(circle at top right, #1a2e1a 0%, var(--bg-deep) 60%);
+            background: var(--bg-main);
             color: var(--text-main);
             font-family: var(--font-main);
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        /* La touche Africaine : Motif en background */
+        /* Overlay Pattern */
         .african-pattern-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40L40 0H20L0 20M40 40V20L20 40" fill="%23ffffff" fill-opacity="0.015" fill-rule="evenodd"/></svg>');
             pointer-events: none;
             z-index: -1;
+            opacity: 0.5;
         }
+        .dark-mode .african-pattern-overlay { opacity: 1; filter: invert(0); }
+        .light-mode .african-pattern-overlay { filter: invert(1); opacity: 0.3; }
 
-        /* ===== DARK MODE (Afro-Tech Default) ===== */
-        .dark-mode {
-            --bg-main: var(--bg-deep);
-            --bg-secondary: #161b13;
-            --card-bg: var(--card-glass);
-            --text-main: #e0e0e0;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --border-color: var(--border-glass);
-            --glass-bg: rgba(22, 27, 19, 0.6);
-        }
-            --glass-border: rgba(57, 255, 20, 0.2);
-            
-            --shadow-glow: 0 0 30px rgba(57, 255, 20, 0.15);
-        }
-
-        /* 2.4 — Filtre dark mode images (exclure avec data-no-filter) */
-        .dark-mode img:not([data-no-filter]) {
-            filter: brightness(0.85) contrast(1.05);
-        }
-
-        /* ===== PATTERNS & UTILITIES ===== */
-        .pattern-bogolan {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l15 30-15 30L15 30z' fill-opacity='0.03' fill='%2339FF14' fill-rule='evenodd'/%3E%3C/svg%3E");
-        }
-        
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-card);
             box-shadow: var(--shadow-glow);
-        }
-
-        body {
-            font-family: var(--font-body);
-            font-size: 14px;
-            background-color: var(--bg-main);
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='none'/%3E%3Cpath d='M10 10l5 5m10 10l5 5m30-20l5 5m10 10l5 5' stroke='%2339FF14' stroke-opacity='0.02' stroke-width='2'/%3E%3C/svg%3E");
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            transition: background-color var(--transition), color var(--transition);
-            line-height: 1.6;
+            transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
         button, input, select, textarea {
@@ -1431,7 +1470,7 @@
                                 </a>
                             </li>
                             <li class="nav-item me-lg-2">
-                                <a class="btn-nav btn-nav-primary" href="{% url 'creer_projet' %}">
+                                <a class="btn-baay btn-baay-primary py-2 px-3" href="{% url 'creer_projet' %}">
                                     <i class="fas fa-plus"></i> Nouveau
                                 </a>
                             </li>
@@ -1444,7 +1483,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Déconnexion">
+                                <a class="btn-nav btn-nav-ghost" href="{% url 'logout' %}" title="Déconnexion" style="color: var(--safran-ocre) !important;">
                                     <i class="fas fa-sign-out-alt"></i>
                                 </a>
                             </li>
