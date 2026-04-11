@@ -82,7 +82,7 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut']
+        fields = ['nom', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut', 'type_irrigation', 'type_engrais']
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
             'pays': forms.Select(attrs={'class': 'form-control'}),
@@ -91,6 +91,8 @@ class ProjetForm(forms.ModelForm):
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
             'statut': forms.Select(attrs={'class': 'form-control'}),
+            'type_irrigation': forms.Select(attrs={'class': 'form-control'}),
+            'type_engrais': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):

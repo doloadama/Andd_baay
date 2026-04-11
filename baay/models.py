@@ -34,10 +34,14 @@ class ProduitAgricole(models.Model):
     duree_avant_recolte = models.IntegerField(blank=True, null=True)
     rendement_moyen = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     etat = models.CharField(max_length=100, choices= STATUTS, default='En croissance')
+    
+    # Nouveaux champs pour IA (agronomiques)
+    cycle_culture_jours = models.IntegerField(null=True, blank=True, help_text="Durée moyenne entre semis et récolte (jours)")
+    besoin_eau_mm = models.FloatField(null=True, blank=True, help_text="Besoin en eau total pour le cycle (mm)")
+    rendement_potentiel_max = models.FloatField(null=True, blank=True, help_text="Rendement record possible (kg/ha)")
 
     def __str__(self):
         return f"{self.nom} - {self.saison or 'Indéfini'}"
-        
 
 class PhotoProduitAgricole(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -61,18 +65,18 @@ class Pays(models.Model):
         return self.nom
 
 class Localite(models.Model):
-    TYPES_SOL_CHOICES = [
-        ('Dior', 'Dior (Sableux - arachide, niébé)'),
-        ('Deck', 'Deck (Argileux - riz, sorgho)'),
-        ('Deck-Dior', 'Deck-Dior (Mixte - mil, maïs)'),
-        ('Sablonneux', 'Sablonneux (Maraîchage)'),
-        ('Autre', 'Autre'),
-    ]
+    class TypeSol(models.TextChoices):
+        DIOR = 'Dior', 'Dior'
+        DECK = 'Deck', 'Deck'
+        DECK_DIOR = 'Deck-Dior', 'Deck-Dior'
+        SABLONNEUX = 'Sablonneux', 'Sablonneux'
+        LATERITIQUE = 'Latéritique', 'Latéritique'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     pays = models.ForeignKey(Pays, on_delete=models.CASCADE, null=True, blank=True, related_name='localites')
     nom = models.CharField(max_length=100, unique=True)
-    type_sol = models.CharField(max_length=50, choices=TYPES_SOL_CHOICES, null=True, blank=True)
+    type_sol = models.CharField(max_length=50, choices=TypeSol.choices, null=True, blank=True)
+    pluviometrie_moyenne = models.FloatField(null=True, blank=True, help_text="Pluviométrie moyenne annuelle/saisonnière (mm)")
     conditions_meteo = models.CharField(max_length=100, null=True, blank=True)
     details_meteo = models.TextField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
@@ -82,16 +86,7 @@ class Localite(models.Model):
         return self.nom
         
 
-class ParametresCulture(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    produit = models.OneToOneField(ProduitAgricole, on_delete=models.CASCADE, related_name='parametres')
-    besoin_eau_mm = models.DecimalField(max_digits=6, decimal_places=2, help_text="Besoin en eau par cycle (mm)")
-    cycle_croissance_jours = models.IntegerField(help_text="Durée moyenne de la croissance (jours)")
-    temperature_min = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    temperature_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
-    def __str__(self):
-        return f"Paramètres de {self.produit.nom}"
 
 
 class HistoriqueRendement(models.Model):
@@ -117,17 +112,35 @@ class Projet(models.Model):
         ('en_pause', 'En pause'),
         ('fini', 'Fini'),
     ]
+
+    class TypeIrrigation(models.TextChoices):
+        AUCUNE = 'Aucune', 'Aucune (Pluvial)'
+        GOUTTE_A_GOUTTE = 'Goutte-à-goutte', 'Goutte-à-goutte'
+        ASPERSION = 'Aspersion', 'Aspersion'
+        GRAVITAIRE = 'Gravitaire', 'Gravitaire (Canaux)'
+        MANUELLE = 'Manuelle', 'Manuelle (Arrosoir)'
+
+    class TypeEngrais(models.TextChoices):
+        AUCUN = 'Aucun', 'Aucun (Naturel)'
+        ORGANIQUE = 'Organique', 'Organique (Fumier, Compost)'
+        MINERAL_NPK = 'Minéral NPK', 'Minéral (NPK)'
+        MINERAL_UREE = 'Minéral Urée', 'Minéral (Urée)'
+        MIXTE = 'Mixte', 'Mixte (Organique + Minéral)'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nom = models.CharField(max_length=200)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
     pays = models.ForeignKey(Pays, on_delete=models.SET_NULL, null=True, blank=True)
-    # Keep culture for backwards compatibility, but produits will be the main relation
     culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, null=True, blank=True)
     localite = models.ForeignKey(Localite, on_delete=models.CASCADE)
     superficie = models.DecimalField(max_digits=10, decimal_places=2)
     date_lancement = models.DateField()
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Pratiques Agronomiques
+    type_irrigation = models.CharField(max_length=50, choices=TypeIrrigation.choices, default=TypeIrrigation.AUCUNE)
+    type_engrais = models.CharField(max_length=50, choices=TypeEngrais.choices, default=TypeEngrais.AUCUN)
     
     # Multiple products relation
     produits = models.ManyToManyField(ProduitAgricole, through='ProjetProduit', related_name='projets_multi')
@@ -206,14 +219,16 @@ class Investissement(models.Model):
     def __str__(self):
         return f"Investissement {self.id} pour le projet {self.projet.nom}"
 
-class PredictionRendement(models.Model):
-    projet = models.OneToOneField('Projet', on_delete=models.CASCADE, related_name='prediction')
-    rendement_estime = models.FloatField()
-    indice_confiance = models.FloatField(null=True, blank=True, help_text="Indice de confiance du modèle ML (pourcentage)")
+class PrevisionRecolte(models.Model):
+    projet = models.OneToOneField(Projet, on_delete=models.CASCADE, related_name='prevision')
+    rendement_estime_min = models.FloatField(default=0)
+    rendement_estime_max = models.FloatField(default=0)
+    indice_confiance = models.FloatField(null=True, blank=True, help_text="Indice de confiance du modèle IA (pourcentage)")
+    date_recolte_prevue = models.DateField(null=True, blank=True)
     date_prediction = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Prédiction pour {self.projet.nom} ({self.indice_confiance or 0}%)"
+        return f"Prévision pour {self.projet.nom} ({self.indice_confiance or 0}%)"
 
 
 

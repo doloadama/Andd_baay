@@ -19,7 +19,7 @@ from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm
-from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement, ProjetProduit
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False

@@ -755,6 +755,30 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.type_irrigation.id_for_label }}" class="form-label-modern">
+                                            Type d'irrigation
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-water input-icon"></i>
+                                            {{ projet_form.type_irrigation }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.type_engrais.id_for_label }}" class="form-label-modern">
+                                            Type d'engrais
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-seedling input-icon"></i>
+                                            {{ projet_form.type_engrais }}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -799,9 +823,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         input.addEventListener('input', function() {
-            const wrapper = this.closest('.input-wrapper');
-            if (wrapper) {
-                wrapper.classList.remove('error', 'success');
+            if (this.value) {
+                this.parentElement.classList.remove('error');
+                const icon = this.parentElement.querySelector('.validation-icon.error');
+                if (icon) icon.style.opacity = '0';
             }
         });
     });
