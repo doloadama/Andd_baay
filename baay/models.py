@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser, User
+from django.core.validators import MinValueValidator
 from django.db import models
 import uuid
 from django.utils.timezone import now
@@ -60,10 +61,18 @@ class Pays(models.Model):
         return self.nom
 
 class Localite(models.Model):
+    TYPES_SOL_CHOICES = [
+        ('Dior', 'Dior (Sableux - arachide, niébé)'),
+        ('Deck', 'Deck (Argileux - riz, sorgho)'),
+        ('Deck-Dior', 'Deck-Dior (Mixte - mil, maïs)'),
+        ('Sablonneux', 'Sablonneux (Maraîchage)'),
+        ('Autre', 'Autre'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     pays = models.ForeignKey(Pays, on_delete=models.CASCADE, null=True, blank=True, related_name='localites')
     nom = models.CharField(max_length=100, unique=True)
-    type_sol = models.CharField(max_length=50, null=True, blank=True)
+    type_sol = models.CharField(max_length=50, choices=TYPES_SOL_CHOICES, null=True, blank=True)
     conditions_meteo = models.CharField(max_length=100, null=True, blank=True)
     details_meteo = models.TextField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
@@ -71,6 +80,34 @@ class Localite(models.Model):
 
     def __str__(self):
         return self.nom
+        
+
+class ParametresCulture(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    produit = models.OneToOneField(ProduitAgricole, on_delete=models.CASCADE, related_name='parametres')
+    besoin_eau_mm = models.DecimalField(max_digits=6, decimal_places=2, help_text="Besoin en eau par cycle (mm)")
+    cycle_croissance_jours = models.IntegerField(help_text="Durée moyenne de la croissance (jours)")
+    temperature_min = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    temperature_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    def __str__(self):
+        return f"Paramètres de {self.produit.nom}"
+
+
+class HistoriqueRendement(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    localite = models.ForeignKey(Localite, on_delete=models.CASCADE, related_name='historiques')
+    produit = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='historiques')
+    annee = models.IntegerField(help_text="Année de la récolte")
+    rendement_reel_kg_ha = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rendement réel obtenu (kg/hectare)")
+    pluviometrie_mm = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="Pluviométrie enregistrée cette année-là (mm)")
+
+    class Meta:
+        unique_together = ['localite', 'produit', 'annee']
+        verbose_name_plural = "Historiques de Rendement"
+
+    def __str__(self):
+        return f"{self.produit.nom} à {self.localite.nom} ({self.annee})"
 
 
 
@@ -120,8 +157,8 @@ class ProjetProduit(models.Model):
     produit = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='projet_produits')
     
     # Sowing data
-    quantite_semences = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Quantite de semences en kg")
-    superficie_allouee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie allouee a ce produit en hectares")
+    quantite_semences = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0.1)], help_text="Quantite de semences en kg")
+    superficie_allouee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0.01)], help_text="Superficie allouee a ce produit en hectares")
     date_semis = models.DateField(null=True, blank=True, help_text="Date du semis")
     date_recolte_prevue = models.DateField(null=True, blank=True, help_text="Date de recolte prevue")
 
@@ -172,10 +209,11 @@ class Investissement(models.Model):
 class PredictionRendement(models.Model):
     projet = models.OneToOneField('Projet', on_delete=models.CASCADE, related_name='prediction')
     rendement_estime = models.FloatField()
+    indice_confiance = models.FloatField(null=True, blank=True, help_text="Indice de confiance du modèle ML (pourcentage)")
     date_prediction = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Prédiction pour {self.projet.nom}"
+        return f"Prédiction pour {self.projet.nom} ({self.indice_confiance or 0}%)"
 
 
 

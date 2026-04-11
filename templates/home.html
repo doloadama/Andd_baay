@@ -3,15 +3,38 @@
 
 {% block content %}
 <style>
-    /* ===== HERO SECTION ===== */
+    /* ===== HERO SECTION (BOGOLAN & GLASSMORPHISM) ===== */
     .hero-section {
-        min-height: calc(100vh - 200px);
+        min-height: calc(100vh - 100px);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 0 24px;
+        padding: 60px 0;
         position: relative;
         overflow: hidden;
+        background-color: #1A1410; /* Carbone Terreux */
+    }
+
+    /* Motif Bogolan/Afro-tech en SVG background */
+    .hero-pattern {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 30-30 30L0 30zm0 15l15 15-15 15L15 30z' fill='%23DAA520' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+        z-index: 1;
+        opacity: 0.6;
+    }
+
+    /* Dégradé Radial pour la lueur centrale */
+    .hero-glow {
+        position: absolute;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(57,255,20,0.08) 0%, rgba(26,20,16,0) 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        pointer-events: none;
     }
 
     .hero-container {
@@ -19,109 +42,207 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        max-width: 850px;
+        max-width: 900px;
         margin: 0 auto;
         position: relative;
-        z-index: 2;
+        z-index: 10;
+        padding: 0 20px;
     }
 
     .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(163, 230, 53, 0.12);
-        color: var(--primary);
-        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #DAA520;
+        padding: 8px 18px;
         border-radius: var(--radius-pill);
-        font-weight: 700;
+        font-weight: 600;
         font-size: 0.85rem;
-        margin-bottom: 28px;
-        border: 1px solid rgba(163, 230, 53, 0.25);
-        letter-spacing: 0.06em;
+        margin-bottom: 30px;
+        border: 1px solid rgba(218, 165, 32, 0.3);
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
-    .dark-mode .hero-badge { color: var(--accent); }
 
     .hero-title {
-        font-size: clamp(2.2rem, 5vw, 3.2rem);
-        line-height: 1.08;
-        margin-bottom: 18px;
-        color: var(--text-main);
-        letter-spacing: -0.04em;
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        line-height: 1.1;
+        margin-bottom: 24px;
+        color: #F8F9FA;
+        letter-spacing: -0.02em;
         font-family: var(--font-display);
-        font-weight: 900;
+        font-weight: 800;
+        text-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
     .hero-title .highlight {
-        color: var(--accent);
+        color: #39FF14;
         position: relative;
         display: inline-block;
-    }
-
-    .hero-title .highlight::after {
-        content: '';
-        position: absolute;
-        bottom: 4px;
-        left: 0;
-        width: 100%;
-        height: 12px;
-        background: var(--accent);
-        z-index: -1;
-        opacity: 0.15;
-        border-radius: 6px;
-        transform: skewX(-3deg);
+        text-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
     }
 
     .hero-subtitle {
-        font-size: clamp(0.9rem, 1.5vw, 1.05rem);
-        color: var(--text-muted);
-        line-height: 1.7;
-        margin-bottom: 28px;
-        max-width: 560px;
+        font-size: clamp(1rem, 1.8vw, 1.15rem);
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.6;
+        margin-bottom: 40px;
+        max-width: 650px;
+        font-weight: 300;
     }
 
     .hero-actions {
         display: flex;
-        gap: 16px;
+        gap: 20px;
         flex-wrap: wrap;
         justify-content: center;
+        position: relative;
+        z-index: 20;
     }
 
-    .btn-hero {
-        padding: 12px 28px;
-        font-size: 0.9rem;
+    /* BOUTONS HIGH-TECH */
+    .btn-neon {
+        padding: 14px 32px;
+        background-color: #39FF14;
+        color: #0A0A0A;
+        font-size: 1rem;
         border-radius: var(--radius-pill);
         font-family: var(--font-display);
         font-weight: 700;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .btn-hero:hover {
-        transform: translateY(-3px);
-    }
-
-    /* Floating shapes */
-    .float-shape {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(100px);
-        opacity: 0.05;
-        z-index: 0;
-        animation: floatShape 12s ease-in-out infinite alternate;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 20px rgba(57, 255, 20, 0.3), inset 0 -3px 0 rgba(0,0,0,0.1);
+        border: 1px solid #39FF14;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
     }
     
-    .dark-mode .float-shape {
-        opacity: 0.15;
+    .btn-neon:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 30px rgba(57, 255, 20, 0.5), inset 0 -3px 0 rgba(0,0,0,0.1);
+        color: #0A0A0A;
     }
 
-    .shape-1 { width: 500px; height: 500px; top: -180px; left: -200px; background: var(--accent); }
-    .shape-2 { width: 350px; height: 350px; bottom: -100px; right: -120px; background: var(--primary); animation-delay: -4s; }
-    .shape-3 { width: 200px; height: 200px; top: 40%; left: 60%; background: var(--accent); opacity: 0.08; animation-delay: -8s; }
+    .btn-ocre {
+        padding: 14px 32px;
+        background-color: rgba(26, 20, 16, 0.5);
+        color: #DAA520;
+        font-size: 1rem;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-display);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(218, 165, 32, 0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-    @keyframes floatShape {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(30px, -20px) scale(1.1); }
+    .btn-ocre:hover {
+        background-color: rgba(218, 165, 32, 0.1);
+        border-color: #DAA520;
+        color: #DAA520;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* WIDGETS GLASSMORPHISM FLOTTANTS */
+    .glass-widget {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 20px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: #FFF;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        z-index: 5;
+        animation: floatWidget 6s ease-in-out infinite alternate;
+    }
+
+    .widget-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .widget-icon.neon {
+        background: rgba(57, 255, 20, 0.1);
+        color: #39FF14;
+        border: 1px solid rgba(57, 255, 20, 0.2);
+    }
+
+    .widget-icon.ocre {
+        background: rgba(218, 165, 32, 0.1);
+        color: #DAA520;
+        border: 1px solid rgba(218, 165, 32, 0.2);
+    }
+
+    .widget-data {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .widget-data .label {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+    }
+
+    .widget-data .value {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .widget-data .trend {
+        font-size: 0.75rem;
+        color: #39FF14;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .widget-1 {
+        top: 20%;
+        left: 5%;
+        animation-delay: 0s;
+    }
+
+    .widget-2 {
+        bottom: 15%;
+        right: 8%;
+        animation-delay: -3s;
+    }
+
+    @keyframes floatWidget {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(-20px); }
+    }
+
+    @media (max-width: 991px) {
+        .widget-1, .widget-2 { display: none; } /* Cacher sur mobile/tablette pour la lisibilité */
     }
 
     /* ===== FEATURE CARDS SECTION ===== */
@@ -426,13 +547,35 @@
 
 <!-- ===== HERO ===== -->
 <div class="hero-section">
-    <div class="float-shape shape-1"></div>
-    <div class="float-shape shape-2"></div>
-    <div class="float-shape shape-3"></div>
+    <div class="hero-pattern"></div>
+    <div class="hero-glow"></div>
+
+    <!-- Widgets flottants interactifs -->
+    <div class="glass-widget widget-1 d-none d-lg-flex animate__animated animate__fadeInLeft">
+        <div class="widget-icon neon">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <div class="widget-data">
+            <span class="label">Rendement IA</span>
+            <span class="value">98.5%</span>
+            <span class="trend"><i class="fas fa-arrow-up"></i> +12% Précision</span>
+        </div>
+    </div>
+
+    <div class="glass-widget widget-2 d-none d-lg-flex animate__animated animate__fadeInRight">
+        <div class="widget-icon ocre">
+            <i class="fas fa-tint"></i>
+        </div>
+        <div class="widget-data">
+            <span class="label">Humidité du sol</span>
+            <span class="value">Optimale</span>
+            <span class="trend" style="color: #DAA520;"><i class="fas fa-check-circle"></i> Zone Sahel</span>
+        </div>
+    </div>
 
     <div class="hero-container animate__animated animate__fadeInUp">
         <div class="hero-badge">
-            <i class="fas fa-bolt"></i> Plateforme Agricole Intelligente
+            <i class="fas fa-leaf"></i> Agritech Ouest Africaine
         </div>
 
         <h1 class="hero-title">
@@ -440,30 +583,30 @@
         </h1>
 
         <p class="hero-subtitle">
-            Gérez vos projets agricoles, prédisez vos rendements grâce à l'IA et maximisez la réussite de votre exploitation.
+            Gérez vos projets agricoles, prévoyez vos rendements avec précision grâce à l'IA et boostez la rentabilité de votre exploitation.
         </p>
 
         <div class="hero-actions">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn-modern btn-primary-modern btn-hero">
-                    <i class="fas fa-chart-line me-2"></i>Accéder au Dashboard
+                <a href="{% url 'dashboard' %}" class="btn-neon">
+                    <i class="fas fa-chart-line"></i> Accéder au Dashboard
                 </a>
-                <a href="{% url 'creer_projet' %}" class="btn-modern btn-outline-modern btn-hero">
-                    <i class="fas fa-plus me-2"></i>Nouveau Projet
+                <a href="{% url 'creer_projet' %}" class="btn-ocre">
+                    <i class="fas fa-plus"></i> Nouveau Projet
                 </a>
             {% else %}
-                <a href="{% url 'register' %}" class="btn-modern btn-primary-modern btn-hero">
-                    Commencer gratuitement <i class="fas fa-arrow-right ms-2"></i>
+                <a href="{% url 'register' %}" class="btn-neon">
+                    Commencer gratuitement <i class="fas fa-arrow-right"></i>
                 </a>
-                <a href="{% url 'login' %}" class="btn-modern btn-outline-modern btn-hero">
-                    Se connecter
+                <a href="{% url 'login' %}" class="btn-ocre">
+                    Se connecter <i class="fas fa-user"></i>
                 </a>
             {% endif %}
         </div>
 
         {% if user.is_authenticated %}
-            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s">
-                <span class="text-muted" style="font-size: 0.95rem;">Connecté en tant que <strong>{{ user.username }}</strong></span>
+            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s text-white-50" style="position: relative; z-index: 20;">
+                <span style="font-size: 0.95rem;">Connecté en tant que <strong>{{ user.username }}</strong></span>
             </div>
         {% endif %}
     </div>

@@ -19,10 +19,31 @@ def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
 
 @receiver(post_save, sender=Projet)
-def creer_prediction_rendement(sender, instance, created, **kwargs):
-    """Generate a yield prediction when a new project is created."""
-    if created:
-        from baay.views import predire_rendement
-        logger.debug(f"Signal triggered for project {instance.id}")
-        rendement_pred = predire_rendement(instance)
-        PredictionRendement.objects.create(projet=instance, rendement_estime=rendement_pred)
+def creer_prediction_rendement_projet(sender, instance, created, **kwargs):
+    """Fallback if needed for legacy logic."""
+    pass
+
+from baay.models import ProjetProduit
+from baay.services import calculer_indice_confiance, predict_rendement_ml
+
+@receiver(post_save, sender=ProjetProduit)
+def update_prediction_rendement(sender, instance, created, **kwargs):
+    """Mettre à jour l'indice de confiance et le rendement estimé à chaque modification des paramètres agricoles."""
+    # 1. Calcul de l'indice de confiance
+    confiance = calculer_indice_confiance(instance)
+    
+    # 2. Prédiction IA
+    # Features stub pour le ML
+    features = {
+        'superficie': float(instance.superficie_allouee or 1),
+        'semences_kg': float(instance.quantite_semences or 0),
+        'type_sol': instance.projet.localite.type_sol
+    }
+    rendement_estime = predict_rendement_ml(features)
+    
+    # 3. Sauvegarde dans PredictionRendement lié au projet principal
+    prediction, _ = PredictionRendement.objects.get_or_create(projet=instance.projet, defaults={'rendement_estime': 0})
+    prediction.rendement_estime = rendement_estime
+    prediction.indice_confiance = confiance
+    prediction.save()
+
