@@ -163,11 +163,21 @@
                 <div class="glass-card-body ">
                     {% if prediction %}
                         <div class="text-center mb-4">
-                            <div class="text-uppercase tracking-widest text-accent text-sm fw-bold mb-2">Rendement Estimé</div>
-                            <div class="display-3 fw-bold" style="font-family: var(--font-display);">
-                                {{ prediction.rendement_estime }} <span class="fs-4 text-muted">kg</span>
+                            <div class="text-uppercase tracking-widest text-accent text-sm fw-bold mb-2">Estimation Récolte</div>
+                            <div class="display-5 fw-bold" style="font-family: var(--font-display);">
+                                {{ prediction.rendement_estime_min|floatformat:0 }} - {{ prediction.rendement_estime_max|floatformat:0 }} <span class="fs-4 text-muted">kg</span>
                             </div>
-                            <div class="text-sm text-muted mt-2">Prédit le {{ prediction.date_prediction|date:"d/m/Y" }}</div>
+                            
+                            <div class="mt-3 d-flex justify-content-center align-items-center gap-3">
+                                <div class="confiance-gauge" title="Indice de confiance">
+                                    <div class="gauge-bar" style="width: {{ prediction.indice_confiance }}%; background: {% if prediction.indice_confiance > 80 %}#39FF14{% elif prediction.indice_confiance > 50 %}#FFD700{% else %}#E2725B{% endif %};"></div>
+                                </div>
+                                <span class="text-sm fw-bold" style="color: var(--text-muted);">{{ prediction.indice_confiance|floatformat:0 }}% Confiance</span>
+                            </div>
+
+                            <div class="text-sm text-muted mt-3">
+                                <i class="fas fa-calendar-check me-1"></i> Récolte prévue : <strong>{{ prediction.date_recolte_prevue|date:"d M Y"|default:"À déterminer" }}</strong>
+                            </div>
                         </div>
                     {% else %}
                         <div class="text-center py-4 text-muted">
@@ -408,7 +418,20 @@
     .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
     .bg-surface { background: var(--bg-main); }
-    . { color: var(--text-main) !important; }
+    .text-shadow-lg { text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    
+    .confiance-gauge {
+        width: 120px;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .gauge-bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1s ease-out;
+    }
 
     @media (max-width: 991px) {
         .project-content-wrapper { padding-top: max(30vh, 250px); }

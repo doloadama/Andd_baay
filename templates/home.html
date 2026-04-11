@@ -12,7 +12,7 @@
         padding: 60px 0;
         position: relative;
         overflow: hidden;
-        background-color: #1A1410; /* Carbone Terreux */
+        background-color: var(--bg-main);
     }
 
     /* Motif Bogolan/Afro-tech en SVG background */
@@ -29,7 +29,7 @@
         position: absolute;
         width: 800px;
         height: 800px;
-        background: radial-gradient(circle, rgba(57,255,20,0.08) 0%, rgba(26,20,16,0) 70%);
+        background: radial-gradient(circle, var(--tech-green-glow) 0%, transparent 70%);
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -53,14 +53,14 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        color: #DAA520;
+        background: var(--card-bg);
+        color: var(--terroir-ocre);
         padding: 8px 18px;
         border-radius: var(--radius-pill);
         font-weight: 600;
         font-size: 0.85rem;
         margin-bottom: 30px;
-        border: 1px solid rgba(218, 165, 32, 0.3);
+        border: 1px solid var(--terroir-ocre);
         letter-spacing: 0.08em;
         text-transform: uppercase;
         backdrop-filter: blur(12px);
@@ -80,10 +80,10 @@
     }
 
     .hero-title .highlight {
-        color: #39FF14;
+        color: var(--tech-green);
         position: relative;
         display: inline-block;
-        text-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
+        text-shadow: 0 0 30px var(--tech-green-glow);
     }
 
     .hero-subtitle {

@@ -451,7 +451,7 @@ def detail_projet(request, projet_id):
     investissements = projet.investissement_set.all()
 
     # Recuperer la prediction de rendement (s'il y en a une)
-    prediction = PredictionRendement.objects.filter(projet=projet).first()
+    prediction = PrevisionRecolte.objects.filter(projet=projet).first()
     
     # Recuperer les produits du projet
     projet_produits = projet.projet_produits.select_related('produit').all()
@@ -774,22 +774,41 @@ def predire_rendement(projet):
 @login_required
 def generer_prediction(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    from baay.services import estimer_rendement_ia
 
-    rendement_pred = predire_rendement(projet)
-    prediction, created = PredictionRendement.objects.get_or_create(
-        projet=projet,
-        defaults={'rendement_estime': rendement_pred}
-    )
+    projet_produits = projet.projet_produits.all()
+    if not projet_produits:
+        messages.warning(request, "Aucun produit associé à ce projet pour générer une prédiction.")
+        return redirect('detail_projet', projet_id=projet.id)
 
-    if not created:
-        prediction.rendement_estime = rendement_pred
-        prediction.save()
+    total_min = 0
+    total_max = 0
+    confiance_sum = 0
+    latest_date_recolte = None
+    
+    for pp in projet_produits:
+        res = estimer_rendement_ia(pp)
+        total_min += res['min']
+        total_max += res['max']
+        confiance_sum += res['confiance']
+        if res['date_recolte_prevue']:
+            if not latest_date_recolte or res['date_recolte_prevue'] > latest_date_recolte:
+                latest_date_recolte = res['date_recolte_prevue']
+    
+    avg_confiance = confiance_sum / projet_produits.count()
+    
+    prediction, created = PrevisionRecolte.objects.get_or_create(projet=projet)
+    prediction.rendement_estime_min = total_min
+    prediction.rendement_estime_max = total_max
+    prediction.indice_confiance = avg_confiance
+    prediction.date_recolte_prevue = latest_date_recolte
+    prediction.save()
 
-    # Mettre à jour le rendement estimé global du projet
-    projet.rendement_estime = rendement_pred
+    # Mettre à jour le rendement estimé global du projet (moyenne pour compatibilité)
+    projet.rendement_estime = (total_min + total_max) / 2
     projet.save(update_fields=['rendement_estime'])
 
-    messages.success(request, "La prédiction a été générée avec succès.")
+    messages.success(request, "La prédiction a été générée avec succès (Smart Engine).")
     return redirect('detail_projet', projet_id=projet.id)
 
 def evaluer_modele(model, X_test, y_test):
@@ -932,9 +951,9 @@ def dashboard_projets_api(request):
         # Get prediction if exists
         prediction = None
         try:
-            if hasattr(p, 'prediction'):
-                prediction = p.prediction.rendement_estime
-        except (AttributeError, PredictionRendement.DoesNotExist):
+            if hasattr(p, 'prevision'):
+                prediction = p.prevision.rendement_estime_min
+        except (AttributeError, PrevisionRecolte.DoesNotExist):
             logger.debug(f"No prediction found for project {p.id}")
         
         projets_data.append({
