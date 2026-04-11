@@ -1647,7 +1647,18 @@
     </style>
     <script>
         // Anti-Flash : Applique le thème avant le rendu du body
-        const savedTheme = localStorage.getItem('theme');
+        let savedTheme = null;
+        try {
+            savedTheme = localStorage.getItem('theme');
+        } catch (e) {
+            savedTheme = null;
+        }
+
+        // Si aucun choix utilisateur n'est enregistrÃ©, on suit le thÃ¨me systÃ¨me (utile sur tÃ©lÃ©phone)
+        if (savedTheme !== 'light' && savedTheme !== 'dark') {
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            savedTheme = systemPrefersDark ? 'dark' : 'light';
+        }
 
         // Default to dark mode for Andd Baay si non défini
         if (savedTheme === 'light') {
