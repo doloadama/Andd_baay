@@ -1670,6 +1670,11 @@
             document.documentElement.classList.add('dark-mode');
             document.documentElement.classList.remove('light-mode');
         }
+
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+            themeColorMeta.setAttribute('content', savedTheme === 'dark' ? '#0a0d0a' : '#f4f3ef');
+        }
     </script>
 </head>
 
@@ -1729,7 +1734,7 @@
                 </a>
 
                 <div class="d-flex align-items-center gap-2 d-lg-none">
-                    <button id="themeToggleMobile" class="theme-toggle" aria-label="Changer de thème">
+                    <button id="themeToggleMobile" type="button" class="theme-toggle" aria-label="Changer de thème">
                         <i class="fas fa-moon icon-moon"></i>
                         <i class="fas fa-sun icon-sun"></i>
                     </button>
@@ -1780,7 +1785,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <button id="openGuideBtn" class="theme-toggle" title="Guide utilisateur"
+                            <button id="openGuideBtn" type="button" class="theme-toggle" title="Guide utilisateur"
                                 onclick="startTour()"
                                 style="font-size: 0.8rem; font-weight: 800; color: var(--accent);">
                                 <i class="fas fa-question"></i>
@@ -1795,7 +1800,7 @@
                         </li>
                         {% endif %}
                         <li class="nav-item d-none d-lg-block">
-                            <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                            <button id="themeToggle" type="button" class="theme-toggle" aria-label="Changer de thème">
                                 <i class="fas fa-moon icon-moon"></i>
                                 <i class="fas fa-sun icon-sun"></i>
                             </button>
