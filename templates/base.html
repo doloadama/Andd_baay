@@ -28,9 +28,8 @@
     <!-- Leaflet : charge conditionnellement par chaque template qui en a besoin -->
     {% block extra_head %}{% endblock %}
 
-    <style>
-        /* ===== MODERN DESIGN SYSTEM (PREMIUM AFRO-TECH) ===== */
-        :root {
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'CSS/base.css' %}">
             /* Palette de base */
             --neon-green: #39FF14;
             --safran-ocre: #E2725B;
