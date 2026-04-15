@@ -138,6 +138,9 @@ if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_
 # Maximum allowed prompt length for chatbot
 MAX_PROMPT_LENGTH = 4000
 
+
+
+
 # Gemini models to try in order (free tier quota varies per model)
 GEMINI_MODELS = [
     "gemini-2.0-flash-lite",
@@ -210,6 +213,7 @@ def ask_chatbot(request):
             # Sanitize input
             prompt, error = _sanitize_chatbot_input(raw_prompt)
             if error:
+                logger.warning(f"Chatbot validation error: {error} | Received: '{raw_prompt}' (type: {type(raw_prompt)})")
                 return JsonResponse({'error': error}, status=400)
 
             # Build conversation with system context + history

@@ -2007,7 +2007,7 @@
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
             });
 
-            sendButton.addEventListener('click', sendMessage);
+            sendButton.addEventListener('click', () => sendMessage());
 
             clearChatButton.addEventListener('click', () => {
                 if (messageHistory.length && confirm('Effacer la discussion ?')) {
@@ -2054,9 +2054,11 @@
 
                 // Build history payload from recent messageHistory
                 const historyPayload = messageHistory.slice(-12).map(m => ({
-                    role: m.role === 'user' ? 'user' : 'assistant',
+                    role: m.sender === 'user' ? 'user' : 'assistant',
                     text: m.text || m.content || ''
                 }));
+
+                console.log("Chatbot Sending:", { message: message, history: historyPayload });
 
                 fetch("/api/chatbot/", {
                     method: "POST",
@@ -2086,6 +2088,7 @@
                     .finally(() => {
                         sendButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
                         sendButton.disabled = false;
+                        console.log("Chatbot fetch transaction complete.");
                     });
             }
 
