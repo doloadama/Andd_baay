@@ -816,11 +816,13 @@ def update_projet_statut_api(request, projet_id):
         return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
 
-# ============ SEMIS (Sowing) Management Views ============
+# ============ SEMIS (Crop Growth) Views - Based on Projet data ============
 
 @login_required
 def liste_semis(request):
-    """List all sowings for the current user"""
+    """Display crop growth progress for all user's projects"""
+    from datetime import date, timedelta
+    
     try:
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
@@ -831,39 +833,96 @@ def liste_semis(request):
     culture_filter = request.GET.get('culture', '')
     search_query = request.GET.get('q', '')
     
-    # Base queryset
-    semis_list = Semis.objects.filter(utilisateur=utilisateur).select_related('culture', 'projet')
+    # Base queryset - get all projects with their cultures
+    projets_list = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite')
     
     # Apply filters
     if statut_filter:
-        semis_list = semis_list.filter(statut=statut_filter)
+        projets_list = projets_list.filter(statut=statut_filter)
     
     if culture_filter:
-        semis_list = semis_list.filter(culture_id=culture_filter)
+        projets_list = projets_list.filter(culture_id=culture_filter)
     
     if search_query:
-        semis_list = semis_list.filter(culture__nom__icontains=search_query)
+        projets_list = projets_list.filter(culture__nom__icontains=search_query)
+    
+    # Calculate growth progress for each project
+    today = date.today()
+    projets_with_growth = []
+    
+    for projet in projets_list:
+        # Calculate days since project started
+        if projet.date_debut:
+            jours_depuis_semis = (today - projet.date_debut).days
+        else:
+            jours_depuis_semis = 0
+        
+        # Get culture's growth duration
+        duree_croissance = projet.culture.duree_avant_recolte if projet.culture and projet.culture.duree_avant_recolte else 90
+        
+        # Calculate expected harvest date
+        if projet.date_debut:
+            date_recolte_prevue = projet.date_debut + timedelta(days=duree_croissance)
+            jours_avant_recolte = max(0, (date_recolte_prevue - today).days)
+        else:
+            date_recolte_prevue = None
+            jours_avant_recolte = None
+        
+        # Calculate progress percentage
+        if duree_croissance > 0:
+            progress_percent = min(100, int((jours_depuis_semis / duree_croissance) * 100))
+        else:
+            progress_percent = 0
+        
+        # Determine growth phase
+        if projet.statut == 'fini':
+            phase = 'recolte'
+        elif progress_percent >= 100:
+            phase = 'pret_recolte'
+        elif progress_percent >= 75:
+            phase = 'maturation'
+        elif progress_percent >= 50:
+            phase = 'floraison'
+        elif progress_percent >= 25:
+            phase = 'croissance'
+        else:
+            phase = 'germination'
+        
+        projets_with_growth.append({
+            'projet': projet,
+            'jours_depuis_semis': jours_depuis_semis,
+            'jours_avant_recolte': jours_avant_recolte,
+            'date_recolte_prevue': date_recolte_prevue,
+            'progress_percent': progress_percent,
+            'duree_croissance': duree_croissance,
+            'phase': phase,
+        })
     
     # Pagination
-    paginator = Paginator(semis_list, 12)
+    paginator = Paginator(projets_with_growth, 12)
     page = request.GET.get('page', 1)
-    semis = paginator.get_page(page)
+    projets_page = paginator.get_page(page)
     
     # Get available cultures for filter dropdown
     cultures = ProduitAgricole.objects.filter(
-        semis__utilisateur=utilisateur
+        projet__utilisateur=utilisateur
     ).distinct()
     
     # Statistics
+    total = len(projets_with_growth)
+    en_cours = sum(1 for p in projets_with_growth if p['projet'].statut == 'en_cours')
+    prets_recolte = sum(1 for p in projets_with_growth if p['progress_percent'] >= 100 and p['projet'].statut != 'fini')
+    recoltes = sum(1 for p in projets_with_growth if p['projet'].statut == 'fini')
+    
     stats = {
-        'total': semis_list.count(),
-        'planifies': semis_list.filter(statut='planifie').count(),
-        'en_croissance': semis_list.filter(statut='en_croissance').count(),
-        'recoltes': semis_list.filter(statut='recolte').count(),
+        'total': total,
+        'en_cours': en_cours,
+        'prets_recolte': prets_recolte,
+        'recoltes': recoltes,
     }
     
     context = {
-        'semis': semis,
+        'projets': projets_page,
         'cultures': cultures,
         'stats': stats,
         'current_statut': statut_filter,
@@ -872,92 +931,3 @@ def liste_semis(request):
     }
     
     return render(request, 'semis/liste_semis.html', context)
-
-
-@login_required
-def creer_semis(request):
-    """Create a new sowing"""
-    if request.method == 'POST':
-        form = SemisForm(request.POST, user=request.user)
-        if form.is_valid():
-            semis = form.save(commit=False)
-            semis.utilisateur = request.user.profile
-            semis.save()
-            messages.success(request, 'Semis créé avec succès!')
-            return redirect('liste_semis')
-    else:
-        form = SemisForm(user=request.user)
-    
-    return render(request, 'semis/creer_semis.html', {'form': form})
-
-
-@login_required
-def modifier_semis(request, semis_id):
-    """Edit an existing sowing"""
-    semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
-    
-    if request.method == 'POST':
-        form = SemisForm(request.POST, instance=semis, user=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Semis modifié avec succès!')
-            return redirect('liste_semis')
-    else:
-        form = SemisForm(instance=semis, user=request.user)
-    
-    return render(request, 'semis/modifier_semis.html', {'form': form, 'semis': semis})
-
-
-@login_required
-def detail_semis(request, semis_id):
-    """View details of a sowing"""
-    semis = get_object_or_404(
-        Semis.objects.select_related('culture', 'projet', 'utilisateur'),
-        id=semis_id, 
-        utilisateur=request.user.profile
-    )
-    
-    return render(request, 'semis/detail_semis.html', {'semis': semis})
-
-
-@login_required
-def supprimer_semis(request, semis_id):
-    """Delete a sowing"""
-    semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
-    
-    if request.method == 'POST':
-        semis.delete()
-        messages.success(request, 'Semis supprimé avec succès!')
-        return redirect('liste_semis')
-    
-    return render(request, 'semis/confirmer_suppression_semis.html', {'semis': semis})
-
-
-@login_required
-def update_semis_statut(request, semis_id):
-    """Quick update of sowing status"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        nouveau_statut = data.get('statut')
-        
-        valid_statuts = ['planifie', 'seme', 'en_croissance', 'recolte', 'echec']
-        if nouveau_statut not in valid_statuts:
-            return JsonResponse({'error': 'Invalid status'}, status=400)
-        
-        semis = get_object_or_404(Semis, id=semis_id, utilisateur=request.user.profile)
-        semis.statut = nouveau_statut
-        semis.save(update_fields=['statut'])
-        
-        return JsonResponse({
-            'success': True,
-            'semis_id': str(semis.id),
-            'nouveau_statut': nouveau_statut
-        })
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        logger.error(f"Error updating semis status: {e}")
-        return JsonResponse({'error': 'An error occurred'}, status=500)

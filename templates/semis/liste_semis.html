@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Mes Semis | Andd Baay{% endblock %}
+{% block title %}Suivi des Cultures | Andd Baay{% endblock %}
 
 {% block content %}
 <style>
@@ -58,9 +58,9 @@
     }
     
     .stat-icon.total { background: rgba(163, 230, 53, 0.15); color: var(--accent); }
-    .stat-icon.planifie { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-    .stat-icon.croissance { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-    .stat-icon.recolte { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .stat-icon.en-cours { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .stat-icon.pret { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .stat-icon.recolte { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
     
     .stat-value {
         font-size: 1.75rem;
@@ -139,14 +139,14 @@
         border-color: var(--accent);
     }
 
-    /* Semis Grid */
-    .semis-grid {
+    /* Growth Cards Grid */
+    .growth-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
         gap: 24px;
     }
 
-    .semis-card {
+    .growth-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-card);
@@ -155,20 +155,20 @@
         position: relative;
     }
 
-    .semis-card:hover {
+    .growth-card:hover {
         transform: translateY(-4px);
         box-shadow: var(--shadow-lg);
         border-color: var(--accent);
     }
 
-    .semis-card-header {
+    .growth-card-header {
         padding: 24px 24px 16px;
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
     }
 
-    .semis-card-title {
+    .growth-card-title {
         font-family: var(--font-display);
         font-size: 1.25rem;
         font-weight: 700;
@@ -176,7 +176,7 @@
         margin: 0 0 4px 0;
     }
 
-    .semis-card-date {
+    .growth-card-project {
         font-size: 0.85rem;
         color: var(--text-muted);
         display: flex;
@@ -184,7 +184,7 @@
         gap: 6px;
     }
 
-    .semis-status {
+    .phase-badge {
         padding: 6px 14px;
         border-radius: var(--radius-pill);
         font-size: 0.75rem;
@@ -193,91 +193,150 @@
         letter-spacing: 0.05em;
     }
 
-    .status-planifie {
-        background: rgba(107, 114, 128, 0.15);
-        color: #6b7280;
+    .phase-germination {
+        background: rgba(139, 92, 246, 0.15);
+        color: #8b5cf6;
     }
     
-    .status-seme {
-        background: rgba(59, 130, 246, 0.15);
-        color: #3b82f6;
-    }
-    
-    .status-en_croissance {
+    .phase-croissance {
         background: rgba(34, 197, 94, 0.15);
         color: #22c55e;
     }
     
-    .status-recolte {
+    .phase-floraison {
+        background: rgba(236, 72, 153, 0.15);
+        color: #ec4899;
+    }
+    
+    .phase-maturation {
         background: rgba(245, 158, 11, 0.15);
         color: #f59e0b;
     }
     
-    .status-echec {
+    .phase-pret_recolte {
         background: rgba(239, 68, 68, 0.15);
         color: #ef4444;
     }
+    
+    .phase-recolte {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
 
-    .semis-card-body {
+    .growth-card-body {
         padding: 0 24px 20px;
     }
 
-    .semis-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .semis-stat {
+    .growth-visual {
         background: var(--bg-secondary);
-        padding: 12px;
-        border-radius: var(--radius-sm);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
         text-align: center;
     }
 
-    .semis-stat-value {
+    .growth-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .growth-percent {
         font-family: var(--font-display);
-        font-size: 1.1rem;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+    }
+
+    .growth-percent-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .growth-timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 16px 0;
+        position: relative;
+    }
+
+    .timeline-point {
+        text-align: center;
+        z-index: 1;
+    }
+
+    .timeline-point-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--border-color);
+        margin: 0 auto 6px;
+    }
+
+    .timeline-point-dot.active {
+        background: var(--accent);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.2);
+    }
+
+    .timeline-point-dot.completed {
+        background: var(--accent);
+    }
+
+    .timeline-point-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 6px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: var(--border-color);
+        z-index: 0;
+    }
+
+    .timeline-line-fill {
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.5s ease;
+    }
+
+    .growth-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .growth-stat {
+        text-align: center;
+        padding: 10px;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-sm);
+    }
+
+    .growth-stat-value {
+        font-family: var(--font-display);
+        font-size: 1rem;
         font-weight: 700;
         color: var(--text-main);
     }
 
-    .semis-stat-label {
-        font-size: 0.7rem;
+    .growth-stat-label {
+        font-size: 0.65rem;
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-top: 2px;
     }
 
-    .semis-progress {
-        margin-top: 12px;
-    }
-
-    .progress-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-bottom: 6px;
-    }
-
-    .progress-bar-bg {
-        height: 6px;
-        background: var(--bg-secondary);
-        border-radius: var(--radius-pill);
-        overflow: hidden;
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent), #84cc16);
-        border-radius: var(--radius-pill);
-        transition: width 0.5s ease;
-    }
-
-    .semis-card-footer {
+    .growth-card-footer {
         padding: 16px 24px;
         border-top: 1px solid var(--border-color);
         display: flex;
@@ -287,7 +346,7 @@
 
     .btn-card {
         flex: 1;
-        min-width: 80px;
+        min-width: 100px;
         padding: 10px 14px;
         border-radius: var(--radius-sm);
         font-size: 0.8rem;
@@ -322,16 +381,6 @@
     .btn-card-secondary:hover {
         background: var(--border-color);
         color: var(--text-main);
-    }
-
-    .btn-card-danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
-
-    .btn-card-danger:hover {
-        background: var(--danger);
-        color: white;
     }
 
     /* Empty State */
@@ -416,7 +465,7 @@
     }
 
     @media (max-width: 768px) {
-        .semis-grid {
+        .growth-grid {
             grid-template-columns: 1fr;
         }
         
@@ -432,16 +481,20 @@
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
         }
+        
+        .growth-stats {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
 <div class="page-header animate__animated animate__fadeInDown">
     <div>
-        <h1 class="page-title">Mes Semis</h1>
-        <p class="page-subtitle">Gerez et suivez tous vos semis et plantations</p>
+        <h1 class="page-title">Suivi des Cultures</h1>
+        <p class="page-subtitle">Suivez la croissance de vos cultures en temps reel</p>
     </div>
-    <a href="{% url 'creer_semis' %}" class="btn-modern btn-primary-modern">
-        <i class="fas fa-plus me-2"></i> Nouveau semis
+    <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern">
+        <i class="fas fa-plus me-2"></i> Nouveau projet
     </a>
 </div>
 
@@ -452,21 +505,21 @@
             <i class="fas fa-seedling"></i>
         </div>
         <div class="stat-value">{{ stats.total }}</div>
-        <div class="stat-label">Total semis</div>
+        <div class="stat-label">Total cultures</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon planifie">
-            <i class="fas fa-calendar-alt"></i>
-        </div>
-        <div class="stat-value">{{ stats.planifies }}</div>
-        <div class="stat-label">Planifies</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon croissance">
+        <div class="stat-icon en-cours">
             <i class="fas fa-leaf"></i>
         </div>
-        <div class="stat-value">{{ stats.en_croissance }}</div>
+        <div class="stat-value">{{ stats.en_cours }}</div>
         <div class="stat-label">En croissance</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pret">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-value">{{ stats.prets_recolte }}</div>
+        <div class="stat-label">Prets a recolter</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon recolte">
@@ -486,11 +539,9 @@
     
     <select name="statut" class="filter-select" onchange="this.form.submit()">
         <option value="">Tous les statuts</option>
-        <option value="planifie" {% if current_statut == 'planifie' %}selected{% endif %}>Planifie</option>
-        <option value="seme" {% if current_statut == 'seme' %}selected{% endif %}>Seme</option>
-        <option value="en_croissance" {% if current_statut == 'en_croissance' %}selected{% endif %}>En croissance</option>
-        <option value="recolte" {% if current_statut == 'recolte' %}selected{% endif %}>Recolte</option>
-        <option value="echec" {% if current_statut == 'echec' %}selected{% endif %}>Echec</option>
+        <option value="en_cours" {% if current_statut == 'en_cours' %}selected{% endif %}>En cours</option>
+        <option value="en_pause" {% if current_statut == 'en_pause' %}selected{% endif %}>En pause</option>
+        <option value="fini" {% if current_statut == 'fini' %}selected{% endif %}>Termine</option>
     </select>
     
     <select name="culture" class="filter-select" onchange="this.form.submit()">
@@ -505,76 +556,116 @@
     </button>
     
     {% if search_query or current_statut or current_culture %}
-    <a href="{% url 'liste_semis' %}" class="btn-modern btn-secondary-modern" style="padding: 12px 20px;">
+    <a href="{% url 'liste_semis' %}" class="btn-modern btn-outline-modern" style="padding: 12px 20px;">
         <i class="fas fa-times"></i> Reset
     </a>
     {% endif %}
 </form>
 
-{% if semis %}
-<!-- Semis Grid -->
-<div class="semis-grid" id="semisGrid">
-    {% for s in semis %}
-    <div class="semis-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|divisibleby:3 }}00ms;">
-        <div class="semis-card-header">
+{% if projets %}
+<!-- Growth Cards Grid -->
+<div class="growth-grid" id="growthGrid">
+    {% for item in projets %}
+    <div class="growth-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|divisibleby:3 }}00ms;">
+        <div class="growth-card-header">
             <div>
-                <h3 class="semis-card-title">{{ s.culture.nom }}</h3>
-                <p class="semis-card-date">
-                    <i class="fas fa-calendar"></i> Seme le {{ s.date_semis|date:"d/m/Y" }}
+                <h3 class="growth-card-title">{{ item.projet.culture.nom }}</h3>
+                <p class="growth-card-project">
+                    <i class="fas fa-folder"></i> {{ item.projet.nom }}
                 </p>
             </div>
-            <span class="semis-status status-{{ s.statut }}">
-                {{ s.get_statut_display }}
+            <span class="phase-badge phase-{{ item.phase }}">
+                {% if item.phase == 'germination' %}Germination
+                {% elif item.phase == 'croissance' %}Croissance
+                {% elif item.phase == 'floraison' %}Floraison
+                {% elif item.phase == 'maturation' %}Maturation
+                {% elif item.phase == 'pret_recolte' %}Pret a recolter
+                {% elif item.phase == 'recolte' %}Recolte
+                {% endif %}
             </span>
         </div>
         
-        <div class="semis-card-body">
-            <div class="semis-stats">
-                <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.quantite_semences }} kg</div>
-                    <div class="semis-stat-label">Semences</div>
-                </div>
-                <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.superficie_semee }} ha</div>
-                    <div class="semis-stat-label">Superficie</div>
-                </div>
-            </div>
-            
-            {% if s.date_recolte_prevue and s.statut != 'recolte' and s.statut != 'echec' %}
-            <div class="semis-progress">
-                <div class="progress-label">
-                    <span>{{ s.jours_depuis_semis }} jours depuis semis</span>
-                    {% if s.jours_avant_recolte is not None %}
-                    <span>{{ s.jours_avant_recolte }} jours restants</span>
+        <div class="growth-card-body">
+            <!-- Visual Growth Display -->
+            <div class="growth-visual">
+                <span class="growth-icon">
+                    {% if item.phase == 'germination' %}
+                    <i class="fas fa-seedling" style="color: #8b5cf6;"></i>
+                    {% elif item.phase == 'croissance' %}
+                    <i class="fas fa-leaf" style="color: #22c55e;"></i>
+                    {% elif item.phase == 'floraison' %}
+                    <i class="fas fa-spa" style="color: #ec4899;"></i>
+                    {% elif item.phase == 'maturation' %}
+                    <i class="fas fa-apple-alt" style="color: #f59e0b;"></i>
+                    {% elif item.phase == 'pret_recolte' %}
+                    <i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>
+                    {% elif item.phase == 'recolte' %}
+                    <i class="fas fa-check-circle" style="color: #3b82f6;"></i>
                     {% endif %}
-                </div>
-                {% with total_days=s.culture.duree_avant_recolte|default:90 %}
-                {% widthratio s.jours_depuis_semis total_days 100 as progress_percent %}
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: {% if progress_percent > 100 %}100{% else %}{{ progress_percent }}{% endif %}%;"></div>
-                </div>
-                {% endwith %}
+                </span>
+                <div class="growth-percent">{{ item.progress_percent }}%</div>
+                <div class="growth-percent-label">de croissance</div>
             </div>
-            {% endif %}
             
-            {% if s.projet %}
+            <!-- Growth Timeline -->
+            <div class="growth-timeline">
+                <div class="timeline-line">
+                    <div class="timeline-line-fill" style="width: {{ item.progress_percent }}%;"></div>
+                </div>
+                <div class="timeline-point">
+                    <div class="timeline-point-dot {% if item.progress_percent >= 0 %}completed{% endif %}"></div>
+                    <div class="timeline-point-label">Semis</div>
+                </div>
+                <div class="timeline-point">
+                    <div class="timeline-point-dot {% if item.progress_percent >= 25 %}completed{% endif %} {% if item.progress_percent >= 20 and item.progress_percent < 30 %}active{% endif %}"></div>
+                    <div class="timeline-point-label">Pousse</div>
+                </div>
+                <div class="timeline-point">
+                    <div class="timeline-point-dot {% if item.progress_percent >= 50 %}completed{% endif %} {% if item.progress_percent >= 45 and item.progress_percent < 55 %}active{% endif %}"></div>
+                    <div class="timeline-point-label">Floraison</div>
+                </div>
+                <div class="timeline-point">
+                    <div class="timeline-point-dot {% if item.progress_percent >= 75 %}completed{% endif %} {% if item.progress_percent >= 70 and item.progress_percent < 80 %}active{% endif %}"></div>
+                    <div class="timeline-point-label">Maturation</div>
+                </div>
+                <div class="timeline-point">
+                    <div class="timeline-point-dot {% if item.progress_percent >= 100 %}completed{% endif %} {% if item.progress_percent >= 95 %}active{% endif %}"></div>
+                    <div class="timeline-point-label">Recolte</div>
+                </div>
+            </div>
+            
+            <!-- Growth Stats -->
+            <div class="growth-stats">
+                <div class="growth-stat">
+                    <div class="growth-stat-value">{{ item.jours_depuis_semis }}j</div>
+                    <div class="growth-stat-label">Depuis semis</div>
+                </div>
+                <div class="growth-stat">
+                    <div class="growth-stat-value">{% if item.jours_avant_recolte is not None %}{{ item.jours_avant_recolte }}j{% else %}-{% endif %}</div>
+                    <div class="growth-stat-label">Avant recolte</div>
+                </div>
+                <div class="growth-stat">
+                    <div class="growth-stat-value">{{ item.duree_croissance }}j</div>
+                    <div class="growth-stat-label">Cycle total</div>
+                </div>
+            </div>
+            
+            {% if item.projet.localite %}
             <div style="margin-top: 12px; padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm);">
                 <small style="color: var(--text-muted);">
-                    <i class="fas fa-folder me-1"></i> Projet: {{ s.projet.nom }}
+                    <i class="fas fa-map-marker-alt me-1"></i> {{ item.projet.localite.nom }}
+                    {% if item.projet.superficie %} | <i class="fas fa-ruler-combined me-1"></i> {{ item.projet.superficie }} ha{% endif %}
                 </small>
             </div>
             {% endif %}
         </div>
         
-        <div class="semis-card-footer">
-            <a href="{% url 'detail_semis' s.id %}" class="btn-card btn-card-primary">
-                <i class="fas fa-eye"></i> Details
+        <div class="growth-card-footer">
+            <a href="{% url 'detail_projet' item.projet.id %}" class="btn-card btn-card-primary">
+                <i class="fas fa-eye"></i> Voir projet
             </a>
-            <a href="{% url 'modifier_semis' s.id %}" class="btn-card btn-card-secondary">
+            <a href="{% url 'modifier_projet' item.projet.id %}" class="btn-card btn-card-secondary">
                 <i class="fas fa-edit"></i> Modifier
-            </a>
-            <a href="{% url 'supprimer_semis' s.id %}" class="btn-card btn-card-danger" onclick="return confirm('Supprimer ce semis ?');">
-                <i class="fas fa-trash"></i>
             </a>
         </div>
     </div>
@@ -582,25 +673,25 @@
 </div>
 
 <!-- Pagination -->
-{% if semis.has_other_pages %}
+{% if projets.has_other_pages %}
 <div class="pagination-wrapper">
     <div class="pagination-modern">
-        {% if semis.has_previous %}
+        {% if projets.has_previous %}
             <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
                 <i class="fas fa-angle-double-left"></i>
             </a>
-            <a href="?page={{ semis.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
+            <a href="?page={{ projets.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
                 <i class="fas fa-angle-left"></i>
             </a>
         {% endif %}
         
-        <span class="page-info">Page {{ semis.number }} sur {{ semis.paginator.num_pages }}</span>
+        <span class="page-info">Page {{ projets.number }} sur {{ projets.paginator.num_pages }}</span>
         
-        {% if semis.has_next %}
-            <a href="?page={{ semis.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
+        {% if projets.has_next %}
+            <a href="?page={{ projets.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
                 <i class="fas fa-angle-right"></i>
             </a>
-            <a href="?page={{ semis.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
+            <a href="?page={{ projets.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
                 <i class="fas fa-angle-double-right"></i>
             </a>
         {% endif %}
@@ -614,10 +705,10 @@
     <div class="empty-state-icon">
         <i class="fas fa-seedling"></i>
     </div>
-    <h3>Aucun semis pour l'instant</h3>
-    <p>Commencez par enregistrer votre premier semis</p>
-    <a href="{% url 'creer_semis' %}" class="btn-modern btn-primary-modern">
-        <i class="fas fa-plus me-2"></i> Creer un semis
+    <h3>Aucune culture en cours</h3>
+    <p>Creez un projet pour commencer a suivre la croissance de vos cultures</p>
+    <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern">
+        <i class="fas fa-plus me-2"></i> Creer un projet
     </a>
 </div>
 {% endif %}

@@ -36,13 +36,8 @@ urlpatterns = [
     path('api/dashboard/filters/', views.dashboard_filters_api, name='dashboard_filters_api'),
     path('api/projet/<uuid:projet_id>/statut/', views.update_projet_statut_api, name='update_projet_statut_api'),
     
-    # Semis (Sowing) management
+    # Semis (Crop Growth Tracking) - displays growth progress from Projet data
     path('semis/', views.liste_semis, name='liste_semis'),
-    path('semis/creer/', views.creer_semis, name='creer_semis'),
-    path('semis/<uuid:semis_id>/', views.detail_semis, name='detail_semis'),
-    path('semis/<uuid:semis_id>/modifier/', views.modifier_semis, name='modifier_semis'),
-    path('semis/<uuid:semis_id>/supprimer/', views.supprimer_semis, name='supprimer_semis'),
-    path('api/semis/<uuid:semis_id>/statut/', views.update_semis_statut, name='update_semis_statut'),
 ]
 
 
