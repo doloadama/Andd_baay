@@ -5,35 +5,50 @@
     .form-page-bg {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, #020617 0%, #022c22 50%, #0f172a 100%);
+        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
         z-index: 0;
     }
     
+    .form-page-bg::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.08) 0px, transparent 50%),
+            radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.04) 0px, transparent 50%);
+    }
+    
+    .dark-mode .form-page-bg::before {
+        background-image: 
+            radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.15) 0px, transparent 50%),
+            radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.08) 0px, transparent 50%);
+    }
+    
     .glass-form-card {
-        background: rgba(15, 23, 42, 0.75);
+        background: var(--card-bg);
         backdrop-filter: blur(24px);
-        border: 1px solid rgba(163, 230, 53, 0.15);
+        border: 1px solid var(--border-color);
         border-radius: 32px;
         overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-lg);
     }
     
     .card-header-modern {
-        background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        background: var(--card-bg-solid);
         padding: 32px 40px;
-        border-bottom: 1px solid rgba(163, 230, 53, 0.2);
+        border-bottom: 1px solid var(--border-color);
     }
     
     .card-header-modern h4 {
         margin: 0;
         font-size: 1.4rem;
-        color: white;
+        color: var(--text-main);
         font-family: var(--font-display);
         font-weight: 700;
     }
     
     .form-label-modern {
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-main);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 10px;
@@ -43,8 +58,8 @@
         position: relative;
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
         border-radius: 16px;
         transition: all 0.3s;
         overflow: hidden;
@@ -52,11 +67,11 @@
     
     .input-wrapper:focus-within {
         border-color: var(--accent);
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
     }
     
     .input-icon {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         padding-left: 20px;
         width: 48px;
         text-align: center;
@@ -71,7 +86,7 @@
     .modern-form textarea {
         background: transparent !important;
         border: none !important;
-        color: white !important;
+        color: var(--text-main) !important;
         width: 100%;
         padding: 18px 20px 18px 12px;
         font-size: 1rem;
@@ -80,8 +95,8 @@
     }
     
     .modern-form select option {
-        background: #0f172a;
-        color: white;
+        background: var(--card-bg-solid);
+        color: var(--text-main);
     }
     
     .btn-submit-modern {
@@ -111,8 +126,8 @@
     }
     
     .product-checkbox-item {
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
         border-radius: 12px;
         padding: 16px;
         transition: all 0.3s;
@@ -121,7 +136,7 @@
     
     .product-checkbox-item:hover {
         border-color: rgba(163, 230, 53, 0.3);
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--bg-main);
     }
     
     .product-checkbox-item.selected {
@@ -149,7 +164,7 @@
     }
     
     .rendement-card {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--bg-secondary);
         border-radius: 12px;
         padding: 20px;
         margin-bottom: 16px;
@@ -190,7 +205,7 @@
                     <!-- Rendement Final Form -->
                     <div class="rendement-section">
                         <h5><i class="fas fa-trophy me-2"></i> Saisir les Rendements Finaux</h5>
-                        <p class="text-white-50 mb-4">Entrez la quantite recoltee pour chaque produit de ce projet.</p>
+                        <p class="text-muted mb-4">Entrez la quantite recoltee pour chaque produit de ce projet.</p>
                         
                         <form method="post" class="modern-form">
                             {% csrf_token %}
@@ -222,7 +237,7 @@
                                     </div>
                                 </div>
                                 {% if pp.rendement_estime %}
-                                <small class="text-white-50 mt-2 d-block">
+                                <small class="text-muted mt-2 d-block">
                                     <i class="fas fa-chart-line me-1"></i> Rendement estime: {{ pp.rendement_estime|floatformat:0 }} kg
                                 </small>
                                 {% endif %}
@@ -244,8 +259,40 @@
                     {% endif %}
                     
                     <!-- Main Project Form -->
-                    <form method="post" class="modern-form" novalidate>
+                    <form method="post" class="modern-form" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
+                        
+                        <!-- Plant Details Section -->
+                        {% if plants_data %}
+                        <div class="rendement-section mb-4" style="background: var(--bg-main); border-color: rgba(163, 230, 53, 0.2);">
+                            <h5 style="color: var(--accent);"><i class="fas fa-camera me-2"></i> Suivi des plants</h5>
+                            <p class="text-muted mb-4">Ajoutez une photo et precisez l'age pour chaque type de plant.</p>
+                            
+                            {% for pt in plants_data %}
+                            <div class="rendement-card">
+                                <h6><i class="fas fa-leaf me-2"></i> {{ pt.nom }}</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-modern">Photo du plant</label>
+                                        <div class="input-wrapper" style="padding: 10px;">
+                                            {{ pt.image_field }}
+                                        </div>
+                                        {% if pt.image_field.errors %}<div class="text-danger small mt-1">{{ pt.image_field.errors }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-modern">Age (en jours)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-clock input-icon"></i>
+                                            {{ pt.age_field }}
+                                        </div>
+                                        {% if pt.age_field.errors %}<div class="text-danger small mt-1">{{ pt.age_field.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <hr class="border-secondary my-4">
+                        {% endif %}
 
                         <div class="mb-4">
                             <label for="nom" class="form-label-modern">Nom du Projet</label>
@@ -259,19 +306,46 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="localite" class="form-label-modern">Localite</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-map-marker-alt input-icon"></i>
-                                {{ projet_form.localite }}
+                            <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">Photo du projet / de la ferme</label>
+                            <div class="input-wrapper" style="padding: 10px;">
+                                <i class="fas fa-image input-icon" style="margin-right: 15px;"></i>
+                                {{ projet_form.image_fond }}
                             </div>
-                            {% if projet_form.localite.errors %}
-                            <div class="text-danger small mt-1">{{ projet_form.localite.errors }}</div>
+                            {% if projet_form.image_fond.errors %}
+                            <div class="text-danger small mt-1">{{ projet_form.image_fond.errors }}</div>
                             {% endif %}
+                            {% if projet.image_fond %}
+                                <div class="mt-2 text-muted small"><i class="fas fa-check text-success"></i> Image actuelle enregistrée.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ projet_form.pays.id_for_label }}" class="form-label-modern">Pays</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-globe-africa input-icon"></i>
+                                    {{ projet_form.pays }}
+                                </div>
+                                {% if projet_form.pays.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.pays.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="localite" class="form-label-modern">Localite</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-map-marker-alt input-icon"></i>
+                                    {{ projet_form.localite }}
+                                </div>
+                                {% if projet_form.localite.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.localite.errors }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label-modern">Produits Cultives <span class="text-danger">*</span></label>
-                            <p class="text-white-50 small mb-3">Selectionnez un ou plusieurs produits pour ce projet</p>
+                            <p class="text-muted small mb-3">Selectionnez un ou plusieurs produits pour ce projet</p>
                             <div class="product-checkbox-grid">
                                 {% for produit in produits %}
                                 <label class="product-checkbox-item {% for pp in projet.projet_produits.all %}{% if pp.produit_id == produit.id %}selected{% endif %}{% endfor %}">
@@ -282,9 +356,9 @@
                                                {% for pp in projet.projet_produits.all %}{% if pp.produit_id == produit.id %}checked{% endif %}{% endfor %}
                                                onchange="this.closest('.product-checkbox-item').classList.toggle('selected', this.checked)">
                                         <div>
-                                            <div class="text-white fw-bold">{{ produit.nom }}</div>
+                                            <div class=" fw-bold">{{ produit.nom }}</div>
                                             {% if produit.rendement_moyen %}
-                                            <small class="text-white-50">~{{ produit.rendement_moyen }} kg/ha</small>
+                                            <small class="text-muted">~{{ produit.rendement_moyen }} kg/ha</small>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -358,4 +432,44 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paysSelect = document.getElementById('{{ projet_form.pays.id_for_label }}');
+    const localiteSelect = document.getElementById('{{ projet_form.localite.id_for_label }}');
+    
+    if (paysSelect && localiteSelect) {
+        const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({
+            value: opt.value,
+            text: opt.text,
+            selected: opt.selected
+        }));
+        
+        const localitesMapping = {
+            {% for loc in projet_form.localite.field.queryset %}
+                "{{ loc.id }}": "{{ loc.pays_id|default:'' }}",
+            {% endfor %}
+        };
+        
+        function filterLocalites() {
+            const selectedPays = paysSelect.value;
+            const currentSelectedLocalite = localiteSelect.value;
+            
+            localiteSelect.innerHTML = '';
+            
+            allLocaliteOptions.forEach(opt => {
+                if (!opt.value || localitesMapping[opt.value] === selectedPays) {
+                    const option = new Option(opt.text, opt.value);
+                    if (opt.value === currentSelectedLocalite && localitesMapping[opt.value] === selectedPays) {
+                        option.selected = true;
+                    }
+                    localiteSelect.add(option);
+                }
+            });
+        }
+        
+        paysSelect.addEventListener('change', filterLocalites);
+        filterLocalites();
+    }
+});
+</script>
 {% endblock %}

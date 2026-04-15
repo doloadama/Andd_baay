@@ -14,17 +14,88 @@
         margin-bottom: var(--space-10);
     }
 
-    /* Stat Cards */
-    .dash-stat-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+    /* Bento Tiles Base Styling (Premium Glassmorphism) */
+    .bento-tile {
+        background: var(--card-glass) !important;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--border-glass) !important;
         border-radius: var(--radius-card);
-        padding: var(--space-6);
-        transition: all var(--transition);
+        padding: 28px;
+        height: 100%;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .bento-tile:hover {
+        transform: translateY(-8px) scale(1.01);
+        border-color: var(--neon-green) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(57, 255, 20, 0.1);
+    }
+
+    /* Boutons Terroir & Tech */
+    .btn-primary-tech {
+        background: linear-gradient(135deg, var(--neon-green), #2db300) !important;
+        border: none !important;
+        color: #022c22 !important;
+        font-weight: 700;
+        border-radius: 14px;
+        padding: 10px 24px;
+        box-shadow: 0 4px 15px rgba(57, 255, 20, 0.25);
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary-terroir {
+        background: transparent !important;
+        border: 2px solid var(--safran-ocre) !important;
+        color: var(--safran-ocre) !important;
+        font-weight: 600;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .bento-tile::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: radial-gradient(circle at top right, var(--tech-green-glow), transparent 60%);
+        opacity: 0;
+        transition: opacity var(--transition);
+        z-index: 0;
+    }
+
+    .bento-tile:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px -15px rgba(57, 255, 20, 0.2);
+        border-color: var(--tech-green);
     }
     
-    .dash-stat-card:hover {
-        border-color: var(--text-muted);
+    .bento-tile:hover::before { opacity: 1; }
+    .bento-content { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; }
+
+    /* Grid Area Assignments */
+    .tile-chart { grid-column: span 2; grid-row: span 2; min-height: 400px; }
+    .tile-chart-pie { grid-column: span 2; grid-row: span 2; min-height: 400px; }
+    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%); text-align: center; justify-content: center; align-items: center; border: 1px solid var(--border-glass); }
+    .tile-kpi { grid-column: span 1; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
+    .tile-projects { grid-column: span 2; grid-row: span 2; max-height: 600px; overflow: hidden; }
+    .tile-filters { grid-column: span 4; grid-row: span 1; }
+
+    /* KPI Specifics with Animation */
+    .kpi-bento-icon {
+        width: 64px; height: 64px;
+        background: rgba(163, 230, 53, 0.1);
+        color: var(--accent);
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
     }
     
     .dash-stat-icon {
@@ -140,7 +211,15 @@
     
     .filter-select:focus, .filter-input:focus {
         outline: none;
-        border-color: var(--text-main);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+        background: var(--bg-main);
+    }
+    
+    .filter-select option {
+        background: var(--card-bg);
+        color: var(--text-main);
+        padding: 12px;
     }
     
     .filter-actions {
@@ -174,8 +253,58 @@
     }
     
     .filter-btn.secondary:hover {
-        border-color: var(--text-muted);
-        color: var(--text-main);
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--bg-main);
+        box-shadow: none;
+    }
+    
+    /* Active Filters Chips */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: rgba(163, 230, 53, 0.15);
+        border: 1px solid rgba(163, 230, 53, 0.3);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--accent);
+        animation: chipIn 0.3s ease-out;
+    }
+    
+    @keyframes chipIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .filter-chip-remove {
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-chip-remove:hover {
+        background: rgba(163, 230, 53, 0.3);
     }
     
     /* Filter Count Badge */
@@ -224,25 +353,63 @@
     .project-list {
         display: flex;
         flex-direction: column;
-        max-height: 400px;
-        overflow-y: auto;
+        gap: 12px;
+        position: relative;
+        overflow: hidden;
     }
     
-    .project-list::-webkit-scrollbar { width: 4px; }
-    .project-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-    
-    .project-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: var(--space-4);
-        border-bottom: 1px solid var(--border-color);
-        cursor: pointer;
-        transition: all var(--transition);
+    .mini-project-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--accent);
+        opacity: 0;
+        transition: opacity 0.2s ease;
     }
     
-    .project-item:last-child {
-        border-bottom: none;
+    .mini-project-card:hover {
+        background: var(--bg-secondary);
+        border-color: var(--tech-green);
+        transform: translateX(4px);
+    }
+    
+    .mini-project-card:hover::after {
+        opacity: 1;
+    }
+    
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+    
+    @keyframes neonPulse {
+        0% { box-shadow: 0 0 5px var(--tech-green); opacity: 1; }
+        50% { box-shadow: 0 0 15px var(--tech-green); opacity: 0.8; }
+        100% { box-shadow: 0 0 5px var(--tech-green); opacity: 1; }
+    }
+    
+    .status-badge.en_cours { 
+        background: rgba(57, 255, 20, 0.1); 
+        color: var(--tech-green); 
+        border: 1px solid var(--tech-green);
+        animation: neonPulse 2s infinite ease-in-out;
+    }
+    .status-badge.en_pause { background: rgba(226, 114, 91, 0.1); color: var(--terroir-ocre); border: 1px solid var(--terroir-ocre); }
+    .status-badge.fini { background: rgba(255, 215, 0, 0.1); color: var(--sun-yellow); border: 1px solid var(--sun-yellow); }
+
+    .mini-p-stats { 
+        display: flex; 
+        gap: 16px; 
+        font-size: 0.85rem; 
+        color: var(--text-main); 
     }
     
     .project-item:hover {
@@ -267,10 +434,10 @@
         gap: var(--space-4);
     }
     
-    .project-meta span {
-        display: flex;
-        align-items: center;
-        gap: var(--space-1);
+    .action-btn:hover {
+        background: var(--primary);
+        color: var(--text-main);
+        border-color: var(--primary);
     }
     
     /* Status Badges */
@@ -412,8 +579,59 @@
     }
     
     .modal-project-item:hover {
-        border-color: var(--text-muted);
-        background: var(--bg-secondary);
+        border-color: var(--accent);
+        background: var(--bg-main);
+        transform: translateX(8px);
+    }
+    
+    .modal-project-info h4 {
+        margin: 0 0 4px 0;
+        color: var(--text-main);
+        font-weight: 600;
+    }
+    
+    .modal-project-info p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    
+    .modal-project-stats {
+        display: flex;
+        gap: 16px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    
+    .modal-project-stats span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .modal-project-arrow {
+        color: var(--accent);
+        font-size: 18px;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.2s ease;
+    }
+    
+    .modal-project-item:hover .modal-project-arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .modal-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted);
+    }
+    
+    .modal-empty i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
     }
 
     /* Responsive */
@@ -457,16 +675,19 @@
 </style>
 
 <!-- Header -->
-<div class="dash-header">
-    <div class="dash-header-info">
-        <h1>Dashboard</h1>
-        <p>Vue d'ensemble de vos projets agricoles</p>
+<div class="dashboard-header-modern animate__animated animate__fadeInDown">
+    <div class="db-title">
+        <p style="margin-bottom: 4px;">Espace Analytique</p>
+        <h1>Bonjour, {{ user.first_name|default:user.username }} 👋</h1>
     </div>
-    <div class="dash-header-actions">
-        <span class="dash-date"><i class="far fa-calendar-alt me-2"></i>{% now "j F Y" %}</span>
-        <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-            <i class="fas fa-plus"></i> Nouveau projet
-        </a>
+    <div class="db-actions">
+        <span class="live-indicator">
+            <span class="live-dot"></span>
+            Données en direct
+        </span>
+        <div class="db-date text-muted" style="font-weight: 500; font-size: 0.9rem;">
+            <i class="far fa-calendar-alt me-2"></i> {% now "j F Y" %}
+        </div>
     </div>
 </div>
 
@@ -578,6 +799,20 @@
         </div>
     </div>
 
+    <!-- Quick Action -->
+    <div class="bento-tile tile-action animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+        <div class="bento-content text-center">
+            <div style="width: 80px; height: 80px; background: rgba(163, 230, 53, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                <i class="fas fa-bolt fa-2x" style="color: var(--accent);"></i>
+            </div>
+            <h4 style="color: var(--text-main); font-family: var(--font-display); font-weight: 700; margin-bottom: 12px;">Nouveau Projet</h4>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px;">Lancez une prediction IA pour vos cultures.</p>
+            <a href="{% url 'creer_projet' %}" class="btn-baay btn-baay-primary w-100">
+                <i class="fas fa-plus"></i> Nouveau Projet
+            </a>
+        </div>
+    </div>
+
     <!-- Projects List -->
     <div class="dash-section span-2">
         <div class="dash-section-header">
@@ -604,6 +839,27 @@
                                 <span><i class="fas fa-seedling"></i> {{ projet.culture.nom|default:"N/A" }}</span>
                                 <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
                             </div>
+                            <span class="status-badge {{ projet.statut }}" onclick="event.stopPropagation(); showStatusModal('{{ projet.id }}', '{{ projet.statut }}')">
+                                {% if projet.statut == 'en_cours' %}En cours
+                                {% elif projet.statut == 'en_pause' %}En pause
+                                {% else %}Termine{% endif %}
+                            </span>
+                        </div>
+                        <div class="mini-p-stats">
+                            <span><i class="fas fa-crop-alt"></i> {{ projet.superficie }} ha</span>
+                            <span><i class="fas fa-weight"></i> {{ projet.rendement_estime|default:"-" }} kg</span>
+                            <span><i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom }}</span>
+                        </div>
+                        <div class="mini-p-actions">
+                             <a href="{% url 'detail_projet' projet.id %}" class="btn-baay btn-baay-outline py-1 px-2 text-xs" onclick="event.stopPropagation();">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="btn-baay btn-baay-ghost py-1 px-2 text-xs" onclick="event.stopPropagation();">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'generer_prediction' projet.id %}" class="btn-baay btn-baay-primary py-1 px-3 text-xs" onclick="event.stopPropagation();">
+                                <i class="fas fa-robot"></i> IA
+                            </a>
                         </div>
                         <span class="status-badge {{ projet.statut }}">
                             {% if projet.statut == 'en_cours' %}En cours
@@ -615,11 +871,11 @@
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
-                    <h4 class="empty-state-title">Aucun projet</h4>
-                    <p class="empty-state-text">Commencez par creer votre premier projet.</p>
-                    <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-                        <i class="fas fa-plus me-2"></i> Nouveau projet
+                    <i class="fas fa-folder-open"></i>
+                    <h4>Aucun projet</h4>
+                    <p>Commencez par creer votre premier projet agricole.</p>
+                    <a href="{% url 'creer_projet' %}" class="btn-baay btn-baay-primary mt-3">
+                        <i class="fas fa-plus"></i> Créer mon premier projet
                     </a>
                 </div>
             {% endif %}
@@ -748,16 +1004,16 @@ function initCharts() {
     if (typeof Chart === 'undefined' || allProjects.length === 0) return;
     
     const isDark = document.body.classList.contains('dark-mode');
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-    const textColor = isDark ? '#94a3b8' : '#64748b';
+    const gridColor = isDark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+    const textColor = isDark ? '#cbd5e1' : '#64748b';
 
     // Yield Chart
     const rendementCtx = document.getElementById('rendementChart');
     if (rendementCtx) {
         const ctx = rendementCtx.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(163, 230, 53, 0.8)');
-        gradient.addColorStop(1, 'rgba(163, 230, 53, 0.1)');
+        gradient.addColorStop(0, 'rgba(57, 255, 20, 0.4)');
+        gradient.addColorStop(1, 'rgba(57, 255, 20, 0.01)');
 
         rendementChart = new Chart(ctx, {
             type: 'bar',
@@ -767,7 +1023,7 @@ function initCharts() {
                     label: 'Rendement Estime (kg)',
                     data: filteredProjects.map(p => p.rendement),
                     backgroundColor: gradient,
-                    borderColor: '#a3e635',
+                    borderColor: '#39FF14',
                     borderWidth: 2,
                     borderRadius: 8,
                     borderSkipped: false,
@@ -792,8 +1048,8 @@ function initCharts() {
                     y: {
                         beginAtZero: true,
                         grid: { color: gridColor, drawBorder: false },
-                        ticks: { color: textColor, font: { family: "'Inter', sans-serif" } },
-                        title: { display: true, text: 'Rendement (kg)', color: textColor, font: { weight: '600' } }
+                        ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
+                        title: { display: true, text: 'Rendement (kg)', color: '#39FF14', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
                     },
                     x: {
                         grid: { display: false, drawBorder: false },
@@ -803,13 +1059,15 @@ function initCharts() {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                        titleColor: isDark ? '#fff' : '#000',
-                        bodyColor: isDark ? '#94a3b8' : '#64748b',
-                        borderColor: 'rgba(163, 230, 53, 0.5)',
+                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                        titleColor: '#39FF14',
+                        titleFont: { family: "'Space Grotesk', sans-serif", weight: '700' },
+                        bodyColor: '#e0e0e0',
+                        bodyFont: { family: "'Inter', sans-serif" },
+                        borderColor: 'rgba(57, 255, 20, 0.3)',
                         borderWidth: 1,
                         padding: 16,
-                        cornerRadius: 12,
+                        cornerRadius: 15,
                         displayColors: false,
                         callbacks: {
                             label: (context) => `Rendement: ${context.raw.toLocaleString('fr-FR')} kg`,
@@ -836,20 +1094,21 @@ function initCharts() {
                 datasets: [{
                     data: [statusCounts.en_cours, statusCounts.en_pause, statusCounts.fini],
                     backgroundColor: [
-                        'rgba(16, 185, 129, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(59, 130, 246, 0.8)'
+                        'rgba(57, 255, 20, 0.6)',   /* Vert Néon */
+                        'rgba(226, 114, 91, 0.6)',  /* Ocre */
+                        'rgba(255, 215, 0, 0.6)'    /* Jaune Soleil */
                     ],
-                    borderColor: ['#10b981', '#f59e0b', '#3b82f6'],
+                    borderColor: ['#39FF14', '#E2725B', '#FFD700'],
                     borderWidth: 2,
-                    hoverOffset: 10
+                    hoverOffset: 15,
+                    spacing: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%',
-                animation: { animateRotate: true, animateScale: true, duration: 1000 },
+                cutout: '75%',
+                animation: { animateRotate: true, animateScale: true, duration: 1500, easing: 'easeOutElastic' },
                 onClick: (event, elements) => {
                     if (elements.length > 0) {
                         const index = elements[0].index;
@@ -864,24 +1123,24 @@ function initCharts() {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            padding: 20,
+                            padding: 25,
                             usePointStyle: true,
                             pointStyle: 'circle',
                             color: textColor,
-                            font: { family: "'Inter', sans-serif", weight: 500 }
+                            font: { family: "'Space Grotesk', sans-serif", weight: 600, size: 12 }
                         }
                     },
                     tooltip: {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                        titleColor: isDark ? '#fff' : '#000',
-                        bodyColor: isDark ? '#94a3b8' : '#64748b',
-                        borderColor: 'rgba(163, 230, 53, 0.5)',
+                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                        titleColor: '#e0e0e0',
+                        bodyColor: '#39FF14',
+                        borderColor: 'rgba(57, 255, 20, 0.3)',
                         borderWidth: 1,
                         padding: 16,
-                        cornerRadius: 12,
+                        cornerRadius: 15,
                         callbacks: {
                             label: (context) => `${context.label}: ${context.raw} projet(s)`,
-                            afterLabel: () => 'Cliquez pour voir les details'
+                            afterLabel: () => 'Cliquez pour plus de details'
                         }
                     }
                 }

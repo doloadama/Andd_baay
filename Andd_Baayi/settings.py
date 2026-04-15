@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 # Charger les variables du fichier .env
 load_dotenv()
@@ -20,6 +21,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+IS_VERCEL = os.getenv("VERCEL") == "1"
+VERCEL_URL = os.getenv("VERCEL_URL", "").strip()  # e.g. "my-app.vercel.app" (no scheme)
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -40,8 +44,18 @@ SECRET_KEY = _secret_key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'andd-baay.onrender.com,andd-baay.vercel.app,.vercel.app,localhost,127.0.0.1').split(',')
-
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv(
+        'ALLOWED_HOSTS',
+        'andd-baay.onrender.com,andd-baay.vercel.app,.vercel.app,localhost,127.0.0.1',
+    ).split(',')
+    if h.strip()
+]
+if IS_VERCEL and VERCEL_URL:
+    # Ensure the current deployment host is always accepted.
+    if VERCEL_URL not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(VERCEL_URL)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -50,26 +64,40 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'baay',
+    'baay.apps.BaayConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',             # Pour django-cors-headers
-    'rest_framework_simplejwt' # Pour djangorestframework_simplejwt
+    'rest_framework_simplejwt',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Middleware pour servir les fichiers statiques
-    'corsheaders.middleware.CorsMiddleware',        # CORS avant CommonMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# On Vercel, we typically do not run `collectstatic` during build for Python serverless,
+# and static assets are served via `@vercel/static` routes. Avoid manifest strictness.
+if IS_VERCEL:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    WHITENOISE_MANIFEST_STRICT = False
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8501"
@@ -80,6 +108,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://andd-baay.vercel.app",
     "https://*.vercel.app",
 ]
+if IS_VERCEL and VERCEL_URL:
+    origin = f"https://{VERCEL_URL}"
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 ROOT_URLCONF = 'Andd_Baayi.urls'
 
@@ -105,7 +137,29 @@ WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if os.getenv('ENV') == 'production':
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+if DATABASE_URL:
+    import dj_database_url
+
+    # Supabase/Vercel env vars sometimes include non-libpq query params like `supa` / `pgbouncer`.
+    # psycopg will error on unknown connection options, so we strip them defensively.
+    try:
+        parts = urlsplit(DATABASE_URL)
+        query = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k not in {"supa", "pgbouncer"}]
+        # Switch to Transaction pooler (port 6543) to fix MaxClientsInSessionMode on Supabase.
+        # Session mode (port 5432) is capped; Transaction mode handles serverless much better.
+        netloc = parts.netloc.replace(":5432", ":6543")
+        DATABASE_URL = urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), parts.fragment))
+    except Exception:
+        # If parsing fails, fall back to the raw value and let Django surface the error.
+        pass
+
+    DATABASES = {
+        # conn_max_age=0: no persistent connections between serverless Vercel invocations.
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=0, ssl_require=True),
+    }
+elif os.getenv('ENV') == 'production':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -124,49 +178,53 @@ else:
         }
     }
 
-
-
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# REST Framework — single merged config with JWT + session auth
+# Authentication backends for allauth
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# allauth settings
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'OAUTH_PKCE_ENABLED': True,
+        # Les credentials (client_id/secret) sont stockés en base via SocialApp
+        # Ne pas les dupliquer ici pour éviter MultipleObjectsReturned
+    }
+}
+
+# Créer un compte auto si l'email Google est nouveau
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# Pas de page de confirmation intermédiaire après Google OAuth
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# Rediriger vers le dashboard après connexion sociale
+LOGIN_REDIRECT_URL = '/dashboard/'
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+
+# REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -186,11 +244,9 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')
 
-
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/static/media')
-LOGIN_REDIRECT_URL = '/dashboard/'
+
 
 # Logging configuration
 LOGGING = {

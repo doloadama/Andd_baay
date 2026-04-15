@@ -139,12 +139,7 @@
     .status-en_pause { background: var(--warning-subtle); color: var(--warning); }
     .status-fini { background: var(--info-subtle); color: var(--info); }
 
-    /* Action Links */
-    .action-links {
-        display: flex;
-        gap: var(--space-2);
-    }
-
+    /* Action Links & Buttons */
     .action-link {
         width: 32px;
         height: 32px;
@@ -155,11 +150,29 @@
         color: var(--text-muted);
         transition: all var(--transition);
         text-decoration: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-card-primary {
+        background: var(--accent);
+        color: #022c22 !important;
+    }
+
+    .btn-card-primary:hover {
+        background: var(--accent-dark);
+        color: #022c22 !important;
     }
 
     .action-link:hover {
         background: var(--bg-secondary);
-        color: var(--text-main);
+        color: var(--text-main) !important;
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-card-secondary:hover {
+        background: var(--border-color);
+        color: var(--text-main) !important;
     }
 
     .action-link.danger:hover {
@@ -269,7 +282,6 @@
     }
 </style>
 
-<!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Mes Projets</h1>
     <p class="page-subtitle">Gerez et suivez tous vos projets agricoles</p>
@@ -278,7 +290,6 @@
 <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
     {% csrf_token %}
 
-    <!-- Actions Bar -->
     <div class="actions-bar">
         <div class="search-box">
             <i class="fas fa-search"></i>
@@ -297,7 +308,6 @@
     </div>
 
     {% if projets %}
-    <!-- Desktop Table -->
     <div class="projects-table">
         <table>
             <thead>
@@ -344,124 +354,4 @@
                             <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'supprimer_projet' projet.id %}" class="action-link danger" title="Supprimer" onclick="return confirm('Supprimer ce projet ?');">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Mobile Cards -->
-    <div class="projects-mobile">
-        {% for projet in projets %}
-        <div class="project-card-mobile" data-name="{{ projet.nom|lower }}" data-culture="{{ projet.culture.nom|lower|default:'' }}">
-            <div class="project-card-header">
-                <div>
-                    <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" style="margin-right: 8px;">
-                    <span class="project-card-title">{{ projet.nom }}</span>
-                </div>
-                <span class="status-badge status-{{ projet.statut }}">
-                    {% if projet.statut == 'en_cours' %}En cours
-                    {% elif projet.statut == 'en_pause' %}En pause
-                    {% else %}Termine{% endif %}
-                </span>
-            </div>
-            <div class="project-card-meta">
-                <span><i class="fas fa-seedling"></i> {{ projet.culture.nom|default:"N/A" }}</span>
-                <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
-            </div>
-            <div class="project-card-actions">
-                <a href="{% url 'detail_projet' projet.id %}" class="btn-modern btn-outline-modern" style="flex: 1; padding: 8px;">
-                    <i class="fas fa-eye"></i> Voir
-                </a>
-                <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-outline-modern" style="padding: 8px;">
-                    <i class="fas fa-edit"></i>
-                </a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    {% if projets.has_other_pages %}
-    <div class="pagination-wrapper">
-        <div class="pagination-modern">
-            {% if projets.has_previous %}
-                <a href="?page=1" class="page-btn" title="Premiere page">
-                    <i class="fas fa-angle-double-left"></i>
-                </a>
-                <a href="?page={{ projets.previous_page_number }}" class="page-btn">
-                    <i class="fas fa-angle-left"></i>
-                </a>
-            {% endif %}
-            
-            <span class="page-info">{{ projets.number }} / {{ projets.paginator.num_pages }}</span>
-            
-            {% if projets.has_next %}
-                <a href="?page={{ projets.next_page_number }}" class="page-btn">
-                    <i class="fas fa-angle-right"></i>
-                </a>
-                <a href="?page={{ projets.paginator.num_pages }}" class="page-btn">
-                    <i class="fas fa-angle-double-right"></i>
-                </a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% else %}
-    <!-- Empty State -->
-    <div class="empty-state">
-        <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
-        <h4 class="empty-state-title">Aucun projet</h4>
-        <p class="empty-state-text">Commencez par creer votre premier projet agricole.</p>
-        <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-            <i class="fas fa-plus me-2"></i> Nouveau projet
-        </a>
-    </div>
-    {% endif %}
-</form>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const tableRows = document.querySelectorAll('#projectsTable tr');
-    const mobileCards = document.querySelectorAll('.project-card-mobile');
-    const checkboxes = document.querySelectorAll('.project-checkbox');
-    const deleteBtn = document.getElementById('deleteBtn');
-    const deleteCount = document.getElementById('deleteCount');
-    
-    // Search
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const q = this.value.toLowerCase();
-            
-            tableRows.forEach(row => {
-                const name = row.dataset.name || '';
-                const culture = row.dataset.culture || '';
-                row.style.display = (name.includes(q) || culture.includes(q)) ? '' : 'none';
-            });
-            
-            mobileCards.forEach(card => {
-                const name = card.dataset.name || '';
-                const culture = card.dataset.culture || '';
-                card.style.display = (name.includes(q) || culture.includes(q)) ? '' : 'none';
-            });
-        });
-    }
-    
-    // Checkbox selection
-    function updateDeleteButton() {
-        const count = document.querySelectorAll('.project-checkbox:checked').length;
-        deleteBtn.classList.toggle('active', count > 0);
-        deleteCount.textContent = `Supprimer (${count})`;
-    }
-    
-    checkboxes.forEach(cb => cb.addEventListener('change', updateDeleteButton));
-});
-</script>
-{% endblock %}
+                            <a href="

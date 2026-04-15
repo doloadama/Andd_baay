@@ -7,7 +7,7 @@
     .form-page-bg {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, #020617 0%, #022c22 50%, #0f172a 100%);
+        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
         z-index: 0;
     }
     
@@ -15,6 +15,12 @@
         content: '';
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.08) 0px, transparent 50%),
+            radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.04) 0px, transparent 50%);
+    }
+    
+    .dark-mode .form-page-bg::before {
         background-image: 
             radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.15) 0px, transparent 50%),
             radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.08) 0px, transparent 50%);
@@ -53,19 +59,19 @@
 
     /* Glass Form Card */
     .glass-form-card {
-        background: rgba(15, 23, 42, 0.75);
+        background: var(--card-bg);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(163, 230, 53, 0.15);
+        border: 1px solid var(--border-color);
         border-radius: 32px;
         overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-lg);
     }
 
     .card-header-modern {
-        background: linear-gradient(135deg, rgba(2, 44, 34, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        background: var(--card-bg-solid);
         padding: 32px 40px;
-        border-bottom: 1px solid rgba(163, 230, 53, 0.2);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 16px;
@@ -87,7 +93,7 @@
     .header-text h4 {
         margin: 0;
         font-size: 1.4rem;
-        color: white;
+        color: var(--text-main);
         font-family: var(--font-display);
         font-weight: 700;
     }
@@ -95,7 +101,7 @@
     .header-text p {
         margin: 4px 0 0 0;
         font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
     }
 
     /* Progress Steps */
@@ -104,7 +110,7 @@
         justify-content: center;
         gap: 8px;
         padding: 24px 40px;
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
     }
     
     .progress-step {
@@ -117,14 +123,14 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: var(--bg-main);
+        border: 2px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-muted);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
@@ -144,7 +150,7 @@
     .step-label {
         font-size: 0.8rem;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         display: none;
     }
     
@@ -156,7 +162,7 @@
     .step-connector {
         width: 40px;
         height: 2px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--bg-main);
         margin: 0 4px;
     }
     
@@ -203,7 +209,7 @@
     }
 
     .form-label-modern {
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-main);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 10px;
@@ -219,7 +225,7 @@
     
     .form-label-hint {
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 400;
         margin-left: auto;
     }
@@ -228,8 +234,8 @@
         position: relative;
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
         border-radius: 16px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
@@ -237,12 +243,12 @@
     
     .input-wrapper:hover {
         border-color: rgba(163, 230, 53, 0.3);
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--bg-secondary);
     }
 
     .input-wrapper:focus-within {
         border-color: var(--accent);
-        background: rgba(163, 230, 53, 0.05);
+        background: var(--bg-main);
         box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.1);
     }
     
@@ -256,7 +262,7 @@
     }
 
     .input-icon {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         padding-left: 20px;
         width: 48px;
         text-align: center;
@@ -272,7 +278,7 @@
     .modern-form textarea {
         background: transparent !important;
         border: none !important;
-        color: white !important;
+        color: var(--text-main) !important;
         width: 100%;
         padding: 18px 20px 18px 12px;
         font-size: 1rem;
@@ -282,7 +288,8 @@
     }
     
     .modern-form input::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--text-muted);
+        opacity: 0.5;
     }
     
     .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
@@ -297,8 +304,8 @@
     }
 
     .modern-form select option {
-        background: #0f172a;
-        color: white;
+        background: var(--card-bg-solid);
+        color: var(--text-main);
         padding: 12px;
     }
 
@@ -341,7 +348,7 @@
         right: 16px;
         bottom: -20px;
         font-size: 0.7rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
     }
 
     /* Custom select styling */
@@ -357,7 +364,7 @@
         right: 20px;
         top: 50%;
         transform: translateY(-50%);
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         pointer-events: none;
         transition: transform 0.3s ease;
     }
@@ -383,17 +390,17 @@
         gap: 8px;
         padding: 14px 24px;
         background: transparent;
-        border: 2px solid rgba(255, 255, 255, 0.15);
+        border: 2px solid var(--border-color);
         border-radius: 14px;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-muted);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
     }
     
     .btn-back:hover {
-        border-color: rgba(255, 255, 255, 0.3);
-        color: white;
+        border-color: var(--text-muted); opacity: 0.6;
+        color: var(--text-main);
         transform: translateX(-4px);
     }
     
@@ -470,13 +477,13 @@
     .info-card-content h5 {
         margin: 0 0 4px 0;
         font-size: 0.95rem;
-        color: white;
+        color: var(--text-main);
     }
     
     .info-card-content p {
         margin: 0;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         line-height: 1.5;
     }
 
@@ -521,8 +528,8 @@
 <div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
     
     <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold text-white mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
-        <p class="lead text-white-50" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
+        <h1 class="display-4 fw-bold  mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
+        <p class="lead text-muted" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
     </div>
 
     {% if messages %}
@@ -569,7 +576,7 @@
                 </div>
                 
                 <div class="card-body p-4 p-md-5">
-                    <form method="post" novalidate autocomplete="off" class="modern-form" id="projectForm">
+                    <form method="post" enctype="multipart/form-data" novalidate autocomplete="off" class="modern-form" id="projectForm">
                         {% csrf_token %}
 
                         <!-- Info Card -->
@@ -608,6 +615,22 @@
                                         {% endif %}
                                     </div>
                                 </div>
+
+                                <div class="col-md-12">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">
+                                            Photo de la Ferme 
+                                            <span class="form-label-hint">Peut être utilisée comme fond du projet</span>
+                                        </label>
+                                        <div class="input-wrapper" style="padding: 10px;">
+                                            <i class="fas fa-image input-icon" style="margin-right: 15px;"></i>
+                                            {{ projet_form.image_fond }}
+                                        </div>
+                                        {% if projet_form.image_fond.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.image_fond.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                                 
                                 <div class="col-md-12">
                                     <div class="input-modern-group">
@@ -618,7 +641,7 @@
                                         </label>
                                         <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 12px;">
                                             {% for produit in produits %}
-                                            <label class="product-checkbox-item" style="background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
+                                            <label class="product-checkbox-item" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
                                                 <div class="d-flex align-items-center gap-3">
                                                     <input type="checkbox" 
                                                            name="produits_selection" 
@@ -626,9 +649,9 @@
                                                            style="width: 20px; height: 20px; accent-color: var(--accent);"
                                                            onchange="this.closest('.product-checkbox-item').style.borderColor = this.checked ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)'; this.closest('.product-checkbox-item').style.background = this.checked ? 'rgba(163, 230, 53, 0.1)' : 'rgba(255, 255, 255, 0.05)';">
                                                     <div>
-                                                        <div class="text-white fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
+                                                        <div class=" fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
                                                         {% if produit.rendement_moyen %}
-                                                        <small class="text-white-50">~{{ produit.rendement_moyen }} kg/ha</small>
+                                                        <small class="text-muted">~{{ produit.rendement_moyen }} kg/ha</small>
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -641,6 +664,22 @@
                                         {% for error in projet_form.non_field_errors %}
                                             <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
                                         {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.pays.id_for_label }}" class="form-label-modern">
+                                            Pays
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-globe-africa input-icon"></i>
+                                            {{ projet_form.pays }}
+                                        </div>
+                                        {% if projet_form.pays.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.pays.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -687,16 +726,16 @@
 
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.rendement.id_for_label }}" class="form-label-modern">
-                                            Rendement estime (kg/ha)
+                                        <label for="{{ projet_form.rendement_estime.id_for_label }}" class="form-label-modern">
+                                            Rendement estime (kg)
                                             <span class="form-label-hint">Optionnel</span>
                                         </label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-weight-hanging input-icon"></i>
-                                            {{ projet_form.rendement }}
+                                            {{ projet_form.rendement_estime }}
                                         </div>
-                                        {% if projet_form.rendement.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.rendement.errors.0 }}</div>
+                                        {% if projet_form.rendement_estime.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.rendement_estime.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -732,19 +771,40 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.type_irrigation.id_for_label }}" class="form-label-modern">
+                                            Type d'irrigation
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-water input-icon"></i>
+                                            {{ projet_form.type_irrigation }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="{{ projet_form.type_engrais.id_for_label }}" class="form-label-modern">
+                                            Type d'engrais
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-seedling input-icon"></i>
+                                            {{ projet_form.type_engrais }}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Form Actions -->
-                        <div class="form-actions">
-                            <a href="{% url 'liste_projets' %}" class="btn-back">
-                                <i class="fas fa-arrow-left"></i>
-                                Annuler
+                        <div class="form-actions border-0 pt-4">
+                            <a href="{% url 'liste_projets' %}" class="btn-baay btn-baay-outline">
+                                <i class="fas fa-times"></i> Annuler
                             </a>
-                            <button type="submit" class="btn-submit-modern" id="submitBtn">
-                                <i class="fas fa-rocket"></i>
-                                Creer le projet
-                                <i class="fas fa-arrow-right"></i>
+                            <button type="submit" class="btn-baay btn-baay-primary px-5" id="submitBtn">
+                                <i class="fas fa-plus"></i> Créer le projet
                             </button>
                         </div>
                     </form>
@@ -776,9 +836,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         input.addEventListener('input', function() {
-            const wrapper = this.closest('.input-wrapper');
-            if (wrapper) {
-                wrapper.classList.remove('error', 'success');
+            if (this.value) {
+                this.parentElement.classList.remove('error');
+                const icon = this.parentElement.querySelector('.validation-icon.error');
+                if (icon) icon.style.opacity = '0';
             }
         });
     });
@@ -848,6 +909,46 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize progress
     updateProgress();
+});
+
+// Dynamic filtering for Pays -> Localite
+document.addEventListener('DOMContentLoaded', function() {
+    const paysSelect = document.getElementById('{{ projet_form.pays.id_for_label }}');
+    const localiteSelect = document.getElementById('{{ projet_form.localite.id_for_label }}');
+    
+    if (paysSelect && localiteSelect) {
+        const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({
+            value: opt.value,
+            text: opt.text,
+            selected: opt.selected
+        }));
+        
+        const localitesMapping = {
+            {% for loc in projet_form.localite.field.queryset %}
+                "{{ loc.id }}": "{{ loc.pays_id|default:'' }}",
+            {% endfor %}
+        };
+        
+        function filterLocalites() {
+            const selectedPays = paysSelect.value;
+            const currentSelectedLocalite = localiteSelect.value;
+            
+            localiteSelect.innerHTML = '';
+            
+            allLocaliteOptions.forEach(opt => {
+                if (!opt.value || localitesMapping[opt.value] === selectedPays) {
+                    const option = new Option(opt.text, opt.value);
+                    if (opt.value === currentSelectedLocalite && localitesMapping[opt.value] === selectedPays) {
+                        option.selected = true;
+                    }
+                    localiteSelect.add(option);
+                }
+            });
+        }
+        
+        paysSelect.addEventListener('change', filterLocalites);
+        filterLocalites(); // Apply filter initially
+    }
 });
 </script>
 {% endblock %}

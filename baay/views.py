@@ -18,8 +18,8 @@ from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm
-from baay.models import Profile, Projet, ProduitAgricole, PredictionRendement, ProjetProduit
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -46,7 +46,31 @@ except ImportError:
 
 # Vue pour la page d'accueil
 def home_view(request):
-    return render(request, 'home.html')
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    context = {
+        'stats': {
+            'nb_users': User.objects.count(),
+            'nb_projets': Projet.objects.count(),
+        }
+    }
+
+    if request.user.is_authenticated:
+        try:
+            projets_actifs = Projet.objects.filter(
+                utilisateur=request.user.profile, statut='en_cours'
+            ).count()
+            prochain_semis = Projet.objects.filter(
+                utilisateur=request.user.profile
+            ).order_by('-date_lancement').first()
+            context['projets_actifs'] = projets_actifs
+            context['prochain_projet'] = prochain_semis
+        except Exception:
+            context['projets_actifs'] = 0
+            context['prochain_projet'] = None
+
+    return render(request, 'home.html', context)
 
 # Vue pour l'inscription
 def register_view(request):
@@ -59,7 +83,7 @@ def register_view(request):
             profile = user.profile
             profile.phone_number = form.cleaned_data['phone_number']
             profile.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
             return redirect('home')
     else:
@@ -93,7 +117,8 @@ def logout_view(request):
     return redirect('home')
 
 class CustomPasswordResetView(PasswordResetView):
-    template_name = 'registration/password_reset_form.html'
+    # Use the non-empty auth templates (the registration/ ones were left empty).
+    template_name = 'auth/password_reset_form.html'
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
@@ -113,55 +138,132 @@ if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_
 # Maximum allowed prompt length for chatbot
 MAX_PROMPT_LENGTH = 4000
 
+
+
+
+# Gemini models to try in order (free tier quota varies per model)
+GEMINI_MODELS = [
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash",
+]
+
+SYSTEM_PROMPT = """Tu es Baay AI, l'assistant agricole intelligent de la plateforme Andd Baay. 
+Tu aides les agriculteurs sénégalais et ouest-africains avec :
+- Les cultures locales : mil, sorgho, maïs, arachide, niébé, riz, manioc, igname, coton, sésame, pastèque
+- Les techniques de semis, irrigation, fertilisation et récolte adaptées au Sahel
+- Les maladies et ravageurs courants (mildiou, chenille légionnaire, etc.)
+- La météo agricole et les saisons des pluies (hivernage)
+- Les prédictions de rendement et la gestion financière des exploitations
+- Les conseils en wolof ou français selon la préférence
+
+Réponds toujours en français (sauf si la question est en wolof). 
+Sois précis, pratique et adapté aux réalités locales. 
+Limite tes réponses à 300 mots maximum.
+Si une question n'est pas agricole, redirige poliment vers ton domaine d'expertise."""
+
 def _sanitize_chatbot_input(prompt):
     """Sanitize and validate chatbot input."""
     if not prompt or not isinstance(prompt, str):
         return None, "Message is required and must be a string."
-    
-    # Strip whitespace and check length
     prompt = prompt.strip()
     if len(prompt) == 0:
         return None, "Message cannot be empty."
-    
     if len(prompt) > MAX_PROMPT_LENGTH:
         return None, f"Message exceeds maximum length of {MAX_PROMPT_LENGTH} characters."
-    
-    # Remove potentially harmful content (basic sanitization)
-    # This prevents prompt injection attempts
-    sanitized = prompt.replace('\x00', '')  # Remove null bytes
-    
+    sanitized = prompt.replace('\x00', '')
     return sanitized, None
+
+def _call_gemini(full_prompt):
+    """Try Gemini models in order, return (text, model_used) or raise last exception."""
+    last_error = None
+    for model in GEMINI_MODELS:
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=full_prompt,
+            )
+            return response.text, model
+        except Exception as e:
+            last_error = e
+            error_str = str(e)
+            # Only retry on quota/rate-limit errors
+            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str or 'rate' in error_str.lower():
+                logger.warning(f"Model {model} quota exceeded, trying next...")
+                continue
+            # For other errors (auth, invalid, etc.) fail immediately
+            raise
+    raise last_error
 
 # Chatbot — CSRF enabled, login required for security
 @login_required
 def ask_chatbot(request):
     if not client:
-        return JsonResponse({'error': 'Chatbot is not available. Please configure GEMINI_API_KEY.'}, status=503)
-    
+        return JsonResponse({
+            'error': 'Le chatbot IA est temporairement indisponible. Clé API non configurée.'
+        }, status=503)
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             raw_prompt = data.get('message', '')
-            
-            # Sanitize and validate input
+            history = data.get('history', [])  # List of {role, text} from frontend
+
+            # Sanitize input
             prompt, error = _sanitize_chatbot_input(raw_prompt)
             if error:
+                logger.warning(f"Chatbot validation error: {error} | Received: '{raw_prompt}' (type: {type(raw_prompt)})")
                 return JsonResponse({'error': error}, status=400)
 
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-            )
+            # Build conversation with system context + history
+            conversation_parts = [SYSTEM_PROMPT, "\n\n"]
+            for msg in history[-6:]:  # Keep last 6 exchanges to avoid token bloat
+                role = msg.get('role', 'user')
+                text = msg.get('text', '')[:500]  # Trim history messages
+                if role == 'user':
+                    conversation_parts.append(f"Utilisateur: {text}")
+                else:
+                    conversation_parts.append(f"Baay AI: {text}")
+            conversation_parts.append(f"\nUtilisateur: {prompt}\nBaay AI:")
 
-            return JsonResponse({'response': response.text})
+            full_prompt = "\n".join(conversation_parts)
+
+            text, model_used = _call_gemini(full_prompt)
+            logger.info(f"Chatbot answered via {model_used}")
+            return JsonResponse({'response': text, 'model': model_used})
 
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
+            return JsonResponse({'error': 'Requête invalide.'}, status=400)
         except Exception as e:
+            error_str = str(e)
             logger.error(f"Chatbot error: {type(e).__name__}: {e}")
-            return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+            # User-friendly French error messages
+            if '403' in error_str or 'permission_denied' in error_str.lower() or 'leaked' in error_str.lower():
+                return JsonResponse({
+                    'error': '🚨 Votre clé API Gemini a été désactivée par Google car elle a fuité. Veuillez en créer une nouvelle.'
+                }, status=403)
+            elif '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str:
+                if 'limit: 0' in error_str:
+                    return JsonResponse({
+                        'error': '🚨 Le quota (Free Tier) est désactivé sur cette clé API (limit: 0). Il faut créer une nouvelle clé ou activer la facturation.'
+                    }, status=429)
+                else:
+                    return JsonResponse({
+                        'error': '⏳ Le quota de l\'assistant IA est temporairement épuisé. Réessayez dans quelques minutes.'
+                    }, status=429)
+            elif '401' in error_str or 'API_KEY' in error_str or 'auth' in error_str.lower():
+                return JsonResponse({
+                    'error': '🔑 Clé API invalide. Contactez l\'administrateur.'
+                }, status=503)
+            else:
+                return JsonResponse({
+                    'error': '❌ Une erreur est survenue. Veuillez réessayer.'
+                }, status=500)
+
+    return JsonResponse({'error': 'Méthode non autorisée.'}, status=405)
+
 
 @login_required
 def creer_projet(request):
@@ -190,7 +292,8 @@ def creer_projet(request):
                 projet.culture = produits[0]
                 if not projet.rendement_estime:
                     projet.rendement_estime = rendement_total
-                projet.save()
+            
+            projet.save()
                 
             messages.success(request, "Le projet a ete cree avec succes.")
             return redirect('liste_projets')
@@ -207,6 +310,7 @@ def creer_projet(request):
 def modifier_projet(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
     rendement_form = None
+    plant_details_form = None
     
     # If project is being finished, show the harvest yield form
     show_rendement_form = request.GET.get('finish') == '1' or projet.statut == 'fini'
@@ -230,6 +334,23 @@ def modifier_projet(request, projet_id):
                 return redirect('detail_projet', projet_id=projet.id)
         
         elif projet_form.is_valid():
+            plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
+            if plant_details_form.is_valid():
+                for pp in projet.projet_produits.all():
+                    image_key = f'image_{pp.id}'
+                    age_key = f'age_plant_{pp.id}'
+                    
+                    if image_key in request.FILES:
+                        pp.image = request.FILES[image_key]
+                    elif image_key in plant_details_form.cleaned_data and plant_details_form.cleaned_data[image_key] is False:
+                        if pp.image:
+                            pp.image.delete()
+                            
+                    if age_key in plant_details_form.cleaned_data:
+                        pp.age_plant = plant_details_form.cleaned_data[age_key]
+                        
+                    pp.save()
+
             projet = projet_form.save(commit=False)
             projet.save()
             
@@ -253,20 +374,31 @@ def modifier_projet(request, projet_id):
                 projet.save()
                 
             messages.success(request, "Le projet a ete modifie avec succes.")
-            logger.debug(f"Projet {projet.id} modifie avec succes.")
             return redirect('detail_projet', projet_id=projet.id)
         else:
             logger.error(f"Erreurs dans le formulaire : {projet_form.errors}")
     else:
         projet_form = ProjetForm(instance=projet)
+        plant_details_form = PlantDetailsForm(projet=projet)
         if show_rendement_form:
             rendement_form = RendementFinalForm(projet=projet)
+            
+    plants_data = []
+    if plant_details_form:
+        for pp in projet.projet_produits.all():
+            plants_data.append({
+                'nom': pp.produit.nom,
+                'image_field': plant_details_form[f'image_{pp.id}'],
+                'age_field': plant_details_form[f'age_plant_{pp.id}']
+            })
 
     return render(request, 'projets/modifier_projet.html', {
         'projet_form': projet_form,
         'projet': projet,
         'rendement_form': rendement_form,
         'show_rendement_form': show_rendement_form,
+        'plant_details_form': plant_details_form,
+        'plants_data': plants_data,
         'produits': ProduitAgricole.objects.all(),
     })
 
@@ -323,16 +455,38 @@ def detail_projet(request, projet_id):
     investissements = projet.investissement_set.all()
 
     # Recuperer la prediction de rendement (s'il y en a une)
-    prediction = PredictionRendement.objects.filter(projet=projet).first()
+    prediction = PrevisionRecolte.objects.filter(projet=projet).first()
     
     # Recuperer les produits du projet
     projet_produits = projet.projet_produits.select_related('produit').all()
+    
+    # Pre-calculate photos
+    plant_photos = []
+    for pp in projet_produits:
+        if pp.image:
+            plant_photos.append({
+                'url': pp.image.url,
+                'title': pp.produit.nom,
+                'subtitle': f"Age: {pp.age_plant} jours" if pp.age_plant else ""
+            })
+            
+    if projet.culture:
+        for photo in projet.culture.photos.all():
+            try:
+                plant_photos.append({
+                    'url': photo.image.url,
+                    'title': projet.culture.nom,
+                    'subtitle': photo.description or ""
+                })
+            except Exception:
+                pass
 
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'investissements': investissements,
         'prediction': prediction,
         'projet_produits': projet_produits,
+        'plant_photos': plant_photos,
     })
 
 @login_required
@@ -618,35 +772,47 @@ def predire_rendement(projet):
         logger.error(f"Erreur lors de la prédiction : {e}")
         return 0
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
-@receiver(post_save, sender=Projet)
-def creer_prediction_rendement(sender, instance, created, **kwargs):
-    if created:
-        logger.debug(f"Signal triggered for project {instance.id}")
-        rendement_pred = predire_rendement(instance)
-        PredictionRendement.objects.create(projet=instance, rendement_estime=rendement_pred)
+
         
 @login_required
 def generer_prediction(request, projet_id):
     projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    from baay.services import estimer_rendement_ia
 
-    rendement_pred = predire_rendement(projet)
-    prediction, created = PredictionRendement.objects.get_or_create(
-        projet=projet,
-        defaults={'rendement_estime': rendement_pred}
-    )
+    projet_produits = projet.projet_produits.all()
+    if not projet_produits:
+        messages.warning(request, "Aucun produit associé à ce projet pour générer une prédiction.")
+        return redirect('detail_projet', projet_id=projet.id)
 
-    if not created:
-        prediction.rendement_estime = rendement_pred
-        prediction.save()
+    total_min = 0
+    total_max = 0
+    confiance_sum = 0
+    latest_date_recolte = None
+    
+    for pp in projet_produits:
+        res = estimer_rendement_ia(pp)
+        total_min += res['min']
+        total_max += res['max']
+        confiance_sum += res['confiance']
+        if res['date_recolte_prevue']:
+            if not latest_date_recolte or res['date_recolte_prevue'] > latest_date_recolte:
+                latest_date_recolte = res['date_recolte_prevue']
+    
+    avg_confiance = confiance_sum / projet_produits.count()
+    
+    prediction, created = PrevisionRecolte.objects.get_or_create(projet=projet)
+    prediction.rendement_estime_min = total_min
+    prediction.rendement_estime_max = total_max
+    prediction.indice_confiance = avg_confiance
+    prediction.date_recolte_prevue = latest_date_recolte
+    prediction.save()
 
-    # Mettre à jour le rendement estimé global du projet
-    projet.rendement_estime = rendement_pred
+    # Mettre à jour le rendement estimé global du projet (moyenne pour compatibilité)
+    projet.rendement_estime = (total_min + total_max) / 2
     projet.save(update_fields=['rendement_estime'])
 
-    messages.success(request, "La prédiction a été générée avec succès.")
+    messages.success(request, "La prédiction a été générée avec succès (Smart Engine).")
     return redirect('detail_projet', projet_id=projet.id)
 
 def evaluer_modele(model, X_test, y_test):
@@ -789,9 +955,9 @@ def dashboard_projets_api(request):
         # Get prediction if exists
         prediction = None
         try:
-            if hasattr(p, 'prediction'):
-                prediction = p.prediction.rendement_estime
-        except (AttributeError, PredictionRendement.DoesNotExist):
+            if hasattr(p, 'prevision'):
+                prediction = p.prevision.rendement_estime_min
+        except (AttributeError, PrevisionRecolte.DoesNotExist):
             logger.debug(f"No prediction found for project {p.id}")
         
         projets_data.append({
