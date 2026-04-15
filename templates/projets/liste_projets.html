@@ -3,85 +3,65 @@
 
 {% block content %}
 <style>
-    .page-header {
-        margin-bottom: 32px;
-    }
-    
-    .page-title {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--text-main);
-        margin-bottom: 8px;
-    }
-    
-    .page-subtitle {
-        color: var(--text-muted);
-        font-size: 1rem;
-    }
-
     /* Actions Bar */
     .actions-bar {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: var(--space-4);
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 24px;
-        padding: 16px 20px;
+        margin-bottom: var(--space-6);
+        padding: var(--space-4);
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-input);
+        border-radius: var(--radius-card);
     }
 
     .search-box {
         position: relative;
         flex: 1;
         min-width: 200px;
-        max-width: 350px;
+        max-width: 300px;
     }
 
     .search-box input {
         width: 100%;
-        padding: 12px 16px 12px 44px;
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-input);
-        background: var(--bg-secondary);
+        padding: var(--space-3) var(--space-3) var(--space-3) var(--space-8);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        background: var(--bg-tertiary);
         color: var(--text-main);
-        font-size: 0.9rem;
-        transition: all var(--transition-fast);
+        font-size: 0.875rem;
+        transition: all var(--transition);
     }
 
     .search-box input:focus {
         outline: none;
-        border-color: var(--accent);
-        background: var(--card-bg-solid);
-    }
-
-    .search-box input::placeholder {
-        color: var(--text-muted);
+        border-color: var(--text-muted);
     }
 
     .search-box i {
         position: absolute;
-        left: 16px;
+        left: var(--space-3);
         top: 50%;
         transform: translateY(-50%);
         color: var(--text-muted);
+        font-size: 0.8125rem;
     }
 
     .btn-delete-selection {
-        padding: 12px 20px;
-        background: var(--danger);
-        color: white;
+        padding: var(--space-3) var(--space-4);
+        background: var(--danger-subtle);
+        color: var(--danger);
         border: none;
-        border-radius: var(--radius-input);
-        font-weight: 600;
-        font-size: 0.9rem;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
+        font-size: 0.875rem;
         cursor: pointer;
         transition: all var(--transition);
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--space-2);
         opacity: 0.5;
         pointer-events: none;
     }
@@ -92,255 +72,121 @@
     }
 
     .btn-delete-selection:hover {
-        background: #dc2626;
-        transform: translateY(-2px);
-    }
-
-    /* Project Cards Grid */
-    .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 24px;
-    }
-
-    .project-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        overflow: hidden;
-        transition: all var(--transition);
-        position: relative;
-    }
-
-    .project-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--accent);
-    }
-
-    .project-card-checkbox {
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        z-index: 10;
-    }
-
-    .project-card-checkbox input {
-        width: 22px;
-        height: 22px;
-        border-radius: 6px;
-        border: 2px solid var(--border-color);
-        background: var(--card-bg-solid);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        accent-color: var(--accent);
-    }
-
-    .project-card-checkbox input:checked {
-        background: var(--accent);
-        border-color: var(--accent);
-    }
-
-    .project-card-header {
-        padding: 24px 24px 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-
-    .project-card-title {
-        font-family: var(--font-display);
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-main);
-        margin: 0 0 4px 0;
-        padding-left: 32px;
-    }
-
-    .project-card-culture {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        padding-left: 32px;
-    }
-
-    .project-status {
-        padding: 6px 14px;
-        border-radius: var(--radius-pill);
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .status-en_cours {
-        background: rgba(59, 130, 246, 0.15);
-        color: #3b82f6;
-    }
-    
-    .dark-mode .status-en_cours {
-        background: rgba(59, 130, 246, 0.2);
-    }
-
-    .status-fini {
-        background: rgba(34, 197, 94, 0.15);
-        color: #22c55e;
-    }
-    
-    .dark-mode .status-fini {
-        background: rgba(34, 197, 94, 0.2);
-    }
-
-    .status-en_pause {
-        background: rgba(245, 158, 11, 0.15);
-        color: #f59e0b;
-    }
-    
-    .dark-mode .status-en_pause {
-        background: rgba(245, 158, 11, 0.2);
-    }
-
-    .project-card-body {
-        padding: 0 24px 20px;
-    }
-
-    .project-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .project-stat {
-        background: var(--bg-secondary);
-        padding: 12px;
-        border-radius: var(--radius-sm);
-        text-align: center;
-    }
-
-    .project-stat-value {
-        font-family: var(--font-display);
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-main);
-    }
-
-    .project-stat-label {
-        font-size: 0.7rem;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 2px;
-    }
-
-    .project-card-footer {
-        padding: 16px 24px;
-        border-top: 1px solid var(--border-color);
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .btn-card {
-        flex: 1;
-        min-width: 80px;
-        padding: 10px 14px;
-        border-radius: var(--radius-sm);
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-align: center;
-        transition: all var(--transition-fast);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-card-primary {
-        background: var(--accent);
-        color: var(--text-inverse);
-    }
-
-    .btn-card-primary:hover {
-        background: var(--accent-dark);
-        color: var(--text-inverse);
-    }
-
-    .btn-card-secondary {
-        background: var(--bg-secondary);
-        color: var(--text-main);
-        border: 1px solid var(--border-color);
-    }
-
-    .btn-card-secondary:hover {
-        background: var(--border-color);
-        color: var(--text-main);
-    }
-
-    .btn-card-danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
-
-    .btn-card-danger:hover {
         background: var(--danger);
         color: white;
     }
 
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 80px 40px;
+    /* Project Table */
+    .projects-table {
         background: var(--card-bg);
-        border: 2px dashed var(--border-color);
+        border: 1px solid var(--border-color);
         border-radius: var(--radius-card);
+        overflow: hidden;
     }
 
-    .empty-state-icon {
-        width: 80px;
-        height: 80px;
+    .projects-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .projects-table th {
+        text-align: left;
+        padding: var(--space-4);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--border-color);
         background: var(--bg-secondary);
-        border-radius: 50%;
+    }
+
+    .projects-table td {
+        padding: var(--space-4);
+        font-size: 0.875rem;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .projects-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .projects-table tr:hover td {
+        background: var(--bg-secondary);
+    }
+
+    .project-name-cell {
+        font-weight: 600;
+    }
+
+    .project-culture {
+        color: var(--text-muted);
+        font-size: 0.8125rem;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        padding: var(--space-1) var(--space-3);
+        border-radius: var(--radius-pill);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-en_cours { background: var(--success-subtle); color: var(--success); }
+    .status-en_pause { background: var(--warning-subtle); color: var(--warning); }
+    .status-fini { background: var(--info-subtle); color: var(--info); }
+
+    /* Action Links */
+    .action-links {
+        display: flex;
+        gap: var(--space-2);
+    }
+
+    .action-link {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 24px;
-        font-size: 2rem;
         color: var(--text-muted);
+        transition: all var(--transition);
+        text-decoration: none;
     }
 
-    .empty-state h3 {
+    .action-link:hover {
+        background: var(--bg-secondary);
         color: var(--text-main);
-        margin-bottom: 8px;
     }
 
-    .empty-state p {
-        color: var(--text-muted);
-        margin-bottom: 24px;
+    .action-link.danger:hover {
+        background: var(--danger-subtle);
+        color: var(--danger);
     }
 
     /* Pagination */
     .pagination-wrapper {
         display: flex;
         justify-content: center;
-        margin-top: 40px;
+        margin-top: var(--space-6);
     }
 
     .pagination-modern {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--space-2);
         background: var(--card-bg);
-        padding: 8px;
+        padding: var(--space-2);
         border-radius: var(--radius-pill);
         border: 1px solid var(--border-color);
     }
 
     .page-btn {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -349,9 +195,10 @@
         color: var(--text-muted);
         border: none;
         cursor: pointer;
-        transition: all var(--transition-fast);
+        transition: all var(--transition);
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
+        font-size: 0.875rem;
     }
 
     .page-btn:hover {
@@ -360,19 +207,57 @@
     }
 
     .page-btn.active {
-        background: var(--accent);
+        background: var(--text-main);
         color: var(--text-inverse);
     }
 
     .page-info {
-        padding: 0 16px;
-        font-size: 0.9rem;
+        padding: 0 var(--space-4);
+        font-size: 0.875rem;
         color: var(--text-muted);
     }
 
+    /* Mobile Cards */
+    .projects-mobile {
+        display: none;
+    }
+
     @media (max-width: 768px) {
-        .projects-grid {
-            grid-template-columns: 1fr;
+        .projects-table { display: none; }
+        .projects-mobile { display: block; }
+        
+        .project-card-mobile {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-card);
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
+        }
+        
+        .project-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-3);
+        }
+        
+        .project-card-title {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: var(--space-1);
+        }
+        
+        .project-card-meta {
+            display: flex;
+            gap: var(--space-4);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+        
+        .project-card-actions {
+            display: flex;
+            gap: var(--space-2);
         }
         
         .actions-bar {
@@ -380,13 +265,12 @@
             align-items: stretch;
         }
         
-        .search-box {
-            max-width: none;
-        }
+        .search-box { max-width: none; }
     }
 </style>
 
-<div class="page-header animate__animated animate__fadeInDown">
+<!-- Page Header -->
+<div class="page-header">
     <h1 class="page-title">Mes Projets</h1>
     <p class="page-subtitle">Gerez et suivez tous vos projets agricoles</p>
 </div>
@@ -395,64 +279,107 @@
     {% csrf_token %}
 
     <!-- Actions Bar -->
-    <div class="actions-bar animate__animated animate__fadeInUp">
+    <div class="actions-bar">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Rechercher un projet...">
+            <input type="text" id="searchInput" placeholder="Rechercher...">
         </div>
         
-        <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern" style="padding: 12px 20px;">
-                <i class="fas fa-plus"></i> Nouveau projet
-            </a>
-            <button type="submit" class="btn-delete-selection" id="deleteBtn" onclick="return confirm('Confirmer la suppression des projets selectionnes ?');">
+        <div class="d-flex gap-3 flex-wrap align-items-center">
+            <button type="submit" class="btn-delete-selection" id="deleteBtn" onclick="return confirm('Confirmer la suppression ?');">
                 <i class="fas fa-trash-alt"></i>
                 <span id="deleteCount">Supprimer (0)</span>
             </button>
+            <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
+                <i class="fas fa-plus"></i> Nouveau projet
+            </a>
         </div>
     </div>
 
     {% if projets %}
-    <!-- Projects Grid -->
-    <div class="projects-grid" id="projectsGrid">
+    <!-- Desktop Table -->
+    <div class="projects-table">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40px;"></th>
+                    <th>Projet</th>
+                    <th>Statut</th>
+                    <th>Superficie</th>
+                    <th>Lancement</th>
+                    <th style="width: 120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="projectsTable">
+                {% for projet in projets %}
+                <tr data-name="{{ projet.nom|lower }}" data-culture="{{ projet.culture.nom|lower|default:'' }}">
+                    <td>
+                        <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                    </td>
+                    <td>
+                        <div class="project-name-cell">{{ projet.nom }}</div>
+                        <div class="project-culture">
+                            <i class="fas fa-seedling me-1"></i>
+                            {% for pp in projet.projet_produits.all %}
+                                {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                {{ projet.culture.nom|default:"N/A" }}
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ projet.statut }}">
+                            {% if projet.statut == 'en_cours' %}En cours
+                            {% elif projet.statut == 'en_pause' %}En pause
+                            {% else %}Termine{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ projet.superficie }} ha</td>
+                    <td>{{ projet.date_lancement|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="action-links">
+                            <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'supprimer_projet' projet.id %}" class="action-link danger" title="Supprimer" onclick="return confirm('Supprimer ce projet ?');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="projects-mobile">
         {% for projet in projets %}
-        <div class="project-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|divisibleby:3 }}00ms;" data-name="{{ projet.nom|lower }}" data-culture="{{ projet.culture.nom|lower }}">
-            <div class="project-card-checkbox">
-                <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox">
-            </div>
-            
+        <div class="project-card-mobile" data-name="{{ projet.nom|lower }}" data-culture="{{ projet.culture.nom|lower|default:'' }}">
             <div class="project-card-header">
                 <div>
-                    <h3 class="project-card-title">{{ projet.nom }}</h3>
-                    <p class="project-card-culture"><i class="fas fa-seedling me-1"></i> {{ projet.culture.nom }}</p>
+                    <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" style="margin-right: 8px;">
+                    <span class="project-card-title">{{ projet.nom }}</span>
                 </div>
-                <span class="project-status status-{{ projet.statut }}">
-                    {{ projet.statut|title }}
+                <span class="status-badge status-{{ projet.statut }}">
+                    {% if projet.statut == 'en_cours' %}En cours
+                    {% elif projet.statut == 'en_pause' %}En pause
+                    {% else %}Termine{% endif %}
                 </span>
             </div>
-            
-            <div class="project-card-body">
-                <div class="project-stats">
-                    <div class="project-stat">
-                        <div class="project-stat-value">{{ projet.superficie }} ha</div>
-                        <div class="project-stat-label">Superficie</div>
-                    </div>
-                    <div class="project-stat">
-                        <div class="project-stat-value">{{ projet.date_lancement|date:"d/m/Y" }}</div>
-                        <div class="project-stat-label">Lancement</div>
-                    </div>
-                </div>
+            <div class="project-card-meta">
+                <span><i class="fas fa-seedling"></i> {{ projet.culture.nom|default:"N/A" }}</span>
+                <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
             </div>
-            
-            <div class="project-card-footer">
-                <a href="{% url 'detail_projet' projet.id %}" class="btn-card btn-card-primary">
-                    <i class="fas fa-eye"></i> Details
+            <div class="project-card-actions">
+                <a href="{% url 'detail_projet' projet.id %}" class="btn-modern btn-outline-modern" style="flex: 1; padding: 8px;">
+                    <i class="fas fa-eye"></i> Voir
                 </a>
-                <a href="{% url 'modifier_projet' projet.id %}" class="btn-card btn-card-secondary">
-                    <i class="fas fa-edit"></i> Modifier
-                </a>
-                <a href="{% url 'supprimer_projet' projet.id %}" class="btn-card btn-card-danger" onclick="return confirm('Supprimer ce projet ?');">
-                    <i class="fas fa-trash"></i>
+                <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-outline-modern" style="padding: 8px;">
+                    <i class="fas fa-edit"></i>
                 </a>
             </div>
         </div>
@@ -467,18 +394,18 @@
                 <a href="?page=1" class="page-btn" title="Premiere page">
                     <i class="fas fa-angle-double-left"></i>
                 </a>
-                <a href="?page={{ projets.previous_page_number }}" class="page-btn" title="Page precedente">
+                <a href="?page={{ projets.previous_page_number }}" class="page-btn">
                     <i class="fas fa-angle-left"></i>
                 </a>
             {% endif %}
             
-            <span class="page-info">Page {{ projets.number }} sur {{ projets.paginator.num_pages }}</span>
+            <span class="page-info">{{ projets.number }} / {{ projets.paginator.num_pages }}</span>
             
             {% if projets.has_next %}
-                <a href="?page={{ projets.next_page_number }}" class="page-btn" title="Page suivante">
+                <a href="?page={{ projets.next_page_number }}" class="page-btn">
                     <i class="fas fa-angle-right"></i>
                 </a>
-                <a href="?page={{ projets.paginator.num_pages }}" class="page-btn" title="Derniere page">
+                <a href="?page={{ projets.paginator.num_pages }}" class="page-btn">
                     <i class="fas fa-angle-double-right"></i>
                 </a>
             {% endif %}
@@ -488,14 +415,12 @@
 
     {% else %}
     <!-- Empty State -->
-    <div class="empty-state animate__animated animate__fadeIn">
-        <div class="empty-state-icon">
-            <i class="fas fa-folder-open"></i>
-        </div>
-        <h3>Aucun projet pour l'instant</h3>
-        <p>Commencez par creer votre premier projet agricole</p>
-        <a href="{% url 'creer_projet' %}" class="btn-modern btn-primary-modern">
-            <i class="fas fa-plus me-2"></i> Creer un projet
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+        <h4 class="empty-state-title">Aucun projet</h4>
+        <p class="empty-state-text">Commencez par creer votre premier projet agricole.</p>
+        <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
+            <i class="fas fa-plus me-2"></i> Nouveau projet
         </a>
     </div>
     {% endif %}
@@ -504,45 +429,39 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    const projectCards = document.querySelectorAll('.project-card');
+    const tableRows = document.querySelectorAll('#projectsTable tr');
+    const mobileCards = document.querySelectorAll('.project-card-mobile');
     const checkboxes = document.querySelectorAll('.project-checkbox');
     const deleteBtn = document.getElementById('deleteBtn');
     const deleteCount = document.getElementById('deleteCount');
     
-    // Search functionality
+    // Search
     if (searchInput) {
         searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
+            const q = this.value.toLowerCase();
             
-            projectCards.forEach(card => {
+            tableRows.forEach(row => {
+                const name = row.dataset.name || '';
+                const culture = row.dataset.culture || '';
+                row.style.display = (name.includes(q) || culture.includes(q)) ? '' : 'none';
+            });
+            
+            mobileCards.forEach(card => {
                 const name = card.dataset.name || '';
                 const culture = card.dataset.culture || '';
-                
-                if (name.includes(searchTerm) || culture.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+                card.style.display = (name.includes(q) || culture.includes(q)) ? '' : 'none';
             });
         });
     }
     
     // Checkbox selection
     function updateDeleteButton() {
-        const checkedCount = document.querySelectorAll('.project-checkbox:checked').length;
-        
-        if (checkedCount > 0) {
-            deleteBtn.classList.add('active');
-            deleteCount.textContent = `Supprimer (${checkedCount})`;
-        } else {
-            deleteBtn.classList.remove('active');
-            deleteCount.textContent = 'Supprimer (0)';
-        }
+        const count = document.querySelectorAll('.project-checkbox:checked').length;
+        deleteBtn.classList.toggle('active', count > 0);
+        deleteCount.textContent = `Supprimer (${count})`;
     }
     
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', updateDeleteButton);
-    });
+    checkboxes.forEach(cb => cb.addEventListener('change', updateDeleteButton));
 });
 </script>
 {% endblock %}

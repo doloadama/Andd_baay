@@ -8,7 +8,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 0;
+        padding: var(--space-10) 0;
     }
 
     .hero-container {
@@ -16,135 +16,230 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        max-width: 800px;
+        max-width: 720px;
         margin: 0 auto;
     }
 
     .hero-badge {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        background: rgba(163, 230, 53, 0.15);
-        color: var(--primary);
-        padding: 8px 16px;
+        gap: var(--space-2);
+        background: var(--accent-subtle);
+        color: var(--accent-dark);
+        padding: var(--space-2) var(--space-4);
         border-radius: var(--radius-pill);
-        font-weight: 700;
-        font-size: 0.9rem;
-        margin-bottom: 24px;
-        border: 1px solid rgba(163, 230, 53, 0.3);
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 0.8125rem;
+        margin-bottom: var(--space-6);
+        border: 1px solid var(--accent);
     }
     
-    .dark-mode .hero-badge { color: var(--accent); }
+    .dark-mode .hero-badge { 
+        color: var(--accent); 
+        border-color: transparent;
+    }
 
     .hero-title {
-        font-size: clamp(3.2rem, 8vw, 5rem);
-        line-height: 1.05;
-        margin-bottom: 24px;
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        line-height: 1.1;
+        margin-bottom: var(--space-5);
         color: var(--text-main);
-        letter-spacing: -0.04em;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
     }
 
-    .hero-title span {
-        color: var(--accent);
+    .hero-title .highlight {
+        color: var(--accent-dark);
         position: relative;
-        display: inline-block;
     }
     
-    /* Subtle underline effect for the span */
-    .hero-title span::after {
-        content: '';
-        position: absolute;
-        bottom: 8px;
-        left: 0;
-        width: 100%;
-        height: 8px;
-        background: var(--primary);
-        z-index: -1;
-        opacity: 0.2;
-        border-radius: 4px;
+    .dark-mode .hero-title .highlight {
+        color: var(--accent);
     }
-    
-    .dark-mode .hero-title span::after { background: var(--accent); }
 
     .hero-subtitle {
-        font-size: clamp(1.1rem, 2vw, 1.25rem);
+        font-size: 1.125rem;
         color: var(--text-muted);
-        line-height: 1.6;
-        margin-bottom: 40px;
-        max-width: 650px;
+        line-height: 1.7;
+        margin-bottom: var(--space-8);
+        max-width: 560px;
     }
 
     .hero-actions {
         display: flex;
-        gap: 16px;
+        gap: var(--space-3);
         flex-wrap: wrap;
         justify-content: center;
     }
 
     .btn-hero {
-        padding: 16px 36px;
-        font-size: 1.1rem;
-        border-radius: var(--radius-pill);
-        font-family: var(--font-display);
-        font-weight: 700;
-    }
-
-    /* Floating illustration or shapes */
-    .float-shape {
-        position: absolute;
-        border-radius: 50%;
-        background: var(--accent);
-        filter: blur(80px);
-        opacity: 0.15;
-        z-index: -1;
+        padding: var(--space-3) var(--space-6);
+        font-size: 0.9375rem;
     }
     
-    .shape-1 { width: 400px; height: 400px; top: -100px; left: -150px; }
-    .shape-2 { width: 300px; height: 300px; bottom: 0; right: -100px; background: var(--primary); }
+    .btn-hero-primary {
+        background: var(--text-main);
+        color: var(--text-inverse) !important;
+    }
+    
+    .btn-hero-primary:hover {
+        opacity: 0.9;
+    }
+    
+    .btn-hero-outline {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-main) !important;
+    }
+    
+    .btn-hero-outline:hover {
+        background: var(--bg-secondary);
+        border-color: var(--text-muted);
+    }
+
+    /* Features Grid */
+    .features-section {
+        padding: var(--space-12) 0;
+        border-top: 1px solid var(--border-color);
+        margin-top: var(--space-12);
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-1);
+        background: var(--border-color);
+        border-radius: var(--radius-card);
+        overflow: hidden;
+    }
+    
+    .feature-card {
+        background: var(--card-bg);
+        padding: var(--space-8);
+        transition: all var(--transition);
+    }
+    
+    .feature-card:hover {
+        background: var(--bg-secondary);
+    }
+    
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--accent-subtle);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: var(--accent-dark);
+        margin-bottom: var(--space-5);
+    }
+    
+    .dark-mode .feature-icon {
+        color: var(--accent);
+    }
+    
+    .feature-title {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: var(--space-2);
+    }
+    
+    .feature-text {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-actions {
+            flex-direction: column;
+            width: 100%;
+            max-width: 280px;
+        }
+        
+        .btn-hero {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
-<div class="hero-section position-relative">
-    <div class="float-shape shape-1"></div>
-    <div class="float-shape shape-2"></div>
-
-    <div class="hero-container animate__animated animate__fadeInUp">
+<div class="hero-section">
+    <div class="hero-container">
         <div class="hero-badge">
-            <i class="fas fa-bolt text-accent"></i> Nouvelle ère agricole
+            <i class="fas fa-seedling"></i> Plateforme agricole intelligente
         </div>
         
         <h1 class="hero-title">
-            L'intelligence au service de vos <span>récoltes</span>
+            Gerez vos cultures avec <span class="highlight">precision</span>
         </h1>
         
         <p class="hero-subtitle">
-            Gérez vos projets agricoles, anticipez la météo, prédisez vos rendements grâce à l'IA et maximisez la réussite de votre ferme.
+            Planifiez vos projets, suivez vos semis, anticipez vos rendements et prenez des decisions eclairees grace aux donnees et a l'IA.
         </p>
 
         <div class="hero-actions">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn-modern btn-primary-modern btn-hero">
-                    <i class="fas fa-chart-line me-2"></i>Accéder au Dashboard
+                <a href="{% url 'dashboard' %}" class="btn-modern btn-hero btn-hero-primary">
+                    Acceder au Dashboard <i class="fas fa-arrow-right ms-2"></i>
                 </a>
-                <a href="{% url 'creer_projet' %}" class="btn-modern btn-outline-modern btn-hero">
+                <a href="{% url 'creer_projet' %}" class="btn-modern btn-hero btn-hero-outline">
                     <i class="fas fa-plus me-2"></i>Nouveau Projet
                 </a>
             {% else %}
-                <a href="{% url 'register' %}" class="btn-modern btn-primary-modern btn-hero">
-                    Créer un compte <i class="fas fa-arrow-right ms-2"></i>
+                <a href="{% url 'register' %}" class="btn-modern btn-hero btn-hero-primary">
+                    Commencer gratuitement <i class="fas fa-arrow-right ms-2"></i>
                 </a>
-                <a href="{% url 'login' %}" class="btn-modern btn-outline-modern btn-hero">
+                <a href="{% url 'login' %}" class="btn-modern btn-hero btn-hero-outline">
                     Se connecter
                 </a>
             {% endif %}
         </div>
         
         {% if user.is_authenticated %}
-            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s">
-                <span class="text-muted" style="font-size: 0.95rem;">Connecté en tant que <strong>{{ user.username }}</strong></span>
+            <div class="mt-5">
+                <span class="text-muted" style="font-size: 0.875rem;">
+                    Connecte en tant que <strong style="color: var(--text-main);">{{ user.username }}</strong>
+                </span>
             </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section">
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="feature-title">Suivi en temps reel</h3>
+            <p class="feature-text">Visualisez l'etat de vos projets, investissements et rendements sur un tableau de bord intuitif.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <h3 class="feature-title">Gestion des semis</h3>
+            <p class="feature-text">Planifiez et suivez chaque culture avec des donnees detaillees sur les quantites et les dates.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h3 class="feature-title">Assistant IA</h3>
+            <p class="feature-text">Posez vos questions et obtenez des conseils personnalises pour optimiser vos recoltes.</p>
+        </div>
     </div>
 </div>
 {% endblock %}
