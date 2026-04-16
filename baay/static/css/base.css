@@ -618,6 +618,25 @@ a:hover {
     background: rgba(239, 68, 68, 0.1);
 }
 
+.logout-link {
+    color: var(--safran-ocre) !important;
+}
+
+.logout-link:hover {
+    color: var(--danger) !important;
+}
+
+.guide-button {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.guide-button:hover {
+    color: var(--text-main);
+    background: rgba(163, 230, 53, 0.08);
+}
+
 /* User Avatar */
 .user-avatar {
     display: flex;
