@@ -13,7 +13,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, F
 from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
@@ -515,7 +515,9 @@ def dashboard(request):
     from baay.models import Investissement
     investissement_total = Investissement.objects.filter(
         projet__in=projets
-    ).aggregate(total=Sum('cout_par_hectare'))['total'] or 0
+    ).annotate(
+        cout_total=F('cout_par_hectare') * F('projet__superficie')
+    ).aggregate(total=Sum('cout_total'))['total'] or 0
     
     # Projects by status count
     projets_en_cours = projets.filter(statut='en_cours').count()
@@ -689,7 +691,7 @@ def get_model():
         if _model_cache is not None:
             return _model_cache
         
-        model_path = 'modele_rendement.pkl'
+        model_path = os.path.join(settings.BASE_DIR, 'modele_rendement.pkl')
         
         try:
             # Verify model file integrity if hash is configured
