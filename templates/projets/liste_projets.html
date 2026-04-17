@@ -82,4 +82,29 @@
                             <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="
+                            <a href="{% url 'supprimer_projet' projet.id %}" class="action-link text-danger" title="Supprimer" onclick="return confirm('Vraiment supprimer ce projet ?');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+        <div class="empty-state-icon"><i class="fas fa-folder-open" style="font-size: 48px; opacity: 0.5; margin-bottom: 16px;"></i></div>
+        <h3 class="empty-state-title">Aucun projet</h3>
+        <p class="empty-state-text">Vous n'avez pas encore crée de projet.</p>
+        <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent mt-3">
+            <i class="fas fa-plus"></i> Créer mon premier projet
+        </a>
+    </div>
+    {% endif %}
+</form>
+
+{% block extra_js %}
+<script src="{% static 'js/projects.js' %}"></script>
+{% endblock %}
+{% endblock %}
