@@ -832,6 +832,8 @@
                          data-culture="{{ projet.culture.id }}"
                          data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
                          data-nom="{{ projet.nom }}"
+                         data-rendement="{{ projet.rendement_estime|default:0 }}"
+                         data-superficie="{{ projet.superficie|default:0 }}"
                          onclick="window.location.href='{% url 'detail_projet' projet.id %}'">
                         <div class="project-info">
                             <div class="project-name">{{ projet.nom }}</div>
@@ -861,11 +863,6 @@
                                 <i class="fas fa-robot"></i> IA
                             </a>
                         </div>
-                        <span class="status-badge status-{{ projet.statut }}">
-                            {% if projet.statut == 'en_cours' %}En cours
-                            {% elif projet.statut == 'en_pause' %}En pause
-                            {% else %}Termine{% endif %}
-                        </span>
                     </div>
                     {% endfor %}
                 </div>
@@ -931,8 +928,8 @@ document.addEventListener('DOMContentLoaded', function () {
             status: card.dataset.status,
             culture: card.dataset.culture,
             date: card.dataset.date,
-            superficie: 0,
-            rendement: 0
+            superficie: parseFloat(card.dataset.superficie) || 0,
+            rendement: parseFloat(card.dataset.rendement) || 0
         });
     });
     
@@ -1193,7 +1190,7 @@ function applyFilters() {
     });
     
     // Update project cards visibility
-    document.querySelectorAll('.mini-project-card').forEach(card => {
+    document.querySelectorAll('.project-item').forEach(card => {
         const isVisible = filteredProjects.some(p => p.id === card.dataset.id);
         card.style.display = isVisible ? 'flex' : 'none';
     });

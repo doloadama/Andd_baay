@@ -2,6 +2,11 @@
 {% load static %}
 {% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
 {% block content %}
 <!-- Immersive Hero Background -->
 <div class="project-hero-bg" style="background-image: url('{% if projet.image_fond %}{{ projet.image_fond.url }}{% else %}{% static 'images/default_farm_bg.png' %}{% endif %}'); background-size: cover; background-position: center; transition: background-image 0.5s ease;">
@@ -482,11 +487,10 @@
             const isDark = document.body.classList.contains('dark-mode');
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
             const textColor = isDark ? '#94a3b8' : '#64748b';
-            
+
             var ctx = document.getElementById('investmentChart').getContext('2d');
-            
             const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient1.addColorStop(0, 'rgba(163, 230, 53, 0.8)'); // Lime
+            gradient1.addColorStop(0, 'rgba(163, 230, 53, 0.8)');
             gradient1.addColorStop(1, 'rgba(163, 230, 53, 0.2)');
 
             new Chart(ctx, {
@@ -503,22 +507,48 @@
                         barPercentage: 0.5
                     }]
                 },
-        // Growth Curve Chart (Predictive)
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                            titleColor: '#a3e635',
+                            bodyColor: '#e0e0e0',
+                            cornerRadius: 10,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor },
+                            ticks: { color: textColor }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Growth Curve Chart (Predictive S-Curve)
         const growthCtx = document.getElementById('growthCurveChart');
         if (growthCtx) {
-            const ctx = growthCtx.getContext('2d');
-            const totalDays = 90; // Fallback cycle duration
+            const gCtx = growthCtx.getContext('2d');
+            const totalDays = 90;
             const labels = Array.from({length: 10}, (_, i) => Math.round(i * (totalDays / 9)));
-            
-            // Sigmoid function for S-Curve
             const sigmoid = (x) => 1 / (1 + Math.exp(-0.7 * (x - 5)));
             const dataPoints = labels.map((_, i) => sigmoid(i) * 100);
 
-            const gradient = ctx.createLinearGradient(0, 0, 0, 100);
+            const gradient = gCtx.createLinearGradient(0, 0, 0, 100);
             gradient.addColorStop(0, 'rgba(57, 255, 20, 0.4)');
             gradient.addColorStop(1, 'rgba(57, 255, 20, 0)');
 
-            new Chart(ctx, {
+            new Chart(gCtx, {
                 type: 'line',
                 data: {
                     labels: labels,
