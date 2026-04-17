@@ -839,7 +839,7 @@
                                 <span><i class="fas fa-seedling"></i> {{ projet.culture.nom|default:"N/A" }}</span>
                                 <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
                             </div>
-                            <span class="status-badge {{ projet.statut }}" onclick="event.stopPropagation(); showStatusModal('{{ projet.id }}', '{{ projet.statut }}')">
+                            <span class="status-badge status-{{ projet.statut }}" onclick="event.stopPropagation(); showStatusModal('{{ projet.id }}', '{{ projet.statut }}')">
                                 {% if projet.statut == 'en_cours' %}En cours
                                 {% elif projet.statut == 'en_pause' %}En pause
                                 {% else %}Termine{% endif %}
@@ -861,7 +861,7 @@
                                 <i class="fas fa-robot"></i> IA
                             </a>
                         </div>
-                        <span class="status-badge {{ projet.statut }}">
+                        <span class="status-badge status-{{ projet.statut }}">
                             {% if projet.statut == 'en_cours' %}En cours
                             {% elif projet.statut == 'en_pause' %}En pause
                             {% else %}Termine{% endif %}
@@ -1456,3 +1456,4 @@ function showToast(message, type = 'success') {
 
 {% csrf_token %}
 {% endblock %}
+
