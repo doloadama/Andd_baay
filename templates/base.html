@@ -6,15 +6,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <!-- SEO Meta Tags -->
     {% block meta_description %}
-    <meta name="description" content="Andd Baay - Plateforme Agricole Intelligente. Gérez vos cultures et prédisez vos rendements." />
+    <meta name="description"
+        content="Andd Baay - Plateforme Agricole Intelligente. Gérez vos cultures et prédisez vos rendements." />
     {% endblock %}
+
     {% block og_tags %}
     <meta property="og:title" content="Andd Baay | L'agriculture de demain" />
-    <meta property="og:description" content="La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte." />
+    <meta property="og:description"
+        content="La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte." />
     <meta property="og:type" content="website" />
     {% endblock %}
+
     {% block meta_tags %}{% endblock %}
     <meta name="theme-color" content="#a3e635" />
 
@@ -22,7 +27,7 @@
 
     <link rel="icon" type="image/png" href="{% static 'images/logo.jpg' %}" />
 
-    <!-- Google Fonts: Space Grotesk for Display, Inter for Body -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -34,12 +39,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
 
-    <!-- Leaflet : charge conditionnellement par chaque template qui en a besoin -->
-    {% block extra_head %}{% endblock %}
-
-    {% load static %}
+    <!-- Base Stylesheet -->
     <link rel="stylesheet" href="{% static 'CSS/base.css' %}">
-            /* Palette de base */
+
+    <!-- FIX #1: Inline CSS is now properly wrapped in <style> tags -->
+    <style>
+        /* Palette de base */
+        :root {
             --neon-green: #39FF14;
             --safran-ocre: #E2725B;
             --sun-yellow: #FFD700;
@@ -185,7 +191,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40L40 0H20L0 20M40 40V20L20 40" fill="%23ffffff" fill-opacity="0.015" fill-rule="evenodd"/></svg>');
+            background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40L40 0H20L0 20M40 40V20L20 40" fill="%23ffffff" fill-opacity="0.015" fill-rule="evenodd" /></svg>');
             pointer-events: none;
             z-index: -1;
             opacity: 0.5;
@@ -243,7 +249,7 @@
             outline-offset: 3px;
         }
 
-        /* Shared UI blocks (used by small templates: reset password, delete confirm, etc.) */
+        /* Shared UI blocks */
         .center-wrap {
             max-width: 480px;
             margin: 40px auto;
@@ -410,7 +416,7 @@
             border-bottom: none;
         }
 
-        /* Status chips (shared) */
+        /* Status chips */
         .status-chip {
             display: inline-flex;
             align-items: center;
@@ -442,7 +448,7 @@
             border-color: rgba(34, 197, 94, 0.25);
         }
 
-        /* Neutral tags/pills (shared) */
+        /* Neutral tags/pills */
         .tag {
             display: inline-flex;
             align-items: center;
@@ -482,11 +488,6 @@
             z-index: -1;
             pointer-events: none;
             background-color: var(--bg-main);
-            background-image: 
-                linear-gradient(var(--border-subtle) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-            background-size: 64px 64px;
-            transition: background-color var(--transition);
             background-image:
                 radial-gradient(at 0% 0%, rgba(163, 230, 53, 0.08) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(2, 44, 34, 0.05) 0px, transparent 50%);
@@ -494,22 +495,17 @@
             transition: background-image var(--transition);
         }
 
-        .dark-mode .bg-mesh {
-            background-image: 
-                linear-gradient(var(--border-subtle) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-        }
-        
-        /* Accent gradient overlay */
         .bg-mesh::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; height: 400px;
-            background: linear-gradient(180deg, var(--accent-subtle) 0%, transparent 100%);
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 400px;
             background-image:
                 radial-gradient(at 0% 0%, rgba(163, 230, 53, 0.12) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(163, 230, 53, 0.05) 0px, transparent 50%);
+            pointer-events: none;
         }
 
         /* Typography */
@@ -544,12 +540,12 @@
             color: var(--accent-hover);
         }
 
-        /* ===== CLEAN NAVBAR ===== */
+        /* ===== NAVBAR ===== */
         .navbar-wrapper {
             position: sticky;
             top: 0;
             z-index: 1000;
-            padding: var(--space-3) var(--space-4);
+            padding: 12px 16px;
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -557,9 +553,6 @@
         }
 
         .navbar-floating {
-            background: transparent;
-            padding: 0;
-            max-width: 1280px;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -574,16 +567,12 @@
 
         .navbar-brand {
             font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.25rem;
             font-weight: 800;
             font-size: 1.15rem;
             color: var(--text-main) !important;
             letter-spacing: -0.02em;
             display: flex;
             align-items: center;
-            gap: var(--space-2);
-            transition: opacity var(--transition-fast);
             gap: 8px;
             transition: transform var(--transition-fast);
         }
@@ -593,20 +582,14 @@
         }
 
         .brand-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: var(--accent);
-            color: var(--text-inverse);
-            border-radius: var(--radius-sm);
-            font-size: 0.875rem;
             width: 30px;
             height: 30px;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: var(--text-inverse);
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.8rem;
             box-shadow: var(--shadow-glow);
             transition: transform var(--transition);
@@ -619,14 +602,6 @@
         /* Nav Links */
         .nav-link-modern {
             color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.875rem;
-            padding: var(--space-2) var(--space-3);
-            border-radius: var(--radius-sm);
-            transition: all var(--transition-fast);
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
             font-weight: 600;
             font-size: 0.82rem;
             padding: 7px 12px;
@@ -643,8 +618,6 @@
         }
 
         .nav-link-modern.active {
-            color: var(--text-main);
-            background: var(--bg-secondary);
             color: var(--text-inverse);
             background: var(--accent);
         }
@@ -655,11 +628,6 @@
 
         /* Nav Buttons */
         .btn-nav {
-            padding: var(--space-2) var(--space-4);
-            border-radius: var(--radius-sm);
-            font-family: var(--font-body);
-            font-weight: 500;
-            font-size: 0.875rem;
             padding: 7px 16px;
             border-radius: var(--radius-pill);
             font-family: var(--font-display);
@@ -669,7 +637,6 @@
             transition: all var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: var(--space-2);
             gap: 6px;
             cursor: pointer;
         }
@@ -698,12 +665,11 @@
         .btn-nav-ghost {
             background: transparent;
             color: var(--text-muted) !important;
-            padding: var(--space-2);
+            padding: 7px;
         }
 
         .btn-nav-ghost:hover {
             color: var(--danger) !important;
-            background: var(--danger-subtle);
         }
 
         /* User Avatar */
@@ -741,7 +707,7 @@
             color: var(--text-main);
         }
 
-        /* Theme Toggle Button */
+        /* Theme Toggle */
         .theme-toggle {
             width: 34px;
             height: 34px;
@@ -842,19 +808,6 @@
             box-shadow: 0 4px 14px rgba(163, 230, 53, 0.3);
         }
 
-        .btn-primary-modern:hover {
-            background: var(--primary-light);
-        }
-        
-        .btn-accent {
-            background: var(--accent);
-            color: var(--text-inverse) !important;
-        }
-        
-        .btn-accent:hover {
-            background: var(--accent-dark);
-        }
-
         .btn-outline-modern {
             background: transparent;
             border: 1px solid var(--border-color);
@@ -877,30 +830,30 @@
         .container-modern {
             max-width: 1280px;
             margin: 0 auto;
-            padding: 0 var(--space-6);
+            padding: 0 24px;
         }
 
         /* ===== ALERTS ===== */
         .alert-modern {
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             background: var(--card-bg);
             border-left: 3px solid var(--accent);
             color: var(--text-main);
-            box-shadow: var(--shadow-card);
+            box-shadow: var(--shadow-sm);
             font-weight: 500;
-            padding: var(--space-4);
+            padding: 16px;
             font-size: 0.875rem;
         }
 
         .alert-modern.alert-danger {
             border-left-color: var(--danger);
-            background: var(--danger-subtle);
+            background: rgba(239, 68, 68, 0.06);
         }
 
         .alert-modern.alert-success {
             border-left-color: var(--success);
-            background: var(--success-subtle);
+            background: rgba(34, 197, 94, 0.06);
         }
 
         /* ===== CHATBOT ===== */
@@ -1012,7 +965,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: transparent;
         }
 
         .chat-header h4 {
@@ -1182,7 +1134,6 @@
         .chat-input-container {
             padding: 16px 20px;
             border-top: 1px solid var(--border-color);
-            background: transparent;
             position: relative;
         }
 
@@ -1287,7 +1238,7 @@
             transform: translateY(-3px);
         }
 
-        /* ===== FORM ELEMENTS (Global) ===== */
+        /* ===== FORM ELEMENTS ===== */
         .form-control,
         .form-select {
             background: var(--bg-secondary);
@@ -1321,65 +1272,41 @@
             margin-bottom: 6px;
         }
 
-        /* ===== CARDS (Global) ===== */
+        /* ===== CARDS ===== */
         .card-modern {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
+            box-shadow: var(--shadow-sm);
             transition: all var(--transition);
         }
 
-        .card-modern:hover {
-            box-shadow: var(--shadow-card-hover);
-        }
-        
         /* Stat Cards */
         .stat-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-card);
-            padding: var(--space-6);
+            padding: 24px;
             transition: all var(--transition);
         }
-        
+
         .stat-card:hover {
             border-color: var(--text-muted);
         }
-        
+
         .stat-value {
             font-family: var(--font-display);
             font-size: 2rem;
             font-weight: 700;
             color: var(--text-main);
             line-height: 1;
-            margin-bottom: var(--space-1);
+            margin-bottom: 4px;
         }
-        
+
         .stat-label {
             font-size: 0.8125rem;
             color: var(--text-muted);
             font-weight: 500;
-        }
-        
-        .stat-trend {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-1);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: var(--space-1) var(--space-2);
-            border-radius: var(--radius-xs);
-        }
-        
-        .stat-trend.up {
-            color: var(--success);
-            background: var(--success-subtle);
-        }
-        
-        .stat-trend.down {
-            color: var(--danger);
-            background: var(--danger-subtle);
         }
 
         /* ===== UTILITIES ===== */
@@ -1404,44 +1331,26 @@
 
             .navbar-collapse {
                 background: var(--card-bg-solid);
-                border-radius: var(--radius-sm);
-                padding: var(--space-4);
-                margin-top: var(--space-3);
+                border-radius: 12px;
+                padding: 16px;
+                margin-top: 12px;
                 border: 1px solid var(--border-color);
-            }
-
-            .nav-link-modern {
-                padding: var(--space-3) var(--space-4);
-                border-radius: var(--radius-sm);
             }
 
             .btn-nav {
                 width: 100%;
                 justify-content: center;
-                margin-bottom: var(--space-2);
+                margin-bottom: 8px;
             }
 
             .user-avatar {
                 width: 100%;
                 justify-content: center;
-                margin-bottom: var(--space-2);
+                margin-bottom: 8px;
             }
         }
 
         @media (max-width: 768px) {
-            :root {
-                --space-6: 16px;
-                --space-8: 24px;
-            }
-            
-            .page-title {
-                font-size: 1.5rem;
-            }
-            
-            .stat-value {
-                font-size: 1.5rem;
-            }
-            
             .chat-window {
                 width: calc(100% - 32px);
                 height: calc(100vh - 140px);
@@ -1452,14 +1361,6 @@
             .chat-bubble-container {
                 bottom: 20px;
                 right: 20px;
-            }
-
-            main {
-                padding: var(--space-6) 0;
-            }
-            
-            .container-modern {
-                padding: 0 var(--space-4);
             }
         }
 
@@ -1506,7 +1407,6 @@
             transform: scale(1) translateY(0);
         }
 
-        /* Header compact: icône + texte en ligne */
         .tour-header {
             background: linear-gradient(135deg, #022c22 0%, #054c38 55%, #0a2540 100%);
             padding: 20px 24px 18px;
@@ -1586,7 +1486,6 @@
             margin: 0;
         }
 
-        /* Body scrollable */
         .tour-body {
             padding: 16px 24px;
             overflow-y: auto;
@@ -1659,7 +1558,6 @@
             line-height: 1.4;
         }
 
-        /* Footer fixe */
         .tour-footer {
             display: flex;
             align-items: center;
@@ -1771,8 +1669,14 @@
             }
         }
     </style>
+
+    <!-- Extra head block for child templates -->
+    {% block extra_head %}{% endblock %}
+
+    <!-- FIX #2: Removed duplicate {% load static %} -->
+
+    <!-- Anti-Flash: Apply theme before body renders -->
     <script>
-        // Anti-Flash : Applique le thème avant le rendu du body
         let savedTheme = null;
         try {
             savedTheme = localStorage.getItem('theme');
@@ -1780,13 +1684,11 @@
             savedTheme = null;
         }
 
-        // Si aucun choix utilisateur n'est enregistrÃ©, on suit le thÃ¨me systÃ¨me (utile sur tÃ©lÃ©phone)
         if (savedTheme !== 'light' && savedTheme !== 'dark') {
             const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             savedTheme = systemPrefersDark ? 'dark' : 'light';
         }
 
-        // Default to dark mode for Andd Baay si non défini
         if (savedTheme === 'light') {
             document.documentElement.setAttribute('data-bs-theme', 'light');
             document.documentElement.classList.add('light-mode');
@@ -1804,21 +1706,20 @@
     </script>
 </head>
 
-
-<body class="">
+<body>
     <div class="african-pattern-overlay"></div>
     <a class="skip-link" href="#main">Aller au contenu</a>
-    <!-- Global Background Wrapper -->
     <div class="background-container"></div>
 
     <!-- ===== ONBOARDING TOUR MODAL ===== -->
     {% if user.is_authenticated %}
     <div id="tourOverlay" class="tour-overlay" role="dialog" aria-modal="true" aria-label="Guide utilisateur">
         <div class="tour-modal">
-            <!-- Header compact: icône + texte côte à côte -->
             <div class="tour-header" id="tourHeader">
                 <div class="tour-header-top">
-                    <div class="tour-icon" id="tourIcon"><i id="tourIconEl" class="fas fa-seedling"></i></div>
+                    <div class="tour-icon" id="tourIcon">
+                        <i id="tourIconEl" class="fas fa-seedling"></i>
+                    </div>
                     <div class="tour-header-text">
                         <div class="tour-step-badge">
                             <i class="fas fa-map-signs"></i>
@@ -1831,12 +1732,10 @@
                 </div>
             </div>
 
-            <!-- Body dynamique -->
             <div class="tour-body">
                 <div class="tour-tips" id="tourTips"></div>
             </div>
 
-            <!-- Footer -->
             <div class="tour-footer">
                 <div class="tour-progress" id="tourProgress"></div>
                 <div class="tour-actions">
@@ -1850,7 +1749,7 @@
     </div>
     {% endif %}
 
-    <!-- Enhanced Floating Navbar -->
+    <!-- Navbar -->
     <header class="navbar-wrapper">
         <nav class="navbar navbar-expand-lg navbar-floating animate__animated animate__fadeInDown">
             <div class="container-fluid">
@@ -1865,7 +1764,8 @@
                         <i class="fas fa-sun icon-sun"></i>
                     </button>
                     <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarNav">
+                        data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                        aria-label="Toggle navigation">
                         <i class="fas fa-bars"></i>
                     </button>
                 </div>
@@ -1905,12 +1805,14 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <!-- FIX #4: btn-nav-ghost is an <a>, no stray </button> -->
                             <a class="btn-nav btn-nav-ghost logout-link" href="{% url 'logout' %}" title="Déconnexion">
                                 <i class="fas fa-sign-out-alt"></i>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <button id="openGuideBtn" aria-label="Ouvrir le guide" type="button" class="theme-toggle guide-button" title="Guide utilisateur">
+                            <button id="openGuideBtn" aria-label="Ouvrir le guide" type="button"
+                                class="theme-toggle guide-button" title="Guide utilisateur">
                                 <i class="fas fa-question"></i>
                             </button>
                         </li>
@@ -1951,8 +1853,7 @@
             </div>
             {% endif %}
 
-            {% block content %}
-            {% endblock %}
+            {% block content %}{% endblock %}
         </div>
     </main>
 
@@ -1973,45 +1874,54 @@
         </div>
     </footer>
 
+    <!-- FIX #3: chat-bubble-container div is now properly closed before scripts -->
     <!-- Chatbot Bubble -->
     <div class="chat-bubble-container">
-        <div class="chat-bubble" id="chatBubble" role="button" aria-label="Ouvrir le chat">
+        <!-- FIX #5: removed stray </button> inside the chat-bubble div -->
+        <div class="chat-bubble" id="chatBubble" role="button" tabindex="0" aria-label="Ouvrir le chat">
             <i class="fas fa-robot chat-icon" aria-hidden="true"></i>
-            <i class="fas fa-times close-icon"></i>
-            <div class="chat-notification" id="chatNotification" aria-live="polite" aria-atomic="true" hidden></div>
-        </button>
+            <i class="fas fa-times close-icon" aria-hidden="true"></i>
+            <div class="chat-notification" id="chatNotification" aria-live="polite" aria-atomic="true"></div>
+        </div>
+
+        <!-- Chatbot Window -->
+        <aside class="chat-window" aria-label="Fenêtre de chat" id="chatWindow">
+            <div class="chat-header">
+                <h4><i class="fas fa-robot"></i> Assistant IA</h4>
+                <div class="chat-actions">
+                    <button id="clearChat" title="Effacer" aria-label="Effacer le chat">
+                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                    </button>
+                    <button id="minimizeChat" title="Réduire" aria-label="Réduire le chat">
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+                <div id="welcome-message" class="chat-welcome">
+                    <span class="welcome-emoji">🌾</span>
+                    <h5 class="welcome-title">Bonjour chef !</h5>
+                    <p class="welcome-text">Posez-moi vos questions sur les rendements, la météo ou la gestion de vos
+                        cultures.</p>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <label for="message" class="visually-hidden">Écrire un message</label>
+                <textarea id="message" class="chat-input" placeholder="Écrivez votre message..." rows="1"></textarea>
+                <button id="sendMessage" class="chat-send-btn" aria-label="Envoyer le message">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+        </aside>
     </div>
+    <!-- FIX #3: chat-bubble-container properly closed here -->
 
-    <!-- Chatbot Window -->
-    <aside class="chat-window" aria-label="Fenêtre de chat" id="chatWindow">
-        <div class="chat-header">
-            <h4><i class="fas fa-robot"></i> Assistant IA</h4>
-            <div class="chat-actions">
-                <button id="clearChat" title="Effacer" aria-label="Effacer historique" aria-label="Effacer le chat"><i class="fas fa-trash-alt" aria-hidden="true"></i></button>
-                <button id="minimizeChat" title="Réduire" aria-label="Réduire le chat"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
-            </div>
-        </div>
-
-        <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions">
-            <div id="welcome-message" class="chat-welcome">
-                <span class="welcome-emoji">🌾</span>
-                <h5 class="welcome-title">Bonjour chef !</h5>
-                <p class="welcome-text">Posez-moi vos questions sur les rendements, la meteo ou la gestion de vos
-                    cultures.</p>
-            </div>
-        </div>
-
-        <div class="chat-input-container">
-            <label for="message" class="visually-hidden">Écrire un message</label>
-            <textarea id="message" class="chat-input" placeholder="Écrivez votre message..." rows="1"></textarea>
-            <button id="sendMessage" class="chat-send-btn" aria-label="Envoyer le message">
-                <i class="fas fa-arrow-up"></i>
-            </button>
-        </div>
-    </aside>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>\n    <script src="{% static 'js/base.js' %}"></script>\n    <script src="{% static 'js/tour.js' %}"></script>
+    <!-- FIX #4: Removed stray \n characters from script tags -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/tour.js' %}"></script>
     {% block extra_scripts %}{% endblock %}
     <script src="{% static 'js/main.js' %}"></script>
 </body>
