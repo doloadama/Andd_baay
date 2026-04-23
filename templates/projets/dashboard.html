@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard | Andd Baay{% endblock %}
 
@@ -228,7 +229,7 @@
                             </div>
                             <!-- Progress bar -->
                             <div class="project-progress">
-                                <div class="project-progress-bar" style="width: {% if projet.statut == \'fini\' %}100{% elif projet.statut == \'en_pause\' %}50{% else %}75{% endif %}%"></div>
+                                <div class="project-progress-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
                             </div>
                         </div>
                         
