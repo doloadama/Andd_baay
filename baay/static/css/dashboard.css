@@ -1191,3 +1191,20 @@
         background: var(--bg-secondary);
         color: var(--text-main);
     }
+
+/* ===== NEW UTILITY CLASSES ADDED FOR REDESIGN ===== */
+.dash-subtitle { margin-bottom: 4px; }
+.filter-header-actions { display: flex; align-items: center; gap: 12px; }
+.status-chart-container { height: 220px; }
+.empty-state-padded { padding: 40px 20px; }
+.action-delay { animation-delay: 0.4s; }
+.quick-action-icon-wrapper { width: 80px; height: 80px; background: rgba(163, 230, 53, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
+.text-accent { color: var(--accent); }
+.quick-action-title { color: var(--text-main); font-family: var(--font-display); font-weight: 700; margin-bottom: 12px; }
+.quick-action-desc { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px; }
+.hidden { display: none !important; }
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 2px !important; }
+
+/* Handle specific tile styles */
+.tile-handle i { font-size: 12px; color: var(--text-muted); }
