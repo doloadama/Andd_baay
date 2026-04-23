@@ -66,7 +66,8 @@ def home_view(request):
             ).order_by('-date_lancement').first()
             context['projets_actifs'] = projets_actifs
             context['prochain_projet'] = prochain_semis
-        except Exception:
+        except Exception as e:
+            logger.error("Erreur home_view", exc_info=True)
             context['projets_actifs'] = 0
             context['prochain_projet'] = None
 
@@ -133,7 +134,7 @@ if GEMINI_AVAILABLE and hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_
     try:
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
     except Exception as e:
-        logger.warning(f"Failed to initialize Gemini client: {e}")
+        logger.error(f"Failed to initialize Gemini client: {e}", exc_info=True)
 
 # Maximum allowed prompt length for chatbot
 MAX_PROMPT_LENGTH = 4000
@@ -186,6 +187,7 @@ def _call_gemini(full_prompt):
             )
             return response.text, model
         except Exception as e:
+            logger.error(f"Erreur appel Gemini: {e}", exc_info=True)
             last_error = e
             error_str = str(e)
             # Only retry on quota/rate-limit errors
@@ -237,7 +239,7 @@ def ask_chatbot(request):
             return JsonResponse({'error': 'Requête invalide.'}, status=400)
         except Exception as e:
             error_str = str(e)
-            logger.error(f"Chatbot error: {type(e).__name__}: {e}")
+            logger.error(f"Chatbot error: {type(e).__name__}: {e}", exc_info=True)
 
             # User-friendly French error messages
             if '403' in error_str or 'permission_denied' in error_str.lower() or 'leaked' in error_str.lower():
@@ -478,7 +480,8 @@ def detail_projet(request, projet_id):
                     'title': projet.culture.nom,
                     'subtitle': photo.description or ""
                 })
-            except Exception:
+            except Exception as e:
+                logger.error("Erreur récupération photo", exc_info=True)
                 pass
 
     return render(request, 'projets/detail_projet.html', {
@@ -724,7 +727,7 @@ def get_model():
             logger.error(f"Erreur d'accès au fichier modèle : {e}")
             return None
         except Exception as e:
-            logger.error(f"Erreur inattendue lors du chargement du modèle : {type(e).__name__}: {e}")
+            logger.error(f"Erreur inattendue lors du chargement du modèle : {type(e).__name__}: {e}", exc_info=True)
             return None
     
     return _model_cache
@@ -769,7 +772,7 @@ def predire_rendement(projet):
         logger.error(f"Colonne manquante dans les données d'entrée : {e}")
         return 0
     except Exception as e:
-        logger.error(f"Erreur lors de la prédiction : {e}")
+        logger.error(f"Erreur lors de la prédiction : {e}", exc_info=True)
         return 0
 
 
@@ -1038,7 +1041,7 @@ def update_projet_statut_api(request, projet_id):
         logger.warning(f"Invalid data in update_projet_statut_api: {e}")
         return JsonResponse({'error': 'Invalid data provided.'}, status=400)
     except Exception as e:
-        logger.error(f"Error in update_projet_statut_api: {type(e).__name__}: {e}")
+        logger.error(f"Error in update_projet_statut_api: {type(e).__name__}: {e}", exc_info=True)
         return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
 
@@ -1194,5 +1197,5 @@ def update_semis_statut(request, semis_id):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        logger.error(f"Error in update_semis_statut: {e}")
+        logger.error(f"Error in update_semis_statut: {e}", exc_info=True)
         return JsonResponse({'error': 'An error occurred'}, status=500)
