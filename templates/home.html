@@ -1,178 +1,313 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Accueil{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Découvrez Andd Baay, l'outil idéal pour la prédiction de rendement IA et la gestion agricole en Afrique de l'Ouest. Transformez vos cultures dès aujourd'hui." />
-{% endblock %}
-{% block og_tags %}
-<meta property="og:title" content="Accueil | Andd Baay" />
-<meta property="og:description" content="Découvrez Andd Baay, l'outil idéal pour la prédiction de rendement IA et la gestion agricole en Afrique de l'Ouest." />
-<meta property="og:type" content="website" />
+<meta name="description" content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest. Transformez vos cultures des aujourd'hui." />
 {% endblock %}
 
+{% block og_tags %}
+<meta property="og:title" content="Accueil | Andd Baay" />
+<meta property="og:description" content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest." />
+<meta property="og:type" content="website" />
+{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 
-<!-- ===== HERO ===== -->
 <section class="hero-section">
     <div class="hero-pattern"></div>
+    <div class="hero-sun"></div>
     <div class="hero-glow"></div>
 
-    <!-- Widgets flottants interactifs -->
-    <div class="glass-widget widget-1 d-none d-lg-flex animate__animated animate__fadeInLeft">
-        <div class="widget-icon neon">
-            <i class="fas fa-seedling"></i>
-        </div>
-        <div class="widget-data">
-            <span class="label">Rendement IA</span>
-            <span class="value">98.5%</span>
-            <span class="trend"><i class="fas fa-arrow-up"></i> +12% Précision</span>
-        </div>
-    </div>
+    <div class="hero-shell">
+        <div class="hero-copy">
+            <div class="hero-badge">
+                <i class="fas fa-leaf"></i> Agritech ouest-africaine
+            </div>
 
-    <div class="glass-widget widget-2 d-none d-lg-flex animate__animated animate__fadeInRight">
-        <div class="widget-icon ocre">
-            <i class="fas fa-tint"></i>
-        </div>
-        <div class="widget-data">
-            <span class="label">Humidité du sol</span>
-            <span class="value">Optimale</span>
-            <span class="trend" style="color: var(--safran-ocre);"><i class="fas fa-check-circle"></i> Zone Sahel</span>
-        </div>
-    </div>
+            <h1 class="hero-title">
+                Une plateforme agricole ancree dans les
+                <span class="highlight">territoires africains</span>
+            </h1>
 
-    <div class="hero-container">
-        <div class="hero-badge">
-            <i class="fas fa-leaf"></i> Agritech Ouest Africaine
-        </div>
+            <p class="hero-subtitle">
+                Andd Baay aide les producteurs, cooperatives et investisseurs a suivre leurs projets, lire leurs donnees et mieux anticiper leurs recoltes avec une IA pensee pour le terrain.
+            </p>
 
-        <h1 class="hero-title">
-            L'intelligence au service de vos <span class="highlight">récoltes</span>
-        </h1>
-
-        <p class="hero-subtitle">
-            Gérez vos projets agricoles, prévoyez vos rendements avec précision grâce à l'IA et boostez la rentabilité de votre exploitation.
-        </p>
-
-        <div class="hero-actions">
-            {% if user.is_authenticated %}
+            <div class="hero-actions">
+                {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}" class="btn-neon">
-                    <i class="fas fa-chart-line"></i> Accéder au Dashboard
+                    <i class="fas fa-chart-line"></i> Acceder au dashboard
                 </a>
                 <a href="{% url 'creer_projet' %}" class="btn-ocre">
-                    <i class="fas fa-plus"></i> Nouveau Projet
+                    <i class="fas fa-plus"></i> Nouveau projet
                 </a>
-            {% else %}
+                {% else %}
                 <a href="{% url 'register' %}" class="btn-neon">
                     Commencer gratuitement <i class="fas fa-arrow-right"></i>
                 </a>
                 <a href="{% url 'login' %}" class="btn-ocre">
                     Se connecter <i class="fas fa-user"></i>
                 </a>
-            {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="hero-trust">
+                <div class="avatar-stack" aria-hidden="true">
+                    <span class="avatar-chip avatar-a">
+                        <span class="persona-mini persona-mini-a">
+                            <span class="persona-mini-head"></span>
+                            <span class="persona-mini-body"></span>
+                        </span>
+                    </span>
+                    <span class="avatar-chip avatar-b">
+                        <span class="persona-mini persona-mini-b">
+                            <span class="persona-mini-head"></span>
+                            <span class="persona-mini-body"></span>
+                        </span>
+                    </span>
+                    <span class="avatar-chip avatar-c">
+                        <span class="persona-mini persona-mini-c">
+                            <span class="persona-mini-head"></span>
+                            <span class="persona-mini-body"></span>
+                        </span>
+                    </span>
+                    <span class="avatar-chip avatar-d">
+                        <span class="persona-mini persona-mini-d">
+                            <span class="persona-mini-head"></span>
+                            <span class="persona-mini-body"></span>
+                        </span>
+                    </span>
+                </div>
+                <div class="hero-trust-copy">
+                    <strong>Des producteurs, techniciens et cooperatives utilisent deja Andd Baay</strong>
+                    <span>Pour suivre les cultures du Sahel a la zone soudanienne.</span>
+                </div>
+            </div>
         </div>
 
-        {% if user.is_authenticated %}
-            <div class="mt-4 animate__animated animate__fadeIn animate__delay-1s" style="position: relative; z-index: 20; color: var(--text-muted);">
-                <span style="font-size: 0.95rem;">Connecté en tant que <strong style="color: var(--text-main);">{{ user.username }}</strong></span>
+        <div class="hero-story">
+            <div class="story-card story-card-main">
+                <div class="story-card-top">
+                    <span class="story-label">Communautes suivies</span>
+                    <span class="story-pill">Terrain + IA</span>
+                </div>
+                <div class="story-avatars">
+                    <article class="story-avatar-card">
+                        <div class="story-avatar avatar-a">
+                            <div class="persona-avatar persona-avatar-a" aria-hidden="true">
+                                <span class="persona-halo"></span>
+                                <span class="persona-headwrap"><span class="persona-head"></span></span>
+                                <span class="persona-body"></span>
+                                <span class="persona-accent"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <strong>Awa</strong>
+                            <span>Productrice maraichere</span>
+                        </div>
+                    </article>
+                    <article class="story-avatar-card">
+                        <div class="story-avatar avatar-b">
+                            <div class="persona-avatar persona-avatar-b" aria-hidden="true">
+                                <span class="persona-halo"></span>
+                                <span class="persona-headwrap"><span class="persona-head"></span></span>
+                                <span class="persona-body"></span>
+                                <span class="persona-accent"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <strong>Moussa</strong>
+                            <span>Responsable cooperative</span>
+                        </div>
+                    </article>
+                    <article class="story-avatar-card">
+                        <div class="story-avatar avatar-c">
+                            <div class="persona-avatar persona-avatar-c" aria-hidden="true">
+                                <span class="persona-halo"></span>
+                                <span class="persona-headwrap"><span class="persona-head"></span></span>
+                                <span class="persona-body"></span>
+                                <span class="persona-accent"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <strong>Fatou</strong>
+                            <span>Analyste filiere</span>
+                        </div>
+                    </article>
+                </div>
+                <div class="story-grid">
+                    <div class="story-kpi">
+                        <span class="story-kpi-value">15+</span>
+                        <span class="story-kpi-label">regions couvertes</span>
+                    </div>
+                    <div class="story-kpi">
+                        <span class="story-kpi-value">95%</span>
+                        <span class="story-kpi-label">precision cible</span>
+                    </div>
+                    <div class="story-kpi">
+                        <span class="story-kpi-value">1200+</span>
+                        <span class="story-kpi-label">projets crees</span>
+                    </div>
+                    <div class="story-kpi">
+                        <span class="story-kpi-value">Sahel</span>
+                        <span class="story-kpi-label">jusqu'aux zones humides</span>
+                    </div>
+                </div>
             </div>
-        {% endif %}
+
+            <div class="story-card story-card-side">
+                <div class="widget-icon ocre">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="widget-data">
+                    <span class="label">Lecture locale</span>
+                    <span class="value">Cultures, sols, saisons</span>
+                    <span class="trend"><i class="fas fa-map-marker-alt"></i> Pense pour l'Afrique de l'Ouest</span>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- ===== FEATURES ===== -->
+<section class="community-section">
+    <div class="container">
+        <div class="community-band">
+            <div class="community-intro">
+                <span class="section-label"><i class="fas fa-people-group"></i> Reseau vivant</span>
+                <h2 class="section-title">Le projet relie les femmes, les hommes et les donnees derriere chaque campagne.</h2>
+            </div>
+            <div class="community-cards">
+                <article class="community-card">
+                    <div class="community-avatar avatar-d">
+                        <div class="persona-avatar persona-avatar-d" aria-hidden="true">
+                            <span class="persona-halo"></span>
+                            <span class="persona-headwrap"><span class="persona-head"></span></span>
+                            <span class="persona-body"></span>
+                            <span class="persona-accent"></span>
+                        </div>
+                    </div>
+                    <strong>Ndeye</strong>
+                    <span>Suit les semis et les parcelles</span>
+                </article>
+                <article class="community-card">
+                    <div class="community-avatar avatar-b">
+                        <div class="persona-avatar persona-avatar-b" aria-hidden="true">
+                            <span class="persona-halo"></span>
+                            <span class="persona-headwrap"><span class="persona-head"></span></span>
+                            <span class="persona-body"></span>
+                            <span class="persona-accent"></span>
+                        </div>
+                    </div>
+                    <strong>Boubacar</strong>
+                    <span>Coordonne les investissements</span>
+                </article>
+                <article class="community-card">
+                    <div class="community-avatar avatar-c">
+                        <div class="persona-avatar persona-avatar-c" aria-hidden="true">
+                            <span class="persona-halo"></span>
+                            <span class="persona-headwrap"><span class="persona-head"></span></span>
+                            <span class="persona-body"></span>
+                            <span class="persona-accent"></span>
+                        </div>
+                    </div>
+                    <strong>Sokhna</strong>
+                    <span>Observe les rendements et les cycles</span>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="features-section">
     <div class="container">
-        <div class="section-header animate__animated animate__fadeInUp">
-            <div class="section-label"><i class="fas fa-sparkles"></i> Fonctionnalités</div>
-            <h2 class="section-title">Tout ce qu'il faut pour réussir</h2>
-            <p class="section-subtitle">Des outils puissants pour piloter votre exploitation agricole avec précision</p>
+        <div class="section-header">
+            <div class="section-label"><i class="fas fa-sparkles"></i> Fonctionnalites</div>
+            <h2 class="section-title">Des outils concrets pour piloter la saison agricole</h2>
+            <p class="section-subtitle">Une experience qui melange vision strategique, suivi de terrain et lecture des donnees.</p>
         </div>
 
         <div class="features-grid">
-            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-brain"></i></div>
-                <h3 class="feature-title">Prédictions IA</h3>
-                <p class="feature-desc">Anticipez vos rendements grâce à nos modèles de Machine Learning entraînés sur des données agricoles régionales.</p>
-            </div>
+                <h3 class="feature-title">Predictions IA utiles</h3>
+                <p class="feature-desc">Anticipez les rendements avec des modeles nourris par des donnees agricoles regionales et une lecture plus proche du terrain.</p>
+            </article>
 
-            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-chart-area"></i></div>
-                <h3 class="feature-title">Suivi en temps réel</h3>
-                <p class="feature-desc">Dashboard analytique avec graphiques interactifs pour visualiser l'évolution de vos projets et investissements.</p>
-            </div>
+                <h3 class="feature-title">Vue projet plus lisible</h3>
+                <p class="feature-desc">Gardez en un coup d'oeil l'etat des cultures, des superficies, des investissements et des actions prioritaires.</p>
+            </article>
 
-            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-                <div class="feature-icon"><i class="fas fa-hand-holding-usd"></i></div>
-                <h3 class="feature-title">Gestion financière</h3>
-                <p class="feature-desc">Suivez vos investissements, gérez vos budgets et optimisez la rentabilité de chaque parcelle cultivée.</p>
-            </div>
+            <article class="feature-card feature-card-earth">
+                <div class="feature-icon"><i class="fas fa-coins"></i></div>
+                <h3 class="feature-title">Gestion financiere</h3>
+                <p class="feature-desc">Suivez les budgets et les investissements pour mieux comprendre la rentabilite de chaque campagne.</p>
+            </article>
 
-            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+            <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-cloud-sun-rain"></i></div>
-                <h3 class="feature-title">Météo & Sols</h3>
-                <p class="feature-desc">Intégrez les conditions météorologiques et l'analyse de sol de votre localité pour une prise de décision éclairée.</p>
-            </div>
+                <h3 class="feature-title">Meteo et conditions</h3>
+                <p class="feature-desc">Contextualisez vos decisions avec les dynamiques de saison, les conditions locales et l'humidite des sols.</p>
+            </article>
 
-            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+            <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-seedling"></i></div>
-                <h3 class="feature-title">Multi-Cultures</h3>
-                <p class="feature-desc">Opérez diverses cultures au sein du même projet et adaptez les dates de semis et récoltes pour chaque produit.</p>
-            </div>
+                <h3 class="feature-title">Multi-cultures</h3>
+                <p class="feature-desc">Organisez plusieurs produits dans le meme projet et gardez une vision claire des cycles de chaque parcelle.</p>
+            </article>
 
-            <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+            <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
-                <h3 class="feature-title">Calendrier Agricole</h3>
-                <p class="feature-desc">Suivez avec précision vos cycles grâce aux calendriers de semis et de prévisions de récoltes par produit.</p>
-            </div>
+                <h3 class="feature-title">Calendrier agricole</h3>
+                <p class="feature-desc">Suivez les dates de semis, les points de controle et les echeances de recolte dans une logique plus operationnelle.</p>
+            </article>
         </div>
     </div>
 </section>
 
-<!-- ===== STATS ===== -->
 <section class="stats-section">
     <div class="container">
-        <div class="stats-grid animate__animated animate__fadeInUp">
+        <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-value"><span class="counter" data-target="{{ stats.nb_users|default:'500' }}">0</span><span class="counter-suffix">+</span></div>
                 <div class="stat-label">Agriculteurs</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="counter" data-target="{{ stats.nb_projets|default:'1200' }}">0</span><span class="counter-suffix">+</span></div>
-                <div class="stat-label">Projets Créés</div>
+                <div class="stat-label">Projets crees</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="counter" data-target="95">0</span><span class="counter-suffix">%</span></div>
-                <div class="stat-label">Précision IA</div>
+                <div class="stat-label">Precision IA</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="counter" data-target="15">0</span><span class="counter-suffix">+</span></div>
-                <div class="stat-label">Régions couvertes</div>
+                <div class="stat-label">Regions couvertes</div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ===== CTA ===== -->
 {% if not user.is_authenticated %}
 <section class="cta-section">
     <div class="container">
-        <div class="cta-card animate__animated animate__fadeInUp">
-            <h2 class="cta-title">Prêt à transformer votre agriculture ?</h2>
-            <p class="cta-text">Rejoignez des centaines d'agriculteurs qui utilisent l'IA pour optimiser leurs récoltes.</p>
+        <div class="cta-card">
+            <h2 class="cta-title">Pret a faire entrer votre agriculture dans une nouvelle phase ?</h2>
+            <p class="cta-text">Rejoignez une plateforme pensee pour les realites africaines, avec plus de lisibilite, plus de coordination et de meilleures decisions.</p>
             <a href="{% url 'register' %}" class="cta-btn">
-                Créer mon compte <i class="fas fa-arrow-right"></i>
+                Creer mon compte <i class="fas fa-arrow-right"></i>
             </a>
         </div>
     </div>
 </section>
 {% else %}
-<!-- CTA contextuel pour les utilisateurs connectes -->
 <section class="cta-section">
     <div class="container">
-        <div class="cta-card-connected animate__animated animate__fadeInUp">
+        <div class="cta-card-connected">
             <div class="cta-connected-grid">
                 <div class="cta-connected-stat">
                     <div class="cta-connected-value">{{ projets_actifs|default:'0' }}</div>
@@ -180,16 +315,16 @@
                 </div>
                 {% if prochain_projet %}
                 <div class="cta-connected-stat">
-                    <div class="cta-connected-value" style="font-size: 1rem;">{{ prochain_projet.nom|truncatechars:20 }}</div>
+                    <div class="cta-connected-value cta-project-name">{{ prochain_projet.nom|truncatechars:20 }}</div>
                     <div class="cta-connected-label"><i class="fas fa-clock me-1"></i> Dernier projet</div>
                 </div>
                 {% endif %}
                 <div class="cta-connected-actions">
                     <a href="{% url 'dashboard' %}" class="cta-btn">
-                        <i class="fas fa-chart-line"></i> Mon Dashboard
+                        <i class="fas fa-chart-line"></i> Mon dashboard
                     </a>
-                    <a href="{% url 'creer_projet' %}" class="btn-modern btn-outline-modern" style="padding: 10px 22px; font-size: 0.88rem;">
-                        <i class="fas fa-plus"></i> Nouveau Projet
+                    <a href="{% url 'creer_projet' %}" class="btn-modern btn-outline-modern cta-secondary-link">
+                        <i class="fas fa-plus"></i> Nouveau projet
                     </a>
                 </div>
             </div>
@@ -199,32 +334,34 @@
 {% endif %}
 
 <script>
-// Animated counter
 document.addEventListener('DOMContentLoaded', () => {
     const counters = document.querySelectorAll('.counter');
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const counter = entry.target;
-                const target = +counter.getAttribute('data-target');
-                const duration = 2000;
-                const step = target / (duration / 16);
-                let current = 0;
-                const update = () => {
-                    current += step;
-                    if (current < target) {
-                        counter.textContent = Math.ceil(current);
-                        requestAnimationFrame(update);
-                    } else {
-                        counter.textContent = target;
-                    }
-                };
-                update();
-                observer.unobserve(counter);
-            }
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+
+            const counter = entry.target;
+            const target = +counter.getAttribute('data-target');
+            const duration = 1800;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const update = () => {
+                current += step;
+                if (current < target) {
+                    counter.textContent = Math.ceil(current);
+                    requestAnimationFrame(update);
+                } else {
+                    counter.textContent = target;
+                }
+            };
+
+            update();
+            observer.unobserve(counter);
         });
-    }, { threshold: 0.5 });
-    counters.forEach(c => observer.observe(c));
+    }, { threshold: 0.45 });
+
+    counters.forEach((counter) => observer.observe(counter));
 });
 </script>
 {% endblock %}
