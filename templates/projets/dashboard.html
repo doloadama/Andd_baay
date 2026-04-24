@@ -10,7 +10,7 @@
 <div class="dashboard-header-modern animate__animated animate__fadeInDown">
     <div class="db-title">
         <p class="dash-subtitle">Espace Analytique</p>
-        <h1>Bonjour, {{ user.first_name|default:user.username }} 👋</h1>
+        <h1>Bonjour, {{ user.first_name|default:user.username }}</h1>
     </div>
     <div class="db-actions">
         <div class="refresh-indicator" id="refreshIndicator">
@@ -49,17 +49,17 @@
     <div class="dashboard-spotlight-side">
         <div class="spotlight-stat-card">
             <span class="spotlight-stat-label">Actifs</span>
-            <strong class="spotlight-stat-value" id="spotlightActiveProjects">0</strong>
+            <strong class="spotlight-stat-value" id="spotlightActiveProjects">{{ projets_en_cours }}</strong>
             <span class="spotlight-stat-meta">projets en cours</span>
         </div>
         <div class="spotlight-stat-card">
             <span class="spotlight-stat-label">En pause</span>
-            <strong class="spotlight-stat-value" id="spotlightPausedProjects">0</strong>
+            <strong class="spotlight-stat-value" id="spotlightPausedProjects">{{ projets_en_pause }}</strong>
             <span class="spotlight-stat-meta">a relancer</span>
         </div>
         <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Taux de cloture</span>
-            <strong class="spotlight-stat-value" id="spotlightCompletionRate">0%</strong>
+            <span class="spotlight-stat-label">Taux de clôture</span>
+            <strong class="spotlight-stat-value" id="spotlightCompletionRate">{{ completion_rate }}%</strong>
             <span class="spotlight-stat-meta">sur la selection</span>
         </div>
     </div>
@@ -218,7 +218,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="projectSearch" placeholder="Rechercher... (/)">
+                    <input type="text" id="projectSearch" placeholder="Rechercher...">
                     <button class="voice-search" id="voiceSearch" title="Recherche vocale">
                         <i class="fas fa-microphone"></i>
                     </button>
@@ -374,7 +374,16 @@
                 </div>
                 <div class="form-group">
                     <label>Localité</label>
-                    <input type="text" name="localite" required placeholder="Ville ou région">
+                    <select name="localite" required>
+                        <option value="">Sélectionner...</option>
+                        {% for localite in localites %}
+                        <option value="{{ localite.id }}">{{ localite.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date de lancement</label>
+                    <input type="date" name="date_lancement" required>
                 </div>
                 <button type="submit" class="btn-primary-tech w-100">
                     <i class="fas fa-bolt"></i> Créer et lancer l'IA
@@ -426,9 +435,7 @@
     </div>
     <div class="shortcuts-list">
         <div class="shortcut-item"><span>Nouveau projet</span><span class="shortcut-key">N</span></div>
-        <div class="shortcut-item"><span>Rechercher</span><span class="shortcut-key">/</span></div>
         <div class="shortcut-item"><span>Réinitialiser filtres</span><span class="shortcut-key">R</span></div>
-        <div class="shortcut-item"><span>Exporter données</span><span class="shortcut-key">E</span></div>
         <div class="shortcut-item"><span>Changer thème</span><span class="shortcut-key">T</span></div>
         <div class="shortcut-item"><span>Afficher raccourcis</span><span class="shortcut-key">?</span></div>
         <div class="shortcut-item"><span>Actualiser</span><span class="shortcut-key">Ctrl+R</span></div>

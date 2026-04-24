@@ -51,6 +51,8 @@ urlpatterns = [
     path('api/dashboard/stats/', views.dashboard_stats_api, name='dashboard_stats_api'),
     path('api/dashboard/projets/', views.dashboard_projets_api, name='dashboard_projets_api'),
     path('api/dashboard/filters/', views.dashboard_filters_api, name='dashboard_filters_api'),
+    path('api/projet/creer/', views.api_projet_creer, name='api_projet_creer'),
+    path('api/projet/bulk-delete/', views.api_projet_bulk_delete, name='api_projet_bulk_delete'),
     path('api/projet/<uuid:projet_id>/statut/', views.update_projet_statut_api, name='update_projet_statut_api'),
     
     # Semis (Sowing) management

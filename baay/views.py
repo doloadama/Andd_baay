@@ -19,7 +19,7 @@ from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -514,21 +514,26 @@ def dashboard(request):
     superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
     rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
     
-    # Get investissements total
-    from baay.models import Investissement
-    investissement_total = Investissement.objects.filter(
-        projet__in=projets
-    ).aggregate(total=Sum('cout_par_hectare'))['total'] or 0
-    
+    # Get investissements total (cout_par_hectare * superficie + autres_frais)
+    investissements = Investissement.objects.filter(projet__in=projets)
+    investissement_total = sum(
+        inv.calculer_investissement_total() for inv in investissements
+    ) or 0
+
     # Projects by status count
     projets_en_cours = projets.filter(statut='en_cours').count()
     projets_en_pause = projets.filter(statut='en_pause').count()
     projets_finis = projets.filter(statut='fini').count()
-    
+    total_count = projets.count()
+    completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
+
     # Get unique cultures for filter
     cultures = ProduitAgricole.objects.filter(
         projet__utilisateur=utilisateur
     ).distinct()
+
+    # Get localites for quick-add modal
+    localites = Localite.objects.all().order_by('nom')
 
     context = {
         'projets': projets,
@@ -539,7 +544,9 @@ def dashboard(request):
         'projets_en_cours': projets_en_cours,
         'projets_en_pause': projets_en_pause,
         'projets_finis': projets_finis,
+        'completion_rate': completion_rate,
         'cultures': cultures,
+        'localites': localites,
     }
 
     return render(request, 'projets/dashboard.html', context)
@@ -1042,6 +1049,77 @@ def update_projet_statut_api(request, projet_id):
         return JsonResponse({'error': 'Invalid data provided.'}, status=400)
     except Exception as e:
         logger.error(f"Error in update_projet_statut_api: {type(e).__name__}: {e}", exc_info=True)
+        return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
+
+
+@login_required
+def api_projet_creer(request):
+    """API endpoint for quick project creation from the dashboard modal."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+
+    try:
+        nom = request.POST.get('nom', '').strip()
+        culture_id = request.POST.get('culture')
+        superficie = request.POST.get('superficie')
+        localite_id = request.POST.get('localite')
+        date_lancement = request.POST.get('date_lancement')
+
+        if not all([nom, culture_id, superficie, localite_id, date_lancement]):
+            return JsonResponse({'error': 'Tous les champs obligatoires doivent être remplis.'}, status=400)
+
+        culture = get_object_or_404(ProduitAgricole, id=culture_id)
+        localite = get_object_or_404(Localite, id=localite_id)
+
+        projet = Projet.objects.create(
+            nom=nom,
+            culture=culture,
+            superficie=superficie,
+            localite=localite,
+            date_lancement=date_lancement,
+            utilisateur=utilisateur,
+            statut='en_cours',
+        )
+
+        return JsonResponse({
+            'success': True,
+            'project_id': str(projet.id),
+            'message': 'Projet créé avec succès.'
+        })
+    except Exception as e:
+        logger.error(f"Error in api_projet_creer: {type(e).__name__}: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def api_projet_bulk_delete(request):
+    """API endpoint for bulk project deletion."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        ids = data.get('ids', [])
+        if not ids:
+            return JsonResponse({'error': 'Aucun identifiant fourni.'}, status=400)
+
+        utilisateur = request.user.profile
+        deleted, _ = Projet.objects.filter(
+            id__in=ids,
+            utilisateur=utilisateur
+        ).delete()
+
+        return JsonResponse({
+            'success': True,
+            'deleted_count': deleted
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
+    except Exception as e:
+        logger.error(f"Error in api_projet_bulk_delete: {type(e).__name__}: {e}", exc_info=True)
         return JsonResponse({'error': 'An error occurred processing your request.'}, status=500)
 
 

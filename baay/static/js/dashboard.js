@@ -193,35 +193,21 @@ function initKeyboardShortcuts() {
             openQuickAddModal();
             return;
         }
-        
-        // Search: /
-        if (e.key === '/') {
-            e.preventDefault();
-            document.getElementById('projectSearch')?.focus();
-            return;
-        }
-        
+
         // Reset filters: R
         if (e.key.toLowerCase() === 'r') {
             e.preventDefault();
             document.getElementById('resetFilters')?.click();
             return;
         }
-        
-        // Export: E
-        if (e.key.toLowerCase() === 'e') {
-            e.preventDefault();
-            exportToCSV();
-            return;
-        }
-        
+
         // Toggle theme: T
         if (e.key.toLowerCase() === 't') {
             e.preventDefault();
             toggleTheme();
             return;
         }
-        
+
         // Refresh: Ctrl+R or F5
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') {
             e.preventDefault();
@@ -546,7 +532,7 @@ function initCharts() {
     if (statusCtx) {
         const statusCounts = getStatusCounts(filteredProjects);
         
-        statusChart = new Chart(statusCtx, {
+        statusChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['En cours', 'En pause', 'Terminé'],
@@ -1029,7 +1015,7 @@ function handleQuickAddSubmit() {
             showToast('🎉 Projet créé avec succès!', 'success');
             // Redirect to prediction or detail page
             setTimeout(() => {
-                window.location.href = `/projets/${data.project_id}/prediction/`;
+                window.location.href = `/projet/${data.project_id}/generer_prediction/`;
             }, 1500);
         } else {
             showToast(data.error || 'Erreur lors de la création', 'error');
@@ -1122,35 +1108,7 @@ function deleteProjectsBulk(projectIds) {
 
 // ===== SINGLE DELETE =====
 function deleteProject(projectId) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-    
-    fetch(`/api/projet/${projectId}/`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': csrfToken
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const card = document.querySelector(`.project-item[data-id="${projectId}"]`);
-            if (card) {
-                card.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => card.remove(), 300);
-            }
-            const index = allProjects.findIndex(p => p.id === projectId);
-            if (index !== -1) allProjects.splice(index, 1);
-            
-            applyFilters();
-            showToast('Projet supprimé 🗑️', 'success');
-        } else {
-            showToast('Erreur lors de la suppression', 'error');
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Erreur de connexion', 'error');
-    });
+    deleteProjectsBulk([projectId]);
 }
 
 // ===== TOAST NOTIFICATION =====
@@ -1187,28 +1145,53 @@ function autoRefresh() {
 
 function refreshData() {
     if (isRefreshing) return;
-    
+
     isRefreshing = true;
     const indicator = document.getElementById('refreshIndicator');
     indicator.classList.add('refreshing');
-    
-    // Simulate API call (replace with actual fetch)
-    setTimeout(() => {
-        // Update timestamp
-        const now = new Date();
-        document.getElementById('lastUpdated').textContent = 
-            `Mis à jour: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-        
-        indicator.classList.remove('refreshing');
-        isRefreshing = false;
-        
-        // Here you would fetch new data and update the dashboard
-        // For now, just show a toast
-        showToast('Données actualisées 🔄', 'success');
-        
-        // Re-animate KPIs
-        animateCounters();
-    }, 1500);
+
+    fetch('/api/dashboard/stats/')
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.json();
+        })
+        .then(data => {
+            // Update KPI cards from server data
+            animateValue('kpiTotalProjects', data.nb_projets || 0);
+            animateValue('kpiSuperficie', data.superficie_totale || 0);
+            animateValue('kpiRendement', data.rendement_total || 0);
+            animateValue('kpiInvestissement', data.investissement_total || 0);
+
+            // Update spotlight stats
+            const enCours = data.projets_par_statut.find(p => p.statut === 'en_cours');
+            const enPause = data.projets_par_statut.find(p => p.statut === 'en_pause');
+            const finis = data.projets_par_statut.find(p => p.statut === 'fini');
+            const total = data.nb_projets || 0;
+            const completionRate = total ? Math.round(((finis ? finis.count : 0) / total) * 100) : 0;
+
+            const activeEl = document.getElementById('spotlightActiveProjects');
+            const pausedEl = document.getElementById('spotlightPausedProjects');
+            const completionEl = document.getElementById('spotlightCompletionRate');
+            if (activeEl) activeEl.textContent = (enCours ? enCours.count : 0).toLocaleString('fr-FR');
+            if (pausedEl) pausedEl.textContent = (enPause ? enPause.count : 0).toLocaleString('fr-FR');
+            if (completionEl) completionEl.textContent = `${completionRate}%`;
+
+            // Update timestamp
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent =
+                `Mis à jour: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            showToast('Données actualisées', 'success');
+            animateCounters();
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('Erreur lors de l\'actualisation', 'error');
+        })
+        .finally(() => {
+            indicator.classList.remove('refreshing');
+            isRefreshing = false;
+        });
 }
 
 // Add fade out animation for deleted items
