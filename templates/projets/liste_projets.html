@@ -32,6 +32,41 @@
     </div>
 </div>
 
+<section class="projects-spotlight">
+    <div class="projects-spotlight-main">
+        <span class="projects-kicker">Gestion agricole</span>
+        <h2 class="projects-spotlight-title">Retrouvez tous vos projets dans une vue plus nette et plus rapide a piloter.</h2>
+        <p class="projects-spotlight-copy">
+            Filtrez, comparez, ouvrez une fiche ou lancez une prediction sans perdre le fil. La page reste lisible en tableau comme en cartes.
+        </p>
+        <div class="projects-spotlight-actions">
+            <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
+                <i class="fas fa-plus"></i> Nouveau projet
+            </a>
+            <button type="button" class="btn-modern projects-secondary-btn" id="spotlightRefreshBtn">
+                <i class="fas fa-sync-alt"></i> Rafraichir la vue
+            </button>
+        </div>
+    </div>
+    <div class="projects-spotlight-side">
+        <div class="projects-summary-card">
+            <span class="projects-summary-label">Visibles</span>
+            <strong class="projects-summary-value" id="projectsVisibleCount">0</strong>
+            <span class="projects-summary-meta">dans la vue courante</span>
+        </div>
+        <div class="projects-summary-card">
+            <span class="projects-summary-label">Actifs</span>
+            <strong class="projects-summary-value" id="projectsActiveCount">0</strong>
+            <span class="projects-summary-meta">projets en cours</span>
+        </div>
+        <div class="projects-summary-card">
+            <span class="projects-summary-label">Surface visible</span>
+            <strong class="projects-summary-value" id="projectsAreaCount">0 ha</strong>
+            <span class="projects-summary-meta">hectares filtres</span>
+        </div>
+    </div>
+</section>
+
 <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
     {% csrf_token %}
 
@@ -47,7 +82,7 @@
             </button>
         </div>
         
-        <div class="d-flex gap-3 flex-wrap align-items-center">
+        <div class="actions-bar-right">
             <div class="filter-chips" id="filterChips">
                 <span class="filter-chip" data-filter="all" data-active="true">Tous</span>
                 <span class="filter-chip" data-filter="en_cours">En cours</span>
@@ -55,6 +90,7 @@
                 <span class="filter-chip" data-filter="fini">Terminé</span>
             </div>
             
+            <div class="projects-selection-meta" id="projectsSelectionMeta">0 selectionne</div>
             <button type="submit" class="btn-delete-selection" id="deleteBtn">
                 <i class="fas fa-trash-alt"></i>
                 <span id="deleteCount">Supprimer (0)</span>
@@ -88,6 +124,7 @@
                     data-culture="{{ projet.culture.nom|lower|default:'' }}"
                     data-status="{{ projet.statut }}"
                     data-superficie="{{ projet.superficie }}"
+                    data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
                     data-date="{{ projet.date_lancement|date:'Y-m-d' }}">
                     <td>
                         <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" style="width: 18px; height: 18px; accent-color: var(--accent);">
@@ -106,6 +143,10 @@
                         </div>
                         <div class="progress-mini">
                             <div class="progress-mini-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                        </div>
+                        <div class="project-inline-meta">
+                            <span>Progression</span>
+                            <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
                         </div>
                     </td>
                     <td>
@@ -159,6 +200,8 @@
         <div class="project-card" data-id="{{ projet.id }}" 
              data-name="{{ projet.nom|lower }}" 
              data-culture="{{ projet.culture.nom|lower|default:'' }}"
+             data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
+             data-superficie="{{ projet.superficie }}"
              data-status="{{ projet.statut }}"
              onclick="showQuickView('{{ projet.id }}')">
             <div class="project-card-checkbox" onclick="toggleCardSelection(event, '{{ projet.id }}')"></div>
@@ -190,6 +233,15 @@
                 <div class="project-card-stat">
                     <div class="project-card-stat-value">{{ projet.date_lancement|date:"d/m/Y" }}</div>
                     <div class="project-card-stat-label">Lancement</div>
+                </div>
+            </div>
+            <div class="project-card-progress">
+                <div class="progress-mini">
+                    <div class="progress-mini-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                </div>
+                <div class="project-inline-meta">
+                    <span>Progression</span>
+                    <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
                 </div>
             </div>
             

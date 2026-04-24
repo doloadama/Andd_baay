@@ -5,6 +5,7 @@ let currentSort = { column: null, direction: 'asc' };
 let currentFilter = 'all';
 let searchQuery = '';
 let contextMenuProjectId = null;
+let visibleProjects = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     // Collect project data
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: row.dataset.id,
             name: row.dataset.name,
             culture: row.dataset.culture,
+            products: row.dataset.products || '',
             status: row.dataset.status,
             superficie: parseFloat(row.dataset.superficie) || 0,
             date: row.dataset.date
@@ -29,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initViewToggle();
     initContextMenu();
     initInlineEditing();
+    updateProjectsSummary();
     
     // Sticky actions bar on scroll
     initStickyActions();
@@ -198,32 +201,43 @@ function sortProjects() {
 function filterProjects() {
     const rows = document.querySelectorAll('#projectsTable tr[data-id]');
     const cards = document.querySelectorAll('.project-card');
+    visibleProjects = [];
     
     rows.forEach(row => {
         const name = row.dataset.name;
         const culture = row.dataset.culture;
+        const products = row.dataset.products || '';
         const status = row.dataset.status;
         
         const matchesSearch = !searchQuery || 
             name.includes(searchQuery) || 
-            culture.includes(searchQuery);
+            culture.includes(searchQuery) ||
+            products.includes(searchQuery);
         const matchesFilter = currentFilter === 'all' || status === currentFilter;
         
         row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+        if (matchesSearch && matchesFilter) {
+            const project = projectsData.find((entry) => entry.id === row.dataset.id);
+            if (project) visibleProjects.push(project);
+        }
     });
     
     cards.forEach(card => {
         const name = card.dataset.name;
         const culture = card.dataset.culture;
+        const products = card.dataset.products || '';
         const status = card.dataset.status;
         
         const matchesSearch = !searchQuery || 
             name.includes(searchQuery) || 
-            culture.includes(searchQuery);
+            culture.includes(searchQuery) ||
+            products.includes(searchQuery);
         const matchesFilter = currentFilter === 'all' || status === currentFilter;
         
         card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
     });
+
+    updateProjectsSummary();
 }
 
 // ===== BULK ACTIONS =====
@@ -290,6 +304,7 @@ function toggleCardSelection(event, id) {
 function updateDeleteButton() {
     const btn = document.getElementById('deleteBtn');
     const count = document.getElementById('deleteCount');
+    const selectionMeta = document.getElementById('projectsSelectionMeta');
     const num = selectedProjects.size;
     
     if (num > 0) {
@@ -299,6 +314,25 @@ function updateDeleteButton() {
         btn.classList.remove('active');
         count.textContent = 'Supprimer (0)';
     }
+
+    if (selectionMeta) {
+        selectionMeta.textContent = `${num} selectionne${num > 1 ? 's' : ''}`;
+    }
+}
+
+function updateProjectsSummary() {
+    const useAllProjects = !searchQuery && currentFilter === 'all';
+    const visible = useAllProjects ? [...projectsData] : visibleProjects;
+    const active = visible.filter((project) => project.status === 'en_cours').length;
+    const totalArea = visible.reduce((sum, project) => sum + (project.superficie || 0), 0);
+
+    const visibleEl = document.getElementById('projectsVisibleCount');
+    const activeEl = document.getElementById('projectsActiveCount');
+    const areaEl = document.getElementById('projectsAreaCount');
+
+    if (visibleEl) visibleEl.textContent = visible.length.toLocaleString('fr-FR');
+    if (activeEl) activeEl.textContent = active.toLocaleString('fr-FR');
+    if (areaEl) areaEl.textContent = `${totalArea.toLocaleString('fr-FR')} ha`;
 }
 
 // ===== INLINE EDITING =====
@@ -685,6 +719,7 @@ function refreshPage() {
 }
 
 document.getElementById('refreshBtn')?.addEventListener('click', refreshPage);
+document.getElementById('spotlightRefreshBtn')?.addEventListener('click', refreshPage);
 
 // ===== SHORTCUTS BUTTON =====
 document.getElementById('shortcutsBtn')?.addEventListener('click', toggleShortcutsPanel);
