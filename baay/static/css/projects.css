@@ -1021,7 +1021,13 @@ button.status-badge {
     }
 
     .projects-toolbar {
-        padding: 18px;
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .projects-toolbar.sticky {
+        position: static;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
     }
 
     .toolbar-search,
@@ -1031,24 +1037,75 @@ button.status-badge {
     }
 
     .toolbar-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: center;
         justify-content: stretch;
+        gap: 10px;
     }
 
     .filter-chips {
         width: 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        margin: 0;
+        grid-column: 1 / -1;
+        scrollbar-width: none;
+    }
+
+    .filter-chips::-webkit-scrollbar {
+        display: none;
     }
 
     .filter-chip {
+        flex: 0 0 auto;
+        min-width: max-content;
         justify-content: center;
-        flex: 1 1 calc(50% - 8px);
     }
 
-    .selection-pill,
-    .btn-delete-selection,
-    .view-toggle,
-    .toolbar-controls > .btn-modern {
+    .toolbar-search input {
+        padding: 12px 78px 12px 40px;
+        font-size: 0.88rem;
+    }
+
+    .view-toggle {
         width: 100%;
         justify-content: center;
+    }
+
+    .view-toggle button {
+        flex: 1;
+    }
+
+    .toolbar-controls > .btn-modern,
+    .selection-pill,
+    .btn-delete-selection {
+        width: 100%;
+        min-height: 42px;
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 0.84rem;
+    }
+
+    .selection-pill {
+        order: 4;
+    }
+
+    .btn-delete-selection {
+        order: 5;
+    }
+
+    #shortcutsBtn {
+        gap: 6px;
+    }
+
+    #shortcutsBtn span {
+        display: none;
+    }
+
+    .projects-stage {
+        gap: 16px;
     }
 
     .projects-grid {
