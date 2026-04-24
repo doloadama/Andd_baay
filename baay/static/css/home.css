@@ -171,11 +171,15 @@
 }
 
 .avatar-chip {
-    width: 44px;
-    height: 44px;
-    margin-left: -8px;
+    width: 48px;
+    height: 48px;
+    margin-left: -10px;
     border-radius: 50%;
-    border: 3px solid var(--card-bg-solid);
+    /* Vivid white ring + outer neon shadow */
+    border: 3px solid #fff;
+    outline: 2px solid rgba(57, 255, 20, 0.6);
+    outline-offset: 1px;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.35), 0 2px 8px rgba(0,0,0,0.25);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -183,6 +187,14 @@
     font-size: 0.82rem;
     font-weight: 800;
     overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatar-chip:hover {
+    transform: scale(1.12) translateY(-2px);
+    box-shadow: 0 0 18px rgba(57, 255, 20, 0.6), 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10;
+    position: relative;
 }
 
 .avatar-stack .avatar-chip:first-child {
@@ -370,7 +382,22 @@
     font-weight: 800;
     flex: 0 0 auto;
     overflow: hidden;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    /* Prominent 3-layer ring: inner white, mid accent, outer glow */
+    border: 3px solid rgba(255,255,255,0.9);
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow:
+        0 0 0 6px rgba(57, 255, 20, 0.15),
+        0 6px 18px rgba(0,0,0,0.22);
+    transition: outline-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.story-avatar-card:hover .story-avatar {
+    outline-color: #e2725b;
+    box-shadow:
+        0 0 0 6px rgba(226, 114, 91, 0.25),
+        0 8px 24px rgba(0,0,0,0.28);
+    transform: scale(1.06);
 }
 
 .persona-avatar {
@@ -590,16 +617,31 @@
 }
 
 .community-avatar {
-    width: 68px;
-    height: 68px;
-    border-radius: 20px;
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-weight: 800;
     overflow: hidden;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    /* Bold coloured ring + drop shadow */
+    border: 3px solid rgba(255,255,255,0.88);
+    outline: 3px solid rgba(226, 114, 91, 0.8);
+    outline-offset: 2px;
+    box-shadow:
+        0 0 0 6px rgba(226, 114, 91, 0.15),
+        0 6px 20px rgba(0,0,0,0.22);
+    transition: outline-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.community-card:hover .community-avatar {
+    outline-color: var(--accent);
+    box-shadow:
+        0 0 0 6px rgba(57, 255, 20, 0.25),
+        0 10px 28px rgba(0,0,0,0.28);
+    transform: scale(1.07) rotate(-2deg);
 }
 
 @keyframes persona-float {
