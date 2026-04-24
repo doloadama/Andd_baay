@@ -1,336 +1,345 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Mes Projets | Andd Baay{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Gérez vos projets agricoles avec Andd Baay. Suivez l'avancement, la superficie et les rendements de chaque parcelle." />
+<meta name="description" content="Gerez vos projets agricoles avec Andd Baay. Suivez l'avancement, la superficie et les rendements de chaque parcelle." />
 {% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/projects.css' %}">
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title">Mes Projets</h1>
-        <p class="page-subtitle">Gérez et suivez tous vos projets agricoles</p>
-    </div>
-    <div class="header-actions">
-        <div class="view-toggle">
-            <button class="active" data-view="table" title="Vue tableau">
-                <i class="fas fa-list"></i>
-            </button>
-            <button data-view="grid" title="Vue cartes">
-                <i class="fas fa-th-large"></i>
-            </button>
-        </div>
-        <button class="btn-modern" id="shortcutsBtn" title="Raccourcis (?)">
-            <i class="fas fa-keyboard"></i>
-        </button>
-        <button class="btn-modern" id="refreshBtn" title="Actualiser (Ctrl+R)">
-            <i class="fas fa-sync-alt"></i>
-        </button>
-    </div>
-</div>
-
-<section class="projects-spotlight">
-    <div class="projects-spotlight-main">
-        <span class="projects-kicker">Gestion agricole</span>
-        <h2 class="projects-spotlight-title">Retrouvez tous vos projets dans une vue plus nette et plus rapide a piloter.</h2>
-        <p class="projects-spotlight-copy">
-            Filtrez, comparez, ouvrez une fiche ou lancez une prediction sans perdre le fil. La page reste lisible en tableau comme en cartes.
-        </p>
-        <div class="projects-spotlight-actions">
-            <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-                <i class="fas fa-plus"></i> Nouveau projet
-            </a>
-            <button type="button" class="btn-modern projects-secondary-btn" id="spotlightRefreshBtn">
-                <i class="fas fa-sync-alt"></i> Rafraichir la vue
-            </button>
-        </div>
-    </div>
-    <div class="projects-spotlight-side">
-        <div class="projects-summary-card">
-            <span class="projects-summary-label">Visibles</span>
-            <strong class="projects-summary-value" id="projectsVisibleCount">0</strong>
-            <span class="projects-summary-meta">dans la vue courante</span>
-        </div>
-        <div class="projects-summary-card">
-            <span class="projects-summary-label">Actifs</span>
-            <strong class="projects-summary-value" id="projectsActiveCount">0</strong>
-            <span class="projects-summary-meta">projets en cours</span>
-        </div>
-        <div class="projects-summary-card">
-            <span class="projects-summary-label">Surface visible</span>
-            <strong class="projects-summary-value" id="projectsAreaCount">0 ha</strong>
-            <span class="projects-summary-meta">hectares filtres</span>
-        </div>
-    </div>
-</section>
-
-<form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
-    {% csrf_token %}
-
-    <div class="actions-bar" id="actionsBar">
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Rechercher... (/)" autocomplete="off">
-            <button type="button" class="clear-search" id="clearSearch" title="Effacer">
-                <i class="fas fa-times"></i>
-            </button>
-            <button type="button" class="voice-search" id="voiceSearch" title="Recherche vocale">
-                <i class="fas fa-microphone"></i>
-            </button>
-        </div>
-        
-        <div class="actions-bar-right">
-            <div class="filter-chips" id="filterChips">
-                <span class="filter-chip" data-filter="all" data-active="true">Tous</span>
-                <span class="filter-chip" data-filter="en_cours">En cours</span>
-                <span class="filter-chip" data-filter="en_pause">En pause</span>
-                <span class="filter-chip" data-filter="fini">Terminé</span>
+<section class="projects-shell" data-projects-page>
+    <header class="projects-hero">
+        <div class="projects-hero-copy">
+            <span class="projects-kicker">Gestion agricole</span>
+            <h1 class="projects-title">Mes projets</h1>
+            <p class="projects-subtitle">
+                Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide a filtrer et plus simple a piloter.
+            </p>
+            <div class="projects-hero-actions">
+                <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
+                    <i class="fas fa-plus"></i> Nouveau projet
+                </a>
+                <button type="button" class="btn-modern btn-secondary-surface" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Rafraichir
+                </button>
             </div>
-            
-            <div class="projects-selection-meta" id="projectsSelectionMeta">0 selectionne</div>
-            <button type="submit" class="btn-delete-selection" id="deleteBtn">
-                <i class="fas fa-trash-alt"></i>
-                <span id="deleteCount">Supprimer (0)</span>
-            </button>
-            <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-                <i class="fas fa-plus"></i> Nouveau projet
-            </a>
         </div>
-    </div>
+        <div class="projects-hero-stats">
+            <article class="hero-stat-card">
+                <span class="hero-stat-label">Visibles</span>
+                <strong class="hero-stat-value" id="projectsVisibleCount">0</strong>
+                <span class="hero-stat-meta">dans la vue courante</span>
+            </article>
+            <article class="hero-stat-card">
+                <span class="hero-stat-label">Actifs</span>
+                <strong class="hero-stat-value" id="projectsActiveCount">0</strong>
+                <span class="hero-stat-meta">projets en cours</span>
+            </article>
+            <article class="hero-stat-card">
+                <span class="hero-stat-label">Surface</span>
+                <strong class="hero-stat-value" id="projectsAreaCount">0 ha</strong>
+                <span class="hero-stat-meta">sur la selection visible</span>
+            </article>
+        </div>
+    </header>
 
-    {% if projets %}
-    <!-- Table View -->
-    <div class="projects-table projects-table-view active" id="tableView">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 40px;">
-                        <input type="checkbox" id="selectAll" style="width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;">
-                    </th>
-                    <th class="sortable" data-sort="name">Projet</th>
-                    <th class="sortable" data-sort="status">Statut</th>
-                    <th class="sortable" data-sort="superficie">Superficie</th>
-                    <th class="sortable" data-sort="date">Lancement</th>
-                    <th style="width: 120px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="projectsTable">
-                {% for projet in projets %}
-                <tr data-id="{{ projet.id }}" 
-                    data-name="{{ projet.nom|lower }}" 
-                    data-culture="{{ projet.culture.nom|lower|default:'' }}"
-                    data-status="{{ projet.statut }}"
-                    data-superficie="{{ projet.superficie }}"
-                    data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
-                    data-date="{{ projet.date_lancement|date:'Y-m-d' }}">
-                    <td>
-                        <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" style="width: 18px; height: 18px; accent-color: var(--accent);">
-                    </td>
-                    <td>
-                        <div class="project-name-cell editable" data-id="{{ projet.id }}" data-original="{{ projet.nom|escapejs }}">
-                            {{ projet.nom }}
-                        </div>
-                        <div class="project-culture">
-                            <i class="fas fa-seedling me-1"></i>
-                            {% for pp in projet.projet_produits.all %}
-                                {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
-                            {% empty %}
-                                {{ projet.culture.nom|default:"N/A" }}
+    <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
+        {% csrf_token %}
+
+        <section class="projects-toolbar" id="actionsBar">
+            <div class="toolbar-search">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher un projet, une culture ou un produit..." autocomplete="off">
+                <button type="button" class="search-action clear-search" id="clearSearch" title="Effacer">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button type="button" class="search-action voice-search" id="voiceSearch" title="Recherche vocale">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-controls">
+                <div class="filter-chips" id="filterChips">
+                    <button type="button" class="filter-chip is-active" data-filter="all">Tous</button>
+                    <button type="button" class="filter-chip" data-filter="en_cours">En cours</button>
+                    <button type="button" class="filter-chip" data-filter="en_pause">En pause</button>
+                    <button type="button" class="filter-chip" data-filter="fini">Termines</button>
+                </div>
+
+                <div class="view-toggle" aria-label="Changer de vue">
+                    <button type="button" class="is-active" data-view="table" title="Vue tableau">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button type="button" data-view="grid" title="Vue cartes">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+
+                <button type="button" class="btn-modern btn-secondary-surface" id="shortcutsBtn" title="Raccourcis clavier">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+
+                <div class="selection-pill" id="projectsSelectionMeta">0 selectionne</div>
+
+                <button type="submit" class="btn-delete-selection" id="deleteBtn">
+                    <i class="fas fa-trash-alt"></i>
+                    <span id="deleteCount">Supprimer (0)</span>
+                </button>
+            </div>
+        </section>
+
+        {% if projets %}
+        <section class="projects-stage">
+            <div class="projects-table-shell is-active" id="tableView">
+                <div class="projects-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col">
+                                    <input type="checkbox" id="selectAll" aria-label="Tout selectionner">
+                                </th>
+                                <th class="sortable" data-sort="name">Projet</th>
+                                <th class="sortable" data-sort="status">Statut</th>
+                                <th class="sortable" data-sort="superficie">Superficie</th>
+                                <th class="sortable" data-sort="date">Lancement</th>
+                                <th class="actions-col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectsTable">
+                            {% for projet in projets %}
+                            <tr
+                                data-id="{{ projet.id }}"
+                                data-name="{{ projet.nom|lower }}"
+                                data-culture="{{ projet.culture.nom|lower|default:'' }}"
+                                data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
+                                data-status="{{ projet.statut }}"
+                                data-superficie="{{ projet.superficie }}"
+                                data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
+                                data-detail-url="{% url 'detail_projet' projet.id %}"
+                                data-edit-url="{% url 'modifier_projet' projet.id %}"
+                                data-predict-url="{% url 'generer_prediction' projet.id %}"
+                                data-delete-url="{% url 'supprimer_projet' projet.id %}">
+                                <td class="checkbox-col">
+                                    <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" aria-label="Selectionner {{ projet.nom }}">
+                                </td>
+                                <td>
+                                    <div class="project-main">
+                                        <div class="project-name-cell editable" data-id="{{ projet.id }}" data-original="{{ projet.nom|escapejs }}">
+                                            {{ projet.nom }}
+                                        </div>
+                                        <div class="project-culture">
+                                            <i class="fas fa-seedling"></i>
+                                            {% for pp in projet.projet_produits.all %}
+                                                {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
+                                            {% empty %}
+                                                {{ projet.culture.nom|default:"N/A" }}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="progress-track">
+                                            <div class="progress-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                                        </div>
+                                        <div class="project-inline-meta">
+                                            <span>Progression</span>
+                                            <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        class="status-badge status-{{ projet.statut }}"
+                                        data-status-trigger
+                                        data-id="{{ projet.id }}"
+                                        data-status="{{ projet.statut }}">
+                                        {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% else %}Termine{% endif %}
+                                    </button>
+                                </td>
+                                <td>{{ projet.superficie }} ha</td>
+                                <td>{{ projet.date_lancement|date:"d/m/Y" }}</td>
+                                <td>
+                                    <div class="action-links">
+                                        <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'generer_prediction' projet.id %}" class="action-link" title="Prediction IA">
+                                            <i class="fas fa-robot"></i>
+                                        </a>
+                                        <button type="button" class="action-link action-menu-trigger" data-menu-trigger="{{ projet.id }}" title="Plus d'actions">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div class="quick-actions-menu" id="quickActions-{{ projet.id }}">
+                                            <a href="{% url 'detail_projet' projet.id %}" class="quick-actions-item">
+                                                <i class="fas fa-eye"></i> Voir details
+                                            </a>
+                                            <a href="{% url 'modifier_projet' projet.id %}" class="quick-actions-item">
+                                                <i class="fas fa-edit"></i> Modifier
+                                            </a>
+                                            <a href="{% url 'generer_prediction' projet.id %}" class="quick-actions-item">
+                                                <i class="fas fa-robot"></i> Prediction IA
+                                            </a>
+                                            <div class="context-menu-divider"></div>
+                                            <a href="{% url 'supprimer_projet' projet.id %}" class="quick-actions-item danger" data-confirm-delete>
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                             {% endfor %}
-                        </div>
-                        <div class="progress-mini">
-                            <div class="progress-mini-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
-                        </div>
-                        <div class="project-inline-meta">
-                            <span>Progression</span>
-                            <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="status-badge status-{{ projet.statut }}" data-id="{{ projet.id }}" onclick="event.stopPropagation(); showStatusDropdown(event, '{{ projet.id }}', '{{ projet.statut }}')">
-                            {% if projet.statut == 'en_cours' %}En cours
-                            {% elif projet.statut == 'en_pause' %}En pause
-                            {% else %}Terminé{% endif %}
-                        </span>
-                    </td>
-                    <td>{{ projet.superficie }} ha</td>
-                    <td>{{ projet.date_lancement|date:"d/m/Y" }}</td>
-                    <td>
-                        <div class="action-links">
-                            <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir" onclick="event.stopPropagation();">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier" onclick="event.stopPropagation();">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <div class="quick-actions">
-                                <button type="button" class="quick-actions-btn" onclick="event.stopPropagation(); toggleQuickActions(event, '{{ projet.id }}')" title="Plus d'actions">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="quick-actions-menu" id="quickActions-{{ projet.id }}">
-                                    <a href="{% url 'detail_projet' projet.id %}" class="quick-actions-item">
-                                        <i class="fas fa-eye"></i> Voir détails
-                                    </a>
-                                    <a href="{% url 'modifier_projet' projet.id %}" class="quick-actions-item">
-                                        <i class="fas fa-edit"></i> Modifier
-                                    </a>
-                                    <a href="{% url 'generer_prediction' projet.id %}" class="quick-actions-item">
-                                        <i class="fas fa-robot"></i> Prédiction IA
-                                    </a>
-                                    <div class="context-menu-divider"></div>
-                                    <a href="{% url 'supprimer_projet' projet.id %}" class="quick-actions-item danger" onclick="return confirm('Vraiment supprimer ce projet ?');" onclick="event.stopPropagation();">
-                                        <i class="fas fa-trash"></i> Supprimer
-                                    </a>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="projects-grid-shell" id="gridView">
+                <div class="projects-grid">
+                    {% for projet in projets %}
+                    <article
+                        class="project-card"
+                        data-id="{{ projet.id }}"
+                        data-name="{{ projet.nom|lower }}"
+                        data-culture="{{ projet.culture.nom|lower|default:'' }}"
+                        data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
+                        data-superficie="{{ projet.superficie }}"
+                        data-status="{{ projet.statut }}"
+                        data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
+                        data-detail-url="{% url 'detail_projet' projet.id %}"
+                        data-edit-url="{% url 'modifier_projet' projet.id %}">
+                        <button type="button" class="project-card-checkbox" data-card-checkbox="{{ projet.id }}" aria-label="Selectionner {{ projet.nom }}"></button>
+                        <button type="button" class="project-card-body" data-quick-view="{{ projet.id }}">
+                            <div class="project-card-top">
+                                <div>
+                                    <h2 class="project-card-title">{{ projet.nom }}</h2>
+                                    <div class="project-card-culture">
+                                        <i class="fas fa-seedling"></i>
+                                        {% for pp in projet.projet_produits.all %}
+                                            {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            {{ projet.culture.nom|default:"N/A" }}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <span class="status-badge status-{{ projet.statut }}">
+                                    {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% else %}Termine{% endif %}
+                                </span>
+                            </div>
+
+                            <div class="project-card-stats">
+                                <div class="project-card-stat">
+                                    <span class="project-card-stat-label">Superficie</span>
+                                    <strong class="project-card-stat-value">{{ projet.superficie }} ha</strong>
+                                </div>
+                                <div class="project-card-stat">
+                                    <span class="project-card-stat-label">Lancement</span>
+                                    <strong class="project-card-stat-value">{{ projet.date_lancement|date:"d/m/Y" }}</strong>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
 
-    <!-- Grid View -->
-    <div class="projects-grid" id="gridView">
-        {% for projet in projets %}
-        <div class="project-card" data-id="{{ projet.id }}" 
-             data-name="{{ projet.nom|lower }}" 
-             data-culture="{{ projet.culture.nom|lower|default:'' }}"
-             data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
-             data-superficie="{{ projet.superficie }}"
-             data-status="{{ projet.statut }}"
-             onclick="showQuickView('{{ projet.id }}')">
-            <div class="project-card-checkbox" onclick="toggleCardSelection(event, '{{ projet.id }}')"></div>
-            
-            <div class="project-card-header">
-                <div>
-                    <h4 class="project-card-title">{{ projet.nom }}</h4>
-                    <div class="project-card-culture">
-                        <i class="fas fa-seedling"></i>
-                        {% for pp in projet.projet_produits.all %}
-                            {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                            {{ projet.culture.nom|default:"N/A" }}
-                        {% endfor %}
-                    </div>
-                </div>
-                <span class="status-badge status-{{ projet.statut }}" onclick="event.stopPropagation(); showStatusDropdown(event, '{{ projet.id }}', '{{ projet.statut }}')">
-                    {% if projet.statut == 'en_cours' %}En cours
-                    {% elif projet.statut == 'en_pause' %}En pause
-                    {% else %}Terminé{% endif %}
-                </span>
-            </div>
-            
-            <div class="project-card-stats">
-                <div class="project-card-stat">
-                    <div class="project-card-stat-value">{{ projet.superficie }} ha</div>
-                    <div class="project-card-stat-label">Superficie</div>
-                </div>
-                <div class="project-card-stat">
-                    <div class="project-card-stat-value">{{ projet.date_lancement|date:"d/m/Y" }}</div>
-                    <div class="project-card-stat-label">Lancement</div>
+                            <div class="project-card-progress">
+                                <div class="progress-track">
+                                    <div class="progress-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                                </div>
+                                <div class="project-inline-meta">
+                                    <span>Progression</span>
+                                    <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                                </div>
+                            </div>
+                        </button>
+
+                        <div class="project-card-actions">
+                            <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'generer_prediction' projet.id %}" class="action-link" title="Prediction IA">
+                                <i class="fas fa-robot"></i>
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
                 </div>
             </div>
-            <div class="project-card-progress">
-                <div class="progress-mini">
-                    <div class="progress-mini-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
-                </div>
-                <div class="project-inline-meta">
-                    <span>Progression</span>
-                    <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
-                </div>
-            </div>
-            
-            <div class="project-card-actions">
-                <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir" onclick="event.stopPropagation();">
-                    <i class="fas fa-eye"></i>
-                </a>
-                <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier" onclick="event.stopPropagation();">
-                    <i class="fas fa-edit"></i>
-                </a>
-                <a href="{% url 'generer_prediction' projet.id %}" class="action-link" title="IA" onclick="event.stopPropagation();">
-                    <i class="fas fa-robot"></i>
-                </a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
-        <h3 class="empty-state-title">Aucun projet</h3>
-        <p class="empty-state-text">Vous n'avez pas encore créé de projet.</p>
-        <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent mt-3">
-            <i class="fas fa-plus"></i> Créer mon premier projet
+        </section>
+        {% else %}
+        <section class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+            <h2 class="empty-state-title">Aucun projet pour le moment</h2>
+            <p class="empty-state-text">Creez votre premier projet agricole pour commencer a suivre vos cultures.</p>
+            <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
+                <i class="fas fa-plus"></i> Creer mon premier projet
+            </a>
+        </section>
+        {% endif %}
+    </form>
+
+    <div class="context-menu" id="contextMenu">
+        <a href="#" class="context-menu-item" id="ctxView">
+            <i class="fas fa-eye"></i> Voir details
+        </a>
+        <a href="#" class="context-menu-item" id="ctxEdit">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        <a href="#" class="context-menu-item" id="ctxPredict">
+            <i class="fas fa-robot"></i> Prediction IA
+        </a>
+        <div class="context-menu-divider"></div>
+        <button type="button" class="context-menu-item" id="ctxStatus">
+            <i class="fas fa-tag"></i> Changer statut
+        </button>
+        <div class="context-menu-divider"></div>
+        <a href="#" class="context-menu-item danger" id="ctxDelete" data-confirm-delete>
+            <i class="fas fa-trash"></i> Supprimer
         </a>
     </div>
-    {% endif %}
-</form>
 
-<!-- Context Menu -->
-<div class="context-menu" id="contextMenu">
-    <a href="#" class="context-menu-item" id="ctxView">
-        <i class="fas fa-eye"></i> Voir détails
-    </a>
-    <a href="#" class="context-menu-item" id="ctxEdit">
-        <i class="fas fa-edit"></i> Modifier
-    </a>
-    <a href="#" class="context-menu-item" id="ctxPredict">
-        <i class="fas fa-robot"></i> Prédiction IA
-    </a>
-    <div class="context-menu-divider"></div>
-    <a href="#" class="context-menu-item" id="ctxStatus">
-        <i class="fas fa-tag"></i> Changer statut
-    </a>
-    <div class="context-menu-divider"></div>
-    <a href="#" class="context-menu-item danger" id="ctxDelete">
-        <i class="fas fa-trash"></i> Supprimer
-    </a>
-</div>
+    <div class="status-menu" id="statusMenu">
+        <button type="button" class="status-menu-item" data-status-value="en_cours">En cours</button>
+        <button type="button" class="status-menu-item" data-status-value="en_pause">En pause</button>
+        <button type="button" class="status-menu-item" data-status-value="fini">Termine</button>
+    </div>
 
-<!-- Quick View Modal -->
-<div class="modal-overlay" id="quickViewModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="quickViewTitle">Détails du projet</h3>
-            <button class="modal-close" onclick="closeQuickView()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="modal-project-detail" id="quickViewContent">
-                <!-- Content loaded dynamically -->
+    <div class="modal-overlay" id="quickViewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="quickViewTitle">Details du projet</h3>
+                <button type="button" class="modal-close" data-close-quick-view>&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-project-detail" id="quickViewContent"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-modern btn-secondary-surface" data-close-quick-view>Fermer</button>
+                <a href="#" class="btn-modern btn-accent" id="quickViewEdit">Modifier</a>
             </div>
         </div>
-        <div class="modal-actions">
-            <button class="btn-modern" onclick="closeQuickView()">Fermer</button>
-            <a href="#" class="btn-modern btn-accent" id="quickViewEdit">Modifier</a>
+    </div>
+
+    <div class="shortcuts-panel" id="shortcutsPanel">
+        <div class="shortcuts-header">
+            <strong>Raccourcis clavier</strong>
+            <button type="button" class="modal-close" id="closeShortcutsBtn">&times;</button>
+        </div>
+        <div class="shortcuts-list">
+            <div class="shortcut-item"><span>Nouveau projet</span><span class="shortcut-key">N</span></div>
+            <div class="shortcut-item"><span>Rechercher</span><span class="shortcut-key">/</span></div>
+            <div class="shortcut-item"><span>Tout selectionner</span><span class="shortcut-key">Ctrl+A</span></div>
+            <div class="shortcut-item"><span>Supprimer selection</span><span class="shortcut-key">Del</span></div>
+            <div class="shortcut-item"><span>Vue grille</span><span class="shortcut-key">G</span></div>
+            <div class="shortcut-item"><span>Vue tableau</span><span class="shortcut-key">T</span></div>
+            <div class="shortcut-item"><span>Afficher raccourcis</span><span class="shortcut-key">?</span></div>
         </div>
     </div>
-</div>
 
-<!-- Keyboard Shortcuts Panel -->
-<div class="shortcuts-panel" id="shortcutsPanel">
-    <div class="shortcuts-header">
-        <strong>⌨️ Raccourcis clavier</strong>
-        <button class="modal-close" onclick="toggleShortcutsPanel()" style="padding: 2px;">&times;</button>
-    </div>
-    <div class="shortcuts-list">
-        <div class="shortcut-item"><span>Nouveau projet</span><span class="shortcut-key">N</span></div>
-        <div class="shortcut-item"><span>Rechercher</span><span class="shortcut-key">/</span></div>
-        <div class="shortcut-item"><span>Tout sélectionner</span><span class="shortcut-key">Ctrl+A</span></div>
-        <div class="shortcut-item"><span>Supprimer sélection</span><span class="shortcut-key">Del</span></div>
-        <div class="shortcut-item"><span>Vue grille/tableau</span><span class="shortcut-key">G/T</span></div>
-        <div class="shortcut-item"><span>Afficher raccourcis</span><span class="shortcut-key">?</span></div>
-        <div class="shortcut-item"><span>Actualiser</span><span class="shortcut-key">Ctrl+R</span></div>
-    </div>
-</div>
-
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer"></div>
+    <div class="toast-container" id="toastContainer"></div>
+</section>
 
 {% block extra_js %}
 <script src="{% static 'js/projects.js' %}"></script>
