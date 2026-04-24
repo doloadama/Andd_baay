@@ -189,10 +189,22 @@
     margin-left: 0;
 }
 
-.avatar-a { background: linear-gradient(135deg, #9a3412, #e2725b); }
-.avatar-b { background: linear-gradient(135deg, #854d0e, #d4a017); }
-.avatar-c { background: linear-gradient(135deg, #166534, #39ff14); color: #022c22; }
-.avatar-d { background: linear-gradient(135deg, #7c2d12, #b45309); }
+.avatar-a {
+    background: linear-gradient(135deg, #9a3412, #e2725b);
+}
+
+.avatar-b {
+    background: linear-gradient(135deg, #854d0e, #d4a017);
+}
+
+.avatar-c {
+    background: linear-gradient(135deg, #166534, #39ff14);
+    color: #022c22;
+}
+
+.avatar-d {
+    background: linear-gradient(135deg, #7c2d12, #b45309);
+}
 
 .persona-mini {
     position: relative;
@@ -202,9 +214,17 @@
     animation: persona-float 3.8s ease-in-out infinite;
 }
 
-.persona-mini-b { animation-delay: -0.8s; }
-.persona-mini-c { animation-delay: -1.6s; }
-.persona-mini-d { animation-delay: -2.4s; }
+.persona-mini-b {
+    animation-delay: -0.8s;
+}
+
+.persona-mini-c {
+    animation-delay: -1.6s;
+}
+
+.persona-mini-d {
+    animation-delay: -2.4s;
+}
 
 .persona-mini-head,
 .persona-mini-body {
@@ -230,10 +250,21 @@
     background: rgba(255, 248, 235, 0.82);
 }
 
-.persona-mini-a .persona-mini-body { background: #f7c38b; }
-.persona-mini-b .persona-mini-body { background: #fde68a; }
-.persona-mini-c .persona-mini-body { background: #bef264; }
-.persona-mini-d .persona-mini-body { background: #fdba74; }
+.persona-mini-a .persona-mini-body {
+    background: #f7c38b;
+}
+
+.persona-mini-b .persona-mini-body {
+    background: #fde68a;
+}
+
+.persona-mini-c .persona-mini-body {
+    background: #bef264;
+}
+
+.persona-mini-d .persona-mini-body {
+    background: #fdba74;
+}
 
 .hero-trust-copy {
     display: flex;
@@ -354,9 +385,26 @@
     transform-origin: center bottom;
 }
 
-.persona-avatar-b { --persona-skin: #4a2c17; --persona-cloth: #facc15; --persona-wrap: #fef3c7; animation-delay: -1s; }
-.persona-avatar-c { --persona-skin: #5b371b; --persona-cloth: #84cc16; --persona-wrap: #dcfce7; animation-delay: -2s; }
-.persona-avatar-d { --persona-skin: #6f4120; --persona-cloth: #fb923c; --persona-wrap: #fed7aa; animation-delay: -3s; }
+.persona-avatar-b {
+    --persona-skin: #4a2c17;
+    --persona-cloth: #facc15;
+    --persona-wrap: #fef3c7;
+    animation-delay: -1s;
+}
+
+.persona-avatar-c {
+    --persona-skin: #5b371b;
+    --persona-cloth: #84cc16;
+    --persona-wrap: #dcfce7;
+    animation-delay: -2s;
+}
+
+.persona-avatar-d {
+    --persona-skin: #6f4120;
+    --persona-cloth: #fb923c;
+    --persona-wrap: #fed7aa;
+    animation-delay: -3s;
+}
 
 .persona-halo {
     position: absolute;
@@ -555,19 +603,25 @@
 }
 
 @keyframes persona-float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0) rotate(0deg);
     }
+
     50% {
         transform: translateY(-4px) rotate(-1.5deg);
     }
 }
 
 @keyframes persona-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.55;
         transform: scale(1);
     }
+
     50% {
         opacity: 0.9;
         transform: scale(1.05);
@@ -575,6 +629,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .persona-mini,
     .persona-avatar,
     .persona-halo {
@@ -655,7 +710,7 @@
     opacity: 1;
 }
 
-.feature-card > * {
+.feature-card>* {
     position: relative;
     z-index: 1;
 }
@@ -762,8 +817,8 @@
     pointer-events: none;
 }
 
-.cta-card > *,
-.cta-card-connected > * {
+.cta-card>*,
+.cta-card-connected>* {
     position: relative;
     z-index: 1;
 }
@@ -852,6 +907,7 @@
 }
 
 @media (max-width: 1100px) {
+
     .hero-shell,
     .community-band {
         grid-template-columns: 1fr;

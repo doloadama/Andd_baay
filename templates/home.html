@@ -4,12 +4,14 @@
 {% block title %}Accueil{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest. Transformez vos cultures des aujourd'hui." />
+<meta name="description"
+    content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest. Transformez vos cultures des aujourd'hui." />
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:title" content="Accueil | Andd Baay" />
-<meta property="og:description" content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest." />
+<meta property="og:description"
+    content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest." />
 <meta property="og:type" content="website" />
 {% endblock %}
 
@@ -33,7 +35,8 @@
             </h1>
 
             <p class="hero-subtitle">
-                Andd Baay aide les producteurs, cooperatives et investisseurs a suivre leurs projets, lire leurs donnees et mieux anticiper leurs recoltes avec une IA pensee pour le terrain.
+                Andd Baay aide les producteurs, cooperatives et investisseurs a suivre leurs projets, lire leurs donnees
+                et mieux anticiper leurs recoltes avec une IA pensee pour le terrain.
             </p>
 
             <div class="hero-actions">
@@ -177,7 +180,8 @@
         <div class="community-band">
             <div class="community-intro">
                 <span class="section-label"><i class="fas fa-people-group"></i> Reseau vivant</span>
-                <h2 class="section-title">Le projet relie les femmes, les hommes et les donnees derriere chaque campagne.</h2>
+                <h2 class="section-title">Le projet relie les femmes, les hommes et les donnees derriere chaque
+                    campagne.</h2>
             </div>
             <div class="community-cards">
                 <article class="community-card">
@@ -226,44 +230,51 @@
         <div class="section-header">
             <div class="section-label"><i class="fas fa-sparkles"></i> Fonctionnalites</div>
             <h2 class="section-title">Des outils concrets pour piloter la saison agricole</h2>
-            <p class="section-subtitle">Une experience qui melange vision strategique, suivi de terrain et lecture des donnees.</p>
+            <p class="section-subtitle">Une experience qui melange vision strategique, suivi de terrain et lecture des
+                donnees.</p>
         </div>
 
         <div class="features-grid">
             <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-brain"></i></div>
                 <h3 class="feature-title">Predictions IA utiles</h3>
-                <p class="feature-desc">Anticipez les rendements avec des modeles nourris par des donnees agricoles regionales et une lecture plus proche du terrain.</p>
+                <p class="feature-desc">Anticipez les rendements avec des modeles nourris par des donnees agricoles
+                    regionales et une lecture plus proche du terrain.</p>
             </article>
 
             <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-chart-area"></i></div>
                 <h3 class="feature-title">Vue projet plus lisible</h3>
-                <p class="feature-desc">Gardez en un coup d'oeil l'etat des cultures, des superficies, des investissements et des actions prioritaires.</p>
+                <p class="feature-desc">Gardez en un coup d'oeil l'etat des cultures, des superficies, des
+                    investissements et des actions prioritaires.</p>
             </article>
 
             <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-coins"></i></div>
                 <h3 class="feature-title">Gestion financiere</h3>
-                <p class="feature-desc">Suivez les budgets et les investissements pour mieux comprendre la rentabilite de chaque campagne.</p>
+                <p class="feature-desc">Suivez les budgets et les investissements pour mieux comprendre la rentabilite
+                    de chaque campagne.</p>
             </article>
 
             <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-cloud-sun-rain"></i></div>
                 <h3 class="feature-title">Meteo et conditions</h3>
-                <p class="feature-desc">Contextualisez vos decisions avec les dynamiques de saison, les conditions locales et l'humidite des sols.</p>
+                <p class="feature-desc">Contextualisez vos decisions avec les dynamiques de saison, les conditions
+                    locales et l'humidite des sols.</p>
             </article>
 
             <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-seedling"></i></div>
                 <h3 class="feature-title">Multi-cultures</h3>
-                <p class="feature-desc">Organisez plusieurs produits dans le meme projet et gardez une vision claire des cycles de chaque parcelle.</p>
+                <p class="feature-desc">Organisez plusieurs produits dans le meme projet et gardez une vision claire des
+                    cycles de chaque parcelle.</p>
             </article>
 
             <article class="feature-card feature-card-earth">
                 <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
                 <h3 class="feature-title">Calendrier agricole</h3>
-                <p class="feature-desc">Suivez les dates de semis, les points de controle et les echeances de recolte dans une logique plus operationnelle.</p>
+                <p class="feature-desc">Suivez les dates de semis, les points de controle et les echeances de recolte
+                    dans une logique plus operationnelle.</p>
             </article>
         </div>
     </div>
@@ -273,19 +284,25 @@
     <div class="container">
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-value"><span class="counter" data-target="{{ stats.nb_users|default:'500' }}">0</span><span class="counter-suffix">+</span></div>
+                <div class="stat-value"><span class="counter"
+                        data-target="{{ stats.nb_users|default:'500' }}">0</span><span class="counter-suffix">+</span>
+                </div>
                 <div class="stat-label">Agriculteurs</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value"><span class="counter" data-target="{{ stats.nb_projets|default:'1200' }}">0</span><span class="counter-suffix">+</span></div>
+                <div class="stat-value"><span class="counter"
+                        data-target="{{ stats.nb_projets|default:'1200' }}">0</span><span
+                        class="counter-suffix">+</span></div>
                 <div class="stat-label">Projets crees</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value"><span class="counter" data-target="95">0</span><span class="counter-suffix">%</span></div>
+                <div class="stat-value"><span class="counter" data-target="95">0</span><span
+                        class="counter-suffix">%</span></div>
                 <div class="stat-label">Precision IA</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value"><span class="counter" data-target="15">0</span><span class="counter-suffix">+</span></div>
+                <div class="stat-value"><span class="counter" data-target="15">0</span><span
+                        class="counter-suffix">+</span></div>
                 <div class="stat-label">Regions couvertes</div>
             </div>
         </div>
@@ -297,7 +314,8 @@
     <div class="container">
         <div class="cta-card">
             <h2 class="cta-title">Pret a faire entrer votre agriculture dans une nouvelle phase ?</h2>
-            <p class="cta-text">Rejoignez une plateforme pensee pour les realites africaines, avec plus de lisibilite, plus de coordination et de meilleures decisions.</p>
+            <p class="cta-text">Rejoignez une plateforme pensee pour les realites africaines, avec plus de lisibilite,
+                plus de coordination et de meilleures decisions.</p>
             <a href="{% url 'register' %}" class="cta-btn">
                 Creer mon compte <i class="fas fa-arrow-right"></i>
             </a>
@@ -334,34 +352,34 @@
 {% endif %}
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const counters = document.querySelectorAll('.counter');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
+    document.addEventListener('DOMContentLoaded', () => {
+        const counters = document.querySelectorAll('.counter');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
 
-            const counter = entry.target;
-            const target = +counter.getAttribute('data-target');
-            const duration = 1800;
-            const step = target / (duration / 16);
-            let current = 0;
+                const counter = entry.target;
+                const target = +counter.getAttribute('data-target');
+                const duration = 1800;
+                const step = target / (duration / 16);
+                let current = 0;
 
-            const update = () => {
-                current += step;
-                if (current < target) {
-                    counter.textContent = Math.ceil(current);
-                    requestAnimationFrame(update);
-                } else {
-                    counter.textContent = target;
-                }
-            };
+                const update = () => {
+                    current += step;
+                    if (current < target) {
+                        counter.textContent = Math.ceil(current);
+                        requestAnimationFrame(update);
+                    } else {
+                        counter.textContent = target;
+                    }
+                };
 
-            update();
-            observer.unobserve(counter);
-        });
-    }, { threshold: 0.45 });
+                update();
+                observer.unobserve(counter);
+            });
+        }, { threshold: 0.45 });
 
-    counters.forEach((counter) => observer.observe(counter));
-});
+        counters.forEach((counter) => observer.observe(counter));
+    });
 </script>
 {% endblock %}
