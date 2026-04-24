@@ -4,7 +4,9 @@
 :root {
     /* Brand Colors */
     --neon-green: #39FF14;
+    --tech-green: #39FF14;
     --safran-ocre: #E2725B;
+    --terroir-ocre: #E2725B;
     --sun-yellow: #FFD700;
     --tech-green-glow: rgba(57, 255, 20, 0.3);
 
@@ -19,6 +21,7 @@
     --success-subtle: rgba(34, 197, 94, 0.12);
     --warning-subtle: rgba(245, 158, 11, 0.12);
     --info-subtle: rgba(59, 130, 246, 0.12);
+    --accent-subtle: rgba(57, 255, 20, 0.14);
 
     /* Light Mode (Default) */
     --bg-deep: #f4f3ef;

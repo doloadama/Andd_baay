@@ -567,6 +567,8 @@ function initViewToggle() {
 
 // ===== KEYBOARD SHORTCUTS =====
 function initKeyboardShortcuts() {
+    const createProjectUrl = document.querySelector('.btn-accent[href]')?.getAttribute('href') || '/projets/creer/';
+
     document.addEventListener('keydown', function(e) {
         // Ignore if typing
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
@@ -589,7 +591,7 @@ function initKeyboardShortcuts() {
         // New project: N
         if (e.key.toLowerCase() === 'n') {
             e.preventDefault();
-            window.location.href = "{% url 'creer_projet' %}";
+            window.location.href = createProjectUrl;
             return;
         }
         

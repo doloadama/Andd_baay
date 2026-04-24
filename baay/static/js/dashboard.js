@@ -6,6 +6,8 @@ let statusChart = null;
 let selectedProjects = new Set();
 let contextMenuProjectId = null;
 let isRefreshing = false;
+let searchQuery = '';
+let chartControlsBound = false;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Collect all project data from DOM
@@ -15,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
             nom: card.dataset.nom,
             status: card.dataset.status,
             culture: card.dataset.culture,
+            cultureName: card.dataset.cultureName || '',
             date: card.dataset.date,
             superficie: parseFloat(card.dataset.superficie) || 0,
             rendement: parseFloat(card.dataset.rendement) || 0,
@@ -32,21 +35,24 @@ document.addEventListener('DOMContentLoaded', function () {
     initContextMenu();
     initCollapsibleSections();
     initThemeToggle();
+    bindQuickAddTriggers();
     animateCounters();
+    applyFilters();
+
+    window.addEventListener('themeChanged', () => {
+        updateThemeShortcutIcon();
+        initCharts();
+    });
     
     // Auto-refresh simulation (every 5 minutes)
     setInterval(autoRefresh, 5 * 60 * 1000);
     
     // ===== Search Filter with Debounce & Fuzzy =====
     const searchInput = document.getElementById('projectSearch');
-    let searchTimeout;
     if (searchInput) {
         searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const query = this.value.toLowerCase().trim();
-                filterProjectsBySearch(query);
-            }, 300); // 300ms debounce
+            searchQuery = this.value.toLowerCase().trim();
+            applyFilters();
         });
     }
 
@@ -230,6 +236,12 @@ function toggleShortcutsPanel() {
     panel.classList.toggle('active');
 }
 
+function bindQuickAddTriggers() {
+    document.querySelectorAll('[data-open-quick-add]').forEach((trigger) => {
+        trigger.addEventListener('click', openQuickAddModal);
+    });
+}
+
 // ===== VOICE SEARCH =====
 function initVoiceSearch() {
     const voiceBtn = document.getElementById('voiceSearch');
@@ -345,31 +357,40 @@ function initCollapsibleSections() {
 
 // ===== THEME TOGGLE =====
 function initThemeToggle() {
-    const toggle = document.getElementById('themeToggle');
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        toggle.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-    
+    const toggle = document.getElementById('dashboardThemeShortcut');
+    if (!toggle) return;
+
+    updateThemeShortcutIcon();
     toggle.addEventListener('click', toggleTheme);
 }
 
 function toggleTheme() {
-    const body = document.body;
-    const toggle = document.getElementById('themeToggle');
-    const isDark = body.classList.toggle('dark-mode');
-    
-    toggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    
-    // Update charts if they exist
-    if (rendementChart || statusChart) {
-        initCharts();
+    const globalToggle = document.getElementById('themeToggle') || document.getElementById('themeToggleMobile');
+    if (globalToggle) {
+        globalToggle.click();
+        return;
     }
-    
-    showToast(`Thème ${isDark ? 'sombre' : 'clair'} activé`, 'info');
+
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const nextTheme = isDark ? 'light' : 'dark';
+
+    document.documentElement.setAttribute('data-bs-theme', nextTheme);
+    document.documentElement.classList.toggle('dark-mode', nextTheme === 'dark');
+    document.documentElement.classList.toggle('light-mode', nextTheme === 'light');
+    document.body.classList.toggle('dark-mode', nextTheme === 'dark');
+    document.body.classList.toggle('light-mode', nextTheme === 'light');
+    localStorage.setItem('theme', nextTheme);
+
+    updateThemeShortcutIcon();
+    initCharts();
+}
+
+function updateThemeShortcutIcon() {
+    const toggle = document.getElementById('dashboardThemeShortcut');
+    if (!toggle) return;
+
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    toggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
 }
 
 // ===== BULK ACTIONS =====
@@ -517,16 +538,7 @@ function initCharts() {
             }
         });
         
-        // Chart toolbar buttons
-        document.getElementById('chartZoomIn')?.addEventListener('click', () => {
-            rendementChart.zoom(1.1);
-        });
-        document.getElementById('chartZoomOut')?.addEventListener('click', () => {
-            rendementChart.zoom(0.9);
-        });
-        document.getElementById('chartReset')?.addEventListener('click', () => {
-            rendementChart.resetZoom();
-        });
+        bindChartControls();
     }
 
     // Status Pie Chart
@@ -622,27 +634,24 @@ function getStatusCounts(projects) {
 
 // ===== FILTER PROJECTS BY SEARCH (FUZZY) =====
 function filterProjectsBySearch(query) {
-    if (!query) {
-        // Reset to filtered by form filters
-        applyFilters();
-        return;
-    }
-    
-    const results = allProjects.filter(project => {
-        // Fuzzy match on name
-        const nameMatch = project.nom.toLowerCase().includes(query);
-        // Also search in culture name (would need to fetch culture names)
-        return nameMatch;
+    searchQuery = (query || '').toLowerCase().trim();
+    applyFilters();
+}
+
+function bindChartControls() {
+    if (chartControlsBound) return;
+
+    document.getElementById('chartZoomIn')?.addEventListener('click', () => {
+        if (rendementChart) rendementChart.zoom(1.1);
     });
-    
-    // Update display
-    document.querySelectorAll('.project-item').forEach(card => {
-        const isVisible = results.some(p => p.id === card.dataset.id);
-        card.style.display = isVisible ? 'flex' : 'none';
+    document.getElementById('chartZoomOut')?.addEventListener('click', () => {
+        if (rendementChart) rendementChart.zoom(0.9);
     });
-    
-    // Update count
-    document.getElementById('filterCount').textContent = `${results.length} projet(s)`;
+    document.getElementById('chartReset')?.addEventListener('click', () => {
+        if (rendementChart) rendementChart.resetZoom();
+    });
+
+    chartControlsBound = true;
 }
 
 // ===== APPLY FILTERS =====
@@ -661,17 +670,18 @@ function applyFilters() {
         if (cultureId && project.culture !== cultureId) matches = false;
         if (dateFrom && project.date && project.date < dateFrom) matches = false;
         if (dateTo && project.date && project.date > dateTo) matches = false;
+        if (searchQuery) {
+            const haystack = `${project.nom} ${project.cultureName}`.toLowerCase();
+            if (!haystack.includes(searchQuery)) matches = false;
+        }
         return matches;
     });
     
-    // Update project cards visibility
-    document.querySelectorAll('.project-item').forEach(card => {
-        const isVisible = filteredProjects.some(p => p.id === card.dataset.id);
-        card.style.display = isVisible ? 'flex' : 'none';
-    });
+    updateProjectVisibility();
     
     // Update KPIs
     updateKPIs();
+    updateOverviewMetrics();
     
     // Update charts
     updateCharts();
@@ -686,6 +696,13 @@ function applyFilters() {
     setTimeout(() => filterCountEl.style.transform = 'scale(1)', 200);
 }
 
+function updateProjectVisibility() {
+    document.querySelectorAll('.project-item').forEach(card => {
+        const isVisible = filteredProjects.some(p => p.id === card.dataset.id);
+        card.style.display = isVisible ? 'flex' : 'none';
+    });
+}
+
 // ===== UPDATE KPIs =====
 function updateKPIs() {
     const totalProjects = filteredProjects.length;
@@ -695,6 +712,21 @@ function updateKPIs() {
     animateValue('kpiTotalProjects', totalProjects);
     animateValue('kpiSuperficie', totalSuperficie);
     animateValue('kpiRendement', totalRendement);
+}
+
+function updateOverviewMetrics() {
+    const active = filteredProjects.filter((project) => project.status === 'en_cours').length;
+    const paused = filteredProjects.filter((project) => project.status === 'en_pause').length;
+    const finished = filteredProjects.filter((project) => project.status === 'fini').length;
+    const completionRate = filteredProjects.length ? Math.round((finished / filteredProjects.length) * 100) : 0;
+
+    const activeEl = document.getElementById('spotlightActiveProjects');
+    const pausedEl = document.getElementById('spotlightPausedProjects');
+    const completionEl = document.getElementById('spotlightCompletionRate');
+
+    if (activeEl) activeEl.textContent = active.toLocaleString('fr-FR');
+    if (pausedEl) pausedEl.textContent = paused.toLocaleString('fr-FR');
+    if (completionEl) completionEl.textContent = `${completionRate}%`;
 }
 
 // ===== ANIMATE VALUE =====
