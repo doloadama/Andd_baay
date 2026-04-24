@@ -11,14 +11,14 @@
         flex-wrap: wrap;
         gap: 16px;
     }
-    
+
     .page-title {
         font-size: 2rem;
         font-weight: 800;
         color: var(--text-main);
         margin-bottom: 8px;
     }
-    
+
     .page-subtitle {
         color: var(--text-muted);
         font-size: 1rem;
@@ -31,7 +31,7 @@
         gap: 16px;
         margin-bottom: 32px;
     }
-    
+
     .stat-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -40,12 +40,12 @@
         text-align: center;
         transition: all var(--transition);
     }
-    
+
     .stat-card:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-md);
     }
-    
+
     .stat-icon {
         width: 48px;
         height: 48px;
@@ -56,19 +56,34 @@
         margin: 0 auto 12px;
         font-size: 1.25rem;
     }
-    
-    .stat-icon.total { background: rgba(163, 230, 53, 0.15); color: var(--accent); }
-    .stat-icon.en_cours { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-    .stat-icon.en_pause { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-    .stat-icon.fini { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-    
+
+    .stat-icon.total {
+        background: rgba(163, 230, 53, 0.15);
+        color: var(--accent);
+    }
+
+    .stat-icon.en_cours {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+
+    .stat-icon.en_pause {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .stat-icon.fini {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+    }
+
     .stat-value {
         font-size: 1.75rem;
         font-weight: 800;
         color: var(--text-main);
         font-family: var(--font-display);
     }
-    
+
     .stat-label {
         font-size: 0.8rem;
         color: var(--text-muted);
@@ -133,7 +148,7 @@
         cursor: pointer;
         transition: all var(--transition-fast);
     }
-    
+
     .filter-select:focus {
         outline: none;
         border-color: var(--accent);
@@ -197,12 +212,12 @@
         background: rgba(59, 130, 246, 0.15);
         color: #3b82f6;
     }
-    
+
     .status-en_pause {
         background: rgba(245, 158, 11, 0.15);
         color: #f59e0b;
     }
-    
+
     .status-fini {
         background: rgba(34, 197, 94, 0.15);
         color: #22c55e;
@@ -373,16 +388,16 @@
         .semis-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .filter-bar {
             flex-direction: column;
             align-items: stretch;
         }
-        
+
         .search-box {
             max-width: none;
         }
-        
+
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -437,25 +452,26 @@
         <i class="fas fa-search"></i>
         <input type="text" name="q" value="{{ search_query }}" placeholder="Rechercher un produit...">
     </div>
-    
+
     <select name="statut" class="filter-select" onchange="this.form.submit()">
         <option value="">Tous les statuts</option>
-        <option value="en_cours" {% if current_statut == 'en_cours' %}selected{% endif %}>En cours</option>
-        <option value="en_pause" {% if current_statut == 'en_pause' %}selected{% endif %}>En pause</option>
-        <option value="fini" {% if current_statut == 'fini' %}selected{% endif %}>Termine</option>
+        <option value="en_cours" {% if current_statut=='en_cours' %}selected{% endif %}>En cours</option>
+        <option value="en_pause" {% if current_statut=='en_pause' %}selected{% endif %}>En pause</option>
+        <option value="fini" {% if current_statut=='fini' %}selected{% endif %}>Termine</option>
     </select>
-    
+
     <select name="culture" class="filter-select" onchange="this.form.submit()">
         <option value="">Tous les produits</option>
         {% for culture in cultures %}
-        <option value="{{ culture.id }}" {% if current_culture == culture.id|stringformat:"s" %}selected{% endif %}>{{ culture.nom }}</option>
+        <option value="{{ culture.id }}" {% if current_culture==culture.id|stringformat:"s" %}selected{% endif %}>{{
+            culture.nom }}</option>
         {% endfor %}
     </select>
-    
+
     <button type="submit" class="btn-modern btn-primary-modern" style="padding: 12px 20px;">
         <i class="fas fa-filter"></i> Filtrer
     </button>
-    
+
     {% if search_query or current_statut or current_culture %}
     <a href="{% url 'liste_semis' %}" class="btn-modern btn-secondary-modern" style="padding: 12px 20px;">
         <i class="fas fa-times"></i> Reset
@@ -467,7 +483,8 @@
 <!-- Semis Grid -->
 <div class="semis-grid" id="semisGrid">
     {% for s in semis %}
-    <div class="semis-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|divisibleby:3 }}00ms;">
+    <div class="semis-card animate__animated animate__fadeInUp"
+        style="animation-delay: {{ forloop.counter0|divisibleby:3 }}00ms;">
         <div class="semis-card-header">
             <div>
                 <h3 class="semis-card-title">{{ s.produit.nom }}</h3>
@@ -479,21 +496,24 @@
                 {{ s.projet.get_statut_display }}
             </span>
         </div>
-        
+
         <div class="semis-card-body">
             <div class="semis-stats">
                 <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.quantite_semences|default:"-" }} {% if s.quantite_semences %}kg{% endif %}</div>
+                    <div class="semis-stat-value">{{ s.quantite_semences|default:"-" }} {% if s.quantite_semences %}kg{%
+                        endif %}</div>
                     <div class="semis-stat-label">Semences</div>
                 </div>
                 <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.superficie_allouee|default:"-" }} {% if s.superficie_allouee %}ha{% endif %}</div>
+                    <div class="semis-stat-value">{{ s.superficie_allouee|default:"-" }} {% if s.superficie_allouee
+                        %}ha{% endif %}</div>
                     <div class="semis-stat-label">Superficie</div>
                 </div>
             </div>
-            
+
             {% if s.date_semis %}
-            <div style="padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-bottom: 12px;">
+            <div
+                style="padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-bottom: 12px;">
                 <small style="color: var(--text-muted);">
                     <i class="fas fa-calendar me-1"></i> Seme le {{ s.date_semis|date:"d/m/Y" }}
                     {% if s.date_recolte_prevue %}
@@ -502,9 +522,10 @@
                 </small>
             </div>
             {% endif %}
-            
+
             {% if s.rendement_final %}
-            <div style="padding: 10px; background: rgba(34, 197, 94, 0.1); border-radius: var(--radius-sm); border: 1px solid rgba(34, 197, 94, 0.3);">
+            <div
+                style="padding: 10px; background: rgba(34, 197, 94, 0.1); border-radius: var(--radius-sm); border: 1px solid rgba(34, 197, 94, 0.3);">
                 <div style="color: #22c55e; font-weight: 700;">
                     <i class="fas fa-trophy me-1"></i> Rendement final: {{ s.rendement_final }} kg
                 </div>
@@ -517,7 +538,7 @@
             </div>
             {% endif %}
         </div>
-        
+
         <div class="semis-card-footer">
             <a href="{% url 'detail_projet' s.projet.id %}" class="btn-card btn-card-primary">
                 <i class="fas fa-eye"></i> Projet
@@ -535,23 +556,27 @@
 <div class="pagination-wrapper">
     <div class="pagination-modern">
         {% if semis.has_previous %}
-            <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
-                <i class="fas fa-angle-double-left"></i>
-            </a>
-            <a href="?page={{ semis.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
-                <i class="fas fa-angle-left"></i>
-            </a>
+        <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}"
+            class="page-btn">
+            <i class="fas fa-angle-double-left"></i>
+        </a>
+        <a href="?page={{ semis.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}"
+            class="page-btn">
+            <i class="fas fa-angle-left"></i>
+        </a>
         {% endif %}
-        
+
         <span class="page-info">Page {{ semis.number }} sur {{ semis.paginator.num_pages }}</span>
-        
+
         {% if semis.has_next %}
-            <a href="?page={{ semis.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
-                <i class="fas fa-angle-right"></i>
-            </a>
-            <a href="?page={{ semis.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}" class="page-btn">
-                <i class="fas fa-angle-double-right"></i>
-            </a>
+        <a href="?page={{ semis.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}"
+            class="page-btn">
+            <i class="fas fa-angle-right"></i>
+        </a>
+        <a href="?page={{ semis.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_statut %}&statut={{ current_statut }}{% endif %}{% if current_culture %}&culture={{ current_culture }}{% endif %}"
+            class="page-btn">
+            <i class="fas fa-angle-double-right"></i>
+        </a>
         {% endif %}
     </div>
 </div>

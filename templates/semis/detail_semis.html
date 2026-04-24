@@ -7,7 +7,7 @@
         max-width: 900px;
         margin: 0 auto;
     }
-    
+
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -16,7 +16,7 @@
         flex-wrap: wrap;
         gap: 16px;
     }
-    
+
     .page-title {
         font-size: 2rem;
         font-weight: 800;
@@ -26,12 +26,12 @@
         align-items: center;
         gap: 16px;
     }
-    
+
     .page-subtitle {
         color: var(--text-muted);
         font-size: 1rem;
     }
-    
+
     .header-actions {
         display: flex;
         gap: 12px;
@@ -51,23 +51,23 @@
         background: rgba(59, 130, 246, 0.15);
         color: #3b82f6;
     }
-    
+
     .status-en_pause {
         background: rgba(245, 158, 11, 0.15);
         color: #f59e0b;
     }
-    
+
     .status-fini {
         background: rgba(34, 197, 94, 0.15);
         color: #22c55e;
     }
-    
+
     .detail-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 24px;
     }
-    
+
     .detail-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -75,7 +75,7 @@
         padding: 28px;
         box-shadow: var(--shadow-sm);
     }
-    
+
     .card-title {
         font-family: var(--font-display);
         font-size: 1.1rem;
@@ -88,27 +88,27 @@
         align-items: center;
         gap: 10px;
     }
-    
+
     .card-title i {
         color: var(--accent);
     }
-    
+
     .info-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-    
+
     .info-item {
         background: var(--bg-secondary);
         padding: 16px;
         border-radius: var(--radius-sm);
     }
-    
+
     .info-item.full-width {
         grid-column: span 2;
     }
-    
+
     .info-label {
         font-size: 0.75rem;
         color: var(--text-muted);
@@ -116,7 +116,7 @@
         letter-spacing: 0.05em;
         margin-bottom: 6px;
     }
-    
+
     .info-value {
         font-size: 1.1rem;
         font-weight: 700;
@@ -132,7 +132,7 @@
         padding: 24px;
         box-shadow: var(--shadow-sm);
     }
-    
+
     .culture-icon {
         width: 80px;
         height: 80px;
@@ -145,7 +145,7 @@
         font-size: 2.5rem;
         color: var(--accent);
     }
-    
+
     .culture-name {
         text-align: center;
         font-family: var(--font-display);
@@ -154,20 +154,20 @@
         color: var(--text-main);
         margin-bottom: 8px;
     }
-    
+
     .culture-meta {
         text-align: center;
         color: var(--text-muted);
         font-size: 0.9rem;
         margin-bottom: 24px;
     }
-    
+
     .quick-stats {
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .quick-stat {
         display: flex;
         justify-content: space-between;
@@ -176,7 +176,7 @@
         background: var(--bg-secondary);
         border-radius: var(--radius-sm);
     }
-    
+
     .quick-stat-label {
         font-size: 0.85rem;
         color: var(--text-muted);
@@ -184,24 +184,24 @@
         align-items: center;
         gap: 8px;
     }
-    
+
     .quick-stat-label i {
         color: var(--accent);
         width: 16px;
     }
-    
+
     .quick-stat-value {
         font-weight: 700;
         color: var(--text-main);
     }
-    
+
     .action-buttons {
         display: flex;
         flex-direction: column;
         gap: 10px;
         margin-top: 24px;
     }
-    
+
     .btn-action {
         padding: 14px 20px;
         border-radius: var(--radius-input);
@@ -217,24 +217,24 @@
         gap: 10px;
         border: none;
     }
-    
+
     .btn-action-primary {
         background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
         color: var(--text-inverse);
     }
-    
+
     .btn-action-primary:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(163, 230, 53, 0.3);
         color: var(--text-inverse);
     }
-    
+
     .btn-action-secondary {
         background: var(--bg-secondary);
         color: var(--text-main);
         border: 1px solid var(--border-color);
     }
-    
+
     .btn-action-secondary:hover {
         background: var(--border-color);
         color: var(--text-main);
@@ -249,12 +249,12 @@
         line-height: 1.6;
         white-space: pre-wrap;
     }
-    
+
     .no-notes {
         color: var(--text-muted);
         font-style: italic;
     }
-    
+
     /* Rendement Final Card */
     .rendement-card {
         background: rgba(34, 197, 94, 0.1);
@@ -264,12 +264,12 @@
         margin-top: 24px;
         text-align: center;
     }
-    
+
     .rendement-card h4 {
         color: #22c55e;
         margin-bottom: 8px;
     }
-    
+
     .rendement-value {
         font-size: 2.5rem;
         font-weight: 800;
@@ -281,15 +281,15 @@
         .detail-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .info-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .info-item.full-width {
             grid-column: span 1;
         }
-        
+
         .header-actions {
             width: 100%;
         }
@@ -301,20 +301,23 @@
         <div>
             <h1 class="page-title">
                 {{ projet_produit.produit.nom }}
-                <span class="semis-status status-{{ projet_produit.projet.statut }}">{{ projet_produit.projet.get_statut_display }}</span>
+                <span class="semis-status status-{{ projet_produit.projet.statut }}">{{
+                    projet_produit.projet.get_statut_display }}</span>
             </h1>
             <p class="page-subtitle">
                 <i class="fas fa-folder me-1"></i> Projet: {{ projet_produit.projet.nom }}
-                <span class="ms-3"><i class="fas fa-map-marker-alt me-1"></i> {{ projet_produit.projet.localite.nom }}</span>
+                <span class="ms-3"><i class="fas fa-map-marker-alt me-1"></i> {{ projet_produit.projet.localite.nom
+                    }}</span>
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-modern btn-secondary-modern" style="padding: 12px 20px;">
+            <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-modern btn-secondary-modern"
+                style="padding: 12px 20px;">
                 <i class="fas fa-arrow-left"></i> Retour au projet
             </a>
         </div>
     </div>
-    
+
     <div class="detail-grid">
         <!-- Main Content -->
         <div>
@@ -323,18 +326,20 @@
                 <h3 class="card-title">
                     <i class="fas fa-seedling"></i> Informations de Semis
                 </h3>
-                
+
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Quantite de semences</div>
-                        <div class="info-value">{{ projet_produit.quantite_semences|default:"-" }} {% if projet_produit.quantite_semences %}kg{% endif %}</div>
+                        <div class="info-value">{{ projet_produit.quantite_semences|default:"-" }} {% if
+                            projet_produit.quantite_semences %}kg{% endif %}</div>
                     </div>
-                    
+
                     <div class="info-item">
                         <div class="info-label">Superficie allouee</div>
-                        <div class="info-value">{{ projet_produit.superficie_allouee|default:"-" }} {% if projet_produit.superficie_allouee %}ha{% endif %}</div>
+                        <div class="info-value">{{ projet_produit.superficie_allouee|default:"-" }} {% if
+                            projet_produit.superficie_allouee %}ha{% endif %}</div>
                     </div>
-                    
+
                     <div class="info-item">
                         <div class="info-label">Date du semis</div>
                         <div class="info-value">
@@ -345,7 +350,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="info-item">
                         <div class="info-label">Recolte prevue</div>
                         <div class="info-value">
@@ -356,14 +361,14 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     {% if projet_produit.date_recolte_effective %}
                     <div class="info-item">
                         <div class="info-label">Date recolte effective</div>
                         <div class="info-value">{{ projet_produit.date_recolte_effective|date:"d/m/Y" }}</div>
                     </div>
                     {% endif %}
-                    
+
                     {% if projet_produit.rendement_estime %}
                     <div class="info-item">
                         <div class="info-label">Rendement estime</div>
@@ -371,7 +376,7 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 {% if projet_produit.rendement_final %}
                 <div class="rendement-card">
                     <h4><i class="fas fa-trophy me-2"></i> Rendement Final</h4>
@@ -379,13 +384,13 @@
                 </div>
                 {% endif %}
             </div>
-            
+
             <!-- Notes Card -->
             <div class="detail-card animate__animated animate__fadeInUp" style="margin-top: 24px;">
                 <h3 class="card-title">
                     <i class="fas fa-sticky-note"></i> Notes et Observations
                 </h3>
-                
+
                 {% if projet_produit.notes %}
                 <div class="notes-content">{{ projet_produit.notes }}</div>
                 {% else %}
@@ -393,7 +398,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Sidebar -->
         <div>
             <div class="sidebar-card animate__animated animate__fadeInRight">
@@ -406,7 +411,7 @@
                     Saison: {{ projet_produit.produit.saison }}
                     {% endif %}
                 </p>
-                
+
                 <div class="quick-stats">
                     {% if projet_produit.produit.duree_avant_recolte %}
                     <div class="quick-stat">
@@ -416,7 +421,7 @@
                         <span class="quick-stat-value">{{ projet_produit.produit.duree_avant_recolte }} jours</span>
                     </div>
                     {% endif %}
-                    
+
                     {% if projet_produit.produit.prix_par_kg %}
                     <div class="quick-stat">
                         <span class="quick-stat-label">
@@ -425,7 +430,7 @@
                         <span class="quick-stat-value">{{ projet_produit.produit.prix_par_kg }} FCFA</span>
                     </div>
                     {% endif %}
-                    
+
                     {% if projet_produit.produit.rendement_moyen %}
                     <div class="quick-stat">
                         <span class="quick-stat-label">
@@ -435,13 +440,14 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <div class="action-buttons">
                     <a href="{% url 'modifier_semis' projet_produit.id %}" class="btn-action btn-action-primary">
                         <i class="fas fa-edit"></i> Modifier
                     </a>
-                    
-                    <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-action btn-action-secondary">
+
+                    <a href="{% url 'detail_projet' projet_produit.projet.id %}"
+                        class="btn-action btn-action-secondary">
                         <i class="fas fa-folder-open"></i> Voir le projet
                     </a>
                 </div>
