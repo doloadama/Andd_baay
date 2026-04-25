@@ -306,6 +306,17 @@
                         </div>
 
                         <div class="mb-4">
+                            <label for="{{ projet_form.ferme.id_for_label }}" class="form-label-modern">Ferme</label>
+                            <div class="input-wrapper select-wrapper">
+                                <i class="fas fa-warehouse input-icon"></i>
+                                {{ projet_form.ferme }}
+                            </div>
+                            {% if projet_form.ferme.errors %}
+                            <div class="text-danger small mt-1">{{ projet_form.ferme.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
                             <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">Photo du projet / de la ferme</label>
                             <div class="input-wrapper" style="padding: 10px;">
                                 <i class="fas fa-image input-icon" style="margin-right: 15px;"></i>

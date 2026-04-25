@@ -167,7 +167,7 @@ class Projet(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nom = models.CharField(max_length=200)
-    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, null=True, blank=True, related_name='projets')
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='projets')
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
     pays = models.ForeignKey(Pays, on_delete=models.SET_NULL, null=True, blank=True)

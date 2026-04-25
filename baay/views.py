@@ -269,14 +269,26 @@ def ask_chatbot(request):
 
 @login_required
 def creer_projet(request):
+    from django.db.models import Q as _Q
+    ferme_id = request.GET.get('ferme')
+    from_ferme = None
+    if ferme_id:
+        from_ferme = get_object_or_404(
+            Ferme.objects.filter(
+                _Q(proprietaire=request.user.profile) |
+                _Q(membres__utilisateur=request.user.profile)
+            ).distinct(),
+            id=ferme_id
+        )
+
     if request.method == 'POST':
-        projet_form = ProjetForm(request.POST)
+        projet_form = ProjetForm(request.POST, user=request.user, from_ferme=from_ferme)
         if projet_form.is_valid():
             # Sauvegarder le projet en associant l'utilisateur connecte
             projet = projet_form.save(commit=False)
             projet.utilisateur = request.user.profile
             projet.save()
-            
+
             # Create ProjetProduit entries for each selected product
             produits = projet_form.cleaned_data.get('produits_selection', [])
             rendement_total = 0
@@ -288,23 +300,31 @@ def creer_projet(request):
                 # Calculate estimated yield based on product average and total area
                 if produit.rendement_moyen:
                     rendement_total += float(projet.superficie / len(produits)) * float(produit.rendement_moyen)
-            
+
             # Set backwards compatibility - use first product as main culture
             if produits:
                 projet.culture = produits[0]
                 if not projet.rendement_estime:
                     projet.rendement_estime = rendement_total
-            
+
             projet.save()
-                
+
             messages.success(request, "Le projet a ete cree avec succes.")
             return redirect('liste_projets')
     else:
-        projet_form = ProjetForm()
+        initial = {}
+        if from_ferme:
+            initial['ferme'] = from_ferme.id
+            if from_ferme.pays:
+                initial['pays'] = from_ferme.pays.id
+            if from_ferme.localite:
+                initial['localite'] = from_ferme.localite.id
+        projet_form = ProjetForm(user=request.user, from_ferme=from_ferme, initial=initial)
 
     return render(request, 'projets/creer_projet.html', {
         'projet_form': projet_form,
         'produits': ProduitAgricole.objects.all(),
+        'from_ferme': from_ferme,
     })
 
 
@@ -318,7 +338,7 @@ def modifier_projet(request, projet_id):
     show_rendement_form = request.GET.get('finish') == '1' or projet.statut == 'fini'
 
     if request.method == 'POST':
-        projet_form = ProjetForm(request.POST, instance=projet)
+        projet_form = ProjetForm(request.POST, instance=projet, user=request.user)
 
         # Handle rendement final form if present
         if 'save_rendement' in request.POST:
@@ -387,7 +407,7 @@ def modifier_projet(request, projet_id):
             plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
             logger.error(f"Erreurs dans projet_form : {projet_form.errors}")
     else:
-        projet_form = ProjetForm(instance=projet)
+        projet_form = ProjetForm(instance=projet, user=request.user)
         plant_details_form = PlantDetailsForm(projet=projet)
         if show_rendement_form:
             rendement_form = RendementFinalForm(projet=projet)
@@ -542,6 +562,12 @@ def dashboard(request):
     # Get localites for quick-add modal
     localites = Localite.objects.all().order_by('nom')
 
+    # Get user's farms for quick-add modal
+    from django.db.models import Q
+    fermes = Ferme.objects.filter(
+        Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
+    ).distinct().order_by('nom')
+
     context = {
         'projets': projets,
         'superficie_totale': superficie_totale,
@@ -554,6 +580,7 @@ def dashboard(request):
         'completion_rate': completion_rate,
         'cultures': cultures,
         'localites': localites,
+        'fermes': fermes,
     }
 
     return render(request, 'projets/dashboard.html', context)
@@ -1075,15 +1102,22 @@ def api_projet_creer(request):
         superficie = request.POST.get('superficie')
         localite_id = request.POST.get('localite')
         date_lancement = request.POST.get('date_lancement')
+        ferme_id = request.POST.get('ferme')
 
-        if not all([nom, culture_id, superficie, localite_id, date_lancement]):
+        if not all([nom, culture_id, superficie, localite_id, date_lancement, ferme_id]):
             return JsonResponse({'error': 'Tous les champs obligatoires doivent être remplis.'}, status=400)
 
         culture = get_object_or_404(ProduitAgricole, id=culture_id)
         localite = get_object_or_404(Localite, id=localite_id)
+        ferme = Ferme.objects.filter(
+            models.Q(proprietaire=utilisateur) | models.Q(membres__utilisateur=utilisateur)
+        ).filter(id=ferme_id).first()
+        if not ferme:
+            return JsonResponse({'error': 'Ferme introuvable ou accès refusé.'}, status=403)
 
         projet = Projet.objects.create(
             nom=nom,
+            ferme=ferme,
             culture=culture,
             superficie=superficie,
             localite=localite,
@@ -1341,7 +1375,7 @@ def modifier_ferme(request, ferme_id):
         form = FermeForm(request.POST, instance=ferme)
         if form.is_valid():
             form.save()
-            messages.success(request, "Fermé modifiée avec succès.")
+            messages.success(request, "Ferme modifiée avec succès.")
             return redirect('detail_ferme', ferme_id=ferme.id)
     else:
         form = FermeForm(instance=ferme)
@@ -1353,7 +1387,7 @@ def supprimer_ferme(request, ferme_id):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     if request.method == 'POST':
         ferme.delete()
-        messages.success(request, "Fermé supprimée.")
+        messages.success(request, "Ferme supprimée avec succès.")
         return redirect('liste_fermes')
     return render(request, 'fermes/supprimer_ferme.html', {'ferme': ferme})
 
@@ -1362,15 +1396,18 @@ def supprimer_ferme(request, ferme_id):
 def ajouter_membre_ferme(request, ferme_id):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     if request.method == 'POST':
-        form = MembreFermeForm(request.POST)
+        form = MembreFermeForm(request.POST, ferme=ferme)
         if form.is_valid():
-            membre = form.save(commit=False)
-            membre.ferme = ferme
-            membre.save()
-            messages.success(request, f"{membre.utilisateur.user.username} ajouté à la ferme.")
+            profile = form.cleaned_data['username']
+            MembreFerme.objects.create(
+                ferme=ferme,
+                utilisateur=profile,
+                role=form.cleaned_data['role']
+            )
+            messages.success(request, f"{profile.user.username} ajouté à la ferme.")
             return redirect('detail_ferme', ferme_id=ferme.id)
     else:
-        form = MembreFermeForm()
+        form = MembreFermeForm(ferme=ferme)
     return render(request, 'fermes/ajouter_membre.html', {'form': form, 'ferme': ferme})
 
 

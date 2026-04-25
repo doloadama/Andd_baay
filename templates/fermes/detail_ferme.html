@@ -24,7 +24,7 @@
             <div class="card-modern">
                 <div class="d-flex justify-content-between align-items-center p-4 border-bottom border-secondary">
                     <h5 class="mb-0"><i class="fas fa-project-diagram me-2 text-accent"></i>Projets</h5>
-                    <a href="{% url 'creer_projet' %}" class="btn btn-sm btn-baay-primary">
+                    <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="btn btn-sm btn-baay-primary">
                         <i class="fas fa-plus me-1"></i> Nouveau projet
                     </a>
                 </div>
@@ -52,7 +52,7 @@
                     <div class="empty-state text-center py-4">
                         <i class="fas fa-folder-open fa-2x text-muted mb-2"></i>
                         <p class="text-muted">Aucun projet dans cette ferme.</p>
-                        <a href="{% url 'creer_projet' %}" class="btn btn-sm btn-outline-light mt-2">Créer un projet</a>
+                        <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="btn btn-sm btn-outline-light mt-2">Créer un projet</a>
                     </div>
                     {% endif %}
                 </div>

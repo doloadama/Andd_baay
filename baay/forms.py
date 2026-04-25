@@ -82,9 +82,10 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut', 'type_irrigation', 'type_engrais']
+        fields = ['nom', 'ferme', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut', 'type_irrigation', 'type_engrais']
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
+            'ferme': forms.Select(attrs={'class': 'form-control'}),
             'image_fond': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'pays': forms.Select(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
@@ -97,6 +98,8 @@ class ProjetForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        from_ferme = kwargs.pop('from_ferme', None)
         super().__init__(*args, **kwargs)
         # Afficher les noms des pays et localites dans le formulaire
         if 'pays' in self.fields:
@@ -104,6 +107,24 @@ class ProjetForm(forms.ModelForm):
             self.fields['pays'].label_from_instance = lambda obj: obj.nom
         self.fields['localite'].queryset = Localite.objects.all().order_by('nom')
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
+
+        # Filter farms to user's own farms and farms they are members of
+        if 'ferme' in self.fields and user:
+            from django.db.models import Q
+            from baay.models import Ferme
+            self.fields['ferme'].queryset = Ferme.objects.filter(
+                Q(proprietaire=user.profile) | Q(membres__utilisateur=user.profile)
+            ).distinct().order_by('nom')
+            self.fields['ferme'].label_from_instance = lambda obj: obj.nom
+            self.fields['ferme'].required = True
+        
+        # When creating from a farm detail page, pre-fill and hide farm/location fields
+        if from_ferme:
+            self.fields['ferme'].widget = forms.HiddenInput()
+            if from_ferme.pays:
+                self.fields['pays'].widget = forms.HiddenInput()
+            if from_ferme.localite:
+                self.fields['localite'].widget = forms.HiddenInput()
         
         # Pre-select products if editing existing project
         if self.instance and self.instance.pk:
@@ -111,15 +132,35 @@ class ProjetForm(forms.ModelForm):
 
     def clean_superficie(self):
         superficie = self.cleaned_data.get('superficie')
+        ferme = self.cleaned_data.get('ferme')
         if superficie is not None and superficie <= 0:
             raise forms.ValidationError("La superficie doit etre positive.")
+        if superficie is not None and ferme and ferme.superficie_totale:
+            if superficie > ferme.superficie_totale:
+                raise forms.ValidationError(
+                    f"La superficie du projet ({superficie} ha) ne peut pas dépasser celle de la ferme ({ferme.superficie_totale} ha)."
+                )
         return superficie
     
     def clean(self):
         cleaned_data = super().clean()
         produits = cleaned_data.get('produits_selection')
+        superficie = cleaned_data.get('superficie')
+        ferme = cleaned_data.get('ferme')
         if not produits or len(produits) == 0:
             raise forms.ValidationError("Vous devez selectionner au moins un produit.")
+        if superficie and ferme and ferme.superficie_totale:
+            from django.db.models import Sum
+            autres_projets = Projet.objects.filter(ferme=ferme, statut='en_cours')
+            if self.instance and self.instance.pk:
+                autres_projets = autres_projets.exclude(pk=self.instance.pk)
+            superficie_totale_autres = autres_projets.aggregate(total=Sum('superficie'))['total'] or 0
+            if superficie_totale_autres + superficie > ferme.superficie_totale:
+                reste = ferme.superficie_totale - superficie_totale_autres
+                raise forms.ValidationError(
+                    f"La somme des superficies des projets en cours ne peut pas dépasser celle de la ferme. "
+                    f"Superficie restante disponible : {reste} ha."
+                )
         return cleaned_data
 
 
@@ -276,11 +317,40 @@ class FermeForm(forms.ModelForm):
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
 
 
-class MembreFermeForm(forms.ModelForm):
-    class Meta:
-        model = MembreFerme
-        fields = ['utilisateur', 'role']
-        widgets = {
-            'utilisateur': forms.Select(attrs={'class': 'form-control'}),
-            'role': forms.Select(attrs={'class': 'form-control'}),
-        }
+class MembreFermeForm(forms.Form):
+    username = forms.CharField(
+        max_length=150,
+        label="Nom d'utilisateur",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Nom d'utilisateur de l'utilisateur inscrit"})
+    )
+    role = forms.ChoiceField(
+        choices=[('manager', 'Manager'), ('technicien', 'Technicien'), ('ouvrier', 'Ouvrier')],
+        label="Rôle",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def __init__(self, *args, ferme=None, **kwargs):
+        self.ferme = ferme
+        super().__init__(*args, **kwargs)
+
+    def clean_username(self):
+        from django.contrib.auth.models import User
+        username = self.cleaned_data['username'].strip()
+        if not username:
+            raise forms.ValidationError("Le nom d'utilisateur est obligatoire.")
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise forms.ValidationError("Cet utilisateur n'est pas inscrit. Veuillez vérifier le nom d'utilisateur.")
+
+        if not hasattr(user, 'profile'):
+            raise forms.ValidationError("Cet utilisateur n'a pas de profil agricole.")
+
+        if self.ferme:
+            if self.ferme.proprietaire.user == user:
+                raise forms.ValidationError("Cet utilisateur est déjà le propriétaire de la ferme.")
+            if self.ferme.membres.filter(utilisateur=user.profile).exists():
+                raise forms.ValidationError("Cet utilisateur est déjà membre de la ferme.")
+
+        return user.profile

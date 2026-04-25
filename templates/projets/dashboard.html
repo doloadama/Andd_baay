@@ -402,6 +402,15 @@
                     <input type="text" name="nom" required placeholder="Ex: Culture de maïs - Parcelle A">
                 </div>
                 <div class="form-group">
+                    <label>Ferme</label>
+                    <select name="ferme" required>
+                        <option value="">Sélectionner une ferme...</option>
+                        {% for ferme in fermes %}
+                        <option value="{{ ferme.id }}">{{ ferme.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Culture</label>
                     <select name="culture" required>
                         <option value="">Sélectionner...</option>

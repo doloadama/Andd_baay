@@ -43,9 +43,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="card-title-modern mb-0">{{ ferme.nom }}</h5>
-                        <span class="badge bg-info">
-                            {{ ferme.membres.get.utilisateur.user.username }}
-                        </span>
+                        <span class="badge bg-info">Membre</span>
                     </div>
                     <p class="text-muted small mb-3">{{ ferme.description|default:"Aucune description"|truncatechars:100 }}</p>
                     <div class="d-flex gap-2 text-muted small mb-3">

@@ -616,6 +616,44 @@
                                     </div>
                                 </div>
 
+                                {% if from_ferme %}
+                                <div class="col-md-12">
+                                    <div class="input-modern-group">
+                                        <label class="form-label-modern">
+                                            Ferme
+                                            <span class="required">*</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-warehouse input-icon"></i>
+                                            <input type="text" class="form-control" value="{{ from_ferme.nom }}" disabled readonly style="background: rgba(255,255,255,0.05);">
+                                        </div>
+                                        {{ projet_form.ferme.as_hidden }}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="col-md-12">
+                                    <div class="input-modern-group">
+                                        <label for="id_ferme" class="form-label-modern">
+                                            Ferme
+                                            <span class="required">*</span>
+                                            <span class="form-label-hint">Sélectionnez la ferme associée au projet</span>
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-warehouse input-icon"></i>
+                                            <select name="ferme" id="id_ferme" class="form-control" required>
+                                                <option value="">Sélectionner une ferme...</option>
+                                                {% for f in projet_form.fields.ferme.queryset %}
+                                                <option value="{{ f.id }}" data-pays="{{ f.pays.id|default:'' }}" data-localite="{{ f.localite.id|default:'' }}" data-superficie="{{ f.superficie_totale|default:'' }}" {% if projet_form.ferme.value|stringformat:"s" == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% if projet_form.ferme.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.ferme.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
                                 <div class="col-md-12">
                                     <div class="input-modern-group">
                                         <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">
@@ -667,6 +705,33 @@
                                     </div>
                                 </div>
 
+                                {% if from_ferme %}
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label class="form-label-modern">
+                                            Pays
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-globe-africa input-icon"></i>
+                                            <input type="text" class="form-control" value="{{ from_ferme.pays.nom|default:'Non spécifié' }}" disabled readonly style="background: rgba(255,255,255,0.05);">
+                                        </div>
+                                        {{ projet_form.pays.as_hidden }}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="input-modern-group">
+                                        <label class="form-label-modern">
+                                            Localite
+                                        </label>
+                                        <div class="input-wrapper select-wrapper">
+                                            <i class="fas fa-map-marker-alt input-icon"></i>
+                                            <input type="text" class="form-control" value="{{ from_ferme.localite.nom|default:'Non spécifiée' }}" disabled readonly style="background: rgba(255,255,255,0.05);">
+                                        </div>
+                                        {{ projet_form.localite.as_hidden }}
+                                    </div>
+                                </div>
+                                {% else %}
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
                                         <label for="{{ projet_form.pays.id_for_label }}" class="form-label-modern">
@@ -698,6 +763,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -948,6 +1014,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         paysSelect.addEventListener('change', filterLocalites);
         filterLocalites(); // Apply filter initially
+    }
+
+    // Auto-fill pays/localite/superficie when farm is selected
+    const fermeSelect = document.getElementById('id_ferme');
+    if (fermeSelect) {
+        fermeSelect.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            const paysId = option.getAttribute('data-pays');
+            const localiteId = option.getAttribute('data-localite');
+            const superficie = option.getAttribute('data-superficie');
+            if (paysId && paysSelect) {
+                paysSelect.value = paysId;
+                paysSelect.dispatchEvent(new Event('change'));
+            }
+            if (localiteId && localiteSelect) {
+                localiteSelect.value = localiteId;
+            }
+            if (superficie) {
+                const supInput = document.getElementById('id_superficie');
+                if (supInput) {
+                    supInput.setAttribute('max', superficie);
+                    supInput.setAttribute('placeholder', 'Max: ' + superficie + ' ha');
+                }
+            }
+        });
     }
 });
 </script>
