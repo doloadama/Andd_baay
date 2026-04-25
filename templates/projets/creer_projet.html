@@ -982,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const paysSelect = document.getElementById('{{ projet_form.pays.id_for_label }}');
     const localiteSelect = document.getElementById('{{ projet_form.localite.id_for_label }}');
     
-    if (paysSelect && localiteSelect) {
+    if (paysSelect && localiteSelect && paysSelect.tagName === 'SELECT' && localiteSelect.tagName === 'SELECT') {
         const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({
             value: opt.value,
             text: opt.text,
