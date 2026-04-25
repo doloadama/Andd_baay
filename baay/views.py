@@ -18,8 +18,8 @@ from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -1284,3 +1284,103 @@ def update_semis_statut(request, semis_id):
     except Exception as e:
         logger.error(f"Error in update_semis_statut: {e}", exc_info=True)
         return JsonResponse({'error': 'An error occurred'}, status=500)
+
+
+# ===== FERME VIEWS =====
+
+@login_required
+def liste_fermes(request):
+    """List all farms the user owns or is a member of."""
+    profile = request.user.profile
+    fermes_proprietaire = Ferme.objects.filter(proprietaire=profile).select_related('pays', 'localite').prefetch_related('membres__utilisateur__user')
+    fermes_membre = Ferme.objects.filter(membres__utilisateur=profile).select_related('pays', 'localite').prefetch_related('membres__utilisateur__user').distinct()
+    return render(request, 'fermes/liste_fermes.html', {
+        'fermes_proprietaire': fermes_proprietaire,
+        'fermes_membre': fermes_membre,
+    })
+
+
+@login_required
+def creer_ferme(request):
+    if request.method == 'POST':
+        form = FermeForm(request.POST)
+        if form.is_valid():
+            ferme = form.save(commit=False)
+            ferme.proprietaire = request.user.profile
+            ferme.save()
+            messages.success(request, "Fermé créée avec succès.")
+            return redirect('detail_ferme', ferme_id=ferme.id)
+    else:
+        form = FermeForm()
+    return render(request, 'fermes/creer_ferme.html', {'form': form})
+
+
+@login_required
+def detail_ferme(request, ferme_id):
+    ferme = get_object_or_404(Ferme, id=ferme_id)
+    is_proprietaire = ferme.proprietaire == request.user.profile
+    is_membre = ferme.membres.filter(utilisateur=request.user.profile).exists()
+    if not is_proprietaire and not is_membre:
+        messages.error(request, "Vous n'avez pas accès à cette ferme.")
+        return redirect('liste_fermes')
+
+    projets = ferme.projets.select_related('culture', 'localite')
+    membres = ferme.membres.select_related('utilisateur__user')
+    return render(request, 'fermes/detail_ferme.html', {
+        'ferme': ferme,
+        'projets': projets,
+        'membres': membres,
+        'is_proprietaire': is_proprietaire,
+    })
+
+
+@login_required
+def modifier_ferme(request, ferme_id):
+    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    if request.method == 'POST':
+        form = FermeForm(request.POST, instance=ferme)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Fermé modifiée avec succès.")
+            return redirect('detail_ferme', ferme_id=ferme.id)
+    else:
+        form = FermeForm(instance=ferme)
+    return render(request, 'fermes/modifier_ferme.html', {'form': form, 'ferme': ferme})
+
+
+@login_required
+def supprimer_ferme(request, ferme_id):
+    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    if request.method == 'POST':
+        ferme.delete()
+        messages.success(request, "Fermé supprimée.")
+        return redirect('liste_fermes')
+    return render(request, 'fermes/supprimer_ferme.html', {'ferme': ferme})
+
+
+@login_required
+def ajouter_membre_ferme(request, ferme_id):
+    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    if request.method == 'POST':
+        form = MembreFermeForm(request.POST)
+        if form.is_valid():
+            membre = form.save(commit=False)
+            membre.ferme = ferme
+            membre.save()
+            messages.success(request, f"{membre.utilisateur.user.username} ajouté à la ferme.")
+            return redirect('detail_ferme', ferme_id=ferme.id)
+    else:
+        form = MembreFermeForm()
+    return render(request, 'fermes/ajouter_membre.html', {'form': form, 'ferme': ferme})
+
+
+@login_required
+def retirer_membre_ferme(request, ferme_id, membre_id):
+    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    membre = get_object_or_404(MembreFerme, id=membre_id, ferme=ferme)
+    if request.method == 'POST':
+        username = membre.utilisateur.user.username
+        membre.delete()
+        messages.success(request, f"{username} retiré de la ferme.")
+        return redirect('detail_ferme', ferme_id=ferme.id)
+    return render(request, 'fermes/retirer_membre.html', {'membre': membre, 'ferme': ferme})

@@ -62,6 +62,15 @@ urlpatterns = [
     path('semis/<uuid:semis_id>/modifier/', views.modifier_semis, name='modifier_semis'),
     path('semis/<uuid:semis_id>/supprimer/', views.supprimer_semis, name='supprimer_semis'),
     path('api/semis/<uuid:semis_id>/statut/', views.update_semis_statut, name='update_semis_statut'),
+
+    # Ferme (Farm) management
+    path('fermes/', views.liste_fermes, name='liste_fermes'),
+    path('fermes/creer/', views.creer_ferme, name='creer_ferme'),
+    path('fermes/<uuid:ferme_id>/', views.detail_ferme, name='detail_ferme'),
+    path('fermes/<uuid:ferme_id>/modifier/', views.modifier_ferme, name='modifier_ferme'),
+    path('fermes/<uuid:ferme_id>/supprimer/', views.supprimer_ferme, name='supprimer_ferme'),
+    path('fermes/<uuid:ferme_id>/membres/ajouter/', views.ajouter_membre_ferme, name='ajouter_membre_ferme'),
+    path('fermes/<uuid:ferme_id>/membres/<uuid:membre_id>/retirer/', views.retirer_membre_ferme, name='retirer_membre_ferme'),
 ]
 
 if settings.DEBUG:

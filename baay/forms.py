@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -254,3 +254,33 @@ class PlantDetailsForm(forms.Form):
                         'placeholder': 'Age approximatif en jours'
                     })
                 )
+
+
+class FermeForm(forms.ModelForm):
+    class Meta:
+        model = Ferme
+        fields = ['nom', 'description', 'pays', 'localite', 'superficie_totale']
+        widgets = {
+            'nom': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'pays': forms.Select(attrs={'class': 'form-control'}),
+            'localite': forms.Select(attrs={'class': 'form-control'}),
+            'superficie_totale': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['pays'].queryset = Pays.objects.all().order_by('nom')
+        self.fields['pays'].label_from_instance = lambda obj: obj.nom
+        self.fields['localite'].queryset = Localite.objects.all().order_by('nom')
+        self.fields['localite'].label_from_instance = lambda obj: obj.nom
+
+
+class MembreFermeForm(forms.ModelForm):
+    class Meta:
+        model = MembreFerme
+        fields = ['utilisateur', 'role']
+        widgets = {
+            'utilisateur': forms.Select(attrs={'class': 'form-control'}),
+            'role': forms.Select(attrs={'class': 'form-control'}),
+        }

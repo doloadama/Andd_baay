@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-form-card">
+                <div class="card-header-modern">
+                    <h4><i class="fas fa-edit text-accent me-2"></i>Modifier {{ ferme.nom }}</h4>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" class="modern-form">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-4">
+                            <label class="form-label-modern">{{ field.label }}</label>
+                            <div class="input-wrapper">{{ field }}</div>
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn-submit-modern"><i class="fas fa-save"></i> Enregistrer</button>
+                            <a href="{% url 'detail_ferme' ferme.id %}" class="btn btn-outline-light px-4">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -15,6 +15,44 @@ class Profile(models.Model):
         return self.user.username
 
 
+class Ferme(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nom = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    proprietaire = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='fermes')
+    pays = models.ForeignKey('Pays', on_delete=models.SET_NULL, null=True, blank=True)
+    localite = models.ForeignKey('Localite', on_delete=models.SET_NULL, null=True, blank=True)
+    superficie_totale = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie totale de la ferme en hectares")
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+
+    def __str__(self):
+        return f"Ferme {self.nom} ({self.proprietaire.user.username})"
+
+
+class MembreFerme(models.Model):
+    ROLE_CHOICES = [
+        ('proprietaire', 'Propriétaire'),
+        ('manager', 'Manager'),
+        ('technicien', 'Technicien'),
+        ('ouvrier', 'Ouvrier'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='membres')
+    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='fermes_membre')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ouvrier')
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('ferme', 'utilisateur')
+
+    def __str__(self):
+        return f"{self.utilisateur.user.username} - {self.get_role_display()} de {self.ferme.nom}"
+
+
 class ProduitAgricole(models.Model):
     STATUTS = [
         ('En croissance', 'En croissance'),
@@ -129,6 +167,7 @@ class Projet(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nom = models.CharField(max_length=200)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, null=True, blank=True, related_name='projets')
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
     pays = models.ForeignKey(Pays, on_delete=models.SET_NULL, null=True, blank=True)

@@ -1809,6 +1809,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link-modern {% if 'ferme' in request.resolver_match.url_name %}active{% endif %}"
+                                href="{% url 'liste_fermes' %}">
+                                <i class="fas fa-warehouse"></i> Mes Fermes
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link-modern {% if 'semis' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'liste_semis' %}">
                                 <i class="fas fa-seedling"></i> Semis
