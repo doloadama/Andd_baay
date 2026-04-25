@@ -455,16 +455,15 @@
 
     <select name="statut" class="filter-select" onchange="this.form.submit()">
         <option value="">Tous les statuts</option>
-        <option value="en_cours" {% if current_statut=='en_cours' %}selected{% endif %}>En cours</option>
-        <option value="en_pause" {% if current_statut=='en_pause' %}selected{% endif %}>En pause</option>
-        <option value="fini" {% if current_statut=='fini' %}selected{% endif %}>Termine</option>
+        <option value="en_cours" {% if current_statut == 'en_cours' %}selected{% endif %}>En cours</option>
+        <option value="en_pause" {% if current_statut == 'en_pause' %}selected{% endif %}>En pause</option>
+        <option value="fini" {% if current_statut == 'fini' %}selected{% endif %}>Termine</option>
     </select>
 
     <select name="culture" class="filter-select" onchange="this.form.submit()">
         <option value="">Tous les produits</option>
         {% for culture in cultures %}
-        <option value="{{ culture.id }}" {% if current_culture==culture.id|stringformat:"s" %}selected{% endif %}>{{
-            culture.nom }}</option>
+        <option value="{{ culture.id }}" {% if current_culture == culture.id|stringformat:"s" %}selected{% endif %}>{{ culture.nom }}</option>
         {% endfor %}
     </select>
 

@@ -868,11 +868,11 @@ def dashboard_stats_api(request):
     superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or Decimal('0')
     rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or Decimal('0')
     
-    # Get investissements total
-    from baay.models import Investissement
-    investissement_total = Investissement.objects.filter(
-        projet__in=projets
-    ).aggregate(total=Sum('cout_par_hectare'))['total'] or Decimal('0')
+    # Get investissements total (cout_par_hectare * superficie + autres_frais)
+    investissements = Investissement.objects.filter(projet__in=projets)
+    investissement_total = sum(
+        inv.calculer_investissement_total() for inv in investissements
+    ) or Decimal('0')
     
     # Projects by status
     projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))
