@@ -195,6 +195,48 @@
         </div>
     </div>
 
+    <!-- Monthly Trends -->
+    <div class="dash-section span-2 row-span-2 tile-chart" data-tile-id="chart-trends">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header" data-toggle="collapse">
+            <h3 class="dash-section-title"><i class="fas fa-chart-line"></i> Tendances mensuelles</h3>
+            <i class="fas fa-chevron-down dash-section-toggle"></i>
+        </div>
+        <div class="dash-section-body">
+            {% if projets %}
+            <div class="chart-container">
+                <canvas id="monthlyTrendsChart"></canvas>
+            </div>
+            {% else %}
+            <div class="empty-state empty-state-padded">
+                <div class="empty-state-icon"><i class="fas fa-chart-line"></i></div>
+                <p class="empty-state-text">Pas de données disponibles.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Culture Distribution -->
+    <div class="dash-section span-2 row-span-2 tile-chart-pie" data-tile-id="chart-culture">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header" data-toggle="collapse">
+            <h3 class="dash-section-title"><i class="fas fa-seedling"></i> Superficie par culture</h3>
+            <i class="fas fa-chevron-down dash-section-toggle"></i>
+        </div>
+        <div class="dash-section-body">
+            {% if projets %}
+            <div class="chart-container">
+                <canvas id="cultureChart"></canvas>
+            </div>
+            {% else %}
+            <div class="empty-state empty-state-padded">
+                <div class="empty-state-icon"><i class="fas fa-seedling"></i></div>
+                <p class="empty-state-text">Pas de données disponibles.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Quick Action -->
     <div class="bento-tile tile-action animate__animated animate__fadeInUp action-delay" data-tile-id="quick-action">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>

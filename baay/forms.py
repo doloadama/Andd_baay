@@ -110,8 +110,8 @@ class ProjetForm(forms.ModelForm):
             self.fields['produits_selection'].initial = self.instance.projet_produits.values_list('produit_id', flat=True)
 
     def clean_superficie(self):
-        superficie = self.cleaned_data['superficie']
-        if superficie <= 0:
+        superficie = self.cleaned_data.get('superficie')
+        if superficie is not None and superficie <= 0:
             raise forms.ValidationError("La superficie doit etre positive.")
         return superficie
     

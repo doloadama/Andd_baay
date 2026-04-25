@@ -319,7 +319,7 @@ def modifier_projet(request, projet_id):
 
     if request.method == 'POST':
         projet_form = ProjetForm(request.POST, instance=projet)
-        
+
         # Handle rendement final form if present
         if 'save_rendement' in request.POST:
             rendement_form = RendementFinalForm(request.POST, projet=projet)
@@ -334,57 +334,64 @@ def modifier_projet(request, projet_id):
                     pp.save()
                 messages.success(request, "Les rendements finaux ont ete enregistres.")
                 return redirect('detail_projet', projet_id=projet.id)
-        
+
         elif projet_form.is_valid():
             plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
             if plant_details_form.is_valid():
                 for pp in projet.projet_produits.all():
                     image_key = f'image_{pp.id}'
                     age_key = f'age_plant_{pp.id}'
-                    
+
                     if image_key in request.FILES:
                         pp.image = request.FILES[image_key]
                     elif image_key in plant_details_form.cleaned_data and plant_details_form.cleaned_data[image_key] is False:
                         if pp.image:
                             pp.image.delete()
-                            
+
                     if age_key in plant_details_form.cleaned_data:
                         pp.age_plant = plant_details_form.cleaned_data[age_key]
-                        
+
                     pp.save()
+            else:
+                logger.error(f"Erreurs dans plant_details_form : {plant_details_form.errors}")
+                # Continue saving the main project even if plant details have errors,
+                # but log them so the admin knows.
 
             projet = projet_form.save(commit=False)
             projet.save()
-            
+
             # Update products
             produits = projet_form.cleaned_data.get('produits_selection', [])
             existing_produits = set(projet.projet_produits.values_list('produit_id', flat=True))
             new_produits = set(p.id for p in produits)
-            
+
             # Remove products no longer selected
             for pp in projet.projet_produits.filter(produit_id__in=existing_produits - new_produits):
                 pp.delete()
-            
+
             # Add new products
             for produit in produits:
                 if produit.id not in existing_produits:
                     ProjetProduit.objects.create(projet=projet, produit=produit)
-            
+
             # Update backwards compatibility culture field
             if produits:
                 projet.culture = produits[0]
                 projet.save()
-                
+
             messages.success(request, "Le projet a ete modifie avec succes.")
             return redirect('detail_projet', projet_id=projet.id)
         else:
-            logger.error(f"Erreurs dans le formulaire : {projet_form.errors}")
+            # Form invalid — preserve plant_details_form with POST data so the
+            # template can re-render submitted values and field errors.
+            plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
+            logger.error(f"Erreurs dans projet_form : {projet_form.errors}")
     else:
         projet_form = ProjetForm(instance=projet)
         plant_details_form = PlantDetailsForm(projet=projet)
         if show_rendement_form:
             rendement_form = RendementFinalForm(projet=projet)
-            
+
     plants_data = []
     if plant_details_form:
         for pp in projet.projet_produits.all():

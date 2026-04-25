@@ -3,7 +3,10 @@ const allProjects = [];
 let filteredProjects = [];
 let rendementChart = null;
 let statusChart = null;
+let monthlyTrendsChart = null;
+let cultureChart = null;
 let selectedProjects = new Set();
+let dashboardStatsData = null;
 let contextMenuProjectId = null;
 let isRefreshing = false;
 let searchQuery = '';
@@ -429,6 +432,33 @@ function updateBulkActionsBar() {
     }
 }
 
+// ===== API HELPERS =====
+function fetchDashboardStats(url) {
+    const targetUrl = url || '/api/dashboard/stats/';
+    return fetch(targetUrl)
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.json();
+        })
+        .then(data => {
+            dashboardStatsData = data;
+            return data;
+        });
+}
+
+function buildStatsApiUrl() {
+    const params = new URLSearchParams();
+    const statut = document.getElementById('filterStatut')?.value;
+    const culture = document.getElementById('filterCulture')?.value;
+    const dateFrom = document.getElementById('filterDateFrom')?.value;
+    const dateTo = document.getElementById('filterDateTo')?.value;
+    if (statut) params.append('statut', statut);
+    if (culture) params.append('culture', culture);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    return `/api/dashboard/stats/?${params.toString()}`;
+}
+
 // ===== CHART INITIALIZATION WITH ZOOM =====
 function initCharts() {
     if (typeof Chart === 'undefined' || allProjects.length === 0) return;
@@ -532,7 +562,7 @@ function initCharts() {
     if (statusCtx) {
         const statusCounts = getStatusCounts(filteredProjects);
         
-        statusChart = new Chart(ctx, {
+        statusChart = new Chart(statusCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['En cours', 'En pause', 'Terminé'],
@@ -592,6 +622,157 @@ function initCharts() {
             }
         });
     }
+
+    if (!dashboardStatsData) {
+        fetchDashboardStats().then(() => initCharts());
+        return;
+    }
+
+    // Monthly Trends Line Chart
+    const trendsCtx = document.getElementById('monthlyTrendsChart');
+    if (trendsCtx && dashboardStatsData.monthly_trends) {
+        const trends = dashboardStatsData.monthly_trends;
+        const tCtx = trendsCtx.getContext('2d');
+        const trendsGradient = tCtx.createLinearGradient(0, 0, 0, 300);
+        trendsGradient.addColorStop(0, 'rgba(57, 255, 20, 0.3)');
+        trendsGradient.addColorStop(1, 'rgba(57, 255, 20, 0.01)');
+
+        monthlyTrendsChart = new Chart(tCtx, {
+            type: 'line',
+            data: {
+                labels: trends.map(t => t.month),
+                datasets: [
+                    {
+                        label: 'Projets',
+                        data: trends.map(t => t.count),
+                        borderColor: '#39FF14',
+                        backgroundColor: trendsGradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#39FF14',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Superficie (ha)',
+                        data: trends.map(t => t.superficie),
+                        borderColor: '#E2725B',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#E2725B',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
+                        title: { display: true, text: 'Projets', color: '#39FF14', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
+                    },
+                    y1: {
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
+                        title: { display: true, text: 'Superficie (ha)', color: '#E2725B', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { color: textColor, font: { family: "'Inter', sans-serif" } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, font: { family: "'Space Grotesk', sans-serif", weight: 600, size: 12 }, usePointStyle: true, padding: 20 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                        titleColor: '#e0e0e0',
+                        bodyColor: '#39FF14',
+                        borderColor: 'rgba(57, 255, 20, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 12,
+                        callbacks: {
+                            label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString('fr-FR')}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Culture Distribution Horizontal Bar
+    const cultureCtx = document.getElementById('cultureChart');
+    if (cultureCtx && dashboardStatsData.projets_par_culture) {
+        const cultures = dashboardStatsData.projets_par_culture;
+        const cCtx = cultureCtx.getContext('2d');
+        const cultureColors = [
+            'rgba(57, 255, 20, 0.7)',
+            'rgba(226, 114, 91, 0.7)',
+            'rgba(255, 215, 0, 0.7)',
+            'rgba(59, 130, 246, 0.7)',
+            'rgba(168, 85, 247, 0.7)',
+            'rgba(236, 72, 153, 0.7)'
+        ];
+
+        cultureChart = new Chart(cCtx, {
+            type: 'bar',
+            data: {
+                labels: cultures.map(c => c.culture || 'Inconnu'),
+                datasets: [{
+                    label: 'Superficie (ha)',
+                    data: cultures.map(c => c.superficie),
+                    backgroundColor: cultures.map((_, i) => cultureColors[i % cultureColors.length]),
+                    borderColor: cultures.map((_, i) => cultureColors[i % cultureColors.length].replace('0.7', '1')),
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
+                        title: { display: true, text: 'Superficie (ha)', color: '#39FF14', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
+                    },
+                    y: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { color: textColor, font: { family: "'Inter', sans-serif" } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                        titleColor: '#e0e0e0',
+                        bodyColor: '#39FF14',
+                        borderColor: 'rgba(57, 255, 20, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 12,
+                        callbacks: {
+                            label: (context) => `Superficie: ${context.raw.toLocaleString('fr-FR')} ha`
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 // ===== UPDATE CHARTS =====
@@ -607,6 +788,24 @@ function updateCharts() {
         statusChart.data.datasets[0].data = [statusCounts.en_cours, statusCounts.en_pause, statusCounts.fini];
         statusChart.update('active');
     }
+
+    fetch(buildStatsApiUrl())
+        .then(r => r.json())
+        .then(data => {
+            dashboardStatsData = data;
+            if (monthlyTrendsChart && data.monthly_trends) {
+                monthlyTrendsChart.data.labels = data.monthly_trends.map(t => t.month);
+                monthlyTrendsChart.data.datasets[0].data = data.monthly_trends.map(t => t.count);
+                monthlyTrendsChart.data.datasets[1].data = data.monthly_trends.map(t => t.superficie);
+                monthlyTrendsChart.update('active');
+            }
+            if (cultureChart && data.projets_par_culture) {
+                cultureChart.data.labels = data.projets_par_culture.map(c => c.culture || 'Inconnu');
+                cultureChart.data.datasets[0].data = data.projets_par_culture.map(c => c.superficie);
+                cultureChart.update('active');
+            }
+        })
+        .catch(err => console.error('Failed to update API charts:', err));
 }
 
 // ===== GET STATUS COUNTS =====
@@ -1180,6 +1379,19 @@ function refreshData() {
             const now = new Date();
             document.getElementById('lastUpdated').textContent =
                 `Mis à jour: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            // Update API-based charts
+            if (monthlyTrendsChart && data.monthly_trends) {
+                monthlyTrendsChart.data.labels = data.monthly_trends.map(t => t.month);
+                monthlyTrendsChart.data.datasets[0].data = data.monthly_trends.map(t => t.count);
+                monthlyTrendsChart.data.datasets[1].data = data.monthly_trends.map(t => t.superficie);
+                monthlyTrendsChart.update('active');
+            }
+            if (cultureChart && data.projets_par_culture) {
+                cultureChart.data.labels = data.projets_par_culture.map(c => c.culture || 'Inconnu');
+                cultureChart.data.datasets[0].data = data.projets_par_culture.map(c => c.superficie);
+                cultureChart.update('active');
+            }
 
             showToast('Données actualisées', 'success');
             animateCounters();
