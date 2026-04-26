@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initCharts();
     initDragAndDrop();
     initKeyboardShortcuts();
-    initVoiceSearch();
     initContextMenu();
     initCollapsibleSections();
     initThemeToggle();
@@ -178,13 +177,16 @@ function initDragAndDrop() {
             onEnd: function(evt) {
                 // Save layout preference
                 const order = Array.from(grid.children).map(tile => tile.dataset.tileId);
-                localStorage.setItem('dashboardLayout', JSON.stringify(order));
+                localStorage.setItem('dashboardLayout_v2', JSON.stringify(order));
                 showToast('Disposition sauvegardée', 'success');
             }
         });
-        
+
+        // Drop legacy v1 layout so the redesigned default order takes effect
+        localStorage.removeItem('dashboardLayout');
+
         // Load saved layout
-        const savedLayout = localStorage.getItem('dashboardLayout');
+        const savedLayout = localStorage.getItem('dashboardLayout_v2');
         if (savedLayout) {
             const order = JSON.parse(savedLayout);
             order.forEach(tileId => {
@@ -257,47 +259,6 @@ function bindQuickAddTriggers() {
     });
 }
 
-// ===== VOICE SEARCH =====
-function initVoiceSearch() {
-    const voiceBtn = document.getElementById('voiceSearch');
-    if (!voiceBtn || !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        if (voiceBtn) voiceBtn.style.display = 'none';
-        return;
-    }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'fr-FR';
-    recognition.continuous = false;
-    
-    voiceBtn.addEventListener('click', function() {
-        if (this.classList.contains('listening')) {
-            recognition.stop();
-            return;
-        }
-        
-        this.classList.add('listening');
-        showToast('🎤 Écoute en cours...', 'info');
-        
-        recognition.start();
-        
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById('projectSearch').value = transcript;
-            filterProjectsBySearch(transcript.toLowerCase());
-            showToast(`🔍 Recherche: "${transcript}"`, 'success');
-        };
-        
-        recognition.onerror = function(event) {
-            showToast('❌ Erreur de reconnaissance vocale', 'error');
-        };
-        
-        recognition.onend = function() {
-            voiceBtn.classList.remove('listening');
-        };
-    });
-}
-
 // ===== CONTEXT MENU =====
 function initContextMenu() {
     document.querySelectorAll('.project-item').forEach(item => {
@@ -320,13 +281,13 @@ function contextMenuAction(action) {
     
     switch(action) {
         case 'view':
-            window.location.href = `/projets/${contextMenuProjectId}/`;
+            window.location.href = `/projet/${contextMenuProjectId}/`;
             break;
         case 'edit':
-            window.location.href = `/projets/${contextMenuProjectId}/modifier/`;
+            window.location.href = `/projet/${contextMenuProjectId}/modifier/`;
             break;
         case 'predict':
-            window.location.href = `/projets/${contextMenuProjectId}/prediction/`;
+            window.location.href = `/projet/${contextMenuProjectId}/generer_prediction/`;
             break;
         case 'status':
             showStatusModal(contextMenuProjectId);
@@ -532,7 +493,7 @@ function initCharts() {
                         const index = elements[0].index;
                         const project = filteredProjects[index];
                         if (project) {
-                            window.location.href = `/projets/${project.id}/`;
+                            window.location.href = `/projet/${project.id}/`;
                         }
                     }
                 },
@@ -1156,7 +1117,7 @@ function showProjectsModal(type, title, projects = null) {
         `;
     } else {
         modalList.innerHTML = projectsToShow.map(project => `
-            <div class="modal-project-item" onclick="window.location.href='/projets/${project.id}/'">
+            <div class="modal-project-item" onclick="window.location.href='/projet/${project.id}/'">
                 <div class="modal-project-info">
                     <h4>${project.nom}</h4>
                     <p>${project.cultureName || 'Culture'} - ${project.localite || 'Localité'}</p>
@@ -1606,6 +1567,30 @@ function updateKPIsFromAPI(data) {
             <div class="dash-stat-icon blue"><i class="fas fa-boxes"></i></div>
             <div class="dash-stat-value" id="kpiRendement">${Math.round(f.rendement)}</div>
             <div class="dash-stat-label">Kg estimés ferme</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-en-cours">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon teal"><i class="fas fa-play-circle"></i></div>
+            <div class="dash-stat-value" id="kpiEnCours">${data.projets_en_cours || 0}</div>
+            <div class="dash-stat-label">Projets actifs</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-completion">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon green"><i class="fas fa-check-circle"></i></div>
+            <div class="dash-stat-value" id="kpiCompletion">${data.completion_rate || 0}%</div>
+            <div class="dash-stat-label">Taux de complétion</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-membres">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon teal"><i class="fas fa-users"></i></div>
+            <div class="dash-stat-value" id="kpiMembres">${f.membres || 0}</div>
+            <div class="dash-stat-label">Membres ferme</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement-ferme">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
+            <div class="dash-stat-value" id="kpiInvestissementFerme">${Math.round(data.investissement_total || 0)}</div>
+            <div class="dash-stat-label">CFA investis</div>
         </div>`;
     } else {
         kpiHtml = `
@@ -1632,6 +1617,30 @@ function updateKPIsFromAPI(data) {
             <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
             <div class="dash-stat-value" id="kpiInvestissement">${Math.round(data.investissement_total)}</div>
             <div class="dash-stat-label">CFA investis</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-en-cours">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon blue"><i class="fas fa-play-circle"></i></div>
+            <div class="dash-stat-value" id="kpiEnCours">${data.projets_en_cours || 0}</div>
+            <div class="dash-stat-label">Projets actifs</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-completion">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon purple"><i class="fas fa-check-circle"></i></div>
+            <div class="dash-stat-value" id="kpiCompletion">${data.completion_rate || 0}%</div>
+            <div class="dash-stat-label">Taux de complétion</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-rendement-global">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon blue"><i class="fas fa-boxes"></i></div>
+            <div class="dash-stat-value" id="kpiRendementGlobal">${Math.round(data.rendement_total || 0)}</div>
+            <div class="dash-stat-label">Kg estimés</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-membres">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon teal"><i class="fas fa-users"></i></div>
+            <div class="dash-stat-value" id="kpiMembres">${data.total_membres || 0}</div>
+            <div class="dash-stat-label">Membres équipe</div>
         </div>`;
     }
 

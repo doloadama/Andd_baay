@@ -210,21 +210,6 @@
     pointer-events: auto;
 }
 
-.voice-search {
-    right: 10px;
-}
-
-.voice-search.listening {
-    color: var(--accent-dark);
-    background: rgba(57, 255, 20, 0.12);
-    animation: pulseSearch 1.2s infinite;
-}
-
-@keyframes pulseSearch {
-    0%, 100% { transform: translateY(-50%) scale(1); }
-    50% { transform: translateY(-50%) scale(1.08); }
-}
-
 .toolbar-controls {
     display: flex;
     flex-wrap: wrap;

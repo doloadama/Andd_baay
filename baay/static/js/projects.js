@@ -51,7 +51,6 @@ function bindToolbar() {
     const clearBtn = document.getElementById('clearSearch');
     const refreshBtn = document.getElementById('refreshBtn');
     const shortcutsBtn = document.getElementById('shortcutsBtn');
-    const voiceBtn = document.getElementById('voiceSearch');
     let searchTimeout = null;
 
     searchInput?.addEventListener('input', () => {
@@ -81,39 +80,6 @@ function bindToolbar() {
     refreshBtn?.addEventListener('click', refreshPage);
     shortcutsBtn?.addEventListener('click', toggleShortcutsPanel);
     document.getElementById('closeShortcutsBtn')?.addEventListener('click', toggleShortcutsPanel);
-
-    if (!voiceBtn || !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        if (voiceBtn) voiceBtn.style.display = 'none';
-        return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'fr-FR';
-    recognition.continuous = false;
-
-    voiceBtn.addEventListener('click', () => {
-        if (voiceBtn.classList.contains('listening')) {
-            recognition.stop();
-            return;
-        }
-
-        voiceBtn.classList.add('listening');
-        showToast('Ecoute en cours...', 'info');
-        recognition.start();
-    });
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript || '';
-        searchInput.value = transcript;
-        projectsState.search = transcript.toLowerCase().trim();
-        clearBtn?.classList.toggle('is-visible', Boolean(projectsState.search));
-        filterProjects();
-        showToast(`Recherche: "${transcript}"`, 'success');
-    };
-
-    recognition.onerror = () => showToast('Erreur de reconnaissance vocale', 'error');
-    recognition.onend = () => voiceBtn.classList.remove('listening');
 }
 
 function bindSelection() {
@@ -370,7 +336,7 @@ function closeStatusMenu() {
 }
 
 function bindShortcuts() {
-    const createProjectUrl = document.querySelector('.projects-hero-actions .btn-accent')?.getAttribute('href') || '/projets/creer/';
+    const createProjectUrl = document.querySelector('.projects-hero-actions .btn-accent')?.getAttribute('href') || '/creer-projet/';
 
     document.addEventListener('keydown', (event) => {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) {

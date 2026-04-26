@@ -135,6 +135,30 @@
         <div class="dash-stat-value" id="kpiRendement">{{ ferme_rendement|floatformat:0 }}</div>
         <div class="dash-stat-label">Kg estimes ferme</div>
     </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-en-cours">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon teal"><i class="fas fa-play-circle"></i></div>
+        <div class="dash-stat-value" id="kpiEnCours">{{ projets_en_cours }}</div>
+        <div class="dash-stat-label">Projets actifs</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-completion">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="dash-stat-value" id="kpiCompletion">{{ completion_rate }}%</div>
+        <div class="dash-stat-label">Taux de completion</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-membres">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon teal"><i class="fas fa-users"></i></div>
+        <div class="dash-stat-value" id="kpiMembres">{{ ferme_membres }}</div>
+        <div class="dash-stat-label">Membres ferme</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement-ferme">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
+        <div class="dash-stat-value" id="kpiInvestissementFerme">{{ investissement_total|floatformat:0 }}</div>
+        <div class="dash-stat-label">CFA investis</div>
+    </div>
     {% else %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-fermes">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
@@ -159,6 +183,30 @@
         <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
         <div class="dash-stat-value" id="kpiInvestissement">{{ investissement_total|floatformat:0 }}</div>
         <div class="dash-stat-label">CFA investis</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-en-cours">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon blue"><i class="fas fa-play-circle"></i></div>
+        <div class="dash-stat-value" id="kpiEnCours">{{ projets_en_cours }}</div>
+        <div class="dash-stat-label">Projets actifs</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-completion">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon purple"><i class="fas fa-check-circle"></i></div>
+        <div class="dash-stat-value" id="kpiCompletion">{{ completion_rate }}%</div>
+        <div class="dash-stat-label">Taux de completion</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-rendement-global">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon blue"><i class="fas fa-boxes"></i></div>
+        <div class="dash-stat-value" id="kpiRendementGlobal">{{ rendement_total|floatformat:0 }}</div>
+        <div class="dash-stat-label">Kg estimes</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-membres">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon teal"><i class="fas fa-users"></i></div>
+        <div class="dash-stat-value" id="kpiMembres">{{ total_membres }}</div>
+        <div class="dash-stat-label">Membres equipe</div>
     </div>
     {% endif %}
 
@@ -357,23 +405,8 @@
     </div>
     {% endif %}
 
-    <!-- Quick Action -->
-    <div class="bento-tile tile-action animate__animated animate__fadeInUp action-delay" data-tile-id="quick-action">
-        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
-        <div class="bento-content text-center">
-            <div class="quick-action-icon-wrapper">
-                <i class="fas fa-bolt fa-2x text-accent"></i>
-            </div>
-            <h4 class="quick-action-title">Nouveau Projet</h4>
-            <p class="quick-action-desc">Lancez une prédiction IA pour vos cultures.</p>
-            <button class="btn-baay btn-baay-primary w-100" onclick="openQuickAddModal()">
-                <i class="fas fa-plus"></i> Nouveau Projet
-            </button>
-        </div>
-    </div>
-
     <!-- Projects List -->
-    <div class="dash-section span-2 tile-projects" data-tile-id="projects-list">
+    <div class="dash-section span-4 tile-projects" data-tile-id="projects-list">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-section-header" data-toggle="collapse">
             <h3 class="dash-section-title"><i class="fas fa-layer-group"></i> Projets récents</h3>
@@ -381,9 +414,6 @@
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" id="projectSearch" placeholder="Rechercher...">
-                    <button class="voice-search" id="voiceSearch" title="Recherche vocale">
-                        <i class="fas fa-microphone"></i>
-                    </button>
                 </div>
                 <i class="fas fa-chevron-down dash-section-toggle"></i>
             </div>

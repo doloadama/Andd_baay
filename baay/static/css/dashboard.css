@@ -538,35 +538,6 @@
         font-size: 0.8125rem;
     }
     
-    .search-box .voice-search {
-        position: absolute;
-        right: 8px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 50%;
-        transition: all 0.2s ease;
-    }
-    
-    .search-box .voice-search:hover,
-    .search-box .voice-search.listening {
-        color: var(--accent);
-        background: rgba(163, 230, 53, 0.1);
-    }
-    
-    .search-box .voice-search.listening {
-        animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: translateY(-50%) scale(1); }
-        50% { transform: translateY(-50%) scale(1.1); }
-    }
-
     /* Project List */
     .project-list {
         display: flex;
