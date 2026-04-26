@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}Dashboard | Andd Baay{% endblock %}
 
@@ -30,71 +31,136 @@
     </div>
 </div>
 
-<section class="dashboard-spotlight animate__animated animate__fadeInUp">
+<section class="dashboard-spotlight animate__animated animate__fadeInUp" id="spotlightSection">
     <div class="dashboard-spotlight-main">
+        {% if selected_ferme %}
+        <span class="spotlight-kicker"><i class="fas fa-warehouse"></i> Ferme selectionnée</span>
+        <h2 class="spotlight-title">{{ selected_ferme.nom }}</h2>
+        <p class="spotlight-copy">
+            {{ selected_ferme.description|default:"Gerer les projets lies a cette ferme." }}
+            <br><small class="text-muted">{{ selected_ferme.localite.nom|default:"" }}, {{ selected_ferme.pays.nom|default:"" }} — {{ selected_ferme.superficie_totale|default:"?" }} ha</small>
+        </p>
+        <div class="spotlight-actions">
+            <a href="{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}" class="btn-baay btn-baay-primary">
+                <i class="fas fa-plus"></i> Nouveau projet
+            </a>
+            <a href="{% url 'detail_ferme' selected_ferme.id %}" class="btn-baay btn-baay-outline">
+                <i class="fas fa-warehouse"></i> Fiche ferme
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn-baay btn-baay-ghost">
+                <i class="fas fa-globe"></i> Vue globale
+            </a>
+        </div>
+        {% else %}
         <span class="spotlight-kicker">Vue d'ensemble</span>
         <h2 class="spotlight-title">Pilotez vos projets agricoles depuis un tableau de bord plus clair.</h2>
         <p class="spotlight-copy">
-            Gardez les indicateurs importants visibles, filtrez rapidement vos projets et passez a l'action sans quitter la page.
+            {{ nombre_fermes }} ferme(s), {{ projets.count }} projet(s) — Gardez les indicateurs importants visibles et filtrez rapidement.
         </p>
         <div class="spotlight-actions">
             <button class="btn-baay btn-baay-primary" type="button" data-open-quick-add>
                 <i class="fas fa-plus"></i> Nouveau projet
             </button>
-            <a href="{% url 'liste_projets' %}" class="btn-baay btn-baay-outline">
-                <i class="fas fa-layer-group"></i> Voir tous les projets
+            <a href="{% url 'liste_fermes' %}" class="btn-baay btn-baay-outline">
+                <i class="fas fa-warehouse"></i> Mes fermes
+            </a>
+            <a href="{% url 'liste_projets' %}" class="btn-baay btn-baay-ghost">
+                <i class="fas fa-layer-group"></i> Tous les projets
             </a>
         </div>
+        {% endif %}
     </div>
     <div class="dashboard-spotlight-side">
+        {% if selected_ferme %}
         <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Actifs</span>
-            <strong class="spotlight-stat-value" id="spotlightActiveProjects">{{ projets_en_cours }}</strong>
-            <span class="spotlight-stat-meta">projets en cours</span>
+            <span class="spotlight-stat-label">Utilisation</span>
+            <strong class="spotlight-stat-value" id="spotlightFarmUtilisation">{{ ferme_utilisation }}%</strong>
+            <span class="spotlight-stat-meta">{{ ferme_superficie_utilisee|floatformat:0 }}/{{ ferme_superficie|floatformat:0 }} ha</span>
         </div>
         <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">En pause</span>
-            <strong class="spotlight-stat-value" id="spotlightPausedProjects">{{ projets_en_pause }}</strong>
-            <span class="spotlight-stat-meta">a relancer</span>
+            <span class="spotlight-stat-label">Membres</span>
+            <strong class="spotlight-stat-value" id="spotlightFarmMembers">{{ ferme_membres }}</strong>
+            <span class="spotlight-stat-meta">dans cette ferme</span>
         </div>
         <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Taux de clôture</span>
-            <strong class="spotlight-stat-value" id="spotlightCompletionRate">{{ completion_rate }}%</strong>
-            <span class="spotlight-stat-meta">sur la selection</span>
+            <span class="spotlight-stat-label">Projets actifs</span>
+            <strong class="spotlight-stat-value" id="spotlightFarmProjects">{{ projets_en_cours }}</strong>
+            <span class="spotlight-stat-meta">dans cette ferme</span>
         </div>
+        {% else %}
+        <div class="spotlight-stat-card">
+            <span class="spotlight-stat-label">Fermes</span>
+            <strong class="spotlight-stat-value" id="spotlightFarms">{{ nombre_fermes }}</strong>
+            <span class="spotlight-stat-meta">{% if fermes_inactives %}<span class="text-warning">{{ fermes_inactives }} inactive(s)</span>{% else %}actives{% endif %}</span>
+        </div>
+        <div class="spotlight-stat-card">
+            <span class="spotlight-stat-label">Projets</span>
+            <strong class="spotlight-stat-value" id="spotlightProjects">{{ projets.count }}</strong>
+            <span class="spotlight-stat-meta">{{ projets_en_cours }} en cours</span>
+        </div>
+        <div class="spotlight-stat-card">
+            <span class="spotlight-stat-label">Membres</span>
+            <strong class="spotlight-stat-value" id="spotlightMembers">{{ total_membres }}</strong>
+            <span class="spotlight-stat-meta">dans toutes les fermes</span>
+        </div>
+        {% endif %}
     </div>
 </section>
 
 <!-- Stats Grid -->
 <div class="dashboard-grid" id="dashboardGrid">
     <!-- KPI Cards -->
+    {% if selected_ferme %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-projects">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon orange"><i class="fas fa-folder"></i></div>
-        <div class="dash-stat-value" id="kpiTotalProjects">{{ projets|length }}</div>
+        <div class="dash-stat-value" id="kpiTotalProjects">{{ projets.count }}</div>
+        <div class="dash-stat-label">Projets ferme</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-superficie">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon accent"><i class="fas fa-map"></i></div>
+        <div class="dash-stat-value" id="kpiSuperficie">{{ ferme_superficie_utilisee|floatformat:0 }}/{{ ferme_superficie|floatformat:0 }}</div>
+        <div class="dash-stat-label">Ha utilises</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-utilisation">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon purple"><i class="fas fa-chart-pie"></i></div>
+        <div class="dash-stat-value" id="kpiUtilisation">{{ ferme_utilisation }}%</div>
+        <div class="dash-stat-label">Taux utilisation</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-rendement">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon blue"><i class="fas fa-boxes"></i></div>
+        <div class="dash-stat-value" id="kpiRendement">{{ ferme_rendement|floatformat:0 }}</div>
+        <div class="dash-stat-label">Kg estimes ferme</div>
+    </div>
+    {% else %}
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-fermes">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon teal"><i class="fas fa-warehouse"></i></div>
+        <div class="dash-stat-value" id="kpiFermes">{{ nombre_fermes }}</div>
+        <div class="dash-stat-label">Fermes</div>
+    </div>
+    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-projects">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-stat-icon orange"><i class="fas fa-folder"></i></div>
+        <div class="dash-stat-value" id="kpiTotalProjects">{{ projets.count }}</div>
         <div class="dash-stat-label">Projets</div>
     </div>
-
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-superficie">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon accent"><i class="fas fa-map"></i></div>
         <div class="dash-stat-value" id="kpiSuperficie">{{ superficie_totale|floatformat:0 }}</div>
         <div class="dash-stat-label">Hectares</div>
     </div>
-
-    <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-rendement">
-        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
-        <div class="dash-stat-icon blue"><i class="fas fa-boxes"></i></div>
-        <div class="dash-stat-value" id="kpiRendement">{{ rendement_total|floatformat:0 }}</div>
-        <div class="dash-stat-label">Kg estimés</div>
-    </div>
-
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
         <div class="dash-stat-value" id="kpiInvestissement">{{ investissement_total|floatformat:0 }}</div>
         <div class="dash-stat-label">CFA investis</div>
     </div>
+    {% endif %}
 
     <!-- Filters -->
     <div class="dash-section span-4 tile-filters" data-tile-id="filters">
@@ -102,12 +168,21 @@
         <div class="dash-section-header" data-toggle="collapse">
             <h3 class="dash-section-title"><i class="fas fa-filter"></i> Filtres</h3>
             <div class="filter-header-actions">
-                <span class="filter-count" id="filterCount">{{ projets|length }} projet(s)</span>
+                <span class="filter-count" id="filterCount">{{ projets.count }} projet(s)</span>
                 <i class="fas fa-chevron-down dash-section-toggle"></i>
             </div>
         </div>
         <div class="dash-section-body">
             <form id="filterForm" class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Ferme</label>
+                    <select class="filter-select" name="ferme" id="filterFerme">
+                        <option value="">Toutes les fermes</option>
+                        {% for f in fermes %}
+                        <option value="{{ f.id }}" {% if selected_ferme.id == f.id %}selected{% endif %}>{{ f.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="filter-group">
                     <label class="filter-label">Statut</label>
                     <select class="filter-select" name="statut" id="filterStatut">
@@ -136,14 +211,43 @@
                 </div>
                 <div class="filter-actions">
                     <button type="submit" class="filter-btn"><i class="fas fa-search"></i> Filtrer</button>
-                    <button type="button" class="filter-btn secondary" id="resetFilters" title="Réinitialiser (R)"><i
-                            class="fas fa-times"></i></button>
-                    <button type="button" class="filter-btn" id="exportData" title="Exporter (E)">
+                    <button type="button" class="filter-btn secondary" id="resetFilters" title="Réinitialiser (R)"><i class="fas fa-times"></i></button>
+                    <button type="button" class="filter-btn outline" id="exportData" title="Exporter (E)">
                         <i class="fas fa-download"></i> Export
                     </button>
                 </div>
             </form>
             <div class="active-filters hidden" id="activeFilters"></div>
+        </div>
+    </div>
+
+    <!-- Farm Cards Overview -->
+    <div class="dash-section span-4" data-tile-id="farm-cards" id="farmCardsSection" {% if selected_ferme or not fermes_data %}style="display:none"{% endif %}>
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header" data-toggle="collapse">
+            <h3 class="dash-section-title"><i class="fas fa-warehouse"></i> Mes fermes</h3>
+            <i class="fas fa-chevron-down dash-section-toggle"></i>
+        </div>
+        <div class="dash-section-body">
+            <div class="farm-cards-row" style="display: flex; gap: 16px; overflow-x: auto; padding: 8px 0;">
+                {% for fd in fermes_data %}
+                <a href="?ferme={{ fd.ferme.id }}" class="farm-card" style="min-width: 260px; flex: 0 0 auto; background: var(--card-bg); border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; border: 1px solid var(--border-color); transition: transform .2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <strong style="font-size: 1.05rem; color: var(--text-main);">{{ fd.ferme.nom }}</strong>
+                        <span class="badge" style="background: rgba(20,184,166,0.15); color: #14b8a6; font-size: .75rem; padding: 2px 8px; border-radius: 6px;">{{ fd.projets_actifs }} actif{{ fd.projets_actifs|pluralize:"s" }}</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: .85rem; color: var(--text-muted);">
+                        <div><i class="fas fa-folder" style="margin-right: 4px;"></i> {{ fd.projets_count }} projet{{ fd.projets_count|pluralize:"s" }}</div>
+                        <div><i class="fas fa-users" style="margin-right: 4px;"></i> {{ fd.membres_count }} membre{{ fd.membres_count|pluralize:"s" }}</div>
+                        <div><i class="fas fa-map" style="margin-right: 4px;"></i> {{ fd.superficie_ferme|floatformat:0 }} ha</div>
+                        <div><i class="fas fa-chart-pie" style="margin-right: 4px;"></i> {{ fd.utilisation_pct }}% utilise</div>
+                    </div>
+                    <div style="margin-top: 10px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;">
+                        <div class="farm-utilization-bar" data-utilization="{{ fd.utilisation_pct }}" style="width: 0%; max-width: 100%; height: 100%; background: linear-gradient(90deg, #14b8a6, #0ea5e9); border-radius: 2px;"></div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
@@ -237,6 +341,22 @@
         </div>
     </div>
 
+    <!-- Farm Utilization Chart (Global view only) -->
+    {% if not selected_ferme and fermes_data %}
+    <div class="dash-section span-2 tile-chart" data-tile-id="chart-farms">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header" data-toggle="collapse">
+            <h3 class="dash-section-title"><i class="fas fa-warehouse"></i> Utilisation des fermes</h3>
+            <i class="fas fa-chevron-down dash-section-toggle"></i>
+        </div>
+        <div class="dash-section-body">
+            <div class="chart-container">
+                <canvas id="farmUtilizationChart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Quick Action -->
     <div class="bento-tile tile-action animate__animated animate__fadeInUp action-delay" data-tile-id="quick-action">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
@@ -285,7 +405,7 @@
             <div class="project-list" id="projectsList">
                 {% for projet in projets %}
                 <div class="project-item" data-id="{{ projet.id }}" data-status="{{ projet.statut }}"
-                    data-culture="{{ projet.culture.id }}" data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
+                    data-culture="{% if projet.culture %}{{ projet.culture.id }}{% endif %}" data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
                     data-culture-name="{{ projet.culture.nom|default:'N/A' }}"
                     data-nom="{{ projet.nom }}" data-rendement="{{ projet.rendement_estime|default:0 }}"
                     data-superficie="{{ projet.superficie|default:0 }}"
@@ -300,6 +420,7 @@
                             {{ projet.nom }}
                         </div>
                         <div class="project-meta">
+                            {% if not selected_ferme and projet.ferme %}<span class="farm-badge"><i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}</span>{% endif %}
                             <span><i class="fas fa-seedling"></i> {{ projet.culture.nom|default:"N/A" }}</span>
                             <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
                         </div>
@@ -351,9 +472,9 @@
             <div class="empty-state">
                 <i class="fas fa-folder-open"></i>
                 <h4>Aucun projet</h4>
-                <p>Commencez par créer votre premier projet agricole.</p>
-                <a href="{% url 'creer_projet' %}" class="btn-baay btn-baay-primary mt-3">
-                    <i class="fas fa-plus"></i> Créer mon premier projet
+                <p>{% if selected_ferme %}Cette ferme n'a pas encore de projet.{% else %}Commencez par créer votre premier projet agricole.{% endif %}</p>
+                <a href="{% if selected_ferme %}{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}{% else %}{% url 'creer_projet' %}{% endif %}" class="btn-baay btn-baay-primary mt-3">
+                    <i class="fas fa-plus"></i> Créer un projet
                 </a>
             </div>
             {% endif %}
@@ -406,7 +527,7 @@
                     <select name="ferme" required>
                         <option value="">Sélectionner une ferme...</option>
                         {% for ferme in fermes %}
-                        <option value="{{ ferme.id }}">{{ ferme.nom }}</option>
+                        <option value="{{ ferme.id }}" {% if selected_ferme and selected_ferme.id == ferme.id %}selected{% endif %}>{{ ferme.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -504,6 +625,90 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
 <!-- Dashboard Logic -->
 <script src="{% static 'js/dashboard.js' %}"></script>
+
+<!-- Farm Utilization Chart (inline data from context) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.farm-utilization-bar').forEach(function(bar) {
+        const value = Math.min(Number(bar.dataset.utilization || 0), 100);
+        bar.style.width = `${value}%`;
+    });
+
+    const farmCanvas = document.getElementById('farmUtilizationChart');
+    if (farmCanvas && typeof Chart !== 'undefined') {
+        const farmChartData = JSON.parse('{{ fermes_chart_data_json|escapejs }}');
+        const farmLabels = farmChartData.map(farm => farm.nom);
+        const farmUtilData = farmChartData.map(farm => farm.utilisation_pct);
+        const farmSuperficie = farmChartData.map(farm => farm.superficie_ferme);
+        const fermeIds = farmChartData.map(farm => farm.id);
+        const isDark = document.body.classList.contains('dark-mode');
+        const textColor = isDark ? '#e0e0e0' : '#333333';
+
+        window.farmUtilizationChart = new Chart(farmCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: farmLabels,
+                datasets: [{
+                    label: 'Taux utilisation (%)',
+                    data: farmUtilData,
+                    backgroundColor: farmUtilData.map(v => v > 90 ? 'rgba(226, 114, 91, 0.8)' : v > 50 ? 'rgba(57, 255, 20, 0.6)' : 'rgba(14, 165, 233, 0.6)'),
+                    borderColor: farmUtilData.map(v => v > 90 ? '#E2725B' : v > 50 ? '#39FF14' : '#0ea5e9'),
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, max: 100, ticks: { color: textColor }, grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' } },
+                    y: { ticks: { color: textColor }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                        titleColor: '#e0e0e0',
+                        bodyColor: '#39FF14',
+                        callbacks: {
+                            label: function(ctx) {
+                                const idx = ctx.dataIndex;
+                                return `Utilisation: ${ctx.raw}% (${farmSuperficie[idx]} ha total)`;
+                            }
+                        }
+                    }
+                },
+                onClick: function(event, elements) {
+                    if (elements.length > 0) {
+                        const idx = elements[0].index;
+                        const fermeId = String(fermeIds[idx]);
+                        const fermeSelect = document.getElementById('filterFerme');
+                        if (fermeSelect) fermeSelect.value = fermeId;
+                        if (typeof applyFarmFilter === 'function') {
+                            applyFarmFilter(fermeId);
+                        } else {
+                            window.location.href = '?ferme=' + fermeId;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update colors when theme changes
+        window.addEventListener('themeChanged', function() {
+            if (!window.farmUtilizationChart) return;
+            const newDark = document.body.classList.contains('dark-mode');
+            const newText = newDark ? '#e0e0e0' : '#333333';
+            const newGrid = newDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+            window.farmUtilizationChart.options.scales.x.ticks.color = newText;
+            window.farmUtilizationChart.options.scales.x.grid.color = newGrid;
+            window.farmUtilizationChart.options.scales.y.ticks.color = newText;
+            window.farmUtilizationChart.update('none');
+        });
+    }
+});
+</script>
 
 {% csrf_token %}
 {% endblock %}

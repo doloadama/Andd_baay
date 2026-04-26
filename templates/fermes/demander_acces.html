@@ -5,10 +5,8 @@
         <div class="col-lg-6">
             <div class="glass-form-card">
                 <div class="card-header-modern">
-                    <h4><i class="fas fa-user-plus text-accent me-2"></i>Ajouter un membre à {{ ferme.nom }}</h4>
-                    {% if not is_proprietaire %}
-                    <p class="text-muted small mb-0">Vous avez reçu la délégation pour ajouter des membres. Seul le propriétaire peut déléguer ce droit à un nouveau membre.</p>
-                    {% endif %}
+                    <h4><i class="fas fa-key text-accent me-2"></i>Demander l'accès à une ferme</h4>
+                    <p class="text-muted small mb-0">Saisissez le code transmis par le propriétaire. Une demande lui sera envoyée par email pour validation.</p>
                 </div>
                 <div class="card-body p-4 p-md-5">
                     <form method="post" class="modern-form">
@@ -21,8 +19,8 @@
                         </div>
                         {% endfor %}
                         <div class="d-flex gap-3 mt-4">
-                            <button type="submit" class="btn-submit-modern"><i class="fas fa-save"></i> Ajouter</button>
-                            <a href="{% url 'detail_ferme' ferme.id %}" class="btn btn-outline-light px-4">Annuler</a>
+                            <button type="submit" class="btn-submit-modern"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
+                            <a href="{% url 'liste_fermes' %}" class="btn btn-outline-light px-4">Annuler</a>
                         </div>
                     </form>
                 </div>

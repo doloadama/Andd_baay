@@ -262,6 +262,8 @@
     .dash-stat-icon.blue { background: var(--info-subtle); color: var(--info); }
     .dash-stat-icon.green { background: var(--success-subtle); color: var(--success); }
     .dash-stat-icon.orange { background: var(--warning-subtle); color: var(--warning); }
+    .dash-stat-icon.purple { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+    .dash-stat-icon.teal { background: rgba(20, 184, 166, 0.12); color: #14b8a6; }
     
     .dark-mode .dash-stat-icon.accent { color: var(--accent); }
     
@@ -402,20 +404,21 @@
         padding: var(--space-3) var(--space-4);
         border: none;
         border-radius: var(--radius-sm);
-        background: var(--text-main);
-        color: var(--text-inverse);
-        font-weight: 500;
+        background: linear-gradient(135deg, var(--neon-green), #2db300);
+        color: #022c22;
+        font-weight: 600;
         font-size: 0.875rem;
         cursor: pointer;
         transition: all var(--transition);
         display: flex;
         align-items: center;
         gap: var(--space-2);
+        box-shadow: 0 2px 8px rgba(57, 255, 20, 0.18);
     }
     
     .filter-btn:hover {
-        opacity: 0.9;
         transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(57, 255, 20, 0.3);
     }
     
     .filter-btn.secondary {
@@ -429,6 +432,18 @@
         color: var(--accent);
         background: var(--bg-main);
         box-shadow: none;
+    }
+    
+    .filter-btn.outline {
+        background: transparent;
+        border: 1px solid var(--neon-green);
+        color: var(--neon-green);
+        box-shadow: none;
+    }
+    
+    .filter-btn.outline:hover {
+        background: rgba(57, 255, 20, 0.1);
+        box-shadow: 0 4px 12px rgba(57, 255, 20, 0.15);
     }
     
     /* Active Filters Chips */
@@ -569,7 +584,7 @@
         padding: var(--space-4);
         border: 1px solid var(--border-color);
         border-radius: 18px;
-        background: linear-gradient(180deg, var(--bg-main), rgba(252, 252, 251, 0.72));
+        background: linear-gradient(180deg, var(--bg-main), var(--bg-secondary));
         cursor: pointer;
         transition: all 0.2s ease;
         position: relative;
@@ -1331,6 +1346,21 @@
         color: var(--text-main);
     }
 
+/* Farm Card */
+.farm-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent) !important;
+    box-shadow: 0 8px 24px rgba(57, 255, 20, 0.1);
+}
+
+.farm-badge {
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+    font-size: .75rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
 /* ===== NEW UTILITY CLASSES ADDED FOR REDESIGN ===== */
 .dash-subtitle { margin-bottom: 4px; }
 .filter-header-actions { display: flex; align-items: center; gap: 12px; }
@@ -1340,7 +1370,7 @@
 .quick-action-icon-wrapper { width: 80px; height: 80px; background: rgba(163, 230, 53, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
 .text-accent { color: var(--accent); }
 .quick-action-title { color: var(--text-main); font-family: var(--font-display); font-weight: 700; margin-bottom: 12px; }
-.quick-action-desc { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 24px; }
+.quick-action-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
 .hidden { display: none !important; }
 .p-0 { padding: 0 !important; }
 .p-1 { padding: 2px !important; }

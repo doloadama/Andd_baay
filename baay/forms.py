@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme
+import json
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme, DemandeAccesFerme
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -315,6 +316,10 @@ class FermeForm(forms.ModelForm):
         self.fields['pays'].label_from_instance = lambda obj: obj.nom
         self.fields['localite'].queryset = Localite.objects.all().order_by('nom')
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
+        self.localites_mapping_json = json.dumps({
+            str(localite.id): str(localite.pays_id or '')
+            for localite in self.fields['localite'].queryset
+        })
 
 
 class MembreFermeForm(forms.Form):
@@ -328,10 +333,18 @@ class MembreFermeForm(forms.Form):
         label="Rôle",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    peut_gerer_membres = forms.BooleanField(
+        required=False,
+        label="Autoriser à ajouter des membres",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
 
-    def __init__(self, *args, ferme=None, **kwargs):
+    def __init__(self, *args, ferme=None, can_delegate_members=False, **kwargs):
         self.ferme = ferme
+        self.can_delegate_members = can_delegate_members
         super().__init__(*args, **kwargs)
+        if not self.can_delegate_members:
+            self.fields.pop('peut_gerer_membres')
 
     def clean_username(self):
         from django.contrib.auth.models import User
@@ -354,3 +367,32 @@ class MembreFermeForm(forms.Form):
                 raise forms.ValidationError("Cet utilisateur est déjà membre de la ferme.")
 
         return user.profile
+
+
+class DemandeAccesFermeForm(forms.Form):
+    code = forms.CharField(
+        max_length=12,
+        label="Code de la ferme",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Saisissez le code transmis par la ferme"})
+    )
+
+    def __init__(self, *args, user_profile=None, **kwargs):
+        self.user_profile = user_profile
+        super().__init__(*args, **kwargs)
+
+    def clean_code(self):
+        code = self.cleaned_data['code'].strip()
+        try:
+            ferme = Ferme.objects.get(code_acces__iexact=code)
+        except Ferme.DoesNotExist:
+            raise forms.ValidationError("Aucune ferme ne correspond à ce code.")
+
+        if self.user_profile:
+            if ferme.proprietaire == self.user_profile:
+                raise forms.ValidationError("Vous êtes déjà propriétaire de cette ferme.")
+            if ferme.membres.filter(utilisateur=self.user_profile).exists():
+                raise forms.ValidationError("Vous êtes déjà membre de cette ferme.")
+            if DemandeAccesFerme.objects.filter(ferme=ferme, utilisateur=self.user_profile, statut='en_attente').exists():
+                raise forms.ValidationError("Une demande est déjà en attente pour cette ferme.")
+
+        return ferme
