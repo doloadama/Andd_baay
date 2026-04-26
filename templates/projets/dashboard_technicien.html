@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .role-dash { padding:2.5rem 0; }
+    .role-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+    .role-header h1 { font-size:1.7rem; font-weight:700; margin:0; color:var(--text-main); }
+    .role-header p { margin:.3rem 0 0; color:var(--text-muted); }
+    .role-badge { display:inline-block; background:#dbeafe; color:#1e40af; padding:.25rem .8rem; border-radius:999px; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.5rem; }
+    .ferme-switch { background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:.5rem .75rem; }
+    .ferme-switch select { border:none; background:transparent; color:var(--text-main); font-weight:600; outline:none; }
+
+    .kpi-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.75rem; }
+    .kpi { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1.1rem 1.2rem; }
+    .kpi .label { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); }
+    .kpi .value { font-size:1.8rem; font-weight:700; color:var(--text-main); margin-top:.2rem; }
+    .kpi .sub { font-size:.78rem; color:var(--text-muted); margin-top:.2rem; }
+    .kpi.k1 { border-left:4px solid #10b981; }
+    .kpi.k2 { border-left:4px solid #3b82f6; }
+    .kpi.k3 { border-left:4px solid #f59e0b; }
+
+    .panels { display:grid; grid-template-columns: 1.5fr 1fr; gap:1.25rem; }
+    @media (max-width:980px){ .panels { grid-template-columns:1fr; } }
+    .panel { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1.25rem 1.4rem; }
+    .panel h2 { font-size:1.05rem; font-weight:700; margin:0 0 1rem; color:var(--text-main); display:flex; align-items:center; gap:.5rem; }
+    .panel h2 .more { font-size:.8rem; font-weight:500; margin-left:auto; }
+
+    .culture-card { padding:.85rem 0; border-bottom:1px solid var(--border-color); }
+    .culture-card:last-child { border-bottom:none; }
+    .culture-head { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; }
+    .culture-name { font-weight:600; color:var(--text-main); margin:0; text-decoration:none; }
+    .culture-name:hover { color:var(--accent); }
+    .culture-meta { font-size:.82rem; color:var(--text-muted); }
+    .progress-track { height:8px; background:var(--bg-secondary); border-radius:999px; overflow:hidden; margin-top:.55rem; }
+    .progress-track > span { display:block; height:100%; background:linear-gradient(90deg, #10b981, #3b82f6); }
+    .progression-label { font-size:.75rem; color:var(--text-muted); margin-top:.2rem; display:flex; justify-content:space-between; }
+    .badge-prev { background:#ede9fe; color:#5b21b6; padding:.2rem .55rem; border-radius:999px; font-size:.7rem; font-weight:600; }
+
+    .recolte-line { display:flex; justify-content:space-between; align-items:center; padding:.55rem 0; border-bottom:1px dashed var(--border-color); font-size:.9rem; }
+    .recolte-line:last-child { border-bottom:none; }
+
+    .tache-line { display:flex; gap:.65rem; align-items:center; padding:.55rem 0; border-bottom:1px dashed var(--border-color); font-size:.88rem; }
+    .tache-line:last-child { border-bottom:none; }
+    .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+    .dot-a_faire { background:#f59e0b; } .dot-en_cours { background:#3b82f6; } .dot-terminee { background:#10b981; } .dot-annulee { background:#9ca3af; }
+    .empty { text-align:center; color:var(--text-muted); padding:1.5rem; font-size:.9rem; }
+</style>
+
+<div class="container role-dash">
+    <div class="role-header">
+        <div>
+            <span class="role-badge"><i class="fas fa-microscope me-1"></i>Technicien</span>
+            <h1>Évolution des cultures · {{ ferme.nom }}</h1>
+            <p>Suivi du cycle des projets, prévisions de récolte et tâches du jour.</p>
+        </div>
+
+        {% if fermes|length > 1 %}
+        <form method="get" class="ferme-switch">
+            <i class="fas fa-warehouse me-1 text-muted"></i>
+            <select name="ferme" onchange="this.form.submit()">
+                {% for f in fermes %}
+                <option value="{{ f.id }}" {% if f.id == ferme.id %}selected{% endif %}>{{ f.nom }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="kpi-row">
+        <div class="kpi k1">
+            <div class="label">Projets actifs</div>
+            <div class="value">{{ nb_projets_actifs }}</div>
+            <div class="sub">Cycles en cours sur la ferme</div>
+        </div>
+        <div class="kpi k2">
+            <div class="label">Cultures suivies</div>
+            <div class="value">{{ cultures_distinctes }}</div>
+            <div class="sub">Diversité des produits</div>
+        </div>
+        <div class="kpi k3">
+            <div class="label">Récoltes à venir</div>
+            <div class="value">{{ recoltes_a_venir|length }}</div>
+            <div class="sub">Sur les 6 prochaines</div>
+        </div>
+    </div>
+
+    <div class="panels">
+        <div class="panel">
+            <h2>
+                <i class="fas fa-seedling text-accent"></i> Évolution des projets
+                <a href="{% url 'liste_projets' %}?ferme={{ ferme.id }}" class="more">Tous →</a>
+            </h2>
+            {% if projets_data %}
+                {% for d in projets_data %}
+                <div class="culture-card">
+                    <div class="culture-head">
+                        <div>
+                            <a href="{% url 'detail_projet' d.projet.id %}" class="culture-name">{{ d.projet.nom }}</a>
+                            <div class="culture-meta">
+                                <i class="fas fa-leaf"></i> {{ d.projet.culture.nom|default:'—' }} ·
+                                <i class="fas fa-vector-square"></i> {{ d.projet.superficie|floatformat:1 }} ha ·
+                                <i class="fas fa-calendar"></i> Lancé le {{ d.projet.date_lancement|date:"d M Y" }}
+                            </div>
+                        </div>
+                        {% if d.prevision %}
+                            <span class="badge-prev">
+                                <i class="fas fa-chart-line"></i>
+                                {{ d.prevision.rendement_estime_min|floatformat:1 }}–{{ d.prevision.rendement_estime_max|floatformat:1 }} t
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="progress-track"><span style="width:{{ d.progression }}%"></span></div>
+                    <div class="progression-label">
+                        <span>{{ d.jours_ecoules }} j écoulé(s)</span>
+                        <span>{{ d.progression }}% du cycle</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">Aucun projet à suivre dans cette ferme.</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <div class="panel mb-3">
+                <h2><i class="fas fa-calendar-day text-accent"></i> Prochaines récoltes</h2>
+                {% if recoltes_a_venir %}
+                    {% for r in recoltes_a_venir %}
+                    <div class="recolte-line">
+                        <a href="{% url 'detail_projet' r.projet.id %}" class="text-decoration-none fw-semibold">{{ r.projet.nom }}</a>
+                        <span class="text-muted">{{ r.date|date:"d M Y" }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty small">Aucune date de récolte planifiée.</div>
+                {% endif %}
+            </div>
+
+            <div class="panel">
+                <h2>
+                    <i class="fas fa-list-check text-accent"></i> Mes tâches
+                    <a href="{% url 'taches_liste' %}?ferme={{ ferme.id }}" class="more">Toutes →</a>
+                </h2>
+                {% if mes_taches %}
+                    {% for t in mes_taches %}
+                    <div class="tache-line">
+                        <span class="dot dot-{{ t.statut }}"></span>
+                        <a href="{% url 'tache_detail' t.id %}" class="text-decoration-none flex-grow-1">
+                            <div class="fw-semibold text-truncate">{{ t.titre }}</div>
+                            <div class="small text-muted">
+                                {% if t.assigne_a == utilisateur %}reçue de {{ t.assigne_par.user.username|default:'—' }}{% else %}assignée à {{ t.assigne_a.user.username }}{% endif %}
+                                {% if t.date_echeance %}· {{ t.date_echeance|date:"d M" }}{% endif %}
+                                {% if t.est_en_retard %}<span class="text-danger fw-bold">· retard</span>{% endif %}
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty small">Aucune tâche pour vous.</div>
+                {% endif %}
+                <div class="mt-3 text-end">
+                    <a href="{% url 'creer_tache_ferme' ferme.id %}" class="btn-baay btn-baay-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i> Nouvelle tâche
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

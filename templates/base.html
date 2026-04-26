@@ -1820,6 +1820,12 @@
                                 <i class="fas fa-seedling"></i> Semis
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link-modern {% if 'tache' in request.resolver_match.url_name %}active{% endif %}"
+                                href="{% url 'taches_liste' %}">
+                                <i class="fas fa-list-check"></i> Tâches
+                            </a>
+                        </li>
                         <li class="nav-item me-lg-2">
                             <a class="btn-baay btn-baay-primary py-2 px-3" href="{% url 'creer_projet' %}">
                                 <i class="fas fa-plus"></i> Nouveau

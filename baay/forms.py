@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 import json
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme, DemandeAccesFerme
+from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme, DemandeAccesFerme, Tache
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -447,3 +447,106 @@ class DemandeAccesFermeForm(forms.Form):
                 raise forms.ValidationError("Une demande est déjà en attente pour cette ferme.")
 
         return ferme
+
+
+class TacheForm(forms.ModelForm):
+    """Création / modification d'une tâche, avec restriction hiérarchique des assignations.
+
+    Le formulaire est instancié avec :
+        TacheForm(..., ferme=<Ferme>, auteur=<Profile>)
+    et limite dynamiquement le queryset `assigne_a` aux membres assignables
+    selon le rôle de l'auteur dans la ferme.
+    """
+
+    class Meta:
+        model = Tache
+        fields = ['titre', 'description', 'projet', 'assigne_a', 'priorite', 'date_echeance']
+        widgets = {
+            'titre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex. Préparer la parcelle nord'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Détails, consignes, matériel...'}),
+            'projet': forms.Select(attrs={'class': 'form-control'}),
+            'assigne_a': forms.Select(attrs={'class': 'form-control'}),
+            'priorite': forms.Select(attrs={'class': 'form-control'}),
+            'date_echeance': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+        labels = {
+            'titre': 'Titre',
+            'description': 'Description',
+            'projet': 'Projet concerné (optionnel)',
+            'assigne_a': 'Assigné à',
+            'priorite': 'Priorité',
+            'date_echeance': "Date d'échéance",
+        }
+
+    def __init__(self, *args, ferme=None, auteur=None, **kwargs):
+        self.ferme = ferme
+        self.auteur = auteur
+        super().__init__(*args, **kwargs)
+
+        # Limiter les projets aux projets de la ferme
+        if ferme is not None:
+            self.fields['projet'].queryset = Projet.objects.filter(ferme=ferme).order_by('nom')
+        self.fields['projet'].required = False
+        self.fields['projet'].empty_label = '— Aucun (tâche générale) —'
+
+        # Limiter les assignés possibles selon la hiérarchie
+        if ferme is not None and auteur is not None:
+            role_auteur = Tache.role_dans_ferme(auteur, ferme)
+            roles_cibles = Tache.roles_assignables_par(role_auteur)
+            membres_qs = MembreFerme.objects.filter(
+                ferme=ferme, role__in=roles_cibles
+            ).select_related('utilisateur__user')
+            profile_ids = list(membres_qs.values_list('utilisateur_id', flat=True))
+            self.fields['assigne_a'].queryset = (
+                Profile.objects.filter(id__in=profile_ids)
+                .select_related('user')
+                .order_by('user__username')
+            )
+            self.fields['assigne_a'].label_from_instance = lambda p: (
+                f"{p.user.get_full_name() or p.user.username} "
+                f"({next((m.get_role_display() for m in membres_qs if m.utilisateur_id == p.id), '')})"
+            )
+
+    def clean(self):
+        cleaned = super().clean()
+        projet = cleaned.get('projet')
+        assigne_a = cleaned.get('assigne_a')
+
+        if projet and self.ferme and projet.ferme_id != self.ferme.id:
+            raise forms.ValidationError("Le projet sélectionné n'appartient pas à cette ferme.")
+
+        if assigne_a and self.ferme and self.auteur:
+            role_auteur = Tache.role_dans_ferme(self.auteur, self.ferme)
+            roles_autorises = Tache.roles_assignables_par(role_auteur)
+            if not roles_autorises:
+                raise forms.ValidationError(
+                    "Votre rôle ne vous permet pas de créer des tâches dans cette ferme."
+                )
+            membre_cible = self.ferme.membres.filter(utilisateur=assigne_a).first()
+            if membre_cible is None or membre_cible.role not in roles_autorises:
+                raise forms.ValidationError(
+                    "Vous ne pouvez pas assigner une tâche à ce membre (hiérarchie non respectée)."
+                )
+
+        echeance = cleaned.get('date_echeance')
+        if echeance:
+            from django.utils.timezone import now as _now
+            if echeance < _now().date():
+                self.add_error('date_echeance', "L'échéance ne peut pas être dans le passé.")
+
+        return cleaned
+
+
+class TacheStatutForm(forms.Form):
+    """Mise à jour du statut d'une tâche par son assigné (ou un supérieur)."""
+    statut = forms.ChoiceField(
+        choices=Tache.STATUT_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Nouveau statut',
+    )
+    commentaire_retour = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3,
+                                     'placeholder': 'Commentaire (optionnel)'}),
+        label='Commentaire',
+    )

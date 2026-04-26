@@ -314,6 +314,108 @@ class PrevisionRecolte(models.Model):
         return f"Prévision pour {self.projet.nom} ({self.indice_confiance or 0}%)"
 
 
+class Tache(models.Model):
+    """Tâche assignée à un membre d'une ferme par un supérieur hiérarchique.
+
+    Hiérarchie d'attribution :
+      - Propriétaire : peut assigner à manager, technicien, ouvrier
+      - Manager      : peut assigner à technicien, ouvrier
+      - Technicien   : peut assigner à ouvrier
+      - Ouvrier      : ne peut pas créer de tâches (exécute uniquement)
+
+    L'assigné peut faire évoluer le statut de SES tâches (à_faire → en_cours →
+    terminée) et ajouter un commentaire de retour. Le créateur ou le
+    propriétaire de la ferme peut annuler ou supprimer.
+    """
+    PRIORITE_CHOICES = [
+        ('basse', 'Basse'),
+        ('normale', 'Normale'),
+        ('haute', 'Haute'),
+        ('urgente', 'Urgente'),
+    ]
+    STATUT_CHOICES = [
+        ('a_faire', 'À faire'),
+        ('en_cours', 'En cours'),
+        ('terminee', 'Terminée'),
+        ('annulee', 'Annulée'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='taches')
+    projet = models.ForeignKey(
+        Projet, on_delete=models.SET_NULL, related_name='taches',
+        null=True, blank=True,
+        help_text="Projet concerné par la tâche (optionnel)."
+    )
+    titre = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    assigne_a = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='taches_recues',
+        help_text="Membre à qui la tâche est assignée."
+    )
+    assigne_par = models.ForeignKey(
+        Profile, on_delete=models.SET_NULL, null=True, related_name='taches_creees',
+        help_text="Auteur de la tâche."
+    )
+    priorite = models.CharField(max_length=10, choices=PRIORITE_CHOICES, default='normale')
+    statut = models.CharField(max_length=10, choices=STATUT_CHOICES, default='a_faire')
+    date_echeance = models.DateField(null=True, blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+    date_terminee = models.DateTimeField(null=True, blank=True)
+    commentaire_retour = models.TextField(
+        blank=True,
+        help_text="Commentaire laissé par l'assigné lors de la mise à jour."
+    )
+
+    class Meta:
+        ordering = ['-date_creation']
+        indexes = [
+            models.Index(fields=['ferme', 'statut']),
+            models.Index(fields=['assigne_a', 'statut']),
+        ]
+
+    def __str__(self):
+        return f"{self.titre} → {self.assigne_a.user.username} ({self.get_statut_display()})"
+
+    @property
+    def est_en_retard(self):
+        if not self.date_echeance or self.statut in ('terminee', 'annulee'):
+            return False
+        from django.utils.timezone import now as _now
+        return self.date_echeance < _now().date()
+
+    @staticmethod
+    def role_dans_ferme(profile, ferme):
+        """Retourne 'proprietaire' / 'manager' / 'technicien' / 'ouvrier' / None."""
+        if ferme.proprietaire_id == profile.id:
+            return 'proprietaire'
+        membre = ferme.membres.filter(utilisateur=profile).first()
+        return membre.role if membre else None
+
+    @staticmethod
+    def roles_assignables_par(role):
+        """Rôles qu'un utilisateur peut assigner selon son propre rôle."""
+        return {
+            'proprietaire': ['manager', 'technicien', 'ouvrier'],
+            'manager': ['technicien', 'ouvrier'],
+            'technicien': ['ouvrier'],
+            'ouvrier': [],
+            None: [],
+        }.get(role, [])
+
+    def peut_etre_modifiee_par(self, profile):
+        """Le créateur, le propriétaire de la ferme, ou l'assigné (statut/commentaire)."""
+        if self.assigne_par_id == profile.id:
+            return True
+        if self.ferme.proprietaire_id == profile.id:
+            return True
+        return False
+
+    def peut_changer_statut(self, profile):
+        return self.assigne_a_id == profile.id or self.peut_etre_modifiee_par(profile)
+
+
 
 
 

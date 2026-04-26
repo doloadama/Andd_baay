@@ -73,6 +73,12 @@ urlpatterns = [
     path('fermes/<uuid:ferme_id>/membres/<uuid:membre_id>/retirer/', views.retirer_membre_ferme, name='retirer_membre_ferme'),
     path('fermes/demander-acces/', views.demander_acces_ferme, name='demander_acces_ferme'),
     path('fermes/<uuid:ferme_id>/demandes/<uuid:demande_id>/<str:action>/', views.traiter_demande_acces_ferme, name='traiter_demande_acces_ferme'),
+
+    # Tâches (Tasks)
+    path('taches/', views.taches_liste, name='taches_liste'),
+    path('taches/creer/', views.creer_tache, name='creer_tache'),
+    path('fermes/<uuid:ferme_id>/taches/creer/', views.creer_tache, name='creer_tache_ferme'),
+    path('tache/<uuid:tache_id>/', views.tache_detail, name='tache_detail'),
 ]
 
 if settings.DEBUG:

@@ -8,6 +8,7 @@ from baay.models import (
     DemandeAccesFerme,
     Ferme,
     MembreFerme,
+    Tache,
 )
 
 
@@ -252,3 +253,188 @@ class TraiterDemandeAccesTests(TestCase):
         self.assertEqual(resp.status_code, 404)
         self.demande.refresh_from_db()
         self.assertEqual(self.demande.statut, 'en_attente')
+
+
+class TacheTests(TestCase):
+    """Hiérarchie d'attribution + permissions des tâches."""
+
+    def setUp(self):
+        self.owner = _create_user('t_owner', 'owner@t.test')
+        self.manager = _create_user('t_manager', 'mgr@t.test')
+        self.tech = _create_user('t_tech', 'tech@t.test')
+        self.ouvrier = _create_user('t_ouvrier', 'ouv@t.test')
+        self.outsider = _create_user('t_outsider', 'out@t.test')
+
+        self.ferme = Ferme.objects.create(nom='F-Tache', proprietaire=self.owner.profile)
+        MembreFerme.objects.create(ferme=self.ferme, utilisateur=self.manager.profile, role='manager')
+        MembreFerme.objects.create(ferme=self.ferme, utilisateur=self.tech.profile, role='technicien')
+        MembreFerme.objects.create(ferme=self.ferme, utilisateur=self.ouvrier.profile, role='ouvrier')
+
+    # --- Hiérarchie : qui peut assigner à qui ---
+
+    def test_owner_peut_assigner_a_manager(self):
+        self.client.login(username='t_owner', password='pass12345')
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'T1', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.manager.profile.id,
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Tache.objects.filter(titre='T1', assigne_a=self.manager.profile).exists())
+
+    def test_manager_peut_assigner_a_ouvrier(self):
+        self.client.login(username='t_manager', password='pass12345')
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'T2', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.ouvrier.profile.id,
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Tache.objects.filter(titre='T2').exists())
+
+    def test_manager_ne_peut_pas_assigner_a_owner_ni_manager(self):
+        self.client.login(username='t_manager', password='pass12345')
+        # Le formulaire restreint le queryset → la valeur sera invalide
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'NOPE', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.owner.profile.id,
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Tache.objects.filter(titre='NOPE').exists())
+
+    def test_technicien_peut_assigner_a_ouvrier(self):
+        self.client.login(username='t_tech', password='pass12345')
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'T3', 'description': '', 'priorite': 'haute',
+            'assigne_a': self.ouvrier.profile.id,
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Tache.objects.filter(titre='T3').exists())
+
+    def test_technicien_ne_peut_pas_assigner_a_manager(self):
+        self.client.login(username='t_tech', password='pass12345')
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'NOPE2', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.manager.profile.id,
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Tache.objects.filter(titre='NOPE2').exists())
+
+    def test_ouvrier_ne_peut_pas_creer_tache(self):
+        self.client.login(username='t_ouvrier', password='pass12345')
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'NOPE3', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.ouvrier.profile.id,
+        })
+        self.assertEqual(resp.status_code, 302)  # redirigé vers liste avec message
+        self.assertFalse(Tache.objects.filter(titre='NOPE3').exists())
+
+    def test_outsider_ne_peut_pas_creer_tache(self):
+        self.client.login(username='t_outsider', password='pass12345')
+        # outsider n'est membre d'aucune ferme → page 404 sur creer_tache_ferme
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'NOPE4', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.ouvrier.profile.id,
+        })
+        self.assertIn(resp.status_code, (302, 404))
+        self.assertFalse(Tache.objects.filter(titre='NOPE4').exists())
+
+    # --- Email à la création ---
+
+    def test_email_envoye_a_lassigne(self):
+        self.client.login(username='t_owner', password='pass12345')
+        mail.outbox = []
+        self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'T-mail', 'description': 'desc', 'priorite': 'normale',
+            'assigne_a': self.ouvrier.profile.id,
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('ouv@t.test', mail.outbox[0].to)
+        self.assertIn('T-mail', mail.outbox[0].subject)
+
+    # --- Liste filtrée par rôle ---
+
+    def test_ouvrier_voit_uniquement_ses_taches(self):
+        Tache.objects.create(ferme=self.ferme, titre='Pour ouvrier',
+                             assigne_a=self.ouvrier.profile, assigne_par=self.manager.profile)
+        Tache.objects.create(ferme=self.ferme, titre='Pour manager',
+                             assigne_a=self.manager.profile, assigne_par=self.owner.profile)
+        self.client.login(username='t_ouvrier', password='pass12345')
+        resp = self.client.get(reverse('taches_liste'))
+        self.assertContains(resp, 'Pour ouvrier')
+        self.assertNotContains(resp, 'Pour manager')
+
+    def test_manager_voit_taches_de_la_ferme(self):
+        Tache.objects.create(ferme=self.ferme, titre='X1',
+                             assigne_a=self.ouvrier.profile, assigne_par=self.tech.profile)
+        self.client.login(username='t_manager', password='pass12345')
+        resp = self.client.get(reverse('taches_liste'))
+        self.assertContains(resp, 'X1')
+
+    # --- Changement de statut ---
+
+    def test_assigne_peut_changer_statut(self):
+        tache = Tache.objects.create(ferme=self.ferme, titre='C1',
+                                     assigne_a=self.ouvrier.profile, assigne_par=self.manager.profile)
+        self.client.login(username='t_ouvrier', password='pass12345')
+        resp = self.client.post(reverse('tache_detail', args=[tache.id]), {
+            'action': 'changer_statut',
+            'statut': 'terminee',
+            'commentaire_retour': 'fait',
+        })
+        self.assertEqual(resp.status_code, 302)
+        tache.refresh_from_db()
+        self.assertEqual(tache.statut, 'terminee')
+        self.assertIsNotNone(tache.date_terminee)
+        self.assertEqual(tache.commentaire_retour, 'fait')
+
+    def test_non_assigne_ne_peut_pas_changer_statut(self):
+        tache = Tache.objects.create(ferme=self.ferme, titre='C2',
+                                     assigne_a=self.ouvrier.profile, assigne_par=self.manager.profile)
+        self.client.login(username='t_tech', password='pass12345')
+        # Le technicien n'est ni créateur ni assigné → action refusée
+        self.client.post(reverse('tache_detail', args=[tache.id]), {
+            'action': 'changer_statut',
+            'statut': 'terminee',
+        })
+        tache.refresh_from_db()
+        self.assertEqual(tache.statut, 'a_faire')
+
+    def test_email_envoye_au_createur_a_la_completion(self):
+        tache = Tache.objects.create(ferme=self.ferme, titre='C3',
+                                     assigne_a=self.ouvrier.profile, assigne_par=self.manager.profile)
+        self.client.login(username='t_ouvrier', password='pass12345')
+        mail.outbox = []
+        self.client.post(reverse('tache_detail', args=[tache.id]), {
+            'action': 'changer_statut', 'statut': 'terminee',
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('mgr@t.test', mail.outbox[0].to)
+
+    # --- Suppression ---
+
+    def test_createur_peut_supprimer(self):
+        tache = Tache.objects.create(ferme=self.ferme, titre='S1',
+                                     assigne_a=self.ouvrier.profile, assigne_par=self.manager.profile)
+        self.client.login(username='t_manager', password='pass12345')
+        resp = self.client.post(reverse('tache_detail', args=[tache.id]), {'action': 'supprimer'})
+        self.assertEqual(resp.status_code, 302)
+        self.assertFalse(Tache.objects.filter(id=tache.id).exists())
+
+    def test_assigne_ne_peut_pas_supprimer(self):
+        tache = Tache.objects.create(ferme=self.ferme, titre='S2',
+                                     assigne_a=self.ouvrier.profile, assigne_par=self.manager.profile)
+        self.client.login(username='t_ouvrier', password='pass12345')
+        self.client.post(reverse('tache_detail', args=[tache.id]), {'action': 'supprimer'})
+        self.assertTrue(Tache.objects.filter(id=tache.id).exists())
+
+    # --- Validation date ---
+
+    def test_echeance_dans_le_passe_refusee(self):
+        from datetime import date, timedelta
+        passe = (date.today() - timedelta(days=2)).isoformat()
+        self.client.login(username='t_owner', password='pass12345')
+        resp = self.client.post(reverse('creer_tache_ferme', args=[self.ferme.id]), {
+            'titre': 'Past', 'description': '', 'priorite': 'normale',
+            'assigne_a': self.ouvrier.profile.id, 'date_echeance': passe,
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Tache.objects.filter(titre='Past').exists())

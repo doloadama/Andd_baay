@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .role-dash { padding:2.5rem 0; }
+    .role-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+    .role-header h1 { font-size:1.7rem; font-weight:700; margin:0; color:var(--text-main); }
+    .role-header p { margin:.3rem 0 0; color:var(--text-muted); }
+    .role-badge { display:inline-block; background:var(--accent-subtle); color:var(--accent-dark); padding:.25rem .8rem; border-radius:999px; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.5rem; }
+    .ferme-switch { background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:.5rem .75rem; }
+    .ferme-switch select { border:none; background:transparent; color:var(--text-main); font-weight:600; outline:none; padding-right:1.5rem; }
+
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.75rem; }
+    .kpi-card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1.1rem 1.2rem; transition:transform .15s ease; position:relative; overflow:hidden; }
+    .kpi-card:hover { transform:translateY(-2px); }
+    .kpi-card .kpi-icon { position:absolute; right:.85rem; top:.85rem; width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-size:1rem; }
+    .kpi-card .kpi-label { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); }
+    .kpi-card .kpi-value { font-size:1.8rem; font-weight:700; color:var(--text-main); margin-top:.2rem; line-height:1.1; }
+    .kpi-card .kpi-sub { font-size:.78rem; color:var(--text-muted); margin-top:.2rem; }
+    .kpi-projets { border-left:4px solid #10b981; } .kpi-projets .kpi-icon { background:#d1fae5; color:#065f46; }
+    .kpi-superficie { border-left:4px solid #3b82f6; } .kpi-superficie .kpi-icon { background:#dbeafe; color:#1e40af; }
+    .kpi-membres { border-left:4px solid #f59e0b; } .kpi-membres .kpi-icon { background:#fef3c7; color:#92400e; }
+    .kpi-taches { border-left:4px solid #8b5cf6; } .kpi-taches .kpi-icon { background:#ede9fe; color:#5b21b6; }
+    .kpi-retard { border-left:4px solid #ef4444; } .kpi-retard .kpi-icon { background:#fee2e2; color:#991b1b; }
+
+    .panels { display:grid; grid-template-columns: 1.4fr 1fr; gap:1.25rem; }
+    @media (max-width:980px){ .panels { grid-template-columns:1fr; } }
+    .panel { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1.25rem 1.4rem; }
+    .panel h2 { font-size:1.05rem; font-weight:700; margin:0 0 1rem; color:var(--text-main); display:flex; align-items:center; gap:.5rem; }
+    .panel h2 .more { font-size:.8rem; font-weight:500; margin-left:auto; }
+
+    .progress-mini { height:6px; background:var(--bg-secondary); border-radius:999px; overflow:hidden; margin-top:.4rem; }
+    .progress-mini > span { display:block; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-dark)); }
+
+    .projet-row { display:grid; grid-template-columns:minmax(0, 1.7fr) minmax(0, .8fr) auto; gap:.75rem; align-items:center; padding:.75rem .25rem; border-bottom:1px solid var(--border-color); text-decoration:none; color:inherit; }
+    .projet-row:last-child { border-bottom:none; }
+    .projet-row:hover { background:var(--bg-secondary); }
+    .projet-row .nom { font-weight:600; color:var(--text-main); }
+    .projet-row .meta { font-size:.8rem; color:var(--text-muted); }
+    .badge-statut { font-size:.7rem; padding:.2rem .55rem; border-radius:999px; font-weight:600; }
+    .stat-en_cours { background:#dbeafe; color:#1e40af; }
+    .stat-fini { background:#d1fae5; color:#065f46; }
+    .stat-en_pause { background:#fef3c7; color:#92400e; }
+
+    .tache-line { display:flex; gap:.65rem; align-items:center; padding:.55rem 0; border-bottom:1px dashed var(--border-color); font-size:.88rem; }
+    .tache-line:last-child { border-bottom:none; }
+    .tache-line .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+    .dot-a_faire { background:#f59e0b; } .dot-en_cours { background:#3b82f6; } .dot-terminee { background:#10b981; } .dot-annulee { background:#9ca3af; }
+    .empty { text-align:center; color:var(--text-muted); padding:1.5rem; font-size:.9rem; }
+</style>
+
+<div class="container role-dash">
+    <div class="role-header">
+        <div>
+            <span class="role-badge"><i class="fas fa-user-tie me-1"></i>Manager</span>
+            <h1>Pilotage de {{ ferme.nom }}</h1>
+            <p>Vue d'ensemble des projets, des membres et des tâches en cours.</p>
+        </div>
+
+        {% if fermes|length > 1 %}
+        <form method="get" class="ferme-switch">
+            <i class="fas fa-warehouse me-1 text-muted"></i>
+            <select name="ferme" onchange="this.form.submit()">
+                {% for f in fermes %}
+                <option value="{{ f.id }}" {% if f.id == ferme.id %}selected{% endif %}>{{ f.nom }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-projets">
+            <div class="kpi-icon"><i class="fas fa-folder-open"></i></div>
+            <div class="kpi-label">Projets actifs</div>
+            <div class="kpi-value">{{ projets_actifs }}</div>
+            <div class="kpi-sub">{{ projets_total }} au total · {{ projets_finis }} terminé(s)</div>
+        </div>
+        <div class="kpi-card kpi-superficie">
+            <div class="kpi-icon"><i class="fas fa-vector-square"></i></div>
+            <div class="kpi-label">Superficie utilisée</div>
+            <div class="kpi-value">{{ superficie_active|floatformat:1 }} ha</div>
+            <div class="kpi-sub">{{ utilisation_pct }}% de {{ superficie_ferme|floatformat:1 }} ha</div>
+            <div class="progress-mini"><span style="width:{{ utilisation_pct }}%"></span></div>
+        </div>
+        <div class="kpi-card kpi-membres">
+            <div class="kpi-icon"><i class="fas fa-users"></i></div>
+            <div class="kpi-label">Membres</div>
+            <div class="kpi-value">{{ nombre_membres }}</div>
+            <div class="kpi-sub"><a href="{% url 'detail_ferme' ferme.id %}">Voir l'équipe</a></div>
+        </div>
+        <div class="kpi-card kpi-taches">
+            <div class="kpi-icon"><i class="fas fa-list-check"></i></div>
+            <div class="kpi-label">Tâches en cours</div>
+            <div class="kpi-value">{{ taches_en_cours }}</div>
+            <div class="kpi-sub">{{ taches_a_faire }} à faire · {{ taches_terminees }} terminée(s)</div>
+        </div>
+        <div class="kpi-card kpi-retard">
+            <div class="kpi-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="kpi-label">Tâches en retard</div>
+            <div class="kpi-value">{{ taches_en_retard }}</div>
+            <div class="kpi-sub">À traiter en priorité</div>
+        </div>
+    </div>
+
+    <div class="panels">
+        <div class="panel">
+            <h2>
+                <i class="fas fa-folder-tree text-accent"></i> Projets de la ferme
+                <a href="{% url 'liste_projets' %}?ferme={{ ferme.id }}" class="more">Tous →</a>
+            </h2>
+            {% if projets %}
+                {% for p in projets %}
+                <a href="{% url 'detail_projet' p.id %}" class="projet-row">
+                    <div>
+                        <div class="nom">{{ p.nom }}</div>
+                        <div class="meta">
+                            <i class="fas fa-seedling"></i> {{ p.culture.nom|default:'—' }} ·
+                            <i class="fas fa-vector-square"></i> {{ p.superficie|floatformat:1 }} ha ·
+                            <i class="fas fa-calendar"></i> {{ p.date_lancement|date:"d M Y"|default:"—" }}
+                        </div>
+                    </div>
+                    <div class="meta">{{ p.localite.nom|default:'' }}</div>
+                    <div><span class="badge-statut stat-{{ p.statut }}">{{ p.get_statut_display }}</span></div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty">Aucun projet pour cette ferme.</div>
+            {% endif %}
+        </div>
+
+        <div class="panel">
+            <h2>
+                <i class="fas fa-list-check text-accent"></i> Tâches récentes
+                <a href="{% url 'taches_liste' %}?ferme={{ ferme.id }}" class="more">Toutes →</a>
+            </h2>
+            {% if taches_recentes %}
+                {% for t in taches_recentes %}
+                <div class="tache-line">
+                    <span class="dot dot-{{ t.statut }}"></span>
+                    <a href="{% url 'tache_detail' t.id %}" class="text-decoration-none flex-grow-1">
+                        <div class="fw-semibold text-truncate" style="max-width:100%;">{{ t.titre }}</div>
+                        <div class="meta small text-muted">
+                            {{ t.assigne_a.user.username }}
+                            {% if t.date_echeance %}· éch. {{ t.date_echeance|date:"d M" }}{% endif %}
+                            {% if t.est_en_retard %}<span class="text-danger fw-bold">· en retard</span>{% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">Aucune tâche encore créée.</div>
+            {% endif %}
+            <div class="mt-3 text-end">
+                <a href="{% url 'creer_tache_ferme' ferme.id %}" class="btn-baay btn-baay-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> Nouvelle tâche
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .ouvrier-dash { padding:2.5rem 0; max-width:900px; margin:0 auto; }
+    .ouvrier-header { margin-bottom:2rem; text-align:center; }
+    .ouvrier-header .role-badge { display:inline-block; background:#fef3c7; color:#92400e; padding:.3rem 1rem; border-radius:999px; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.75rem; }
+    .ouvrier-header h1 { font-size:1.9rem; font-weight:700; color:var(--text-main); margin:0 0 .35rem; }
+    .ouvrier-header p { color:var(--text-muted); margin:0; }
+
+    .summary-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:.85rem; margin-bottom:2rem; }
+    .summary-card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1rem; text-align:center; }
+    .summary-card .num { font-size:2rem; font-weight:700; color:var(--text-main); margin:.1rem 0; line-height:1; }
+    .summary-card .lbl { font-size:.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+    .summary-card.afaire { border-left:4px solid #f59e0b; }
+    .summary-card.encours { border-left:4px solid #3b82f6; }
+    .summary-card.terminees { border-left:4px solid #10b981; }
+    .summary-card.retard { border-left:4px solid #ef4444; }
+
+    .section-title { font-size:1.1rem; font-weight:700; color:var(--text-main); margin:1.5rem 0 .85rem; display:flex; align-items:center; gap:.5rem; }
+    .section-title .count { background:var(--accent-subtle); color:var(--accent-dark); padding:.15rem .55rem; border-radius:999px; font-size:.75rem; font-weight:600; }
+
+    .tache-card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:1rem 1.15rem; margin-bottom:.7rem; display:flex; gap:1rem; align-items:flex-start; transition:transform .12s ease, border-color .12s ease; text-decoration:none; color:inherit; }
+    .tache-card:hover { transform:translateX(2px); border-color:var(--accent); color:inherit; }
+    .tache-card .left { flex:1; min-width:0; }
+    .tache-card .titre { font-weight:600; color:var(--text-main); margin:0; font-size:1rem; }
+    .tache-card .meta { font-size:.85rem; color:var(--text-muted); margin-top:.25rem; }
+    .tache-card .meta .ferme { font-weight:500; }
+    .tache-card .right { text-align:right; flex:0 0 auto; }
+    .badge-prio { font-size:.7rem; padding:.2rem .55rem; border-radius:999px; font-weight:600; text-transform:uppercase; }
+    .prio-basse { background:#e5e7eb; color:#374151; }
+    .prio-normale { background:#dbeafe; color:#1e40af; }
+    .prio-haute { background:#fed7aa; color:#9a3412; }
+    .prio-urgente { background:#fee2e2; color:#991b1b; }
+    .echeance { font-size:.78rem; color:var(--text-muted); margin-top:.3rem; }
+    .echeance.retard { color:#dc2626; font-weight:600; }
+
+    .empty { text-align:center; color:var(--text-muted); padding:2rem; background:var(--card-bg); border:1px dashed var(--border-color); border-radius:14px; }
+    .empty i { font-size:2rem; color:var(--accent); margin-bottom:.5rem; }
+</style>
+
+<div class="container ouvrier-dash">
+    <div class="ouvrier-header">
+        <span class="role-badge"><i class="fas fa-helmet-safety me-1"></i>Ouvrier</span>
+        <h1>Bonjour {{ utilisateur.user.first_name|default:utilisateur.user.username }}</h1>
+        <p>Voici les tâches qui vous sont assignées aujourd'hui.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="summary-row">
+        <div class="summary-card afaire">
+            <div class="lbl">À faire</div>
+            <div class="num">{{ a_faire_count }}</div>
+        </div>
+        <div class="summary-card encours">
+            <div class="lbl">En cours</div>
+            <div class="num">{{ en_cours_count }}</div>
+        </div>
+        <div class="summary-card terminees">
+            <div class="lbl">Terminées</div>
+            <div class="num">{{ terminees_count }}</div>
+        </div>
+        <div class="summary-card retard">
+            <div class="lbl">En retard</div>
+            <div class="num">{{ en_retard_count }}</div>
+        </div>
+    </div>
+
+    {% if en_cours %}
+    <h2 class="section-title">
+        <i class="fas fa-play text-accent"></i> En cours
+        <span class="count">{{ en_cours_count }}</span>
+    </h2>
+    {% for t in en_cours %}
+    <a href="{% url 'tache_detail' t.id %}" class="tache-card">
+        <div class="left">
+            <h3 class="titre">{{ t.titre }}</h3>
+            <div class="meta">
+                <span class="ferme"><i class="fas fa-warehouse"></i> {{ t.ferme.nom }}</span>
+                {% if t.projet %}· <i class="fas fa-folder"></i> {{ t.projet.nom }}{% endif %}
+                · <i class="fas fa-user"></i> par {{ t.assigne_par.user.username|default:'—' }}
+            </div>
+            {% if t.date_echeance %}
+            <div class="echeance {% if t.est_en_retard %}retard{% endif %}">
+                <i class="fas fa-calendar"></i> Échéance : {{ t.date_echeance|date:"d M Y" }}
+                {% if t.est_en_retard %} (en retard){% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="right">
+            <span class="badge-prio prio-{{ t.priorite }}">{{ t.get_priorite_display }}</span>
+        </div>
+    </a>
+    {% endfor %}
+    {% endif %}
+
+    {% if a_faire %}
+    <h2 class="section-title">
+        <i class="fas fa-clock text-accent"></i> À faire
+        <span class="count">{{ a_faire_count }}</span>
+    </h2>
+    {% for t in a_faire %}
+    <a href="{% url 'tache_detail' t.id %}" class="tache-card">
+        <div class="left">
+            <h3 class="titre">{{ t.titre }}</h3>
+            <div class="meta">
+                <span class="ferme"><i class="fas fa-warehouse"></i> {{ t.ferme.nom }}</span>
+                {% if t.projet %}· <i class="fas fa-folder"></i> {{ t.projet.nom }}{% endif %}
+                · <i class="fas fa-user"></i> par {{ t.assigne_par.user.username|default:'—' }}
+            </div>
+            {% if t.date_echeance %}
+            <div class="echeance {% if t.est_en_retard %}retard{% endif %}">
+                <i class="fas fa-calendar"></i> Échéance : {{ t.date_echeance|date:"d M Y" }}
+                {% if t.est_en_retard %} (en retard){% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="right">
+            <span class="badge-prio prio-{{ t.priorite }}">{{ t.get_priorite_display }}</span>
+        </div>
+    </a>
+    {% endfor %}
+    {% endif %}
+
+    {% if not en_cours and not a_faire %}
+    <div class="empty">
+        <i class="fas fa-mug-hot"></i>
+        <h5>Aucune tâche en attente</h5>
+        <p class="small mb-0">Toutes vos tâches sont terminées. Bon travail !</p>
+    </div>
+    {% endif %}
+
+    {% if terminees %}
+    <h2 class="section-title">
+        <i class="fas fa-check-double text-success"></i> Récemment terminées
+    </h2>
+    {% for t in terminees %}
+    <a href="{% url 'tache_detail' t.id %}" class="tache-card" style="opacity:.7;">
+        <div class="left">
+            <h3 class="titre">{{ t.titre }}</h3>
+            <div class="meta">
+                <span class="ferme"><i class="fas fa-warehouse"></i> {{ t.ferme.nom }}</span>
+                {% if t.date_terminee %}· terminée le {{ t.date_terminee|date:"d M Y" }}{% endif %}
+            </div>
+        </div>
+        <div class="right">
+            <i class="fas fa-circle-check text-success"></i>
+        </div>
+    </a>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

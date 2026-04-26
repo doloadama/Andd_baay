@@ -21,8 +21,8 @@ from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm, TacheForm, TacheStatutForm
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -553,6 +553,23 @@ def dashboard(request):
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
         utilisateur = Profile.objects.create(user=request.user)
+
+    # --- Dispatch selon le rôle primaire ---
+    # Si l'utilisateur n'est propriétaire d'aucune ferme, on l'oriente vers
+    # un dashboard adapté à son rôle le plus élevé parmi ses adhésions.
+    est_proprietaire = Ferme.objects.filter(proprietaire=utilisateur).exists()
+    if not est_proprietaire:
+        memberships = MembreFerme.objects.filter(utilisateur=utilisateur).select_related('ferme')
+        roles = {m.role for m in memberships}
+        if not roles:
+            # Aucun rôle : page neutre via le dashboard global standard
+            pass
+        elif 'manager' in roles:
+            return _dashboard_manager(request, utilisateur, memberships)
+        elif 'technicien' in roles:
+            return _dashboard_technicien(request, utilisateur, memberships)
+        elif roles == {'ouvrier'}:
+            return _dashboard_ouvrier(request, utilisateur, memberships)
 
     # --- Base querysets ---
     user_fermes = Ferme.objects.filter(
@@ -1752,3 +1769,379 @@ def traiter_demande_acces_ferme(request, ferme_id, demande_id, action):
     demande.date_traitement = timezone.now()
     demande.save()
     return redirect('detail_ferme', ferme_id=ferme.id)
+
+
+# ============================================================
+# TÂCHES — gestion hiérarchique
+# ============================================================
+
+def _fermes_de_lutilisateur(profile):
+    """Toutes les fermes où l'utilisateur est propriétaire ou membre."""
+    return Ferme.objects.filter(
+        Q(proprietaire=profile) | Q(membres__utilisateur=profile)
+    ).distinct()
+
+
+@login_required
+def taches_liste(request):
+    """Liste des tâches.
+    - Propriétaire / Manager / Technicien : voient toutes les tâches des fermes
+      où ils sont membres, plus celles qu'ils ont reçues.
+    - Ouvrier : ne voit que les tâches qui lui sont assignées.
+    Filtres GET : ?ferme=<id>&statut=<...>&assigne=mes|recues|toutes
+    """
+    profile = request.user.profile
+    fermes_user = _fermes_de_lutilisateur(profile)
+
+    # Détermine si l'utilisateur n'est qu'ouvrier (sans rôle supérieur ailleurs)
+    roles_utilisateur = set()
+    for ferme in fermes_user:
+        roles_utilisateur.add(Tache.role_dans_ferme(profile, ferme))
+    est_uniquement_ouvrier = roles_utilisateur and roles_utilisateur.issubset({'ouvrier'})
+
+    if est_uniquement_ouvrier:
+        taches = Tache.objects.filter(assigne_a=profile)
+    else:
+        taches = Tache.objects.filter(
+            Q(ferme__in=fermes_user) & (
+                Q(assigne_a=profile) | Q(assigne_par=profile) |
+                Q(ferme__proprietaire=profile) |
+                Q(ferme__membres__utilisateur=profile,
+                  ferme__membres__role__in=['manager', 'technicien'])
+            )
+        ).distinct()
+
+    # Filtres
+    ferme_id = request.GET.get('ferme')
+    if ferme_id:
+        taches = taches.filter(ferme_id=ferme_id)
+    statut = request.GET.get('statut')
+    if statut:
+        taches = taches.filter(statut=statut)
+    assigne = request.GET.get('assigne')
+    if assigne == 'mes':
+        taches = taches.filter(assigne_a=profile)
+    elif assigne == 'recues':
+        taches = taches.filter(assigne_par=profile)
+
+    taches = taches.select_related(
+        'ferme', 'projet', 'assigne_a__user', 'assigne_par__user'
+    ).order_by('statut', 'date_echeance', '-date_creation')
+
+    # Compteurs par statut (sur le scope déjà filtré par ferme/role)
+    base_qs = Tache.objects.filter(assigne_a=profile) if est_uniquement_ouvrier else \
+        Tache.objects.filter(ferme__in=fermes_user).filter(
+            Q(assigne_a=profile) | Q(assigne_par=profile) |
+            Q(ferme__proprietaire=profile) |
+            Q(ferme__membres__utilisateur=profile,
+              ferme__membres__role__in=['manager', 'technicien'])
+        ).distinct()
+    if ferme_id:
+        base_qs = base_qs.filter(ferme_id=ferme_id)
+    compteurs = {
+        'a_faire': base_qs.filter(statut='a_faire').count(),
+        'en_cours': base_qs.filter(statut='en_cours').count(),
+        'terminee': base_qs.filter(statut='terminee').count(),
+        'annulee': base_qs.filter(statut='annulee').count(),
+    }
+
+    # Peut-il créer une tâche dans au moins une ferme ?
+    peut_creer = any(
+        Tache.roles_assignables_par(Tache.role_dans_ferme(profile, f))
+        for f in fermes_user
+    )
+
+    return render(request, 'taches/liste.html', {
+        'taches': taches,
+        'fermes': fermes_user,
+        'compteurs': compteurs,
+        'filtre_ferme': ferme_id or '',
+        'filtre_statut': statut or '',
+        'filtre_assigne': assigne or '',
+        'est_uniquement_ouvrier': est_uniquement_ouvrier,
+        'peut_creer': peut_creer,
+        'STATUT_CHOICES': Tache.STATUT_CHOICES,
+    })
+
+
+@login_required
+def creer_tache(request, ferme_id=None):
+    """Création d'une tâche dans une ferme. Le rôle de l'auteur conditionne
+    les assignés possibles (cf. TacheForm)."""
+    profile = request.user.profile
+    fermes_user = _fermes_de_lutilisateur(profile)
+
+    # Si la ferme n'est pas précisée, redirige vers une page de sélection
+    # ou prend la première ferme où l'utilisateur peut créer des tâches.
+    ferme = None
+    if ferme_id:
+        ferme = get_object_or_404(fermes_user, id=ferme_id)
+    else:
+        for f in fermes_user:
+            if Tache.roles_assignables_par(Tache.role_dans_ferme(profile, f)):
+                ferme = f
+                break
+        if ferme is None:
+            messages.error(request, "Vous n'avez aucune ferme dans laquelle créer des tâches.")
+            return redirect('taches_liste')
+
+    role = Tache.role_dans_ferme(profile, ferme)
+    if not Tache.roles_assignables_par(role):
+        messages.error(request, "Votre rôle ne vous permet pas de créer des tâches dans cette ferme.")
+        return redirect('taches_liste')
+
+    if request.method == 'POST':
+        form = TacheForm(request.POST, ferme=ferme, auteur=profile)
+        if form.is_valid():
+            tache = form.save(commit=False)
+            tache.ferme = ferme
+            tache.assigne_par = profile
+            tache.save()
+            messages.success(request, f"Tâche « {tache.titre} » créée et assignée à {tache.assigne_a.user.username}.")
+            _notifier_creation_tache(tache, request.user)
+            return redirect('tache_detail', tache_id=tache.id)
+    else:
+        form = TacheForm(ferme=ferme, auteur=profile)
+
+    return render(request, 'taches/creer.html', {
+        'form': form,
+        'ferme': ferme,
+        'fermes': fermes_user,
+        'role': role,
+    })
+
+
+@login_required
+def tache_detail(request, tache_id):
+    profile = request.user.profile
+    tache = get_object_or_404(
+        Tache.objects.select_related('ferme', 'projet', 'assigne_a__user', 'assigne_par__user'),
+        id=tache_id,
+    )
+
+    # Le membre doit avoir accès à la ferme de la tâche
+    if not (tache.ferme.proprietaire_id == profile.id
+            or tache.ferme.membres.filter(utilisateur=profile).exists()):
+        messages.error(request, "Vous n'avez pas accès à cette tâche.")
+        return redirect('taches_liste')
+
+    peut_changer_statut = tache.peut_changer_statut(profile)
+    peut_supprimer = tache.peut_etre_modifiee_par(profile)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'changer_statut' and peut_changer_statut:
+            form = TacheStatutForm(request.POST)
+            if form.is_valid():
+                ancien_statut = tache.statut
+                tache.statut = form.cleaned_data['statut']
+                commentaire = form.cleaned_data.get('commentaire_retour', '').strip()
+                if commentaire:
+                    tache.commentaire_retour = commentaire
+                if tache.statut == 'terminee' and ancien_statut != 'terminee':
+                    tache.date_terminee = timezone.now()
+                    _notifier_tache_terminee(tache, request.user)
+                elif tache.statut != 'terminee':
+                    tache.date_terminee = None
+                tache.save()
+                messages.success(request, f"Statut mis à jour : {tache.get_statut_display()}.")
+                return redirect('tache_detail', tache_id=tache.id)
+        elif action == 'supprimer' and peut_supprimer:
+            titre = tache.titre
+            tache.delete()
+            messages.info(request, f"Tâche « {titre} » supprimée.")
+            return redirect('taches_liste')
+        else:
+            messages.error(request, "Action non autorisée.")
+            return redirect('tache_detail', tache_id=tache.id)
+
+    statut_form = TacheStatutForm(initial={'statut': tache.statut})
+    return render(request, 'taches/detail.html', {
+        'tache': tache,
+        'statut_form': statut_form,
+        'peut_changer_statut': peut_changer_statut,
+        'peut_supprimer': peut_supprimer,
+    })
+
+
+def _notifier_creation_tache(tache, auteur_user):
+    email = tache.assigne_a.user.email
+    if not email:
+        return
+    _send_mail_safe(
+        subject=f"Nouvelle tâche : {tache.titre}",
+        message=(
+            f"Bonjour {tache.assigne_a.user.username},\n\n"
+            f"{auteur_user.get_full_name() or auteur_user.username} vous a assigné une nouvelle tâche "
+            f"dans la ferme {tache.ferme.nom}.\n\n"
+            f"Titre      : {tache.titre}\n"
+            f"Priorité   : {tache.get_priorite_display()}\n"
+            f"Échéance   : {tache.date_echeance or 'aucune'}\n"
+            f"Projet     : {tache.projet.nom if tache.projet else '—'}\n\n"
+            f"{tache.description}\n\n"
+            f"Connectez-vous à Andd Baay pour la consulter."
+        ),
+        recipient_list=[email],
+    )
+
+
+# ============================================================
+# DASHBOARDS PAR RÔLE
+# ============================================================
+
+def _dashboard_manager(request, utilisateur, memberships):
+    """Dashboard du manager : vue ferme(s) — projets, membres, tâches."""
+    # Sélection ferme via ?ferme=<id>, sinon première ferme où il est manager
+    fermes_managees = [m.ferme for m in memberships if m.role == 'manager']
+    if not fermes_managees:
+        fermes_managees = [m.ferme for m in memberships]
+
+    selected_id = request.GET.get('ferme')
+    selected = None
+    if selected_id:
+        selected = next((f for f in fermes_managees if str(f.id) == selected_id), None)
+    if selected is None:
+        selected = fermes_managees[0]
+
+    projets = Projet.objects.filter(ferme=selected).select_related(
+        'culture', 'localite'
+    ).prefetch_related('projet_produits__produit').order_by('-date_lancement')
+
+    projets_actifs = projets.filter(statut='en_cours').count()
+    projets_finis = projets.filter(statut='fini').count()
+    projets_pause = projets.filter(statut='en_pause').count()
+    superficie_totale = projets.aggregate(s=Sum('superficie'))['s'] or 0
+    superficie_active = projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
+    superficie_ferme = selected.superficie_totale or 0
+    utilisation_pct = round((float(superficie_active) / float(superficie_ferme)) * 100, 1) if superficie_ferme else 0
+    nombre_membres = selected.membres.count() + 1
+
+    # Tâches de cette ferme
+    taches = Tache.objects.filter(ferme=selected)
+    taches_a_faire = taches.filter(statut='a_faire').count()
+    taches_en_cours = taches.filter(statut='en_cours').count()
+    taches_terminees = taches.filter(statut='terminee').count()
+    taches_en_retard = sum(1 for t in taches.filter(statut__in=['a_faire', 'en_cours']) if t.est_en_retard)
+    taches_recentes = taches.select_related('assigne_a__user', 'projet').order_by('-date_creation')[:8]
+
+    return render(request, 'projets/dashboard_manager.html', {
+        'utilisateur': utilisateur,
+        'fermes': fermes_managees,
+        'ferme': selected,
+        'projets': projets[:10],
+        'projets_total': projets.count(),
+        'projets_actifs': projets_actifs,
+        'projets_finis': projets_finis,
+        'projets_pause': projets_pause,
+        'superficie_totale': superficie_totale,
+        'superficie_active': superficie_active,
+        'superficie_ferme': superficie_ferme,
+        'utilisation_pct': utilisation_pct,
+        'nombre_membres': nombre_membres,
+        'taches_a_faire': taches_a_faire,
+        'taches_en_cours': taches_en_cours,
+        'taches_terminees': taches_terminees,
+        'taches_en_retard': taches_en_retard,
+        'taches_recentes': taches_recentes,
+    })
+
+
+def _dashboard_technicien(request, utilisateur, memberships):
+    """Dashboard technicien : focus sur l'évolution des cultures et produits."""
+    fermes_user = [m.ferme for m in memberships]
+    selected_id = request.GET.get('ferme')
+    selected = None
+    if selected_id:
+        selected = next((f for f in fermes_user if str(f.id) == selected_id), None)
+    if selected is None:
+        selected = fermes_user[0]
+
+    projets = Projet.objects.filter(ferme=selected).select_related(
+        'culture', 'localite'
+    ).prefetch_related('projet_produits__produit', 'prevision').order_by('-date_lancement')
+
+    today = timezone.now().date()
+    projets_data = []
+    for p in projets:
+        jours_ecoules = (today - p.date_lancement).days if p.date_lancement else 0
+        cycle = getattr(p.culture, 'duree_cycle_jours', None) or 120
+        progression = max(0, min(100, round((jours_ecoules / cycle) * 100))) if cycle else 0
+        prevision = getattr(p, 'prevision', None)
+        projets_data.append({
+            'projet': p,
+            'jours_ecoules': jours_ecoules,
+            'progression': progression,
+            'prevision': prevision,
+        })
+
+    nb_projets_actifs = projets.filter(statut='en_cours').count()
+    cultures_distinctes = projets.values('culture__nom').distinct().count()
+
+    # Prochaines récoltes (basé sur PrevisionRecolte si dispo, sinon date_lancement + cycle)
+    recoltes_a_venir = []
+    for d in projets_data[:15]:
+        prev = d['prevision']
+        if prev and prev.date_recolte_prevue and prev.date_recolte_prevue >= today:
+            recoltes_a_venir.append({'projet': d['projet'], 'date': prev.date_recolte_prevue})
+    recoltes_a_venir.sort(key=lambda r: r['date'])
+    recoltes_a_venir = recoltes_a_venir[:6]
+
+    # Tâches du technicien (créées + reçues) sur cette ferme
+    mes_taches = Tache.objects.filter(
+        ferme=selected
+    ).filter(Q(assigne_a=utilisateur) | Q(assigne_par=utilisateur)).select_related(
+        'assigne_a__user', 'assigne_par__user', 'projet'
+    ).order_by('statut', '-date_creation')[:10]
+
+    return render(request, 'projets/dashboard_technicien.html', {
+        'utilisateur': utilisateur,
+        'fermes': fermes_user,
+        'ferme': selected,
+        'projets_data': projets_data[:10],
+        'nb_projets_actifs': nb_projets_actifs,
+        'cultures_distinctes': cultures_distinctes,
+        'recoltes_a_venir': recoltes_a_venir,
+        'mes_taches': mes_taches,
+    })
+
+
+def _dashboard_ouvrier(request, utilisateur, memberships):
+    """Dashboard ouvrier : uniquement ses tâches."""
+    taches = Tache.objects.filter(assigne_a=utilisateur).select_related(
+        'ferme', 'projet', 'assigne_par__user'
+    ).order_by('statut', 'date_echeance', '-date_creation')
+
+    a_faire = taches.filter(statut='a_faire')
+    en_cours = taches.filter(statut='en_cours')
+    terminees = taches.filter(statut='terminee')[:5]
+    en_retard = sum(1 for t in taches.filter(statut__in=['a_faire', 'en_cours']) if t.est_en_retard)
+
+    return render(request, 'projets/dashboard_ouvrier.html', {
+        'utilisateur': utilisateur,
+        'fermes': [m.ferme for m in memberships],
+        'a_faire': a_faire,
+        'en_cours': en_cours,
+        'terminees': terminees,
+        'a_faire_count': a_faire.count(),
+        'en_cours_count': en_cours.count(),
+        'terminees_count': taches.filter(statut='terminee').count(),
+        'en_retard_count': en_retard,
+    })
+
+
+def _notifier_tache_terminee(tache, executant_user):
+    if not tache.assigne_par:
+        return
+    email = tache.assigne_par.user.email
+    if not email:
+        return
+    _send_mail_safe(
+        subject=f"Tâche terminée : {tache.titre}",
+        message=(
+            f"Bonjour {tache.assigne_par.user.username},\n\n"
+            f"{executant_user.get_full_name() or executant_user.username} a marqué la tâche "
+            f"« {tache.titre} » (ferme {tache.ferme.nom}) comme terminée.\n\n"
+            f"{('Commentaire : ' + tache.commentaire_retour) if tache.commentaire_retour else ''}"
+        ),
+        recipient_list=[email],
+    )
