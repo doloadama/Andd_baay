@@ -389,8 +389,9 @@ def modifier_projet(request, projet_id):
             projet = projet_form.save(commit=False)
             projet.save()
 
-            # Update products
+            # Update products with per-product allocated surface (mirrors creer_projet)
             produits = projet_form.cleaned_data.get('produits_selection', [])
+            superficies_par_produit = projet_form.cleaned_data.get('superficies_par_produit') or {}
             existing_produits = set(projet.projet_produits.values_list('produit_id', flat=True))
             new_produits = set(p.id for p in produits)
 
@@ -398,10 +399,19 @@ def modifier_projet(request, projet_id):
             for pp in projet.projet_produits.filter(produit_id__in=existing_produits - new_produits):
                 pp.delete()
 
-            # Add new products
+            # Add new products and update existing ones with allocated surface
             for produit in produits:
+                surf = superficies_par_produit.get(str(produit.id))
                 if produit.id not in existing_produits:
-                    ProjetProduit.objects.create(projet=projet, produit=produit)
+                    ProjetProduit.objects.create(
+                        projet=projet,
+                        produit=produit,
+                        superficie_allouee=surf,
+                    )
+                elif surf is not None:
+                    ProjetProduit.objects.filter(projet=projet, produit=produit).update(
+                        superficie_allouee=surf,
+                    )
 
             # Update backwards compatibility culture field
             if produits:
