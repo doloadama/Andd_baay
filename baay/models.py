@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser, User
 from django.core.validators import MinValueValidator
 from django.db import models
 import uuid
+import secrets
+import string
 from django.utils.timezone import now
 
 class Profile(models.Model):
@@ -23,6 +25,7 @@ class Ferme(models.Model):
     pays = models.ForeignKey('Pays', on_delete=models.SET_NULL, null=True, blank=True)
     localite = models.ForeignKey('Localite', on_delete=models.SET_NULL, null=True, blank=True)
     superficie_totale = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie totale de la ferme en hectares")
+    code_acces = models.CharField(max_length=12, unique=True, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
@@ -31,6 +34,16 @@ class Ferme(models.Model):
 
     def __str__(self):
         return f"Ferme {self.nom} ({self.proprietaire.user.username})"
+
+    def save(self, *args, **kwargs):
+        if not self.code_acces:
+            alphabet = string.ascii_uppercase + string.digits
+            while True:
+                code = ''.join(secrets.choice(alphabet) for _ in range(8))
+                if not Ferme.objects.filter(code_acces=code).exists():
+                    self.code_acces = code
+                    break
+        super().save(*args, **kwargs)
 
 
 class MembreFerme(models.Model):
@@ -44,6 +57,7 @@ class MembreFerme(models.Model):
     ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='membres')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='fermes_membre')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ouvrier')
+    peut_gerer_membres = models.BooleanField(default=False)
     date_ajout = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -51,6 +65,28 @@ class MembreFerme(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur.user.username} - {self.get_role_display()} de {self.ferme.nom}"
+
+
+class DemandeAccesFerme(models.Model):
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('approuvee', 'Approuvée'),
+        ('refusee', 'Refusée'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='demandes_acces')
+    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='demandes_acces_ferme')
+    code = models.CharField(max_length=12)
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    date_demande = models.DateTimeField(auto_now_add=True)
+    date_traitement = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('ferme', 'utilisateur', 'statut')
+        ordering = ['-date_demande']
+
+    def __str__(self):
+        return f"{self.utilisateur.user.username} demande l'accès à {self.ferme.nom}"
 
 
 class ProduitAgricole(models.Model):

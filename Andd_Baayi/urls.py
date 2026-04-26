@@ -71,6 +71,8 @@ urlpatterns = [
     path('fermes/<uuid:ferme_id>/supprimer/', views.supprimer_ferme, name='supprimer_ferme'),
     path('fermes/<uuid:ferme_id>/membres/ajouter/', views.ajouter_membre_ferme, name='ajouter_membre_ferme'),
     path('fermes/<uuid:ferme_id>/membres/<uuid:membre_id>/retirer/', views.retirer_membre_ferme, name='retirer_membre_ferme'),
+    path('fermes/demander-acces/', views.demander_acces_ferme, name='demander_acces_ferme'),
+    path('fermes/<uuid:ferme_id>/demandes/<uuid:demande_id>/<str:action>/', views.traiter_demande_acces_ferme, name='traiter_demande_acces_ferme'),
 ]
 
 if settings.DEBUG:

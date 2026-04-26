@@ -13,13 +13,15 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Sum, Count, Avg
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.db.models import Q, Sum, Count, Avg
 from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme
+from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -531,45 +533,111 @@ def liste_projets(request):
 @login_required
 def dashboard(request):
     try:
-        utilisateur = request.user.profile  # Vérifie si le profil existe
+        utilisateur = request.user.profile
     except Profile.DoesNotExist:
-        # Crée un profil si nécessaire
         utilisateur = Profile.objects.create(user=request.user)
 
-    projets = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite')
+    # --- Base querysets ---
+    user_fermes = Ferme.objects.filter(
+        Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
+    ).distinct().prefetch_related('membres').order_by('nom')
 
-    superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
-    rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-    
-    # Get investissements total (cout_par_hectare * superficie + autres_frais)
-    investissements = Investissement.objects.filter(projet__in=projets)
+    # Optional farm filter from GET
+    selected_ferme_id = request.GET.get('ferme')
+    selected_ferme = None
+    if selected_ferme_id:
+        try:
+            selected_ferme = user_fermes.get(id=selected_ferme_id)
+        except Ferme.DoesNotExist:
+            pass
+
+    # Projects queryset (optionally filtered by farm)
+    projets_qs = Projet.objects.filter(utilisateur=utilisateur).select_related(
+        'culture', 'localite', 'ferme'
+    )
+    if selected_ferme:
+        projets_qs = projets_qs.filter(ferme=selected_ferme)
+
+    # Apply existing filters
+    statut_filter = request.GET.get('statut')
+    if statut_filter:
+        projets_qs = projets_qs.filter(statut=statut_filter)
+    culture_filter = request.GET.get('culture')
+    if culture_filter:
+        projets_qs = projets_qs.filter(culture__id=culture_filter)
+    date_from = request.GET.get('date_from')
+    if date_from:
+        projets_qs = projets_qs.filter(date_lancement__gte=date_from)
+    date_to = request.GET.get('date_to')
+    if date_to:
+        projets_qs = projets_qs.filter(date_lancement__lte=date_to)
+
+    # --- Aggregates ---
+    superficie_totale = projets_qs.aggregate(Sum('superficie'))['superficie__sum'] or 0
+    rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+    investissements = Investissement.objects.filter(projet__in=projets_qs)
     investissement_total = sum(
         inv.calculer_investissement_total() for inv in investissements
     ) or 0
 
-    # Projects by status count
-    projets_en_cours = projets.filter(statut='en_cours').count()
-    projets_en_pause = projets.filter(statut='en_pause').count()
-    projets_finis = projets.filter(statut='fini').count()
-    total_count = projets.count()
+    projets_en_cours = projets_qs.filter(statut='en_cours').count()
+    projets_en_pause = projets_qs.filter(statut='en_pause').count()
+    projets_finis = projets_qs.filter(statut='fini').count()
+    total_count = projets_qs.count()
     completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
 
-    # Get unique cultures for filter
-    cultures = ProduitAgricole.objects.filter(
-        projet__utilisateur=utilisateur
-    ).distinct()
+    # --- Farm-level aggregates ---
+    nombre_fermes = user_fermes.count()
+    total_membres = MembreFerme.objects.filter(ferme__in=user_fermes).count()
 
-    # Get localites for quick-add modal
+    fermes_data = []
+    for ferme in user_fermes:
+        f_projets = Projet.objects.filter(ferme=ferme, utilisateur=utilisateur)
+        f_projets_actifs = f_projets.filter(statut='en_cours').count()
+        f_superficie_ferme = ferme.superficie_totale or 0
+        f_superficie_utilisee = f_projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
+        f_membres = ferme.membres.count()
+        f_utilisation = round((f_superficie_utilisee / f_superficie_ferme) * 100, 1) if f_superficie_ferme else 0
+        fermes_data.append({
+            'ferme': ferme,
+            'projets_count': f_projets.count(),
+            'projets_actifs': f_projets_actifs,
+            'superficie_ferme': f_superficie_ferme,
+            'superficie_utilisee': f_superficie_utilisee,
+            'membres_count': f_membres + 1,
+            'utilisation_pct': f_utilisation,
+        })
+
+    # --- Global indicators ---
+    projets_total_global = Projet.objects.filter(utilisateur=utilisateur).count()
+    avg_projets_par_ferme = round(projets_total_global / nombre_fermes, 1) if nombre_fermes else 0
+    fermes_inactives = sum(1 for fd in fermes_data if fd['projets_actifs'] == 0)
+    fermes_chart_data = [
+        {
+            'id': str(fd['ferme'].id),
+            'nom': fd['ferme'].nom,
+            'utilisation_pct': float(fd['utilisation_pct'] or 0),
+            'superficie_ferme': float(fd['superficie_ferme'] or 0),
+        }
+        for fd in fermes_data
+    ]
+
+    # Farm-specific indicators
+    if selected_ferme:
+        f_proj = Projet.objects.filter(ferme=selected_ferme, utilisateur=utilisateur)
+        f_sup = selected_ferme.superficie_totale or 0
+        f_sup_u = f_proj.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
+        f_util = round((f_sup_u / f_sup) * 100, 1) if f_sup else 0
+        f_mem = selected_ferme.membres.count() + 1
+        f_rend = f_proj.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+    else:
+        f_sup = f_sup_u = f_util = f_mem = f_rend = 0
+
+    cultures = ProduitAgricole.objects.filter(projet__utilisateur=utilisateur).distinct()
     localites = Localite.objects.all().order_by('nom')
 
-    # Get user's farms for quick-add modal
-    from django.db.models import Q
-    fermes = Ferme.objects.filter(
-        Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
-    ).distinct().order_by('nom')
-
     context = {
-        'projets': projets,
+        'projets': projets_qs,
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
         'investissement_total': investissement_total,
@@ -580,7 +648,19 @@ def dashboard(request):
         'completion_rate': completion_rate,
         'cultures': cultures,
         'localites': localites,
-        'fermes': fermes,
+        'fermes': user_fermes,
+        'selected_ferme': selected_ferme,
+        'fermes_data': fermes_data,
+        'nombre_fermes': nombre_fermes,
+        'total_membres': total_membres,
+        'avg_projets_par_ferme': avg_projets_par_ferme,
+        'fermes_inactives': fermes_inactives,
+        'fermes_chart_data_json': json.dumps(locals().get('fermes_chart_data', [])),
+        'ferme_superficie': f_sup,
+        'ferme_superficie_utilisee': f_sup_u,
+        'ferme_utilisation': f_util,
+        'ferme_membres': f_mem,
+        'ferme_rendement': f_rend,
     }
 
     return render(request, 'projets/dashboard.html', context)
@@ -874,19 +954,34 @@ def evaluer_modele(model, X_test, y_test):
 @login_required
 @require_GET
 def dashboard_stats_api(request):
-    """API endpoint for dashboard statistics with filtering"""
+    """API endpoint for dashboard statistics with filtering (including ferme)"""
+    from django.db.models import Q
     try:
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
         utilisateur = Profile.objects.create(user=request.user)
     
     # Get filter parameters
+    ferme_filter = request.GET.get('ferme', '')
     statut_filter = request.GET.get('statut', '')
     culture_filter = request.GET.get('culture', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
     
-    projets = Projet.objects.filter(utilisateur=utilisateur)
+    # Resolve selected farm
+    user_fermes = Ferme.objects.filter(
+        Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
+    ).distinct().prefetch_related('membres')
+    selected_ferme = None
+    if ferme_filter:
+        try:
+            selected_ferme = user_fermes.get(id=ferme_filter)
+        except Ferme.DoesNotExist:
+            pass
+
+    projets = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite', 'ferme')
+    if selected_ferme:
+        projets = projets.filter(ferme=selected_ferme)
     
     # Apply filters
     if statut_filter:
@@ -911,6 +1006,12 @@ def dashboard_stats_api(request):
     # Projects by status
     projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))
     
+    projets_en_cours = projets.filter(statut='en_cours').count()
+    projets_en_pause = projets.filter(statut='en_pause').count()
+    projets_finis = projets.filter(statut='fini').count()
+    total_count = projets.count()
+    completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
+
     # Projects by culture
     projets_par_culture = list(projets.values('culture__nom').annotate(
         count=Count('id'),
@@ -932,12 +1033,78 @@ def dashboard_stats_api(request):
         if isinstance(obj, Decimal):
             return float(obj)
         return obj
-    
+
+    # Farm-level aggregates
+    nombre_fermes = user_fermes.count()
+    total_membres = MembreFerme.objects.filter(ferme__in=user_fermes).count()
+
+    fermes_data = []
+    for ferme in user_fermes.order_by('nom'):
+        f_projets = Projet.objects.filter(ferme=ferme, utilisateur=utilisateur)
+        f_projets_actifs = f_projets.filter(statut='en_cours').count()
+        f_superficie_ferme = float(ferme.superficie_totale or 0)
+        f_superficie_utilisee = float(f_projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0)
+        f_membres = ferme.membres.count()
+        f_utilisation = round((f_superficie_utilisee / f_superficie_ferme) * 100, 1) if f_superficie_ferme else 0
+        fermes_data.append({
+            'id': str(ferme.id),
+            'nom': ferme.nom,
+            'projets_count': f_projets.count(),
+            'projets_actifs': f_projets_actifs,
+            'superficie_ferme': f_superficie_ferme,
+            'superficie_utilisee': f_superficie_utilisee,
+            'membres_count': f_membres + 1,
+            'utilisation_pct': f_utilisation,
+        })
+
+    fermes_inactives = sum(1 for fd in fermes_data if fd['projets_actifs'] == 0)
+
+    # Farm-specific KPIs when a farm is selected
+    ferme_kpis = None
+    if selected_ferme:
+        f_proj = Projet.objects.filter(ferme=selected_ferme, utilisateur=utilisateur)
+        f_sup = float(selected_ferme.superficie_totale or 0)
+        f_sup_u = float(f_proj.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0)
+        f_util = round((f_sup_u / f_sup) * 100, 1) if f_sup else 0
+        f_mem = selected_ferme.membres.count() + 1
+        f_rend = float(f_proj.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0)
+        ferme_kpis = {
+            'id': str(selected_ferme.id),
+            'nom': selected_ferme.nom,
+            'description': selected_ferme.description or '',
+            'localite': selected_ferme.localite.nom if selected_ferme.localite else '',
+            'pays': selected_ferme.pays.nom if selected_ferme.pays else '',
+            'superficie': f_sup,
+            'superficie_utilisee': f_sup_u,
+            'utilisation': f_util,
+            'membres': f_mem,
+            'rendement': f_rend,
+        }
+
+    # Projects list for DOM update
+    projets_list = []
+    for p in projets:
+        projets_list.append({
+            'id': str(p.id),
+            'nom': p.nom,
+            'statut': p.statut,
+            'culture_id': str(p.culture.id) if p.culture else '',
+            'culture_nom': p.culture.nom if p.culture else 'N/A',
+            'superficie': float(p.superficie) if p.superficie else 0,
+            'rendement_estime': float(p.rendement_estime) if p.rendement_estime else 0,
+            'date_lancement': p.date_lancement.strftime('%Y-%m-%d') if p.date_lancement else '',
+            'ferme_nom': p.ferme.nom if p.ferme else '',
+        })
+
     data = {
         'superficie_totale': decimal_to_float(superficie_totale),
         'rendement_total': decimal_to_float(rendement_total),
         'investissement_total': decimal_to_float(investissement_total),
-        'nb_projets': projets.count(),
+        'nb_projets': total_count,
+        'projets_en_cours': projets_en_cours,
+        'projets_en_pause': projets_en_pause,
+        'projets_finis': projets_finis,
+        'completion_rate': completion_rate,
         'projets_par_statut': projets_par_statut,
         'projets_par_culture': [
             {
@@ -954,7 +1121,13 @@ def dashboard_stats_api(request):
                 'superficie': decimal_to_float(p['superficie']),
                 'rendement': decimal_to_float(p['rendement'])
             } for p in monthly_data
-        ]
+        ],
+        'nombre_fermes': nombre_fermes,
+        'total_membres': total_membres,
+        'fermes_data': fermes_data,
+        'fermes_inactives': fermes_inactives,
+        'selected_ferme': ferme_kpis,
+        'projets_list': projets_list,
     }
     
     return JsonResponse(data)
@@ -1353,18 +1526,25 @@ def creer_ferme(request):
 def detail_ferme(request, ferme_id):
     ferme = get_object_or_404(Ferme, id=ferme_id)
     is_proprietaire = ferme.proprietaire == request.user.profile
-    is_membre = ferme.membres.filter(utilisateur=request.user.profile).exists()
+    membership = ferme.membres.filter(utilisateur=request.user.profile).first()
+    is_membre = membership is not None
+    can_manage_members = is_proprietaire or (
+        membership is not None and membership.peut_gerer_membres
+    )
     if not is_proprietaire and not is_membre:
         messages.error(request, "Vous n'avez pas accès à cette ferme.")
         return redirect('liste_fermes')
 
     projets = ferme.projets.select_related('culture', 'localite')
     membres = ferme.membres.select_related('utilisateur__user')
+    demandes_acces = ferme.demandes_acces.filter(statut='en_attente').select_related('utilisateur__user') if is_proprietaire else []
     return render(request, 'fermes/detail_ferme.html', {
         'ferme': ferme,
         'projets': projets,
         'membres': membres,
+        'demandes_acces': demandes_acces,
         'is_proprietaire': is_proprietaire,
+        'can_manage_members': can_manage_members,
     })
 
 
@@ -1394,21 +1574,41 @@ def supprimer_ferme(request, ferme_id):
 
 @login_required
 def ajouter_membre_ferme(request, ferme_id):
-    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    ferme = get_object_or_404(Ferme, id=ferme_id)
+    is_proprietaire = ferme.proprietaire == request.user.profile
+    membership = ferme.membres.filter(utilisateur=request.user.profile).first()
+    can_manage_members = is_proprietaire or (
+        membership is not None and membership.peut_gerer_membres
+    )
+    if not can_manage_members:
+        messages.error(request, "Vous n'avez pas le droit d'ajouter des membres à cette ferme.")
+        return redirect('detail_ferme', ferme_id=ferme.id)
+
     if request.method == 'POST':
-        form = MembreFermeForm(request.POST, ferme=ferme)
+        form = MembreFermeForm(request.POST, ferme=ferme, can_delegate_members=is_proprietaire)
         if form.is_valid():
             profile = form.cleaned_data['username']
-            MembreFerme.objects.create(
+            membre, created = MembreFerme.objects.get_or_create(
                 ferme=ferme,
                 utilisateur=profile,
-                role=form.cleaned_data['role']
+                defaults={
+                    'role': form.cleaned_data['role'],
+                    'peut_gerer_membres': form.cleaned_data.get('peut_gerer_membres', False),
+                }
             )
+            if not created:
+                messages.info(request, f"{profile.user.username} est déjà membre de la ferme.")
+                return redirect('detail_ferme', ferme_id=ferme.id)
             messages.success(request, f"{profile.user.username} ajouté à la ferme.")
             return redirect('detail_ferme', ferme_id=ferme.id)
     else:
-        form = MembreFermeForm(ferme=ferme)
-    return render(request, 'fermes/ajouter_membre.html', {'form': form, 'ferme': ferme})
+        form = MembreFermeForm(ferme=ferme, can_delegate_members=is_proprietaire)
+    return render(request, 'fermes/ajouter_membre.html', {
+        'form': form,
+        'ferme': ferme,
+        'is_proprietaire': is_proprietaire,
+        'can_manage_members': can_manage_members,
+    })
 
 
 @login_required
@@ -1421,3 +1621,59 @@ def retirer_membre_ferme(request, ferme_id, membre_id):
         messages.success(request, f"{username} retiré de la ferme.")
         return redirect('detail_ferme', ferme_id=ferme.id)
     return render(request, 'fermes/retirer_membre.html', {'membre': membre, 'ferme': ferme})
+
+
+@login_required
+def demander_acces_ferme(request):
+    profile = request.user.profile
+    if request.method == 'POST':
+        form = DemandeAccesFermeForm(request.POST, user_profile=profile)
+        if form.is_valid():
+            ferme = form.cleaned_data['code']
+            demande = DemandeAccesFerme.objects.create(
+                ferme=ferme,
+                utilisateur=profile,
+                code=ferme.code_acces,
+            )
+            proprietaire_email = ferme.proprietaire.user.email
+            if proprietaire_email:
+                send_mail(
+                    subject=f"Demande d'accès à la ferme {ferme.nom}",
+                    message=(
+                        f"{request.user.get_full_name() or request.user.username} demande à rejoindre votre ferme {ferme.nom}.\n\n"
+                        f"Code utilisé : {demande.code}\n"
+                        f"Connectez-vous à Andd Baay pour approuver ou refuser cette demande."
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[proprietaire_email],
+                    fail_silently=True,
+                )
+            messages.success(request, "Votre demande a été envoyée au propriétaire de la ferme.")
+            return redirect('liste_fermes')
+    else:
+        form = DemandeAccesFermeForm(user_profile=profile)
+    return render(request, 'fermes/demander_acces.html', {'form': form})
+
+
+@login_required
+def traiter_demande_acces_ferme(request, ferme_id, demande_id, action):
+    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    demande = get_object_or_404(DemandeAccesFerme, id=demande_id, ferme=ferme, statut='en_attente')
+    if request.method == 'POST':
+        if action == 'approuver':
+            MembreFerme.objects.get_or_create(
+                ferme=ferme,
+                utilisateur=demande.utilisateur,
+                defaults={'role': 'ouvrier', 'peut_gerer_membres': False}
+            )
+            demande.statut = 'approuvee'
+            messages.success(request, f"{demande.utilisateur.user.username} a été ajouté à la ferme.")
+        elif action == 'refuser':
+            demande.statut = 'refusee'
+            messages.info(request, f"Demande de {demande.utilisateur.user.username} refusée.")
+        else:
+            messages.error(request, "Action invalide.")
+            return redirect('detail_ferme', ferme_id=ferme.id)
+        demande.date_traitement = timezone.now()
+        demande.save()
+    return redirect('detail_ferme', ferme_id=ferme.id)

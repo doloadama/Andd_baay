@@ -27,4 +27,40 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paysSelect = document.getElementById('{{ form.pays.id_for_label }}');
+    const localiteSelect = document.getElementById('{{ form.localite.id_for_label }}');
+
+    if (paysSelect && localiteSelect) {
+        const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({
+            value: opt.value,
+            text: opt.text,
+            selected: opt.selected
+        }));
+
+        const localitesMapping = JSON.parse('{{ form.localites_mapping_json|escapejs }}');
+
+        function filterLocalites() {
+            const selectedPays = paysSelect.value;
+            const currentSelectedLocalite = localiteSelect.value;
+
+            localiteSelect.innerHTML = '';
+
+            allLocaliteOptions.forEach(opt => {
+                if (!opt.value || localitesMapping[opt.value] === selectedPays) {
+                    const option = new Option(opt.text, opt.value);
+                    if (opt.value === currentSelectedLocalite && localitesMapping[opt.value] === selectedPays) {
+                        option.selected = true;
+                    }
+                    localiteSelect.add(option);
+                }
+            });
+        }
+
+        paysSelect.addEventListener('change', filterLocalites);
+        filterLocalites();
+    }
+});
+</script>
 {% endblock %}

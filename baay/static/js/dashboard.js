@@ -85,15 +85,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const resetBtn = document.getElementById('resetFilters');
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
+            const fermeSelect = document.getElementById('filterFerme');
+            const hadFerme = fermeSelect && fermeSelect.value;
+            if (fermeSelect) fermeSelect.value = '';
             filterStatut.value = '';
             filterCulture.value = '';
             filterDateFrom.value = '';
             filterDateTo.value = '';
-            applyFilters();
+            if (hadFerme) {
+                applyFarmFilter('');
+            } else {
+                applyFilters();
+            }
             showToast('Filtres réinitialisés', 'info');
         });
     }
     
+    // ===== Farm Filter (AJAX) =====
+    const filterFerme = document.getElementById('filterFerme');
+    if (filterFerme) {
+        filterFerme.addEventListener('change', function () {
+            applyFarmFilter(this.value);
+        });
+    }
+
     // ===== Export Button =====
     const exportBtn = document.getElementById('exportData');
     if (exportBtn) {
@@ -136,6 +151,17 @@ document.addEventListener('DOMContentLoaded', function () {
             closeStatusModal();
             closeQuickAddModal();
             closeModal();
+        }
+    });
+
+    // Handle browser Back/Forward for farm filter
+    window.addEventListener('popstate', function() {
+        const params = new URLSearchParams(window.location.search);
+        const fermeId = params.get('ferme') || '';
+        const fermeSelect = document.getElementById('filterFerme');
+        if (fermeSelect && fermeSelect.value !== fermeId) {
+            fermeSelect.value = fermeId;
+            applyFarmFilter(fermeId);
         }
     });
 });
@@ -448,10 +474,12 @@ function fetchDashboardStats(url) {
 
 function buildStatsApiUrl() {
     const params = new URLSearchParams();
+    const ferme = document.getElementById('filterFerme')?.value;
     const statut = document.getElementById('filterStatut')?.value;
     const culture = document.getElementById('filterCulture')?.value;
     const dateFrom = document.getElementById('filterDateFrom')?.value;
     const dateTo = document.getElementById('filterDateTo')?.value;
+    if (ferme) params.append('ferme', ferme);
     if (statut) params.append('statut', statut);
     if (culture) params.append('culture', culture);
     if (dateFrom) params.append('date_from', dateFrom);
@@ -893,22 +921,47 @@ function updateKPIs() {
     const totalProjects = filteredProjects.length;
     const totalSuperficie = filteredProjects.reduce((sum, p) => sum + p.superficie, 0);
     const totalRendement = filteredProjects.reduce((sum, p) => sum + p.rendement, 0);
-    
+    const totalInvestissement = filteredProjects.reduce((sum, p) => sum + (p.investissement || 0), 0);
+
     animateValue('kpiTotalProjects', totalProjects);
     animateValue('kpiSuperficie', totalSuperficie);
     animateValue('kpiRendement', totalRendement);
+    if (document.getElementById('kpiInvestissement')) {
+        animateValue('kpiInvestissement', totalInvestissement);
+    }
+    if (document.getElementById('kpiUtilisation')) {
+        // Client-side filtering doesn't change farm utilization; keep existing value
+    }
 }
 
 function updateOverviewMetrics() {
     const active = filteredProjects.filter((project) => project.status === 'en_cours').length;
     const paused = filteredProjects.filter((project) => project.status === 'en_pause').length;
     const finished = filteredProjects.filter((project) => project.status === 'fini').length;
-    const completionRate = filteredProjects.length ? Math.round((finished / filteredProjects.length) * 100) : 0;
+    const total = filteredProjects.length;
+    const completionRate = total ? Math.round((finished / total) * 100) : 0;
 
+    // Farm view spotlight stats
+    const farmProjectsEl = document.getElementById('spotlightFarmProjects');
+    const farmUtilEl = document.getElementById('spotlightFarmUtilisation');
+    if (farmProjectsEl) farmProjectsEl.textContent = active.toLocaleString('fr-FR');
+
+    // Global view spotlight stats
+    const projectsEl = document.getElementById('spotlightProjects');
+    const farmsEl = document.getElementById('spotlightFarms');
+    const membersEl = document.getElementById('spotlightMembers');
+    if (projectsEl) projectsEl.textContent = total.toLocaleString('fr-FR');
+    if (farmsEl) {
+        // Farm count doesn't change with client-side filters
+    }
+    if (membersEl) {
+        // Member count doesn't change with client-side filters
+    }
+
+    // Legacy IDs (fallback if still present in other pages)
     const activeEl = document.getElementById('spotlightActiveProjects');
     const pausedEl = document.getElementById('spotlightPausedProjects');
     const completionEl = document.getElementById('spotlightCompletionRate');
-
     if (activeEl) activeEl.textContent = active.toLocaleString('fr-FR');
     if (pausedEl) pausedEl.textContent = paused.toLocaleString('fr-FR');
     if (completionEl) completionEl.textContent = `${completionRate}%`;
@@ -970,9 +1023,14 @@ function animateCounters() {
 function updateActiveFilters(statut, cultureName, dateFrom, dateTo) {
     const container = document.getElementById('activeFilters');
     if (!container) return;
-    
+
     const activeFilters = [];
-    
+
+    const fermeSelect = document.getElementById('filterFerme');
+    if (fermeSelect && fermeSelect.value) {
+        const fermeLabel = fermeSelect.options[fermeSelect.selectedIndex].text;
+        activeFilters.push({type: 'ferme', label: fermeLabel});
+    }
     if (statut) {
         const statusLabels = {'en_cours': 'En cours', 'en_pause': 'En pause', 'fini': 'Terminé'};
         activeFilters.push({type: 'statut', label: statusLabels[statut]});
@@ -986,7 +1044,7 @@ function updateActiveFilters(statut, cultureName, dateFrom, dateTo) {
     if (dateTo) {
         activeFilters.push({type: 'date_to', label: `Jusqu'à ${dateTo}`});
     }
-    
+
     if (activeFilters.length > 0) {
         container.style.display = 'flex';
         container.innerHTML = activeFilters.map(f => `
@@ -1005,6 +1063,13 @@ function updateActiveFilters(statut, cultureName, dateFrom, dateTo) {
 // ===== REMOVE FILTER =====
 function removeFilter(type) {
     switch(type) {
+        case 'ferme':
+            const fermeSelect = document.getElementById('filterFerme');
+            if (fermeSelect) {
+                fermeSelect.value = '';
+                applyFarmFilter('');
+            }
+            return;
         case 'statut':
             document.getElementById('filterStatut').value = '';
             break;
@@ -1336,6 +1401,387 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 
+// ===== DYNAMIC FARM FILTER (AJAX) =====
+let currentFermeId = document.getElementById('filterFerme')?.value || '';
+
+function applyFarmFilter(fermeId) {
+    currentFermeId = fermeId;
+
+    // Update URL without reload
+    const url = new URL(window.location);
+    if (fermeId) {
+        url.searchParams.set('ferme', fermeId);
+    } else {
+        url.searchParams.delete('ferme');
+    }
+    history.pushState({}, '', url);
+
+    // Build API URL with all current filters
+    const params = new URLSearchParams();
+    if (fermeId) params.set('ferme', fermeId);
+    const statut = document.getElementById('filterStatut')?.value;
+    const culture = document.getElementById('filterCulture')?.value;
+    const dateFrom = document.getElementById('filterDateFrom')?.value;
+    const dateTo = document.getElementById('filterDateTo')?.value;
+    if (statut) params.set('statut', statut);
+    if (culture) params.set('culture', culture);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+
+    const apiUrl = `/api/dashboard/stats/?${params.toString()}`;
+
+    // Show loading indicator
+    const indicator = document.getElementById('refreshIndicator');
+    indicator?.classList.add('refreshing');
+
+    fetch(apiUrl)
+        .then(res => {
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        })
+        .then(data => {
+            updateSpotlight(data);
+            updateKPIsFromAPI(data);
+            updateFarmCards(data);
+            updateProjectList(data);
+            updateChartsFromAPI(data);
+
+            // Update allProjects data store
+            allProjects.length = 0;
+            (data.projets_list || []).forEach(p => {
+                allProjects.push({
+                    id: p.id,
+                    nom: p.nom,
+                    status: p.statut,
+                    culture: p.culture_id,
+                    cultureName: p.culture_nom,
+                    date: p.date_lancement,
+                    superficie: p.superficie,
+                    rendement: p.rendement_estime,
+                    progress: p.statut === 'fini' ? 100 : p.statut === 'en_pause' ? 50 : 75,
+                    fermeNom: p.ferme_nom
+                });
+            });
+            filteredProjects = [...allProjects];
+
+            // Update filter count
+            const filterCountEl = document.getElementById('filterCount');
+            if (filterCountEl) {
+                filterCountEl.textContent = `${data.nb_projets} projet(s)`;
+                filterCountEl.style.transform = 'scale(1.2)';
+                setTimeout(() => filterCountEl.style.transform = 'scale(1)', 200);
+            }
+
+            showToast(fermeId ? 'Ferme filtrée' : 'Vue globale', 'success');
+        })
+        .catch(err => {
+            console.error('Farm filter error:', err);
+            showToast('Erreur lors du filtrage', 'error');
+        })
+        .finally(() => {
+            indicator?.classList.remove('refreshing');
+        });
+}
+
+function updateSpotlight(data) {
+    const section = document.getElementById('spotlightSection');
+    if (!section) return;
+
+    const mainDiv = section.querySelector('.dashboard-spotlight-main');
+    const sideDiv = section.querySelector('.dashboard-spotlight-side');
+
+    if (data.selected_ferme) {
+        const f = data.selected_ferme;
+        mainDiv.innerHTML = `
+            <span class="spotlight-kicker"><i class="fas fa-warehouse"></i> Ferme sélectionnée</span>
+            <h2 class="spotlight-title">${f.nom}</h2>
+            <p class="spotlight-copy">
+                ${f.description || 'Gérer les projets liés à cette ferme.'}
+                <br><small class="text-muted">${f.localite}${f.localite && f.pays ? ', ' : ''}${f.pays} — ${f.superficie || '?'} ha</small>
+            </p>
+            <div class="spotlight-actions">
+                <a href="/creer-projet/?ferme=${f.id}" class="btn-baay btn-baay-primary">
+                    <i class="fas fa-plus"></i> Nouveau projet
+                </a>
+                <a href="/fermes/${f.id}/" class="btn-baay btn-baay-outline">
+                    <i class="fas fa-warehouse"></i> Fiche ferme
+                </a>
+                <a href="#" class="btn-baay btn-baay-ghost" onclick="event.preventDefault(); document.getElementById('filterFerme').value=''; applyFarmFilter('');">
+                    <i class="fas fa-globe"></i> Vue globale
+                </a>
+            </div>`;
+        sideDiv.innerHTML = `
+            <div class="spotlight-stat-card">
+                <span class="spotlight-stat-label">Utilisation</span>
+                <strong class="spotlight-stat-value" id="spotlightFarmUtilisation">${f.utilisation}%</strong>
+                <span class="spotlight-stat-meta">${Math.round(f.superficie_utilisee)}/${Math.round(f.superficie)} ha</span>
+            </div>
+            <div class="spotlight-stat-card">
+                <span class="spotlight-stat-label">Membres</span>
+                <strong class="spotlight-stat-value" id="spotlightFarmMembers">${f.membres}</strong>
+                <span class="spotlight-stat-meta">dans cette ferme</span>
+            </div>
+            <div class="spotlight-stat-card">
+                <span class="spotlight-stat-label">Projets actifs</span>
+                <strong class="spotlight-stat-value" id="spotlightFarmProjects">${data.projets_en_cours}</strong>
+                <span class="spotlight-stat-meta">dans cette ferme</span>
+            </div>`;
+    } else {
+        mainDiv.innerHTML = `
+            <span class="spotlight-kicker">Vue d'ensemble</span>
+            <h2 class="spotlight-title">Pilotez vos projets agricoles depuis un tableau de bord plus clair.</h2>
+            <p class="spotlight-copy">
+                ${data.nombre_fermes} ferme(s), ${data.nb_projets} projet(s) — Gardez les indicateurs importants visibles et filtrez rapidement.
+            </p>
+            <div class="spotlight-actions">
+                <button class="btn-baay btn-baay-primary" type="button" data-open-quick-add>
+                    <i class="fas fa-plus"></i> Nouveau projet
+                </button>
+                <a href="/fermes/" class="btn-baay btn-baay-outline">
+                    <i class="fas fa-warehouse"></i> Mes fermes
+                </a>
+                <a href="/liste-projets/" class="btn-baay btn-baay-ghost">
+                    <i class="fas fa-layer-group"></i> Tous les projets
+                </a>
+            </div>`;
+        const inactiveTxt = data.fermes_inactives
+            ? `<span class="text-warning">${data.fermes_inactives} inactive(s)</span>`
+            : 'actives';
+        sideDiv.innerHTML = `
+            <div class="spotlight-stat-card">
+                <span class="spotlight-stat-label">Fermes</span>
+                <strong class="spotlight-stat-value" id="spotlightFarms">${data.nombre_fermes}</strong>
+                <span class="spotlight-stat-meta">${inactiveTxt}</span>
+            </div>
+            <div class="spotlight-stat-card">
+                <span class="spotlight-stat-label">Projets</span>
+                <strong class="spotlight-stat-value" id="spotlightProjects">${data.nb_projets}</strong>
+                <span class="spotlight-stat-meta">${data.projets_en_cours} en cours</span>
+            </div>
+            <div class="spotlight-stat-card">
+                <span class="spotlight-stat-label">Membres</span>
+                <strong class="spotlight-stat-value" id="spotlightMembers">${data.total_membres}</strong>
+                <span class="spotlight-stat-meta">dans toutes les fermes</span>
+            </div>`;
+    }
+
+    // Rebind quick add triggers
+    bindQuickAddTriggers();
+}
+
+function updateKPIsFromAPI(data) {
+    const grid = document.getElementById('dashboardGrid');
+    if (!grid) return;
+
+    // Remove old KPI cards
+    grid.querySelectorAll('.tile-kpi').forEach(el => el.remove());
+
+    // Reference node to insert before
+    const filtersSection = grid.querySelector('[data-tile-id="filters"]');
+
+    let kpiHtml = '';
+    if (data.selected_ferme) {
+        const f = data.selected_ferme;
+        kpiHtml = `
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-projects">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon orange"><i class="fas fa-folder"></i></div>
+            <div class="dash-stat-value" id="kpiTotalProjects">${data.nb_projets}</div>
+            <div class="dash-stat-label">Projets ferme</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-superficie">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon accent"><i class="fas fa-map"></i></div>
+            <div class="dash-stat-value" id="kpiSuperficie">${Math.round(f.superficie_utilisee)}/${Math.round(f.superficie)}</div>
+            <div class="dash-stat-label">Ha utilisés</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-utilisation">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon purple"><i class="fas fa-chart-pie"></i></div>
+            <div class="dash-stat-value" id="kpiUtilisation">${f.utilisation}%</div>
+            <div class="dash-stat-label">Taux utilisation</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-rendement">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon blue"><i class="fas fa-boxes"></i></div>
+            <div class="dash-stat-value" id="kpiRendement">${Math.round(f.rendement)}</div>
+            <div class="dash-stat-label">Kg estimés ferme</div>
+        </div>`;
+    } else {
+        kpiHtml = `
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-fermes">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon teal"><i class="fas fa-warehouse"></i></div>
+            <div class="dash-stat-value" id="kpiFermes">${data.nombre_fermes}</div>
+            <div class="dash-stat-label">Fermes</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-projects">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon orange"><i class="fas fa-folder"></i></div>
+            <div class="dash-stat-value" id="kpiTotalProjects">${data.nb_projets}</div>
+            <div class="dash-stat-label">Projets</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-superficie">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon accent"><i class="fas fa-map"></i></div>
+            <div class="dash-stat-value" id="kpiSuperficie">${Math.round(data.superficie_totale)}</div>
+            <div class="dash-stat-label">Hectares</div>
+        </div>
+        <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement">
+            <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
+            <div class="dash-stat-value" id="kpiInvestissement">${Math.round(data.investissement_total)}</div>
+            <div class="dash-stat-label">CFA investis</div>
+        </div>`;
+    }
+
+    // Insert KPI cards before filters
+    const temp = document.createElement('div');
+    temp.innerHTML = kpiHtml;
+    while (temp.firstElementChild) {
+        grid.insertBefore(temp.firstElementChild, filtersSection);
+    }
+
+    animateCounters();
+}
+
+function updateFarmCards(data) {
+    const section = document.getElementById('farmCardsSection');
+    if (!section) return;
+
+    if (data.selected_ferme || !data.fermes_data || data.fermes_data.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = '';
+
+    const row = section.querySelector('.farm-cards-row');
+    if (!row) return;
+
+    row.innerHTML = data.fermes_data.map(fd => `
+        <a href="javascript:void(0)" class="farm-card" onclick="document.getElementById('filterFerme').value='${fd.id}'; applyFarmFilter('${fd.id}');"
+           style="min-width: 260px; flex: 0 0 auto; background: var(--card-bg); border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; border: 1px solid var(--border-color); transition: transform .2s;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <strong style="font-size: 1.05rem; color: var(--text-main);">${fd.nom}</strong>
+                <span class="badge" style="background: rgba(20,184,166,0.15); color: #14b8a6; font-size: .75rem; padding: 2px 8px; border-radius: 6px;">${fd.projets_actifs} actif${fd.projets_actifs !== 1 ? 's' : ''}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: .85rem; color: var(--text-muted);">
+                <div><i class="fas fa-folder" style="margin-right: 4px;"></i> ${fd.projets_count} projet${fd.projets_count !== 1 ? 's' : ''}</div>
+                <div><i class="fas fa-users" style="margin-right: 4px;"></i> ${fd.membres_count} membre${fd.membres_count !== 1 ? 's' : ''}</div>
+                <div><i class="fas fa-map" style="margin-right: 4px;"></i> ${Math.round(fd.superficie_ferme)} ha</div>
+                <div><i class="fas fa-chart-pie" style="margin-right: 4px;"></i> ${fd.utilisation_pct}% utilisé</div>
+            </div>
+            <div style="margin-top: 10px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;">
+                <div style="width: ${fd.utilisation_pct}%; height: 100%; background: linear-gradient(90deg, #14b8a6, #0ea5e9); border-radius: 2px;"></div>
+            </div>
+        </a>
+    `).join('');
+}
+
+function updateProjectList(data) {
+    const container = document.getElementById('projectsList');
+    const projectsSection = document.querySelector('[data-tile-id="projects-list"] .dash-section-body');
+    if (!projectsSection) return;
+
+    const showFerme = !data.selected_ferme;
+    const projets = data.projets_list || [];
+
+    if (projets.length === 0) {
+        projectsSection.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h4>Aucun projet</h4>
+                <p>${data.selected_ferme ? "Cette ferme n'a pas encore de projet." : 'Commencez par créer votre premier projet agricole.'}</p>
+                <a href="/creer-projet/${data.selected_ferme ? '?ferme=' + data.selected_ferme.id : ''}" class="btn-baay btn-baay-primary mt-3">
+                    <i class="fas fa-plus"></i> Créer un projet
+                </a>
+            </div>`;
+        return;
+    }
+
+    const statusLabel = s => s === 'en_cours' ? 'En cours' : s === 'en_pause' ? 'En pause' : 'Terminé';
+    const progressVal = s => s === 'fini' ? 100 : s === 'en_pause' ? 50 : 75;
+
+    const bulkBar = `<div class="bulk-actions-bar" id="bulkActionsBar">
+        <span class="selected-count"><span id="selectedCount">0</span> sélectionné(s)</span>
+        <button class="btn btn-primary" id="bulkStatus" title="Changer le statut"><i class="fas fa-tag"></i> Statut</button>
+        <button class="btn btn-danger" id="bulkDelete" title="Supprimer"><i class="fas fa-trash"></i> Supprimer</button>
+        <button class="btn" id="bulkCancel">Annuler</button>
+    </div>`;
+
+    const listHtml = projets.map(p => {
+        const prog = progressVal(p.statut);
+        const farmBadge = (showFerme && p.ferme_nom) ? `<span class="farm-badge"><i class="fas fa-warehouse"></i> ${p.ferme_nom}</span>` : '';
+        return `
+        <div class="project-item" data-id="${p.id}" data-status="${p.statut}"
+            data-culture="${p.culture_id}" data-date="${p.date_lancement}"
+            data-culture-name="${p.culture_nom}"
+            data-nom="${p.nom}" data-rendement="${p.rendement_estime}"
+            data-superficie="${p.superficie}"
+            data-progress="${prog}">
+            <div class="project-checkbox" onclick="toggleProjectSelection(event, '${p.id}')"></div>
+            <div class="project-info" onclick="window.location.href='/projet/${p.id}/'">
+                <div class="project-name editable" data-id="${p.id}"
+                    ondblclick="editProjectName(event, '${p.id}', '${p.nom.replace(/'/g, "\\'")}')">
+                    ${p.nom}
+                </div>
+                <div class="project-meta">
+                    ${farmBadge}
+                    <span><i class="fas fa-seedling"></i> ${p.culture_nom}</span>
+                    <span><i class="fas fa-map"></i> ${p.superficie} ha</span>
+                </div>
+                <div class="project-progress">
+                    <div class="project-progress-bar" style="width: ${prog}%"></div>
+                </div>
+                <div class="project-progress-meta">
+                    <span>Progression</span>
+                    <strong>${prog}%</strong>
+                </div>
+            </div>
+            <span class="status-badge status-${p.statut}"
+                onclick="event.stopPropagation(); showStatusModal('${p.id}', '${p.statut}')">
+                ${statusLabel(p.statut)}
+            </span>
+            <div class="mini-p-stats">
+                <span><i class="fas fa-crop-alt"></i> ${p.superficie} ha</span>
+                <span><i class="fas fa-weight"></i> ${p.rendement_estime || '-'} kg</span>
+            </div>
+            <div class="mini-p-actions">
+                <a href="/projet/${p.id}/" class="btn-baay btn-baay-outline py-1 px-2 text-xs" onclick="event.stopPropagation();" title="Voir">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="/projet/${p.id}/modifier/" class="btn-baay btn-baay-ghost py-1 px-2 text-xs" onclick="event.stopPropagation();" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="/projet/${p.id}/generer_prediction/" class="btn-baay btn-baay-primary py-1 px-3 text-xs" onclick="event.stopPropagation();" title="IA Prediction">
+                    <i class="fas fa-robot"></i>
+                </a>
+            </div>
+        </div>`;
+    }).join('');
+
+    projectsSection.innerHTML = bulkBar + `<div class="project-list" id="projectsList">${listHtml}</div>`;
+
+    // Re-init context menu and bulk actions on new DOM
+    initContextMenu();
+    initBulkActions();
+    selectedProjects.clear();
+}
+
+function updateChartsFromAPI(data) {
+    // Store API data for chart rebuilding
+    dashboardStatsData = data;
+
+    // Rebuild rendement & status charts from the new allProjects
+    if (typeof Chart !== 'undefined') {
+        // Small delay to let DOM settle
+        requestAnimationFrame(() => {
+            initCharts();
+        });
+    }
+}
+
 // ===== AUTO REFRESH =====
 function autoRefresh() {
     if (isRefreshing) return;
@@ -1355,30 +1801,59 @@ function refreshData() {
             return res.json();
         })
         .then(data => {
-            // Update KPI cards from server data
-            animateValue('kpiTotalProjects', data.nb_projets || 0);
-            animateValue('kpiSuperficie', data.superficie_totale || 0);
-            animateValue('kpiRendement', data.rendement_total || 0);
-            animateValue('kpiInvestissement', data.investissement_total || 0);
+            // Update KPI cards from server data (only if element exists)
+            const kpiIds = ['kpiTotalProjects', 'kpiSuperficie', 'kpiRendement', 'kpiInvestissement', 'kpiUtilisation', 'kpiFermes'];
+            const kpiMap = {
+                'kpiTotalProjects': data.nb_projets || 0,
+                'kpiSuperficie': data.superficie_totale || 0,
+                'kpiRendement': data.rendement_total || 0,
+                'kpiInvestissement': data.investissement_total || 0,
+                'kpiUtilisation': data.selected_ferme ? (data.selected_ferme.utilisation || 0) : 0,
+                'kpiFermes': data.nombre_fermes || 0
+            };
+            kpiIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) animateValue(id, kpiMap[id]);
+            });
 
             // Update spotlight stats
             const enCours = data.projets_par_statut.find(p => p.statut === 'en_cours');
             const enPause = data.projets_par_statut.find(p => p.statut === 'en_pause');
             const finis = data.projets_par_statut.find(p => p.statut === 'fini');
             const total = data.nb_projets || 0;
-            const completionRate = total ? Math.round(((finis ? finis.count : 0) / total) * 100) : 0;
 
+            // Farm view IDs
+            const farmProjectsEl = document.getElementById('spotlightFarmProjects');
+            const farmUtilEl = document.getElementById('spotlightFarmUtilisation');
+            const farmMembersEl = document.getElementById('spotlightFarmMembers');
+            if (farmProjectsEl) farmProjectsEl.textContent = (enCours ? enCours.count : 0).toLocaleString('fr-FR');
+            if (farmUtilEl && data.selected_ferme) farmUtilEl.textContent = `${data.selected_ferme.utilisation || 0}%`;
+            if (farmMembersEl && data.selected_ferme) farmMembersEl.textContent = (data.selected_ferme.membres || 0).toLocaleString('fr-FR');
+
+            // Global view IDs
+            const projectsEl = document.getElementById('spotlightProjects');
+            const farmsEl = document.getElementById('spotlightFarms');
+            const membersEl = document.getElementById('spotlightMembers');
+            if (projectsEl) projectsEl.textContent = total.toLocaleString('fr-FR');
+            if (farmsEl) farmsEl.textContent = (data.nombre_fermes || 0).toLocaleString('fr-FR');
+            if (membersEl) membersEl.textContent = (data.total_membres || 0).toLocaleString('fr-FR');
+
+            // Legacy IDs (fallback)
             const activeEl = document.getElementById('spotlightActiveProjects');
             const pausedEl = document.getElementById('spotlightPausedProjects');
             const completionEl = document.getElementById('spotlightCompletionRate');
+            const completionRate = total ? Math.round(((finis ? finis.count : 0) / total) * 100) : 0;
             if (activeEl) activeEl.textContent = (enCours ? enCours.count : 0).toLocaleString('fr-FR');
             if (pausedEl) pausedEl.textContent = (enPause ? enPause.count : 0).toLocaleString('fr-FR');
             if (completionEl) completionEl.textContent = `${completionRate}%`;
 
             // Update timestamp
             const now = new Date();
-            document.getElementById('lastUpdated').textContent =
-                `Mis à jour: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const lastUpdated = document.getElementById('lastUpdated');
+            if (lastUpdated) {
+                lastUpdated.textContent =
+                    `Mis à jour: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            }
 
             // Update API-based charts
             if (monthlyTrendsChart && data.monthly_trends) {
