@@ -48,7 +48,6 @@ class Ferme(models.Model):
 
 class MembreFerme(models.Model):
     ROLE_CHOICES = [
-        ('proprietaire', 'Propriétaire'),
         ('manager', 'Manager'),
         ('technicien', 'Technicien'),
         ('ouvrier', 'Ouvrier'),
@@ -82,8 +81,14 @@ class DemandeAccesFerme(models.Model):
     date_traitement = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('ferme', 'utilisateur', 'statut')
         ordering = ['-date_demande']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ferme', 'utilisateur'],
+                condition=models.Q(statut='en_attente'),
+                name='unique_demande_en_attente_par_ferme_utilisateur',
+            ),
+        ]
 
     def __str__(self):
         return f"{self.utilisateur.user.username} demande l'accès à {self.ferme.nom}"

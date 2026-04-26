@@ -404,9 +404,10 @@
             {% if projets %}
             <div class="project-list" id="projectsList">
                 {% for projet in projets %}
+                {% with projet_pps=projet.projet_produits.all %}
                 <div class="project-item" data-id="{{ projet.id }}" data-status="{{ projet.statut }}"
                     data-culture="{% if projet.culture %}{{ projet.culture.id }}{% endif %}" data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
-                    data-culture-name="{{ projet.culture.nom|default:'N/A' }}"
+                    data-culture-name="{% for pp in projet_pps %}{{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|default:'N/A' }}{% endfor %}"
                     data-nom="{{ projet.nom }}" data-rendement="{{ projet.rendement_estime|default:0 }}"
                     data-superficie="{{ projet.superficie|default:0 }}"
                     data-progress="{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}">
@@ -421,7 +422,15 @@
                         </div>
                         <div class="project-meta">
                             {% if not selected_ferme and projet.ferme %}<span class="farm-badge"><i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}</span>{% endif %}
-                            <span><i class="fas fa-seedling"></i> {{ projet.culture.nom|default:"N/A" }}</span>
+                            <span title="{% for pp in projet_pps %}{{ pp.produit.nom }}{% if pp.superficie_allouee %} ({{ pp.superficie_allouee }} ha){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                <i class="fas fa-seedling"></i>
+                                {% if projet_pps %}
+                                    {% for pp in projet_pps|slice:":2" %}{{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if projet_pps|length > 2 %} +{{ projet_pps|length|add:"-2" }}{% endif %}
+                                {% else %}
+                                    {{ projet.culture.nom|default:"N/A" }}
+                                {% endif %}
+                            </span>
+                            {% if projet_pps|length > 1 %}<span class="farm-badge" style="background: rgba(163,230,53,0.15);"><i class="fas fa-layer-group"></i> {{ projet_pps|length }} produits</span>{% endif %}
                             <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
                         </div>
                         <!-- Progress bar -->
@@ -466,6 +475,7 @@
                         </a>
                     </div>
                 </div>
+                {% endwith %}
                 {% endfor %}
             </div>
             {% else %}

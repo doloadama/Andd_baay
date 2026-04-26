@@ -74,8 +74,11 @@
                             <div class="info-block">
                                 <div class="info-icon"><i class="fas fa-ruler-combined"></i></div>
                                 <div>
-                                    <div class="info-label">Superficie</div>
+                                    <div class="info-label">Superficie totale</div>
                                     <div class="info-value">{{ projet.superficie }} <span>ha</span></div>
+                                    {% if projet_produits.count > 1 %}
+                                    <small class="text-muted">Somme des superficies par produit</small>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -97,6 +100,7 @@
                                         {% for pp in projet_produits %}
                                             <span class="tag tag-accent me-1 mb-1" style="font-size: 0.9rem;">
                                                 <i class="fas fa-seedling"></i> {{ pp.produit.nom }}
+                                                {% if pp.superficie_allouee %}<span class="ms-1" style="opacity: 0.85;">{{ pp.superficie_allouee }} ha</span>{% endif %}
                                                 {% if pp.age_plant %}<span class="ms-1" style="opacity: 0.8;">({{ pp.age_plant }} jrs)</span>{% endif %}
                                                 {% if pp.rendement_final %}
                                                     <span class="tag tag-success ms-1">{{ pp.rendement_final }} kg</span>
@@ -275,15 +279,20 @@
                                         </tr>
                                     {% endfor %}
                                 </tbody>
-                                {% if projet.statut == 'fini' %}
                                 <tfoot>
+                                    <tr style="background: rgba(163, 230, 53, 0.05);">
+                                        <td colspan="2" class="text-end fw-bold">Total superficie:</td>
+                                        <td class="text-center fw-bold text-accent">{{ projet.superficie }} ha</td>
+                                        <td colspan="4"></td>
+                                    </tr>
+                                    {% if projet.statut == 'fini' %}
                                     <tr style="background: rgba(163, 230, 53, 0.1);">
                                         <td colspan="5" class="text-end fw-bold">Total Rendement Final:</td>
                                         <td class="text-center fw-bold text-success-modern">{{ projet.rendement_total_final }} kg</td>
                                         <td></td>
                                     </tr>
+                                    {% endif %}
                                 </tfoot>
-                                {% endif %}
                             </table>
                         </div>
                     {% else %}

@@ -102,6 +102,11 @@ class ProjetForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         from_ferme = kwargs.pop('from_ferme', None)
         super().__init__(*args, **kwargs)
+        # La superficie globale peut etre calculee automatiquement a partir des
+        # superficies par produit (mode "per-product"). On la rend optionnelle
+        # ici et la validation finale se fait dans clean().
+        if 'superficie' in self.fields:
+            self.fields['superficie'].required = False
         # Afficher les noms des pays et localites dans le formulaire
         if 'pays' in self.fields:
             self.fields['pays'].queryset = Pays.objects.all().order_by('nom')
@@ -144,22 +149,60 @@ class ProjetForm(forms.ModelForm):
         return superficie
     
     def clean(self):
+        from decimal import Decimal, InvalidOperation
+        from django.db.models import Sum
         cleaned_data = super().clean()
-        produits = cleaned_data.get('produits_selection')
-        superficie = cleaned_data.get('superficie')
+        produits = list(cleaned_data.get('produits_selection') or [])
         ferme = cleaned_data.get('ferme')
-        if not produits or len(produits) == 0:
+        if not produits:
             raise forms.ValidationError("Vous devez selectionner au moins un produit.")
-        if superficie and ferme and ferme.superficie_totale:
-            from django.db.models import Sum
+
+        # Mode "per-product" : si la requete contient au moins une superficie
+        # par produit, on calcule la superficie totale a partir de la somme.
+        per_product_keys = [f'superficie_{p.id}' for p in produits]
+        per_product_present = any((self.data.get(k) or '').strip() for k in per_product_keys)
+
+        if per_product_present:
+            superficies = {}
+            total = Decimal('0')
+            errors = []
+            for p in produits:
+                raw = (self.data.get(f'superficie_{p.id}') or '').strip()
+                if not raw:
+                    errors.append(f"Superficie manquante pour {p.nom}.")
+                    continue
+                try:
+                    val = Decimal(raw)
+                except (InvalidOperation, ValueError):
+                    errors.append(f"Superficie invalide pour {p.nom}.")
+                    continue
+                if val <= 0:
+                    errors.append(f"La superficie pour {p.nom} doit etre positive.")
+                    continue
+                superficies[str(p.id)] = val
+                total += val
+            if errors:
+                raise forms.ValidationError(errors)
+            cleaned_data['superficies_par_produit'] = superficies
+            cleaned_data['superficie'] = total
+            superficie = total
+        else:
+            superficie = cleaned_data.get('superficie')
+            if superficie is None:
+                raise forms.ValidationError("La superficie est obligatoire.")
+            if superficie <= 0:
+                raise forms.ValidationError("La superficie doit etre positive.")
+
+        # Validation contre la superficie totale de la ferme.
+        if ferme and ferme.superficie_totale:
             autres_projets = Projet.objects.filter(ferme=ferme, statut='en_cours')
             if self.instance and self.instance.pk:
                 autres_projets = autres_projets.exclude(pk=self.instance.pk)
             superficie_totale_autres = autres_projets.aggregate(total=Sum('superficie'))['total'] or 0
-            if superficie_totale_autres + superficie > ferme.superficie_totale:
-                reste = ferme.superficie_totale - superficie_totale_autres
+            if Decimal(superficie_totale_autres) + Decimal(superficie) > Decimal(ferme.superficie_totale):
+                reste = Decimal(ferme.superficie_totale) - Decimal(superficie_totale_autres)
                 raise forms.ValidationError(
-                    f"La somme des superficies des projets en cours ne peut pas dépasser celle de la ferme. "
+                    f"La somme des superficies des projets en cours ne peut pas depasser celle de la ferme. "
                     f"Superficie restante disponible : {reste} ha."
                 )
         return cleaned_data
@@ -324,9 +367,9 @@ class FermeForm(forms.ModelForm):
 
 class MembreFermeForm(forms.Form):
     username = forms.CharField(
-        max_length=150,
-        label="Nom d'utilisateur",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Nom d'utilisateur de l'utilisateur inscrit"})
+        max_length=254,
+        label="Nom d'utilisateur ou email",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Nom d'utilisateur ou email de l'utilisateur inscrit"})
     )
     role = forms.ChoiceField(
         choices=[('manager', 'Manager'), ('technicien', 'Technicien'), ('ouvrier', 'Ouvrier')],
@@ -348,14 +391,22 @@ class MembreFermeForm(forms.Form):
 
     def clean_username(self):
         from django.contrib.auth.models import User
-        username = self.cleaned_data['username'].strip()
-        if not username:
-            raise forms.ValidationError("Le nom d'utilisateur est obligatoire.")
+        identifiant = self.cleaned_data['username'].strip()
+        if not identifiant:
+            raise forms.ValidationError("Le nom d'utilisateur ou l'email est obligatoire.")
 
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            raise forms.ValidationError("Cet utilisateur n'est pas inscrit. Veuillez vérifier le nom d'utilisateur.")
+        if '@' in identifiant:
+            matches = list(User.objects.filter(email__iexact=identifiant)[:2])
+            if not matches:
+                raise forms.ValidationError("Aucun utilisateur inscrit ne correspond à cet email.")
+            if len(matches) > 1:
+                raise forms.ValidationError("Plusieurs utilisateurs partagent cet email. Utilisez le nom d'utilisateur.")
+            user = matches[0]
+        else:
+            try:
+                user = User.objects.get(username=identifiant)
+            except User.DoesNotExist:
+                raise forms.ValidationError("Cet utilisateur n'est pas inscrit. Veuillez vérifier le nom d'utilisateur.")
 
         if not hasattr(user, 'profile'):
             raise forms.ValidationError("Cet utilisateur n'a pas de profil agricole.")

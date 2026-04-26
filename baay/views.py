@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pickle
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.db.models import Q, Sum, Count, Avg
 from django.db.models.functions import TruncMonth
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm
@@ -293,15 +294,21 @@ def creer_projet(request):
 
             # Create ProjetProduit entries for each selected product
             produits = projet_form.cleaned_data.get('produits_selection', [])
+            superficies_par_produit = projet_form.cleaned_data.get('superficies_par_produit') or {}
             rendement_total = 0
             for produit in produits:
+                surf = superficies_par_produit.get(str(produit.id))
                 pp = ProjetProduit.objects.create(
                     projet=projet,
-                    produit=produit
+                    produit=produit,
+                    superficie_allouee=surf,
                 )
-                # Calculate estimated yield based on product average and total area
+                # Calculate estimated yield based on product average and allocated area
                 if produit.rendement_moyen:
-                    rendement_total += float(projet.superficie / len(produits)) * float(produit.rendement_moyen)
+                    if surf:
+                        rendement_total += float(surf) * float(produit.rendement_moyen)
+                    elif projet.superficie:
+                        rendement_total += float(projet.superficie / len(produits)) * float(produit.rendement_moyen)
 
             # Set backwards compatibility - use first product as main culture
             if produits:
@@ -554,7 +561,7 @@ def dashboard(request):
     # Projects queryset (optionally filtered by farm)
     projets_qs = Projet.objects.filter(utilisateur=utilisateur).select_related(
         'culture', 'localite', 'ferme'
-    )
+    ).prefetch_related('projet_produits__produit')
     if selected_ferme:
         projets_qs = projets_qs.filter(ferme=selected_ferme)
 
@@ -1600,6 +1607,18 @@ def ajouter_membre_ferme(request, ferme_id):
                 messages.info(request, f"{profile.user.username} est déjà membre de la ferme.")
                 return redirect('detail_ferme', ferme_id=ferme.id)
             messages.success(request, f"{profile.user.username} ajouté à la ferme.")
+            membre_email = profile.user.email
+            if membre_email:
+                _send_mail_safe(
+                    subject=f"Vous avez été ajouté à la ferme {ferme.nom}",
+                    message=(
+                        f"Bonjour {profile.user.username},\n\n"
+                        f"{request.user.get_full_name() or request.user.username} vous a ajouté comme {membre.get_role_display()} "
+                        f"à la ferme {ferme.nom}.\n"
+                        f"Connectez-vous à Andd Baay pour y accéder."
+                    ),
+                    recipient_list=[membre_email],
+                )
             return redirect('detail_ferme', ferme_id=ferme.id)
     else:
         form = MembreFermeForm(ferme=ferme, can_delegate_members=is_proprietaire)
@@ -1623,12 +1642,36 @@ def retirer_membre_ferme(request, ferme_id, membre_id):
     return render(request, 'fermes/retirer_membre.html', {'membre': membre, 'ferme': ferme})
 
 
+def _send_mail_safe(subject, message, recipient_list):
+    """Envoie un email en loggant les erreurs SMTP au lieu de les masquer silencieusement."""
+    if not recipient_list:
+        return
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=recipient_list,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        logger.warning("Échec d'envoi d'email à %s: %s", recipient_list, exc)
+
+
 @login_required
 def demander_acces_ferme(request):
     profile = request.user.profile
     if request.method == 'POST':
         form = DemandeAccesFermeForm(request.POST, user_profile=profile)
         if form.is_valid():
+            window_start = timezone.now() - timedelta(hours=24)
+            recent_count = DemandeAccesFerme.objects.filter(
+                utilisateur=profile,
+                date_demande__gte=window_start,
+            ).count()
+            if recent_count >= 5:
+                messages.error(request, "Vous avez atteint la limite de demandes d'accès (5 par 24h). Réessayez plus tard.")
+                return redirect('demander_acces_ferme')
             ferme = form.cleaned_data['code']
             demande = DemandeAccesFerme.objects.create(
                 ferme=ferme,
@@ -1637,16 +1680,14 @@ def demander_acces_ferme(request):
             )
             proprietaire_email = ferme.proprietaire.user.email
             if proprietaire_email:
-                send_mail(
+                _send_mail_safe(
                     subject=f"Demande d'accès à la ferme {ferme.nom}",
                     message=(
                         f"{request.user.get_full_name() or request.user.username} demande à rejoindre votre ferme {ferme.nom}.\n\n"
                         f"Code utilisé : {demande.code}\n"
                         f"Connectez-vous à Andd Baay pour approuver ou refuser cette demande."
                     ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[proprietaire_email],
-                    fail_silently=True,
                 )
             messages.success(request, "Votre demande a été envoyée au propriétaire de la ferme.")
             return redirect('liste_fermes')
@@ -1656,24 +1697,48 @@ def demander_acces_ferme(request):
 
 
 @login_required
+@require_POST
 def traiter_demande_acces_ferme(request, ferme_id, demande_id, action):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     demande = get_object_or_404(DemandeAccesFerme, id=demande_id, ferme=ferme, statut='en_attente')
-    if request.method == 'POST':
-        if action == 'approuver':
-            MembreFerme.objects.get_or_create(
-                ferme=ferme,
-                utilisateur=demande.utilisateur,
-                defaults={'role': 'ouvrier', 'peut_gerer_membres': False}
-            )
-            demande.statut = 'approuvee'
-            messages.success(request, f"{demande.utilisateur.user.username} a été ajouté à la ferme.")
-        elif action == 'refuser':
-            demande.statut = 'refusee'
-            messages.info(request, f"Demande de {demande.utilisateur.user.username} refusée.")
-        else:
-            messages.error(request, "Action invalide.")
-            return redirect('detail_ferme', ferme_id=ferme.id)
-        demande.date_traitement = timezone.now()
-        demande.save()
+    demandeur_email = demande.utilisateur.user.email
+    demandeur_username = demande.utilisateur.user.username
+    if action == 'approuver':
+        valid_roles = {'manager', 'technicien', 'ouvrier'}
+        role = request.POST.get('role', 'ouvrier')
+        if role not in valid_roles:
+            role = 'ouvrier'
+        peut_gerer_membres = bool(request.POST.get('peut_gerer_membres'))
+        MembreFerme.objects.get_or_create(
+            ferme=ferme,
+            utilisateur=demande.utilisateur,
+            defaults={'role': role, 'peut_gerer_membres': peut_gerer_membres}
+        )
+        demande.statut = 'approuvee'
+        messages.success(request, f"{demandeur_username} a été ajouté à la ferme.")
+        _send_mail_safe(
+            subject=f"Votre demande d'accès à {ferme.nom} a été approuvée",
+            message=(
+                f"Bonjour {demandeur_username},\n\n"
+                f"Votre demande d'accès à la ferme {ferme.nom} a été approuvée.\n"
+                f"Vous pouvez désormais y accéder depuis Andd Baay."
+            ),
+            recipient_list=[demandeur_email] if demandeur_email else [],
+        )
+    elif action == 'refuser':
+        demande.statut = 'refusee'
+        messages.info(request, f"Demande de {demandeur_username} refusée.")
+        _send_mail_safe(
+            subject=f"Votre demande d'accès à {ferme.nom} a été refusée",
+            message=(
+                f"Bonjour {demandeur_username},\n\n"
+                f"Votre demande d'accès à la ferme {ferme.nom} n'a pas été acceptée."
+            ),
+            recipient_list=[demandeur_email] if demandeur_email else [],
+        )
+    else:
+        messages.error(request, "Action invalide.")
+        return redirect('detail_ferme', ferme_id=ferme.id)
+    demande.date_traitement = timezone.now()
+    demande.save()
     return redirect('detail_ferme', ferme_id=ferme.id)

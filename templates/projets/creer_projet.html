@@ -677,21 +677,34 @@
                                             <span class="required">*</span>
                                             <span class="form-label-hint">Selectionnez un ou plusieurs produits</span>
                                         </label>
-                                        <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 12px;">
+                                        <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px;">
                                             {% for produit in produits %}
-                                            <label class="product-checkbox-item" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
+                                            <label class="product-checkbox-item" data-produit-id="{{ produit.id }}" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <input type="checkbox" 
-                                                           name="produits_selection" 
+                                                    <input type="checkbox"
+                                                           class="produit-checkbox"
+                                                           name="produits_selection"
                                                            value="{{ produit.id }}"
-                                                           style="width: 20px; height: 20px; accent-color: var(--accent);"
-                                                           onchange="this.closest('.product-checkbox-item').style.borderColor = this.checked ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)'; this.closest('.product-checkbox-item').style.background = this.checked ? 'rgba(163, 230, 53, 0.1)' : 'rgba(255, 255, 255, 0.05)';">
-                                                    <div>
-                                                        <div class=" fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
+                                                           data-produit-id="{{ produit.id }}"
+                                                           style="width: 20px; height: 20px; accent-color: var(--accent);">
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
                                                         {% if produit.rendement_moyen %}
                                                         <small class="text-muted">~{{ produit.rendement_moyen }} kg/ha</small>
                                                         {% endif %}
                                                     </div>
+                                                </div>
+                                                <div class="produit-superficie-wrapper mt-3" style="display: none;">
+                                                    <label class="form-label-modern" style="font-size: 0.8rem; margin-bottom: 4px;">Superficie (ha)</label>
+                                                    <input type="number"
+                                                           name="superficie_{{ produit.id }}"
+                                                           class="form-control form-control-sm produit-superficie"
+                                                           data-produit-id="{{ produit.id }}"
+                                                           step="0.01"
+                                                           min="0.01"
+                                                           placeholder="Ex: 1.5"
+                                                           disabled
+                                                           onclick="event.stopPropagation();">
                                                 </div>
                                             </label>
                                             {% endfor %}
@@ -776,17 +789,26 @@
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <div class="input-modern-group">
-                                        <label for="{{ projet_form.superficie.id_for_label }}" class="form-label-modern">
-                                            Superficie (ha)
-                                            <span class="required">*</span>
+                                        <label for="id_superficie_total_display" class="form-label-modern">
+                                            Superficie totale (ha)
+                                            <span class="form-label-hint">Calculee automatiquement depuis les produits</span>
                                         </label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-ruler-combined input-icon"></i>
-                                            {{ projet_form.superficie }}
+                                            <input type="number"
+                                                   id="id_superficie_total_display"
+                                                   class="form-control"
+                                                   value="0"
+                                                   step="0.01"
+                                                   readonly
+                                                   style="background: rgba(255,255,255,0.05);">
                                         </div>
                                         {% if projet_form.superficie.errors %}
                                             <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.superficie.errors.0 }}</div>
                                         {% endif %}
+                                        {% for error in projet_form.non_field_errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
+                                        {% endfor %}
                                     </div>
                                 </div>
 
@@ -1032,14 +1054,64 @@ document.addEventListener('DOMContentLoaded', function() {
                 localiteSelect.value = localiteId;
             }
             if (superficie) {
-                const supInput = document.getElementById('id_superficie');
-                if (supInput) {
-                    supInput.setAttribute('max', superficie);
-                    supInput.setAttribute('placeholder', 'Max: ' + superficie + ' ha');
+                const totalDisplay = document.getElementById('id_superficie_total_display');
+                if (totalDisplay) {
+                    totalDisplay.setAttribute('max', superficie);
+                    totalDisplay.setAttribute('title', 'Max ferme: ' + superficie + ' ha');
                 }
             }
         });
     }
+
+    // ===== Per-product superficie logic =====
+    const produitItems = document.querySelectorAll('.product-checkbox-item');
+    const totalDisplay = document.getElementById('id_superficie_total_display');
+
+    function updateTotalSuperficie() {
+        let total = 0;
+        document.querySelectorAll('.produit-checkbox:checked').forEach(function(cb) {
+            const produitId = cb.getAttribute('data-produit-id');
+            const surfInput = document.querySelector('.produit-superficie[data-produit-id="' + produitId + '"]');
+            if (surfInput) {
+                const v = parseFloat(surfInput.value);
+                if (!isNaN(v) && v > 0) total += v;
+            }
+        });
+        if (totalDisplay) totalDisplay.value = total.toFixed(2);
+    }
+
+    function applyItemStyle(item, checked) {
+        item.style.borderColor = checked ? 'var(--accent)' : 'var(--border-color)';
+        item.style.background = checked ? 'rgba(163, 230, 53, 0.1)' : 'var(--bg-secondary)';
+    }
+
+    produitItems.forEach(function(item) {
+        const cb = item.querySelector('.produit-checkbox');
+        const wrapper = item.querySelector('.produit-superficie-wrapper');
+        const surfInput = item.querySelector('.produit-superficie');
+        if (!cb) return;
+
+        applyItemStyle(item, cb.checked);
+        if (cb.checked && wrapper) wrapper.style.display = 'block';
+        if (cb.checked && surfInput) surfInput.disabled = false;
+
+        cb.addEventListener('change', function() {
+            applyItemStyle(item, cb.checked);
+            if (wrapper) wrapper.style.display = cb.checked ? 'block' : 'none';
+            if (surfInput) {
+                surfInput.disabled = !cb.checked;
+                if (!cb.checked) surfInput.value = '';
+                else surfInput.focus();
+            }
+            updateTotalSuperficie();
+        });
+
+        if (surfInput) {
+            surfInput.addEventListener('input', updateTotalSuperficie);
+        }
+    });
+
+    updateTotalSuperficie();
 });
 </script>
 {% endblock %}
