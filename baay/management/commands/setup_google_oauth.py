@@ -4,6 +4,7 @@ Creates or updates the Google SocialApp entry in the database.
 Run this once after setting GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env
 """
 import os
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.sites.models import Site
 
@@ -23,10 +24,21 @@ class Command(BaseCommand):
             ))
             return
 
-        # Ensure Site exists (SITE_ID=1)
-        site, _ = Site.objects.get_or_create(
-            id=1,
-            defaults={'domain': '127.0.0.1:8000', 'name': 'Andd Baay'}
+        # Determine correct domain for the Site
+        site_domain = os.getenv('SITE_DOMAIN', '').strip()
+        if not site_domain:
+            # Use first production-looking host from ALLOWED_HOSTS as fallback
+            for host in settings.ALLOWED_HOSTS:
+                if host not in ('localhost', '127.0.0.1') and not host.startswith('.'):
+                    site_domain = host
+                    break
+        if not site_domain:
+            site_domain = '127.0.0.1:8000'
+
+        # Ensure Site exists (SITE_ID=1) with correct domain
+        site, _ = Site.objects.update_or_create(
+            pk=settings.SITE_ID,
+            defaults={'domain': site_domain, 'name': 'Andd Baay'}
         )
 
         # Create or update the SocialApp
@@ -48,6 +60,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'✅  {action} Google SocialApp successfully.\n'
             f'    Client ID : {client_id[:20]}...\n'
-            f'    Site      : {site.domain}\n\n'
+            f'    Site      : {site.domain} (ID={site.pk})\n\n'
             f'👉  Now visit /login/ and click "Continuer avec Google" to test.'
         ))
