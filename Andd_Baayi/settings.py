@@ -231,6 +231,10 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 LOGIN_REDIRECT_URL = '/dashboard/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
+# Force session save on every request — required for serverless (Vercel)
+# where the OAuth callback may hit a different instance than the redirect.
+SESSION_SAVE_EVERY_REQUEST = True
+
 # Custom adapter to populate names from Google profile
 SOCIALACCOUNT_ADAPTER = 'baay.adapters.CustomSocialAccountAdapter'
 
