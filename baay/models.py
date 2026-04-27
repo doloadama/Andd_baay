@@ -25,6 +25,8 @@ class Ferme(models.Model):
     pays = models.ForeignKey('Pays', on_delete=models.SET_NULL, null=True, blank=True)
     localite = models.ForeignKey('Localite', on_delete=models.SET_NULL, null=True, blank=True)
     superficie_totale = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie totale de la ferme en hectares")
+    latitude = models.FloatField(null=True, blank=True, help_text="Latitude GPS de la ferme")
+    longitude = models.FloatField(null=True, blank=True, help_text="Longitude GPS de la ferme")
     code_acces = models.CharField(max_length=12, unique=True, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)

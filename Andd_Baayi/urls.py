@@ -5,6 +5,7 @@ from baay import views
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 from baay.views import CustomPasswordResetView, supprimer_projet
 
@@ -15,6 +16,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('', views.home_view, name='home'),
+    path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline'),
     path('creer-projet/', views.creer_projet, name='creer_projet'),
     path('liste-projets/', views.liste_projets, name='liste_projets'),
     path('projet/<uuid:projet_id>/', views.detail_projet, name='detail_projet'),

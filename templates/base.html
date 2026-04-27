@@ -26,6 +26,11 @@
     <title>{% block title %}Andd Baay | L'agriculture de demain{% endblock %}</title>
 
     <link rel="icon" type="image/png" href="{% static 'images/logo.jpg' %}" />
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Andd Baay">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,6 +46,7 @@
 
     <!-- Base Stylesheet -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 
     <!-- FIX #1: Inline CSS is now properly wrapped in <style> tags -->
     <style>
@@ -1978,8 +1984,55 @@
     <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/tour.js' %}"></script>
     <script src="{% static 'js/pjax.js' %}"></script>
+    <script src="{% static 'js/image-compress.js' %}"></script>
     {% block extra_scripts %}{% endblock %}
     <script src="{% static 'js/main.js' %}"></script>
+    {% if user.is_authenticated %}
+    <nav class="bottom-nav d-lg-none" aria-label="Navigation mobile">
+        <ul>
+            <li>
+                <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
+                    <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'liste_projets' %}" data-pjax class="{% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" aria-label="Projets">
+                    <i class="fas fa-folder" aria-hidden="true"></i>
+                    <span>Projets</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'creer_projet' %}" class="bottom-nav-new" title="Nouveau projet" aria-label="Nouveau projet">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'liste_fermes' %}" data-pjax class="{% if 'ferme' in request.resolver_match.url_name %}active{% endif %}" aria-label="Fermes">
+                    <i class="fas fa-warehouse" aria-hidden="true"></i>
+                    <span>Fermes</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'profil' %}" class="{% if request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                    <span>Profil</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register("{% static 'js/sw.js' %}", { scope: '/' })
+                    .then(reg => console.log('[SW] Registered:', reg.scope))
+                    .catch(err => console.warn('[SW] Registration failed:', err));
+            });
+        }
+    </script>
+    <script src="{% static 'js/sw-update.js' %}"></script>
 </body>
 
 </html>

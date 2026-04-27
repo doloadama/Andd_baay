@@ -142,7 +142,7 @@ class ProjetForm(forms.ModelForm):
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
             'ferme': forms.Select(attrs={'class': 'form-control'}),
-            'image_fond': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'image_fond': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'capture': 'environment'}),
             'pays': forms.Select(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -381,7 +381,8 @@ class PlantDetailsForm(forms.Form):
                     required=False,
                     widget=forms.ClearableFileInput(attrs={
                         'class': 'form-control',
-                        'accept': 'image/*'
+                        'accept': 'image/*',
+                        'capture': 'environment'
                     })
                 )
                 self.fields[f'age_plant_{pp.id}'] = forms.IntegerField(
@@ -399,13 +400,15 @@ class PlantDetailsForm(forms.Form):
 class FermeForm(forms.ModelForm):
     class Meta:
         model = Ferme
-        fields = ['nom', 'description', 'pays', 'localite', 'superficie_totale']
+        fields = ['nom', 'description', 'pays', 'localite', 'superficie_totale', 'latitude', 'longitude']
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'pays': forms.Select(attrs={'class': 'form-control'}),
             'localite': forms.Select(attrs={'class': 'form-control'}),
             'superficie_totale': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'placeholder': 'Ex: 14.7167'}),
+            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'placeholder': 'Ex: -17.4677'}),
         }
 
     def __init__(self, *args, **kwargs):

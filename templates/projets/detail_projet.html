@@ -134,7 +134,7 @@
                             <div class="carousel-inner">
                                 {% for photo in plant_photos %}
                                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                        <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover" style="height: 350px;" data-bs-toggle="tooltip" title="{{ photo.subtitle }}">
+                                        <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover" style="height: 350px;" data-bs-toggle="tooltip" title="{{ photo.subtitle }}" {% if not forloop.first %}loading="lazy"{% endif %}>
                                         <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.6); border-radius: 12px; padding: 10px; bottom: 20px;">
                                             <h6 class="mb-1 ">{{ photo.title }}</h6>
                                             {% if photo.subtitle %}<p class="mb-0 small text-muted">{{ photo.subtitle }}</p>{% endif %}

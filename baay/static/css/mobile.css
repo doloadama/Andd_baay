@@ -1,0 +1,207 @@
+/**
+ * mobile.css — Touch-first & mobile utilities for Andd Baay
+ * Loaded only on authenticated pages; bottom nav visible below 768px.
+ */
+
+/* ========== BOTTOM NAVIGATION ========== */
+.bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1040;
+    background: rgba(252, 252, 251, 0.92);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    border-top: 1px solid var(--border-color);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.dark-mode .bottom-nav {
+    background: rgba(15, 23, 42, 0.92);
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.bottom-nav ul {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 6px 0 10px;
+}
+
+.bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 500;
+    min-width: 56px;
+    min-height: 48px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav a i {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+
+.bottom-nav a.active,
+.bottom-nav a:hover,
+.bottom-nav a:focus {
+    color: var(--accent);
+    background: rgba(163, 230, 53, 0.12);
+}
+
+.bottom-nav .bottom-nav-new {
+    color: #fff;
+    background: var(--accent);
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    margin-top: -18px;
+    box-shadow: 0 4px 14px rgba(163, 230, 53, 0.35);
+    font-size: 1.5rem;
+}
+
+.bottom-nav .bottom-nav-new:hover,
+.bottom-nav .bottom-nav-new:focus {
+    background: #84cc16;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Show bottom nav below 768px and add body padding */
+@media (max-width: 767.98px) {
+    .bottom-nav {
+        display: block;
+    }
+    body {
+        padding-bottom: 74px;
+    }
+    /* Hide top desktop-only nav items on mobile */
+    .navbar-collapse .navbar-nav .nav-item.d-none.d-lg-block {
+        display: none !important;
+    }
+}
+
+/* ========== TOUCH UTILITIES ========== */
+@media (max-width: 767.98px) {
+    .touch-btn,
+    .btn,
+    button,
+    [type="submit"],
+    [type="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .form-control,
+    .form-select,
+    input,
+    select,
+    textarea {
+        font-size: 16px !important; /* Prevent iOS zoom on focus */
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+
+    /* Larger checkbox / radio */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 22px;
+        height: 22px;
+    }
+
+    /* Cards full width with less padding */
+    .container,
+    .container-fluid,
+    .container-narrow {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    /* Reduce card padding */
+    .surface-card,
+    .card-modern {
+        padding: 16px;
+    }
+
+    /* Stack action rows */
+    .actions-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .actions-row .btn {
+        width: 100%;
+    }
+
+    /* Forms: single column */
+    .form-row,
+    .row.g-3 {
+        flex-direction: column;
+    }
+    .form-row > .col,
+    .form-row > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* Tables become horizontal-scroll cards */
+    .table-modern {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        font-size: 0.875rem;
+    }
+    .table-modern thead th,
+    .table-modern tbody td {
+        padding: 10px 12px;
+        white-space: nowrap;
+    }
+
+    /* Dashboard stat cards: 2 columns */
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+    .stat-card {
+        padding: 14px;
+    }
+}
+
+/* ========== VERY SMALL SCREENS ========== */
+@media (max-width: 374.98px) {
+    .dashboard-stats {
+        grid-template-columns: 1fr !important;
+    }
+    .bottom-nav a span {
+        font-size: 0.6rem;
+    }
+    .bottom-nav a i {
+        font-size: 1.1rem;
+    }
+}
+
+/* ========== CHAT BUBBLE OFFSET (above bottom nav) ========== */
+@media (max-width: 767.98px) {
+    .chat-bubble-container {
+        bottom: 86px !important;
+        right: 16px !important;
+    }
+    .chat-window {
+        bottom: 156px !important;
+        right: 16px !important;
+        height: min(460px, calc(100vh - 180px)) !important;
+    }
+}
