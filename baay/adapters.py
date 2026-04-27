@@ -20,15 +20,13 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         email = (sociallogin.account.extra_data.get('email')
                  or getattr(sociallogin.user, 'email', None))
         if email:
-            try:
-                user = User.objects.get(email__iexact=email)
+            user = User.objects.filter(email__iexact=email).order_by('-date_joined').first()
+            if user:
                 sociallogin.connect(request, user)
                 logger.info(
                     "Connected existing user %s to new social account %s",
                     user.email, sociallogin.account.provider,
                 )
-            except User.DoesNotExist:
-                pass
 
     def populate_user(self, request, sociallogin, data):
         """Populate the user from Google OAuth data."""
