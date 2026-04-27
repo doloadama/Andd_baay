@@ -91,6 +91,27 @@
 
     .password-strength .progress { height: 6px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
 
+    /* Phone group: indicatif + numero */
+    .phone-grid { display: grid; grid-template-columns: 140px 1fr; gap: 10px; }
+    .phone-grid .input-group { width: 100%; }
+    .phone-grid select.form-control {
+        background: transparent; border: none; padding: 10px 8px;
+        font-size: 0.9rem; color: var(--text-main); box-shadow: none;
+        appearance: none; -webkit-appearance: none; cursor: pointer;
+    }
+    .phone-grid select.form-control option { color: #111; background: #fff; }
+
+    /* Password generator button */
+    .btn-genpass {
+        background: rgba(163, 230, 53, 0.12); border: 1px solid rgba(163, 230, 53, 0.35);
+        color: var(--accent); padding: 0 12px; border-radius: 8px; cursor: pointer;
+        font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
+        margin-left: auto;
+    }
+    .btn-genpass:hover { background: rgba(163, 230, 53, 0.22); }
+    .password-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .password-label-row .form-label { margin-bottom: 0; }
+
     .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--text-muted); font-size: 0.82rem; }
     .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
     .divider:not(:empty)::before { margin-right: .6em; }
@@ -181,23 +202,6 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="username" class="form-label">Nom d'utilisateur</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-at"></i></span>
-                            <input type="text" name="username" class="form-control" id="username" placeholder="Pseudo" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                            <input type="email" name="email" class="form-control" id="email" placeholder="votre@email.com" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
                         <label for="first_name" class="form-label">Prénom</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -214,15 +218,40 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="phone_number" class="form-label">Numéro de téléphone</label>
+                    <label for="email" class="form-label">Email</label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                        <input type="tel" name="phone_number" class="form-control" id="phone_number" placeholder="+221 XX XXX XX XX" required pattern="[0-9]{9}">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" id="email" placeholder="votre@email.com" required>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="password1" class="form-label">Mot de passe</label>
+                    <label class="form-label">Numéro de téléphone</label>
+                    <div class="phone-grid">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-flag"></i></span>
+                            <select name="phone_indicatif" id="phone_indicatif" class="form-control" required>
+                                {# Liste rendue dynamiquement par JS #}
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            <input type="tel" name="phone_numero" class="form-control" id="phone_numero"
+                                   placeholder="77 123 45 67" required inputmode="numeric"
+                                   pattern="[0-9 ]{6,15}" maxlength="15"
+                                   aria-describedby="phoneHint">
+                        </div>
+                    </div>
+                    <small id="phoneHint" class="text-muted" style="font-size: 0.75rem;">Saisissez uniquement les chiffres locaux (sans l'indicatif).</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="password-label-row">
+                        <label for="password1" class="form-label">Mot de passe</label>
+                        <button type="button" class="btn-genpass" id="genPassBtn" title="Générer un mot de passe sécurisé">
+                            <i class="fas fa-dice"></i> Générer
+                        </button>
+                    </div>
                     <div class="input-group mb-2">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                         <input type="password" name="password1" class="form-control" id="password1" placeholder="••••••••" required minlength="8">
@@ -271,6 +300,116 @@ document.addEventListener('DOMContentLoaded', function() {
     const pMatch = document.getElementById('passwordMatchText');
     const pStrBar = document.getElementById('passwordStrengthBar');
     const pStrText = document.getElementById('passwordStrengthText');
+
+    // === Liste d'indicatifs (drapeau + dial code) ===
+    const COUNTRY_CODES = [
+        { name: 'Sénégal',         flag: '🇸🇳', dial: '+221', iso: 'SN' },
+        { name: 'France',          flag: '🇫🇷', dial: '+33',  iso: 'FR' },
+        { name: 'Côte d\u2019Ivoire',  flag: '🇨🇮', dial: '+225', iso: 'CI' },
+        { name: 'Mali',            flag: '🇲🇱', dial: '+223', iso: 'ML' },
+        { name: 'Burkina Faso',    flag: '🇧🇫', dial: '+226', iso: 'BF' },
+        { name: 'Guinée',          flag: '🇬🇳', dial: '+224', iso: 'GN' },
+        { name: 'Mauritanie',      flag: '🇲🇷', dial: '+222', iso: 'MR' },
+        { name: 'Niger',           flag: '🇳🇪', dial: '+227', iso: 'NE' },
+        { name: 'Togo',            flag: '🇹🇬', dial: '+228', iso: 'TG' },
+        { name: 'Bénin',           flag: '🇧🇯', dial: '+229', iso: 'BJ' },
+        { name: 'Cameroun',        flag: '🇨🇲', dial: '+237', iso: 'CM' },
+        { name: 'Gabon',           flag: '🇬🇦', dial: '+241', iso: 'GA' },
+        { name: 'Congo (RDC)',     flag: '🇨🇩', dial: '+243', iso: 'CD' },
+        { name: 'Congo',           flag: '🇨🇬', dial: '+242', iso: 'CG' },
+        { name: 'Tchad',           flag: '🇹🇩', dial: '+235', iso: 'TD' },
+        { name: 'Centrafrique',    flag: '🇨🇫', dial: '+236', iso: 'CF' },
+        { name: 'Cap-Vert',        flag: '🇨🇻', dial: '+238', iso: 'CV' },
+        { name: 'Gambie',          flag: '🇬🇲', dial: '+220', iso: 'GM' },
+        { name: 'Guinée-Bissau',   flag: '🇬🇼', dial: '+245', iso: 'GW' },
+        { name: 'Maroc',           flag: '🇲🇦', dial: '+212', iso: 'MA' },
+        { name: 'Algérie',         flag: '🇩🇿', dial: '+213', iso: 'DZ' },
+        { name: 'Tunisie',         flag: '🇹🇳', dial: '+216', iso: 'TN' },
+        { name: 'Égypte',          flag: '🇪🇬', dial: '+20',  iso: 'EG' },
+        { name: 'Nigéria',         flag: '🇳🇬', dial: '+234', iso: 'NG' },
+        { name: 'Ghana',           flag: '🇬🇭', dial: '+233', iso: 'GH' },
+        { name: 'Kenya',           flag: '🇰🇪', dial: '+254', iso: 'KE' },
+        { name: 'Afrique du Sud',  flag: '🇿🇦', dial: '+27',  iso: 'ZA' },
+        { name: 'Belgique',        flag: '🇧🇪', dial: '+32',  iso: 'BE' },
+        { name: 'Suisse',          flag: '🇨🇭', dial: '+41',  iso: 'CH' },
+        { name: 'Canada',          flag: '🇨🇦', dial: '+1',   iso: 'CA' },
+        { name: 'États-Unis',      flag: '🇺🇸', dial: '+1',   iso: 'US' },
+        { name: 'Royaume-Uni',     flag: '🇬🇧', dial: '+44',  iso: 'GB' },
+        { name: 'Allemagne',       flag: '🇩🇪', dial: '+49',  iso: 'DE' },
+        { name: 'Espagne',         flag: '🇪🇸', dial: '+34',  iso: 'ES' },
+        { name: 'Italie',          flag: '🇮🇹', dial: '+39',  iso: 'IT' },
+        { name: 'Portugal',        flag: '🇵🇹', dial: '+351', iso: 'PT' },
+        { name: 'Pays-Bas',        flag: '🇳🇱', dial: '+31',  iso: 'NL' },
+        { name: 'Chine',           flag: '🇨🇳', dial: '+86',  iso: 'CN' },
+        { name: 'Inde',            flag: '🇮🇳', dial: '+91',  iso: 'IN' },
+        { name: 'Brésil',          flag: '🇧🇷', dial: '+55',  iso: 'BR' },
+    ];
+    const phoneSelect = document.getElementById('phone_indicatif');
+    const phoneInput = document.getElementById('phone_numero');
+    if (phoneSelect) {
+        COUNTRY_CODES.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.dial;
+            opt.dataset.iso = c.iso;
+            opt.textContent = `${c.flag} ${c.dial} (${c.iso})`;
+            opt.title = `${c.name} ${c.dial}`;
+            phoneSelect.appendChild(opt);
+        });
+        phoneSelect.value = '+221'; // défaut
+    }
+    // Force chiffres uniquement (et espaces tolérés visuellement)
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^\d ]/g, '');
+        });
+    }
+
+    // === Générateur de mot de passe ===
+    function generatePassword(length = 14) {
+        const lower = 'abcdefghijkmnpqrstuvwxyz';
+        const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const digits = '23456789';
+        const special = '!@#$%&*?';
+        const all = lower + upper + digits + special;
+        const cryptoObj = window.crypto || window.msCrypto;
+        const pick = (set) => {
+            const arr = new Uint32Array(1);
+            cryptoObj.getRandomValues(arr);
+            return set[arr[0] % set.length];
+        };
+        let pwd = [pick(lower), pick(upper), pick(digits), pick(special)];
+        for (let i = pwd.length; i < length; i++) pwd.push(pick(all));
+        // shuffle (Fisher-Yates)
+        for (let i = pwd.length - 1; i > 0; i--) {
+            const buf = new Uint32Array(1);
+            cryptoObj.getRandomValues(buf);
+            const j = buf[0] % (i + 1);
+            [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
+        }
+        return pwd.join('');
+    }
+    const genBtn = document.getElementById('genPassBtn');
+    if (genBtn) {
+        genBtn.addEventListener('click', async function() {
+            const pwd = generatePassword(14);
+            p1.value = pwd;
+            p2.value = pwd;
+            p1.type = 'text';
+            p2.type = 'text';
+            // synchroniser les icônes œil
+            document.querySelectorAll('.toggle-pass .eye-icon').forEach(ic => {
+                ic.classList.remove('fa-eye');
+                ic.classList.add('fa-eye-slash');
+            });
+            p1.dispatchEvent(new Event('input'));
+            p2.dispatchEvent(new Event('input'));
+            // tentative de copie dans le presse-papiers
+            try { await navigator.clipboard.writeText(pwd); } catch (e) {}
+            const orig = genBtn.innerHTML;
+            genBtn.innerHTML = '<i class="fas fa-check"></i> Copié';
+            setTimeout(() => { genBtn.innerHTML = orig; }, 1800);
+        });
+    }
 
     form.addEventListener('submit', function(e) {
         if (p1.value !== p2.value) { e.preventDefault(); p2.style.borderColor = '#ef4444'; }

@@ -17,11 +17,15 @@
         padding: clamp(24px, 4vw, 36px);
         margin-bottom: var(--space-6);
         border-radius: calc(var(--radius-card) + 6px);
-        border: 1px solid rgba(57, 255, 20, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.55);
         background:
-            radial-gradient(circle at top left, rgba(57, 255, 20, 0.16), transparent 34%),
-            linear-gradient(135deg, rgba(2, 44, 34, 0.96), rgba(6, 78, 59, 0.92) 55%, rgba(15, 23, 42, 0.92));
-        box-shadow: 0 24px 60px rgba(2, 44, 34, 0.22);
+            radial-gradient(circle at top left, rgba(163, 230, 53, 0.22), transparent 36%),
+            radial-gradient(circle at bottom right, rgba(226, 114, 91, 0.12), transparent 42%),
+            linear-gradient(135deg, rgba(5, 92, 69, 0.95), rgba(8, 119, 88, 0.9) 52%, rgba(15, 70, 58, 0.9));
+        box-shadow:
+            0 24px 60px rgba(2, 44, 34, 0.16),
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            inset 0 0 0 1px rgba(163, 230, 53, 0.08);
         overflow: hidden;
     }
 
@@ -90,6 +94,23 @@
         border-color: rgba(57, 255, 20, 0.4);
         background: rgba(57, 255, 20, 0.12);
         color: #f8fafc !important;
+    }
+
+    .spotlight-actions .btn-baay-ghost {
+        background: rgba(190, 242, 100, 0.18);
+        border: 1px solid rgba(190, 242, 100, 0.55);
+        color: #f8fafc !important;
+        box-shadow:
+            0 10px 24px rgba(2, 44, 34, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .spotlight-actions .btn-baay-ghost:hover {
+        background: rgba(190, 242, 100, 0.32);
+        border-color: rgba(190, 242, 100, 0.85);
+        color: #022c22 !important;
     }
 
     .dashboard-spotlight-side {

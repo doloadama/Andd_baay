@@ -9,17 +9,72 @@ class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Email")
     first_name = forms.CharField(max_length=30, required=True, label="Prénom")
     last_name = forms.CharField(max_length=30, required=True, label="Nom")
-    phone_number = forms.CharField(max_length=15, required=True, label="Numéro de téléphone")
+    phone_indicatif = forms.CharField(max_length=6, required=True, label="Indicatif")
+    phone_numero = forms.CharField(max_length=15, required=True, label="Numéro de téléphone")
 
     class Meta:
         model = User
-        fields = ("username", "email", "first_name", "last_name", "phone_number", "password1", "password2")
+        fields = ("email", "first_name", "last_name", "phone_indicatif", "phone_numero", "password1", "password2")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Le username est généré automatiquement à partir du prénom et nom.
+        if 'username' in self.fields:
+            self.fields['username'].required = False
+            self.fields['username'].widget = forms.HiddenInput()
+
+    @staticmethod
+    def _generate_username(first_name, last_name):
+        from django.utils.text import slugify
+        base = slugify(f"{first_name}.{last_name}") or "user"
+        base = base[:140]
+        candidate = base
+        i = 1
+        while User.objects.filter(username__iexact=candidate).exists():
+            i += 1
+            suffix = str(i)
+            candidate = f"{base[:150 - len(suffix) - 1]}.{suffix}"
+        return candidate
+
+    def clean_phone_indicatif(self):
+        val = (self.cleaned_data.get('phone_indicatif') or '').strip()
+        if not val.startswith('+'):
+            val = '+' + val.lstrip('+')
+        if not val[1:].isdigit() or not (1 <= len(val[1:]) <= 4):
+            raise forms.ValidationError("Indicatif invalide.")
+        return val
+
+    def clean_phone_numero(self):
+        raw = (self.cleaned_data.get('phone_numero') or '').strip()
+        digits = ''.join(ch for ch in raw if ch.isdigit())
+        if not (6 <= len(digits) <= 12):
+            raise forms.ValidationError("Le numéro doit contenir entre 6 et 12 chiffres.")
+        return digits
+
+    def clean(self):
+        cleaned = super().clean()
+        first_name = cleaned.get('first_name')
+        last_name = cleaned.get('last_name')
+        if first_name and last_name and not cleaned.get('username'):
+            cleaned['username'] = self._generate_username(first_name, last_name)
+            self.instance.username = cleaned['username']
+        indicatif = cleaned.get('phone_indicatif')
+        numero = cleaned.get('phone_numero')
+        if indicatif and numero:
+            full = f"{indicatif}{numero}"
+            if len(full) > 15:
+                self.add_error('phone_numero', "Le numéro complet (indicatif + numéro) ne peut pas dépasser 15 caractères.")
+            else:
+                cleaned['phone_number'] = full
+        return cleaned
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
+        if not user.username:
+            user.username = self._generate_username(user.first_name, user.last_name)
         if commit:
             user.save()
         return user

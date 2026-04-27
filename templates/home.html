@@ -228,7 +228,7 @@
 <div class="home-v2">
 
     <!-- ============================ HERO ============================ -->
-    <section class="hero">
+    <section class="hero" id="accueil">
         <div class="container-narrow">
             <div class="hero-grid">
                 <div>
@@ -290,7 +290,7 @@
     </section>
 
     <!-- ============================ TRUST STRIP ============================ -->
-    <section class="trust">
+    <section class="trust" id="trust">
         <div class="container-narrow">
             <p class="trust-label">Adopte par les producteurs et cooperatives</p>
             <div class="trust-stats">
@@ -315,7 +315,7 @@
     </section>
 
     <!-- ============================ PROBLEMS ============================ -->
-    <section class="problems">
+    <section class="problems" id="defis">
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-bolt"></i> Vos defis</span>
@@ -348,7 +348,7 @@
     </section>
 
     <!-- ============================ FEATURES ============================ -->
-    <section class="features">
+    <section class="features" id="solution">
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-sparkles"></i> La solution</span>
@@ -391,7 +391,7 @@
     </section>
 
     <!-- ============================ STEPS ============================ -->
-    <section class="steps">
+    <section class="steps" id="etapes">
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-rocket"></i> En 3 etapes</span>
@@ -418,7 +418,7 @@
     </section>
 
     <!-- ============================ TESTIMONIALS ============================ -->
-    <section class="testimonials">
+    <section class="testimonials" id="temoignages">
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-quote-left"></i> Temoignages</span>
@@ -452,7 +452,7 @@
     </section>
 
     <!-- ============================ FAQ ============================ -->
-    <section class="faq">
+    <section class="faq" id="faq">
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-circle-question"></i> FAQ</span>
@@ -488,7 +488,7 @@
     </section>
 
     <!-- ============================ FINAL CTA ============================ -->
-    <section class="final-cta">
+    <section class="final-cta" id="cta">
         <div class="container-narrow">
             <div class="cta-card">
                 <h2>Pret a transformer votre saison ?</h2>
@@ -515,7 +515,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    function initLanding() {
         const counters = document.querySelectorAll('.counter');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
@@ -552,7 +552,63 @@
             bar.style.transition = 'height 1.2s ease ' + (i * 80) + 'ms';
             setTimeout(() => { bar.style.height = finalH; }, 200);
         });
-    });
+
+        // ===== LANDING PAGE SCROLL SPY =====
+        const landingLinks = document.querySelectorAll('.landing-nav-link');
+        const landingSections = document.querySelectorAll('.home-v2 > section[id]');
+
+        // Smooth scroll on click (bind once only — nav survives pjax)
+        landingLinks.forEach(link => {
+            if (link.dataset.scrollSpyBound) return;
+            link.dataset.scrollSpyBound = '1';
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (!href || !href.startsWith('#')) return;
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, '', href);
+                }
+            });
+        });
+
+        // IntersectionObserver to highlight active section
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    landingLinks.forEach(link => {
+                        const isActive = link.getAttribute('href') === '#' + id;
+                        link.classList.toggle('active', isActive);
+                        if (isActive) link.setAttribute('aria-current', 'true');
+                        else link.removeAttribute('aria-current');
+                    });
+                }
+            });
+        }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+        landingSections.forEach(section => sectionObserver.observe(section));
+
+        // Respect initial hash on load
+        if (window.location.hash) {
+            const initial = document.querySelector(window.location.hash);
+            if (initial) {
+                setTimeout(() => initial.scrollIntoView({ behavior: 'instant', block: 'start' }), 0);
+                landingLinks.forEach(link => {
+                    const isActive = link.getAttribute('href') === window.location.hash;
+                    link.classList.toggle('active', isActive);
+                });
+            }
+        }
+    }
+
+    initLanding();
+    document.addEventListener('DOMContentLoaded', initLanding);
+    if (!document.body.dataset.pjaxLandingBound) {
+        document.body.dataset.pjaxLandingBound = '1';
+        document.addEventListener('pjax:complete', initLanding);
+    }
 </script>
 {% endblock %}
 {% comment %}
