@@ -1498,14 +1498,14 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            color: #84cc16;
-            box-shadow: 0 0 16px rgba(101, 163, 13, 0.12);
+            color: #65a30d;
+            box-shadow: 0 0 12px rgba(101, 163, 13, 0.08);
             animation: tourIconPulse 3s ease-in-out infinite;
         }
 
         @keyframes tourIconPulse {
-            0%, 100% { box-shadow: 0 0 12px rgba(101, 163, 13, 0.1); }
-            50% { box-shadow: 0 0 20px rgba(101, 163, 13, 0.2); }
+            0%, 100% { box-shadow: 0 0 8px rgba(101, 163, 13, 0.06); }
+            50% { box-shadow: 0 0 14px rgba(101, 163, 13, 0.12); }
         }
 
         .tour-header-text {
@@ -1523,7 +1523,7 @@
             padding: 3px 11px;
             font-size: 0.7rem;
             font-weight: 700;
-            color: #84cc16;
+            color: #65a30d;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-bottom: 6px;
@@ -1561,7 +1561,7 @@
         }
 
         .tour-body::-webkit-scrollbar-thumb {
-            background: rgba(101, 163, 13, 0.25);
+            background: rgba(101, 163, 13, 0.18);
             border-radius: 4px;
         }
 
@@ -1616,7 +1616,7 @@
         /* Tip icon theming */
         .tour-tip:nth-child(1) .tour-tip-icon {
             background: rgba(101, 163, 13, 0.12);
-            color: #84cc16;
+            color: #65a30d;
             border: 1px solid rgba(101, 163, 13, 0.18);
         }
         .tour-tip:nth-child(2) .tour-tip-icon {
@@ -1681,10 +1681,10 @@
 
         .tour-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #84cc16, #65a30d);
+            background: linear-gradient(90deg, #8faa7a, #7a9464);
             border-radius: 4px;
             transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-            box-shadow: 0 0 6px rgba(101, 163, 13, 0.25);
+            box-shadow: 0 0 4px rgba(101, 163, 13, 0.18);
         }
 
         .tour-progress {
@@ -1707,12 +1707,12 @@
         .tour-dot.active {
             width: 24px;
             border-radius: 6px;
-            background: linear-gradient(90deg, #84cc16, #65a30d);
-            box-shadow: 0 0 6px rgba(101, 163, 13, 0.3);
+            background: linear-gradient(90deg, #8faa7a, #7a9464);
+            box-shadow: 0 0 4px rgba(101, 163, 13, 0.2);
         }
 
         .tour-dot.done {
-            background: rgba(101, 163, 13, 0.45);
+            background: rgba(101, 163, 13, 0.35);
         }
 
         .tour-actions {
@@ -1744,7 +1744,7 @@
             align-items: center;
             gap: 8px;
             padding: 10px 22px;
-            background: linear-gradient(135deg, #84cc16 0%, #65a30d 50%, #4d7c0f 100%);
+            background: linear-gradient(135deg, #a3b899 0%, #8faa7a 50%, #7a9464 100%);
             color: #022c22;
             font-family: var(--font-display);
             font-weight: 800;
@@ -1756,7 +1756,7 @@
             white-space: nowrap;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 14px rgba(101, 163, 13, 0.2);
+            box-shadow: 0 4px 10px rgba(101, 163, 13, 0.12);
         }
 
         .tour-next::after {
@@ -1772,7 +1772,7 @@
 
         .tour-next:hover {
             transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 24px rgba(101, 163, 13, 0.3);
+            box-shadow: 0 8px 18px rgba(101, 163, 13, 0.18);
         }
 
         .tour-next:hover::after {
