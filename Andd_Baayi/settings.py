@@ -201,28 +201,38 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# allauth settings
+# ============================================================
+# django-allauth / Social Auth
+# ============================================================
+
+# Account settings
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
 
+# Social account settings
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
         'OAUTH_PKCE_ENABLED': True,
-        # Les credentials (client_id/secret) sont stockés en base via SocialApp
-        # Ne pas les dupliquer ici pour éviter MultipleObjectsReturned
     }
 }
 
-# Créer un compte auto si l'email Google est nouveau
+# Auto-create account if Google email is new
 SOCIALACCOUNT_AUTO_SIGNUP = True
-# Pas de page de confirmation intermédiaire après Google OAuth
+# Skip confirmation page after Google OAuth
 SOCIALACCOUNT_LOGIN_ON_GET = True
-# Rediriger vers le dashboard après connexion sociale
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# Redirects
 LOGIN_REDIRECT_URL = '/dashboard/'
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
+# Custom adapter to populate names from Google profile
+SOCIALACCOUNT_ADAPTER = 'baay.adapters.CustomSocialAccountAdapter'
 
 # REST Framework configuration
 REST_FRAMEWORK = {
