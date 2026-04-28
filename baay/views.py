@@ -6,7 +6,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -160,6 +160,43 @@ def confirm_email_view(request, uidb64, token):
     else:
         messages.error(request, "Le lien de confirmation est invalide ou a expiré.")
         return redirect('login')
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    """Sends a notification email after a successful password reset."""
+    template_name = 'auth/password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+
+    def form_valid(self, form):
+        user = form.user
+        response = super().form_valid(form)
+
+        # Send password change notification email
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+
+        domain = self.request.get_host()
+        protocol = 'https' if self.request.is_secure() else 'http'
+        ctx = {
+            'user': user,
+            'domain': domain,
+            'protocol': protocol,
+        }
+
+        subject = "Andd Baay — Votre mot de passe a été modifié"
+        text_body = render_to_string('registration/password_change_subject.txt', ctx)
+        html_body = render_to_string('registration/password_change_email.html', ctx)
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=f"Bonjour {user.first_name or user.username},\n\nVotre mot de passe a été modifié avec succès.\n\nSi vous n'êtes pas à l'origine de ce changement, réinitialisez-le immédiatement : {protocol}://{domain}/password_reset/",
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@anddbaay.local'),
+            to=[user.email],
+        )
+        email.attach_alternative(html_body, "text/html")
+        email.send()
+
+        return response
+
 
 # Vue pour la connexion
 def login_view(request):

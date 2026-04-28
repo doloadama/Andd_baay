@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
-from baay.views import CustomPasswordResetView, supprimer_projet
+from baay.views import CustomPasswordResetView, CustomPasswordResetConfirmView, supprimer_projet
 from baay.views_setup import setup_google_oauth_view
 
 urlpatterns = [
@@ -34,10 +34,7 @@ urlpatterns = [
     ),
     path(
         'reset/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='auth/password_reset_confirm.html',
-            success_url=reverse_lazy('password_reset_complete'),
-        ),
+        CustomPasswordResetConfirmView.as_view(),
         name='password_reset_confirm',
     ),
     path(
