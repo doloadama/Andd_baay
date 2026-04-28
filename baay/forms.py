@@ -44,6 +44,12 @@ class CustomUserCreationForm(UserCreationForm):
             raise forms.ValidationError("Indicatif invalide.")
         return val
 
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Un compte avec cet email existe déjà.")
+        return email
+
     def clean_phone_numero(self):
         raw = (self.cleaned_data.get('phone_numero') or '').strip()
         digits = ''.join(ch for ch in raw if ch.isdigit())
