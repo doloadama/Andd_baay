@@ -17,6 +17,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
+    path('confirm-email/<uidb64>/<token>/', views.confirm_email_view, name='confirm_email'),
     path('logout/', views.logout_view, name='logout'),
     path('', views.home_view, name='home'),
     path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline'),

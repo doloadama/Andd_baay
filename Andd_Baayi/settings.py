@@ -113,6 +113,9 @@ if IS_VERCEL and VERCEL_URL:
     if origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(origin)
 
+# Vercel forwards HTTPS via X-Forwarded-Proto
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 ROOT_URLCONF = 'Andd_Baayi.urls'
 
 TEMPLATES = [
@@ -206,7 +209,7 @@ AUTHENTICATION_BACKENDS = [
 # ============================================================
 
 # Account settings
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_REQUIRED = True

@@ -16,6 +16,9 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Q, Sum, Count, Avg
 from django.db.models.functions import TruncMonth
 from django.views.decorators.http import require_GET, require_POST
@@ -76,23 +79,87 @@ def home_view(request):
 
     return render(request, 'home.html', context)
 
+def _send_confirmation_email(user, request):
+    """Send email confirmation link using Django token generator."""
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    domain = request.get_host()
+    protocol = 'https' if request.is_secure() else 'http'
+    confirm_url = f"{protocol}://{domain}/confirm-email/{uid}/{token}/"
+
+    subject = "Confirmez votre compte Andd Baay"
+    message_text = (
+        f"Bonjour {user.first_name or user.username},\n\n"
+        f"Merci de votre inscription sur Andd Baay.\n"
+        f"Cliquez sur le lien ci-dessous pour activer votre compte :\n\n"
+        f"{confirm_url}\n\n"
+        f"Si vous n'avez pas créé ce compte, ignorez cet email.\n\n"
+        f"L'équipe Andd Baay"
+    )
+    message_html = (
+        f"<p>Bonjour <strong>{user.first_name or user.username}</strong>,</p>"
+        f"<p>Merci de votre inscription sur Andd Baay.</p>"
+        f"<p><a href='{confirm_url}' style='padding:12px 24px;background:#d4af37;color:#fff;text-decoration:none;border-radius:8px;'>"
+        f"Activer mon compte</a></p>"
+        f"<p>Si le bouton ne fonctionne pas, copiez ce lien :<br>{confirm_url}</p>"
+        f"<p>Si vous n'avez pas créé ce compte, ignorez cet email.</p>"
+    )
+
+    from django.core.mail import EmailMultiAlternatives
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=message_text,
+        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@anddbaay.local'),
+        to=[user.email],
+    )
+    email.attach_alternative(message_html, "text/html")
+    email.send()
+
+
 # Vue pour l'inscription
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()  # Enregistre l'utilisateur
-            # Le signal post_save crée déjà le Profile automatiquement.
-            # On met à jour le numéro de téléphone sur le profil existant.
+            user = form.save(commit=False)
+            user.is_active = False  # Account inactive until email confirmed
+            user.save()
+
+            # Update profile phone number
             profile = user.profile
             profile.phone_number = form.cleaned_data['phone_number']
             profile.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
-            return redirect('home')
+
+            # Send confirmation email
+            _send_confirmation_email(user, request)
+
+            messages.success(
+                request,
+                "Inscription réussie ! Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte."
+            )
+            return redirect('login')
     else:
         form = CustomUserCreationForm()
     return render(request, 'auth/register.html', {'form': form})
+
+
+def confirm_email_view(request, uidb64, token):
+    """Activate account after user clicks confirmation link in email."""
+    from django.contrib.auth.models import User
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, "Votre compte est activé ! Vous pouvez maintenant vous connecter.")
+        return redirect('login')
+    else:
+        messages.error(request, "Le lien de confirmation est invalide ou a expiré.")
+        return redirect('login')
 
 # Vue pour la connexion
 def login_view(request):
@@ -103,6 +170,12 @@ def login_view(request):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             if user is not None:
+                if not user.is_active:
+                    messages.error(
+                        request,
+                        "Votre compte n'est pas encore activé. Vérifiez vos emails et cliquez sur le lien de confirmation."
+                    )
+                    return redirect('login')
                 login(request, user)
                 messages.success(request, f"Bienvenue, {username} !")
                 return redirect('dashboard')

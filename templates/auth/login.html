@@ -282,6 +282,15 @@
                 <p>Accédez à votre espace agricole</p>
             </div>
 
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %}" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+                    <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
             {% if form.errors %}
             <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
                 <i class="fas fa-exclamation-circle me-2"></i>
