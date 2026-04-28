@@ -32,3 +32,8 @@ Thumbs.db
 # Misc
 identifier.sqlite
 structure.txt
+migrate_out.txt
+scratch.py
+_cleanup.py
+_delete_dup.py
+_delete_script.py

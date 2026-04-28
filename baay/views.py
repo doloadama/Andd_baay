@@ -113,7 +113,12 @@ def _send_confirmation_email(user, request):
         to=[user.email],
     )
     email.attach_alternative(message_html, "text/html")
-    email.send()
+    try:
+        email.send(fail_silently=False)
+        logger.info("Confirmation email sent to %s", user.email)
+    except Exception:
+        logger.exception("Failed to send confirmation email to %s", user.email)
+        raise
 
 
 # Vue pour l'inscription
@@ -131,7 +136,16 @@ def register_view(request):
             profile.save()
 
             # Send confirmation email
-            _send_confirmation_email(user, request)
+            try:
+                _send_confirmation_email(user, request)
+            except Exception:
+                # Roll back the inactive user so they can retry registration
+                user.delete()
+                messages.error(
+                    request,
+                    "Impossible d'envoyer l'email de confirmation pour le moment. Veuillez réessayer plus tard."
+                )
+                return render(request, 'auth/register.html', {'form': form})
 
             messages.success(
                 request,
@@ -182,18 +196,29 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             'protocol': protocol,
         }
 
-        subject = "Andd Baay — Votre mot de passe a été modifié"
-        text_body = render_to_string('registration/password_change_subject.txt', ctx)
+        subject = render_to_string('registration/password_change_subject.txt', ctx).strip()
         html_body = render_to_string('registration/password_change_email.html', ctx)
+        text_body = (
+            f"Bonjour {user.first_name or user.username},\n\n"
+            f"Votre mot de passe a été modifié avec succès.\n\n"
+            f"Si vous n'êtes pas à l'origine de ce changement, réinitialisez-le immédiatement :\n"
+            f"{protocol}://{domain}/password_reset/\n\n"
+            f"L'équipe Andd Baay"
+        )
 
         email = EmailMultiAlternatives(
             subject=subject,
-            body=f"Bonjour {user.first_name or user.username},\n\nVotre mot de passe a été modifié avec succès.\n\nSi vous n'êtes pas à l'origine de ce changement, réinitialisez-le immédiatement : {protocol}://{domain}/password_reset/",
+            body=text_body,
             from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@anddbaay.local'),
             to=[user.email],
         )
         email.attach_alternative(html_body, "text/html")
-        email.send()
+        try:
+            email.send(fail_silently=False)
+            logger.info("Password change notification sent to %s", user.email)
+        except Exception:
+            logger.exception("Failed to send password change notification to %s", user.email)
+            # Do not raise — the password was already changed successfully
 
         return response
 

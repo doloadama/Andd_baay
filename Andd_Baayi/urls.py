@@ -8,12 +8,9 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
 from baay.views import CustomPasswordResetView, CustomPasswordResetConfirmView, supprimer_projet
-from baay.views_setup import setup_google_oauth_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Temporaire — exécuter une fois sur Vercel puis supprimer
-    path('setup-google-oauth/', setup_google_oauth_view, name='setup_google_oauth'),
     path('accounts/', include('allauth.urls')),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
