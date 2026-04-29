@@ -116,6 +116,18 @@ def roles_assignables_par(role):
     }.get(role, [])
 
 
+def peut_voir_investissements(profile, ferme):
+    return role_dans_ferme(profile, ferme) in ROLES_GESTION_PROJET
+
+
+def peut_voir_investissements_any(profile):
+    if profile is None:
+        return False
+    return Ferme.objects.filter(
+        Q(proprietaire=profile) | Q(membres__utilisateur=profile, membres__role__in=[ROLE_PROPRIETAIRE, ROLE_MANAGER])
+    ).exists()
+
+
 def peut_creer_tache(profile, ferme):
     return bool(roles_assignables_par(role_dans_ferme(profile, ferme)))
 

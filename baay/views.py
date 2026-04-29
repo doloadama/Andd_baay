@@ -36,6 +36,8 @@ from baay.permissions import (
     peut_supprimer_projet,
     peut_supprimer_semis,
     peut_supprimer_tache,
+    peut_voir_investissements,
+    peut_voir_investissements_any,
     peut_voir_projet,
     peut_voir_semis,
     peut_voir_tache,
@@ -664,15 +666,16 @@ def detail_projet(request, projet_id):
         messages.error(request, "Vous n'avez pas accès à ce projet.")
         return redirect('liste_projets')
 
-    # Recuperer les investissements associes au projet
-    investissements = projet.investissement_set.all()
+    # Recuperer les investissements associes au projet (si autorise)
+    can_view_investissements = peut_voir_investissements(request.user.profile, projet.ferme)
+    investissements = projet.investissement_set.all() if can_view_investissements else Investissement.objects.none()
 
     # Recuperer la prediction de rendement (s'il y en a une)
     prediction = PrevisionRecolte.objects.filter(projet=projet).first()
-    
+
     # Recuperer les produits du projet
     projet_produits = projet.projet_produits.select_related('produit').all()
-    
+
     # Pre-calculate photos
     plant_photos = []
     for pp in projet_produits:
@@ -682,7 +685,7 @@ def detail_projet(request, projet_id):
                 'title': pp.produit.nom,
                 'subtitle': f"Age: {pp.age_plant} jours" if pp.age_plant else ""
             })
-            
+
     if projet.culture:
         for photo in projet.culture.photos.all():
             try:
@@ -697,6 +700,7 @@ def detail_projet(request, projet_id):
 
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
+        'can_view_investissements': can_view_investissements,
         'investissements': investissements,
         'prediction': prediction,
         'projet_produits': projet_produits,
@@ -774,10 +778,14 @@ def dashboard(request):
     # --- Aggregates ---
     superficie_totale = projets_qs.aggregate(Sum('superficie'))['superficie__sum'] or 0
     rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-    investissements = Investissement.objects.filter(projet__in=projets_qs)
-    investissement_total = sum(
-        inv.calculer_investissement_total() for inv in investissements
-    ) or 0
+    can_view_investissements = peut_voir_investissements_any(utilisateur)
+    if can_view_investissements:
+        investissements = Investissement.objects.filter(projet__in=projets_qs)
+        investissement_total = sum(
+            inv.calculer_investissement_total() for inv in investissements
+        ) or 0
+    else:
+        investissement_total = 0
 
     projets_en_cours = projets_qs.filter(statut='en_cours').count()
     projets_en_pause = projets_qs.filter(statut='en_pause').count()
@@ -840,6 +848,7 @@ def dashboard(request):
         'superficie_totale': superficie_totale,
         'rendement_total': rendement_total,
         'investissement_total': investissement_total,
+        'can_view_investissements': can_view_investissements,
         'utilisateur': utilisateur,
         'projets_en_cours': projets_en_cours,
         'projets_en_pause': projets_en_pause,
@@ -1200,10 +1209,14 @@ def dashboard_stats_api(request):
     rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or Decimal('0')
     
     # Get investissements total (cout_par_hectare * superficie + autres_frais)
-    investissements = Investissement.objects.filter(projet__in=projets)
-    investissement_total = sum(
-        inv.calculer_investissement_total() for inv in investissements
-    ) or Decimal('0')
+    can_view_investissements = peut_voir_investissements_any(utilisateur)
+    if can_view_investissements:
+        investissements = Investissement.objects.filter(projet__in=projets)
+        investissement_total = sum(
+            inv.calculer_investissement_total() for inv in investissements
+        ) or Decimal('0')
+    else:
+        investissement_total = Decimal('0')
     
     # Projects by status
     projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))

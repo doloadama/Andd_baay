@@ -46,9 +46,11 @@
         <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-primary-modern px-4">
             <i class="fas fa-edit"></i> Modifier
         </a>
+        {% if can_view_investissements %}
         <a href="{% url 'ajouter_investissement' projet.id %}" class="btn-modern btn-accent px-4 shadow-sm" style="background: var(--accent); color: var(--text-inverse);">
             <i class="fas fa-plus"></i> Investissement
         </a>
+        {% endif %}
         {% if projet.statut != 'fini' %}
         <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="btn-modern px-4 shadow-sm" style="background: var(--success); color: white;">
             <i class="fas fa-check-circle"></i> Terminer & Saisir Recolte
@@ -310,6 +312,7 @@
         </div>
     </div>
 
+    {% if can_view_investissements %}
     <!-- Investments Section (Full Width) -->
     <div class="row mb-5 animate__animated animate__fadeInUp">
         <div class="col-12">
@@ -362,6 +365,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 <style>
@@ -489,8 +493,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        {% if can_view_investissements %}
         var investmentLabels = [{% for inv in projet.investissement_set.all %}"{{ inv.description|escapejs }}",{% endfor %}];
         var investmentData = [{% for inv in projet.investissement_set.all %}{{ inv.cout_par_hectare|default:0 }},{% endfor %}];
+        {% else %}
+        var investmentLabels = [];
+        var investmentData = [];
+        {% endif %}
 
         if (investmentLabels.length > 0) {
             const isDark = document.body.classList.contains('dark-mode');

@@ -153,12 +153,14 @@
         <div class="dash-stat-value" id="kpiMembres">{{ ferme_membres }}</div>
         <div class="dash-stat-label">Membres ferme</div>
     </div>
+    {% if can_view_investissements %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement-ferme">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
         <div class="dash-stat-value" id="kpiInvestissementFerme">{{ investissement_total|floatformat:0 }}</div>
         <div class="dash-stat-label">CFA investis</div>
     </div>
+    {% endif %}
     {% else %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-fermes">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
@@ -178,12 +180,14 @@
         <div class="dash-stat-value" id="kpiSuperficie">{{ superficie_totale|floatformat:0 }}</div>
         <div class="dash-stat-label">Hectares</div>
     </div>
+    {% if can_view_investissements %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
         <div class="dash-stat-value" id="kpiInvestissement">{{ investissement_total|floatformat:0 }}</div>
         <div class="dash-stat-label">CFA investis</div>
     </div>
+    {% endif %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-en-cours">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon blue"><i class="fas fa-play-circle"></i></div>
