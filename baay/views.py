@@ -26,6 +26,23 @@ from django.views.decorators.http import require_GET, require_POST
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm, TacheForm, TacheStatutForm
 from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache
+from baay.permissions import (
+    fermes_accessibles_qs,
+    peut_changer_statut_tache,
+    peut_creer_projet,
+    peut_modifier_projet,
+    peut_modifier_semis,
+    peut_modifier_tache,
+    peut_supprimer_projet,
+    peut_supprimer_semis,
+    peut_supprimer_tache,
+    peut_voir_projet,
+    peut_voir_semis,
+    peut_voir_tache,
+    projets_accessibles_qs,
+    role_dans_ferme,
+    roles_assignables_par,
+)
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -64,12 +81,9 @@ def home_view(request):
 
     if request.user.is_authenticated:
         try:
-            projets_actifs = Projet.objects.filter(
-                utilisateur=request.user.profile, statut='en_cours'
-            ).count()
-            prochain_semis = Projet.objects.filter(
-                utilisateur=request.user.profile
-            ).order_by('-date_lancement').first()
+            projets_user = projets_accessibles_qs(request.user.profile)
+            projets_actifs = projets_user.filter(statut='en_cours').count()
+            prochain_semis = projets_user.order_by('-date_lancement').first()
             context['projets_actifs'] = projets_actifs
             context['prochain_projet'] = prochain_semis
         except Exception as e:
@@ -407,17 +421,16 @@ def ask_chatbot(request):
 
 @login_required
 def creer_projet(request):
-    from django.db.models import Q as _Q
     ferme_id = request.GET.get('ferme')
     from_ferme = None
     if ferme_id:
         from_ferme = get_object_or_404(
-            Ferme.objects.filter(
-                _Q(proprietaire=request.user.profile) |
-                _Q(membres__utilisateur=request.user.profile)
-            ).distinct(),
+            fermes_accessibles_qs(request.user.profile),
             id=ferme_id
         )
+        if not peut_creer_projet(request.user.profile, from_ferme):
+            messages.error(request, "Votre rôle ne vous permet pas de créer un projet dans cette ferme.")
+            return redirect('liste_projets')
 
     if request.method == 'POST':
         projet_form = ProjetForm(request.POST, user=request.user, from_ferme=from_ferme)
@@ -474,7 +487,10 @@ def creer_projet(request):
 
 @login_required
 def modifier_projet(request, projet_id):
-    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    if not peut_modifier_projet(request.user.profile, projet):
+        messages.error(request, "Vous n'avez pas le droit de modifier ce projet.")
+        return redirect('detail_projet', projet_id=projet.id)
     rendement_form = None
     plant_details_form = None
     
@@ -587,7 +603,10 @@ def modifier_projet(request, projet_id):
 
 @login_required
 def supprimer_projet(request, projet_id):
-    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    if not peut_supprimer_projet(request.user.profile, projet):
+        messages.error(request, "Vous n'avez pas le droit de supprimer ce projet.")
+        return redirect('liste_projets')
 
     if request.method == 'POST':
         projet.delete()
@@ -603,7 +622,12 @@ def supprimer_projets(request):
     if request.method == 'POST':
         projets_ids = request.POST.getlist('projets')
         if projets_ids:
-            Projet.objects.filter(id__in=projets_ids, utilisateur=request.user.profile).delete()
+            projets_a_supprimer = [
+                projet.id
+                for projet in Projet.objects.filter(id__in=projets_ids).select_related('ferme')
+                if peut_supprimer_projet(request.user.profile, projet)
+            ]
+            Projet.objects.filter(id__in=projets_a_supprimer).delete()
             messages.success(request, f"{len(projets_ids)} projet(s) supprimé(s) avec succès.")
         else:
             messages.warning(request, "Aucun projet sélectionné.")
@@ -612,7 +636,10 @@ def supprimer_projets(request):
 @login_required
 def ajouter_investissement(request, projet_id):
     # Vérifier que le projet appartient à l'utilisateur connecté
-    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    if not peut_modifier_projet(request.user.profile, projet):
+        messages.error(request, "Vous n'avez pas le droit d'ajouter un investissement à ce projet.")
+        return redirect('detail_projet', projet_id=projet.id)
 
     if request.method == 'POST':
         investissement_form = InvestissementForm(request.POST)
@@ -632,7 +659,10 @@ def ajouter_investissement(request, projet_id):
 @login_required
 def detail_projet(request, projet_id):
     # Recuperer le projet pour l'utilisateur connecte
-    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    if not peut_voir_projet(request.user.profile, projet):
+        messages.error(request, "Vous n'avez pas accès à ce projet.")
+        return redirect('liste_projets')
 
     # Recuperer les investissements associes au projet
     investissements = projet.investissement_set.all()
@@ -675,7 +705,7 @@ def detail_projet(request, projet_id):
 
 @login_required
 def liste_projets(request):
-    projets_list = Projet.objects.filter(utilisateur=request.user.profile).order_by('-date_lancement')  # Ordonner par date de lancement
+    projets_list = projets_accessibles_qs(request.user.profile).order_by('-date_lancement')
     paginator = Paginator(projets_list, 10)  # Affichez 10 projets par page
     page_number = request.GET.get('page')
     projets = paginator.get_page(page_number)
@@ -721,7 +751,7 @@ def dashboard(request):
             pass
 
     # Projects queryset (optionally filtered by farm)
-    projets_qs = Projet.objects.filter(utilisateur=utilisateur).select_related(
+    projets_qs = projets_accessibles_qs(utilisateur).select_related(
         'culture', 'localite', 'ferme'
     ).prefetch_related('projet_produits__produit')
     if selected_ferme:
@@ -761,7 +791,7 @@ def dashboard(request):
 
     fermes_data = []
     for ferme in user_fermes:
-        f_projets = Projet.objects.filter(ferme=ferme, utilisateur=utilisateur)
+        f_projets = Projet.objects.filter(ferme=ferme)
         f_projets_actifs = f_projets.filter(statut='en_cours').count()
         f_superficie_ferme = ferme.superficie_totale or 0
         f_superficie_utilisee = f_projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
@@ -778,7 +808,7 @@ def dashboard(request):
         })
 
     # --- Global indicators ---
-    projets_total_global = Projet.objects.filter(utilisateur=utilisateur).count()
+    projets_total_global = projets_accessibles_qs(utilisateur).count()
     avg_projets_par_ferme = round(projets_total_global / nombre_fermes, 1) if nombre_fermes else 0
     fermes_inactives = sum(1 for fd in fermes_data if fd['projets_actifs'] == 0)
     fermes_chart_data = [
@@ -802,7 +832,7 @@ def dashboard(request):
     else:
         f_sup = f_sup_u = f_util = f_mem = f_rend = 0
 
-    cultures = ProduitAgricole.objects.filter(projet__utilisateur=utilisateur).distinct()
+    cultures = ProduitAgricole.objects.filter(projet__in=projets_accessibles_qs(utilisateur)).distinct()
     localites = Localite.objects.all().order_by('nom')
 
     context = {
@@ -1070,7 +1100,10 @@ def predire_rendement(projet):
         
 @login_required
 def generer_prediction(request, projet_id):
-    projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    if not peut_modifier_projet(request.user.profile, projet):
+        messages.error(request, "Vous n'avez pas le droit de générer une prédiction pour ce projet.")
+        return redirect('detail_projet', projet_id=projet.id)
     from baay.services import estimer_rendement_ia
 
     projet_produits = projet.projet_produits.all()
@@ -1148,7 +1181,7 @@ def dashboard_stats_api(request):
         except Ferme.DoesNotExist:
             pass
 
-    projets = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite', 'ferme')
+    projets = projets_accessibles_qs(utilisateur).select_related('culture', 'localite', 'ferme')
     if selected_ferme:
         projets = projets.filter(ferme=selected_ferme)
     
@@ -1209,7 +1242,7 @@ def dashboard_stats_api(request):
 
     fermes_data = []
     for ferme in user_fermes.order_by('nom'):
-        f_projets = Projet.objects.filter(ferme=ferme, utilisateur=utilisateur)
+        f_projets = Projet.objects.filter(ferme=ferme)
         f_projets_actifs = f_projets.filter(statut='en_cours').count()
         f_superficie_ferme = float(ferme.superficie_totale or 0)
         f_superficie_utilisee = float(f_projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0)
@@ -1231,7 +1264,7 @@ def dashboard_stats_api(request):
     # Farm-specific KPIs when a farm is selected
     ferme_kpis = None
     if selected_ferme:
-        f_proj = Projet.objects.filter(ferme=selected_ferme, utilisateur=utilisateur)
+        f_proj = Projet.objects.filter(ferme=selected_ferme)
         f_sup = float(selected_ferme.superficie_totale or 0)
         f_sup_u = float(f_proj.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0)
         f_util = round((f_sup_u / f_sup) * 100, 1) if f_sup else 0
@@ -1317,7 +1350,7 @@ def dashboard_projets_api(request):
     page = int(request.GET.get('page', 1))
     per_page = int(request.GET.get('per_page', 10))
     
-    projets = Projet.objects.filter(utilisateur=utilisateur).select_related('culture', 'localite')
+    projets = projets_accessibles_qs(utilisateur).select_related('culture', 'localite')
     
     if search:
         projets = projets.filter(nom__icontains=search)
@@ -1378,7 +1411,7 @@ def dashboard_filters_api(request):
     
     # Get unique cultures for this user's projects
     cultures = list(ProduitAgricole.objects.filter(
-        projet__utilisateur=utilisateur
+        projet__in=projets_accessibles_qs(utilisateur)
     ).distinct().values('id', 'nom'))
     
     # Get status options
@@ -1407,7 +1440,9 @@ def update_projet_statut_api(request, projet_id):
         if nouveau_statut not in ['en_cours', 'en_pause', 'fini']:
             return JsonResponse({'error': 'Invalid status'}, status=400)
         
-        projet = get_object_or_404(Projet, id=projet_id, utilisateur=request.user.profile)
+        projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+        if not peut_modifier_projet(request.user.profile, projet):
+            return JsonResponse({'error': 'Accès refusé.'}, status=403)
         projet.statut = nouveau_statut
         projet.save(update_fields=['statut'])
         
@@ -1451,11 +1486,11 @@ def api_projet_creer(request):
 
         culture = get_object_or_404(ProduitAgricole, id=culture_id)
         localite = get_object_or_404(Localite, id=localite_id)
-        ferme = Ferme.objects.filter(
-            models.Q(proprietaire=utilisateur) | models.Q(membres__utilisateur=utilisateur)
-        ).filter(id=ferme_id).first()
+        ferme = fermes_accessibles_qs(utilisateur).filter(id=ferme_id).first()
         if not ferme:
             return JsonResponse({'error': 'Ferme introuvable ou accès refusé.'}, status=403)
+        if not peut_creer_projet(utilisateur, ferme):
+            return JsonResponse({'error': 'Votre rôle ne permet pas de créer un projet dans cette ferme.'}, status=403)
 
         projet = Projet.objects.create(
             nom=nom,
@@ -1490,10 +1525,12 @@ def api_projet_bulk_delete(request):
             return JsonResponse({'error': 'Aucun identifiant fourni.'}, status=400)
 
         utilisateur = request.user.profile
-        deleted, _ = Projet.objects.filter(
-            id__in=ids,
-            utilisateur=utilisateur
-        ).delete()
+        projets_a_supprimer = [
+            projet.id
+            for projet in Projet.objects.filter(id__in=ids).select_related('ferme')
+            if peut_supprimer_projet(utilisateur, projet)
+        ]
+        deleted, _ = Projet.objects.filter(id__in=projets_a_supprimer).delete()
 
         return JsonResponse({
             'success': True,
@@ -1524,7 +1561,7 @@ def liste_semis(request):
     
     # Base queryset - get all products in user's projects
     projet_produits = ProjetProduit.objects.filter(
-        projet__utilisateur=utilisateur
+        projet__in=projets_accessibles_qs(utilisateur)
     ).select_related('produit', 'projet')
     
     # Apply filters
@@ -1544,7 +1581,7 @@ def liste_semis(request):
     
     # Get available cultures for filter dropdown
     cultures = ProduitAgricole.objects.filter(
-        projet_produits__projet__utilisateur=utilisateur
+        projet_produits__projet__in=projets_accessibles_qs(utilisateur)
     ).distinct()
     
     # Statistics
@@ -1578,11 +1615,13 @@ def creer_semis(request):
 def modifier_semis(request, semis_id):
     """Edit a project product's sowing/harvest details"""
     projet_produit = get_object_or_404(
-        ProjetProduit, 
-        id=semis_id, 
-        projet__utilisateur=request.user.profile
+        ProjetProduit.objects.select_related('projet__ferme'),
+        id=semis_id,
     )
-    
+    if not peut_modifier_semis(request.user.profile, projet_produit):
+        messages.error(request, "Vous n'avez pas le droit de modifier ce semis.")
+        return redirect('detail_projet', projet_id=projet_produit.projet.id)
+
     if request.method == 'POST':
         form = ProjetProduitForm(request.POST, instance=projet_produit)
         if form.is_valid():
@@ -1591,9 +1630,9 @@ def modifier_semis(request, semis_id):
             return redirect('detail_projet', projet_id=projet_produit.projet.id)
     else:
         form = ProjetProduitForm(instance=projet_produit)
-    
+
     return render(request, 'semis/modifier_semis.html', {
-        'form': form, 
+        'form': form,
         'semis': projet_produit,
         'projet_produit': projet_produit
     })
@@ -1603,10 +1642,12 @@ def modifier_semis(request, semis_id):
 def detail_semis(request, semis_id):
     """View details of a project product"""
     projet_produit = get_object_or_404(
-        ProjetProduit.objects.select_related('produit', 'projet', 'projet__utilisateur'),
-        id=semis_id, 
-        projet__utilisateur=request.user.profile
+        ProjetProduit.objects.select_related('produit', 'projet', 'projet__utilisateur', 'projet__ferme'),
+        id=semis_id,
     )
+    if not peut_voir_semis(request.user.profile, projet_produit):
+        messages.error(request, "Vous n'avez pas accès à ce semis.")
+        return redirect('liste_semis')
     
     return render(request, 'semis/detail_semis.html', {
         'semis': projet_produit,
@@ -1618,17 +1659,20 @@ def detail_semis(request, semis_id):
 def supprimer_semis(request, semis_id):
     """Remove a product from a project"""
     projet_produit = get_object_or_404(
-        ProjetProduit, 
-        id=semis_id, 
-        projet__utilisateur=request.user.profile
+        ProjetProduit.objects.select_related('projet__ferme'),
+        id=semis_id,
     )
+    if not peut_supprimer_semis(request.user.profile, projet_produit):
+        messages.error(request, "Vous n'avez pas le droit de supprimer ce semis.")
+        return redirect('detail_projet', projet_id=projet_produit.projet.id)
+
     projet_id = projet_produit.projet.id
-    
+
     if request.method == 'POST':
         projet_produit.delete()
         messages.success(request, 'Produit retire du projet avec succes!')
         return redirect('detail_projet', projet_id=projet_id)
-    
+
     return render(request, 'semis/confirmer_suppression_semis.html', {
         'semis': projet_produit,
         'projet_produit': projet_produit
@@ -1643,10 +1687,11 @@ def update_semis_statut(request, semis_id):
     
     try:
         projet_produit = get_object_or_404(
-            ProjetProduit, 
-            id=semis_id, 
-            projet__utilisateur=request.user.profile
+            ProjetProduit.objects.select_related('projet__ferme'),
+            id=semis_id,
         )
+        if not peut_voir_semis(request.user.profile, projet_produit):
+            return JsonResponse({'error': 'Accès refusé.'}, status=403)
         
         # Return project status info
         return JsonResponse({
@@ -1931,7 +1976,7 @@ def taches_liste(request):
     # Détermine si l'utilisateur n'est qu'ouvrier (sans rôle supérieur ailleurs)
     roles_utilisateur = set()
     for ferme in fermes_user:
-        roles_utilisateur.add(Tache.role_dans_ferme(profile, ferme))
+        roles_utilisateur.add(role_dans_ferme(profile, ferme))
     est_uniquement_ouvrier = roles_utilisateur and roles_utilisateur.issubset({'ouvrier'})
 
     if est_uniquement_ouvrier:
@@ -1982,7 +2027,7 @@ def taches_liste(request):
 
     # Peut-il créer une tâche dans au moins une ferme ?
     peut_creer = any(
-        Tache.roles_assignables_par(Tache.role_dans_ferme(profile, f))
+        roles_assignables_par(role_dans_ferme(profile, f))
         for f in fermes_user
     )
 
@@ -2013,15 +2058,15 @@ def creer_tache(request, ferme_id=None):
         ferme = get_object_or_404(fermes_user, id=ferme_id)
     else:
         for f in fermes_user:
-            if Tache.roles_assignables_par(Tache.role_dans_ferme(profile, f)):
+            if roles_assignables_par(role_dans_ferme(profile, f)):
                 ferme = f
                 break
         if ferme is None:
             messages.error(request, "Vous n'avez aucune ferme dans laquelle créer des tâches.")
             return redirect('taches_liste')
 
-    role = Tache.role_dans_ferme(profile, ferme)
-    if not Tache.roles_assignables_par(role):
+    role = role_dans_ferme(profile, ferme)
+    if not roles_assignables_par(role):
         messages.error(request, "Votre rôle ne vous permet pas de créer des tâches dans cette ferme.")
         return redirect('taches_liste')
 
@@ -2054,14 +2099,12 @@ def tache_detail(request, tache_id):
         id=tache_id,
     )
 
-    # Le membre doit avoir accès à la ferme de la tâche
-    if not (tache.ferme.proprietaire_id == profile.id
-            or tache.ferme.membres.filter(utilisateur=profile).exists()):
+    if not peut_voir_tache(profile, tache):
         messages.error(request, "Vous n'avez pas accès à cette tâche.")
         return redirect('taches_liste')
 
-    peut_changer_statut = tache.peut_changer_statut(profile)
-    peut_supprimer = tache.peut_etre_modifiee_par(profile)
+    peut_changer_statut = peut_changer_statut_tache(profile, tache)
+    peut_supprimer = peut_supprimer_tache(profile, tache)
 
     if request.method == 'POST':
         action = request.POST.get('action')

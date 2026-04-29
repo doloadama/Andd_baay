@@ -7,7 +7,11 @@ from django.utils import timezone
 from baay.models import (
     DemandeAccesFerme,
     Ferme,
+    Localite,
     MembreFerme,
+    Pays,
+    ProduitAgricole,
+    Projet,
     Tache,
 )
 
@@ -438,3 +442,109 @@ class TacheTests(TestCase):
         })
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(Tache.objects.filter(titre='Past').exists())
+
+
+class PermissionsRoleTests(TestCase):
+    """Tests de permissions centralisées par rôle."""
+
+    def setUp(self):
+        self.owner = _create_user('owner_p', 'owner@p.test')
+        self.manager = _create_user('mgr_p', 'mgr@p.test')
+        self.tech = _create_user('tech_p', 'tech@p.test')
+        self.ouvrier = _create_user('ouv_p', 'ouv@p.test')
+        self.outsider = _create_user('out_p', 'out@p.test')
+
+        self.ferme = Ferme.objects.create(nom='F-Perm', proprietaire=self.owner.profile)
+        MembreFerme.objects.create(ferme=self.ferme, utilisateur=self.manager.profile, role='manager')
+        MembreFerme.objects.create(ferme=self.ferme, utilisateur=self.tech.profile, role='technicien')
+        MembreFerme.objects.create(ferme=self.ferme, utilisateur=self.ouvrier.profile, role='ouvrier')
+
+        self.pays = Pays.objects.create(nom='Sénégal', code_iso='SN')
+        self.localite = Localite.objects.create(nom='Dakar', pays=self.pays)
+        self.produit = ProduitAgricole.objects.create(nom='Mil')
+        self.projet = Projet.objects.create(
+            nom='Projet Test',
+            ferme=self.ferme,
+            utilisateur=self.owner.profile,
+            localite=self.localite,
+            superficie=10,
+            date_lancement=timezone.now().date(),
+        )
+
+    # --- Projets visibility ---
+
+    def test_manager_voit_projet_cree_par_proprietaire(self):
+        self.client.login(username='mgr_p', password='pass12345')
+        resp = self.client.get(reverse('detail_projet', args=[self.projet.id]))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_technicien_voit_projet_cree_par_proprietaire(self):
+        self.client.login(username='tech_p', password='pass12345')
+        resp = self.client.get(reverse('detail_projet', args=[self.projet.id]))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_ouvrier_ne_peut_pas_modifier_projet(self):
+        self.client.login(username='ouv_p', password='pass12345')
+        resp = self.client.post(reverse('modifier_projet', args=[self.projet.id]), {
+            'nom': 'Hack',
+            'superficie': 1,
+            'date_lancement': timezone.now().date(),
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.projet.refresh_from_db()
+        self.assertEqual(self.projet.nom, 'Projet Test')
+
+    # --- Tâches : ouvrier ne voit que ses tâches ---
+
+    def test_ouvrier_ne_peut_pas_voir_tache_d_un_autre(self):
+        tache_autre = Tache.objects.create(
+            ferme=self.ferme, titre='Tache autre',
+            assigne_a=self.manager.profile, assigne_par=self.owner.profile
+        )
+        self.client.login(username='ouv_p', password='pass12345')
+        resp = self.client.get(reverse('tache_detail', args=[tache_autre.id]))
+        self.assertEqual(resp.status_code, 302)
+
+    # --- Fermes : manager ne peut pas supprimer ---
+
+    def test_manager_ne_peut_pas_supprimer_ferme(self):
+        self.client.login(username='mgr_p', password='pass12345')
+        resp = self.client.post(reverse('supprimer_ferme', args=[self.ferme.id]))
+        self.assertEqual(resp.status_code, 404)
+        self.assertTrue(Ferme.objects.filter(id=self.ferme.id).exists())
+
+    # --- Projets : manager peut créer ---
+
+    def test_manager_peut_creer_projet_dans_sa_ferme(self):
+        self.client.login(username='mgr_p', password='pass12345')
+        url = reverse('creer_projet') + f'?ferme={self.ferme.id}'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.post(url, {
+            'nom': 'Projet Manager',
+            'superficie': 5,
+            'date_lancement': timezone.now().date(),
+            'ferme': self.ferme.id,
+            'localite': self.localite.id,
+            'statut': 'en_cours',
+            'produits_selection': [self.produit.id],
+            'type_irrigation': 'Aucune',
+            'type_engrais': 'Aucun',
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Projet.objects.filter(nom='Projet Manager').exists())
+
+    # --- Semis : technicien peut modifier mais pas supprimer projet ---
+
+    def test_technicien_peut_modifier_semis(self):
+        from baay.models import ProjetProduit
+        pp = ProjetProduit.objects.create(projet=self.projet, produit=self.produit, superficie_allouee=2)
+        self.client.login(username='tech_p', password='pass12345')
+        resp = self.client.get(reverse('modifier_semis', args=[pp.id]))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_technicien_ne_peut_pas_supprimer_projet(self):
+        self.client.login(username='tech_p', password='pass12345')
+        resp = self.client.post(reverse('supprimer_projet', args=[self.projet.id]))
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Projet.objects.filter(id=self.projet.id).exists())

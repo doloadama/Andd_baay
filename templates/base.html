@@ -203,6 +203,39 @@
             color: var(--text-main) !important;
         }
 
+        .logout-confirm-modal .modal-content {
+            background: var(--card-bg-solid);
+            color: var(--text-main);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logout-confirm-modal .modal-header,
+        .logout-confirm-modal .modal-footer {
+            border-color: var(--border-glass);
+        }
+
+        .logout-confirm-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #022c22;
+            background: linear-gradient(135deg, var(--neon-green), var(--accent-dark));
+            box-shadow: 0 10px 25px rgba(74, 222, 128, 0.25);
+        }
+
+        .logout-confirm-modal .btn-close {
+            filter: none;
+        }
+
+        .dark-mode .logout-confirm-modal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
         body {
             background: var(--bg-main);
             color: var(--text-main);
@@ -1975,7 +2008,7 @@
                         </li>
                         <li class="nav-item">
                             <!-- FIX #4: btn-nav-ghost is an <a>, no stray </button> -->
-                            <a class="btn-nav btn-nav-ghost logout-link" href="{% url 'logout' %}" title="Déconnexion">
+                            <a class="btn-nav btn-nav-ghost logout-link" href="{% url 'logout' %}" title="Déconnexion" data-logout-url="{% url 'logout' %}">
                                 <i class="fas fa-sign-out-alt"></i>
                             </a>
                         </li>
@@ -2024,6 +2057,36 @@
             </div>
         </nav>
     </header>
+
+    {% if user.is_authenticated %}
+    <div class="modal fade logout-confirm-modal" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="logout-confirm-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </span>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-1" id="logoutConfirmTitle">Confirmer la déconnexion</h5>
+                            <p class="mb-0 text-muted">Vous êtes sur le point de quitter votre espace Andd Baay.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    Voulez-vous vraiment vous déconnecter ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-baay btn-baay-outline" data-bs-dismiss="modal">Annuler</button>
+                    <a class="btn-baay btn-baay-primary" id="confirmLogoutBtn" href="{% url 'logout' %}">
+                        <i class="fas fa-check"></i> Oui, me déconnecter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Main Content -->
     <main id="main">
@@ -2115,6 +2178,22 @@
     <script src="{% static 'js/image-compress.js' %}"></script>
     {% block extra_scripts %}{% endblock %}
     <script src="{% static 'js/main.js' %}"></script>
+    {% if user.is_authenticated %}
+    <script>
+        document.querySelectorAll('.logout-link').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                var modalElement = document.getElementById('logoutConfirmModal');
+                var confirmButton = document.getElementById('confirmLogoutBtn');
+                if (!modalElement || !confirmButton || !window.bootstrap) {
+                    return;
+                }
+                event.preventDefault();
+                confirmButton.href = link.dataset.logoutUrl || link.href;
+                bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            });
+        });
+    </script>
+    {% endif %}
     {% if user.is_authenticated %}
     <nav class="bottom-nav d-lg-none" aria-label="Navigation mobile">
         <ul>
