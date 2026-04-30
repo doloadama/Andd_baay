@@ -51,7 +51,15 @@ def build_reaction_updated_event_v1(message_id, conversation_id, reactions):
     }
 
 
-def build_inbox_update_event_v1(conversation_id, titre, preview, date_envoi, unread_count, is_online):
+def build_inbox_update_event_v1(
+    conversation_id,
+    titre,
+    preview,
+    date_envoi,
+    unread_count,
+    is_online,
+    move_to_top=True,
+):
     return {
         "type": "inbox_update_v1",
         "event_version": "v1",
@@ -62,6 +70,7 @@ def build_inbox_update_event_v1(conversation_id, titre, preview, date_envoi, unr
         "date_envoi_iso": date_envoi.isoformat() if date_envoi else "",
         "unread_count": int(unread_count or 0),
         "is_online": bool(is_online),
+        "move_to_top": bool(move_to_top),
     }
 
 
