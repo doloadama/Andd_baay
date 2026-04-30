@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from baay.models import (
+    Conversation,
     DemandeAccesFerme,
     Ferme,
     Localite,
@@ -12,7 +13,14 @@ from baay.models import (
     Pays,
     ProduitAgricole,
     Projet,
+    Message,
     Tache,
+)
+from baay.permissions import (
+    peut_creer_projet,
+    peut_supprimer_projet,
+    role_dans_ferme,
+    roles_assignables_par,
 )
 
 
@@ -548,3 +556,69 @@ class PermissionsRoleTests(TestCase):
         resp = self.client.post(reverse('supprimer_projet', args=[self.projet.id]))
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(Projet.objects.filter(id=self.projet.id).exists())
+
+    def test_permission_policy_role_resolution(self):
+        self.assertEqual(role_dans_ferme(self.owner.profile, self.ferme), 'proprietaire')
+        self.assertEqual(role_dans_ferme(self.manager.profile, self.ferme), 'manager')
+        self.assertEqual(role_dans_ferme(self.tech.profile, self.ferme), 'technicien')
+        self.assertEqual(role_dans_ferme(self.ouvrier.profile, self.ferme), 'ouvrier')
+
+    def test_permission_policy_assignable_roles(self):
+        self.assertEqual(roles_assignables_par('proprietaire'), ['manager', 'technicien', 'ouvrier'])
+        self.assertEqual(roles_assignables_par('manager'), ['technicien', 'ouvrier'])
+        self.assertEqual(roles_assignables_par('technicien'), ['ouvrier'])
+        self.assertEqual(roles_assignables_par('ouvrier'), [])
+
+    def test_permission_policy_create_delete_project(self):
+        self.assertTrue(peut_creer_projet(self.owner.profile, self.ferme))
+        self.assertTrue(peut_creer_projet(self.manager.profile, self.ferme))
+        self.assertFalse(peut_creer_projet(self.tech.profile, self.ferme))
+        self.assertFalse(peut_creer_projet(self.ouvrier.profile, self.ferme))
+        self.assertTrue(peut_supprimer_projet(self.owner.profile, self.projet))
+        self.assertFalse(peut_supprimer_projet(self.manager.profile, self.projet))
+
+
+class MessagerieReliabilityTests(TestCase):
+    def setUp(self):
+        self.sender = _create_user('msg_sender', 'sender@x.test')
+        self.receiver = _create_user('msg_receiver', 'receiver@x.test')
+        self.conversation = Conversation.objects.create(sujet='Reliability')
+        self.conversation.participants.add(self.sender.profile, self.receiver.profile)
+        self.url = reverse('conversation_detail', args=[self.conversation.id])
+
+    def test_idempotent_send_with_client_message_id(self):
+        self.client.login(username='msg_sender', password='pass12345')
+        client_id = '11111111-1111-1111-1111-111111111111'
+        payload = {
+            'contenu': 'hello-idempotent',
+            'client_message_id': client_id,
+        }
+        resp1 = self.client.post(self.url, payload, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_ACCEPT='application/json')
+        self.assertEqual(resp1.status_code, 200)
+        resp2 = self.client.post(self.url, payload, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_ACCEPT='application/json')
+        self.assertEqual(resp2.status_code, 200)
+        self.assertEqual(
+            Message.objects.filter(conversation=self.conversation, expediteur=self.sender.profile, client_message_id=client_id).count(),
+            1,
+        )
+
+    def test_sync_endpoint_returns_messages_since_timestamp(self):
+        m1 = Message.objects.create(conversation=self.conversation, expediteur=self.sender.profile, contenu='m1')
+        m2 = Message.objects.create(conversation=self.conversation, expediteur=self.receiver.profile, contenu='m2')
+        self.client.login(username='msg_sender', password='pass12345')
+        sync_url = reverse('api_conversation_sync', args=[self.conversation.id])
+        resp = self.client.get(sync_url, {'since': m1.date_envoi.isoformat()})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get('type'), 'chat_sync_v1')
+        returned_ids = [item['message_id'] for item in data.get('messages', [])]
+        self.assertIn(str(m2.id), returned_ids)
+        self.assertNotIn(str(m1.id), returned_ids)
+
+    def test_read_receipt_persisted_on_open(self):
+        msg = Message.objects.create(conversation=self.conversation, expediteur=self.sender.profile, contenu='to-read')
+        self.client.login(username='msg_receiver', password='pass12345')
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        msg.refresh_from_db()
+        self.assertTrue(msg.lu_par.filter(id=self.receiver.profile.id).exists())

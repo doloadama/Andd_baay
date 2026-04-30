@@ -1,11 +1,12 @@
-# myapp/urls.py
-from django.urls import path
-from . import views
+from django.urls import include, path
 
 urlpatterns = [
-    # Authentification
-    path('accounts/register/', views.register_view, name='register'),
-    path('accounts/login/', views.login_view, name='login'),
-    path('accounts/logout/', views.logout_view, name='logout'),
-    path('chatbot/', views.ask_chatbot, name='ask_chatbot'),
+    path("", include("baay.urls_core")),
+    path("", include("baay.urls_auth")),
+    path("", include("baay.urls_projets")),
+    path("", include("baay.urls_semis")),
+    path("", include("baay.urls_fermes")),
+    path("", include("baay.urls_taches")),
+    path("", include("baay.urls_messagerie")),
+    path("", include("baay.urls_api")),
 ]

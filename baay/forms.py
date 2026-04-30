@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 import json
 from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme, DemandeAccesFerme, Tache
+from baay.permissions import role_dans_ferme, roles_assignables_par
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -555,8 +556,8 @@ class TacheForm(forms.ModelForm):
 
         # Limiter les assignés possibles selon la hiérarchie
         if ferme is not None and auteur is not None:
-            role_auteur = Tache.role_dans_ferme(auteur, ferme)
-            roles_cibles = Tache.roles_assignables_par(role_auteur)
+            role_auteur = role_dans_ferme(auteur, ferme)
+            roles_cibles = roles_assignables_par(role_auteur)
             membres_qs = MembreFerme.objects.filter(
                 ferme=ferme, role__in=roles_cibles
             ).select_related('utilisateur__user')
@@ -580,8 +581,8 @@ class TacheForm(forms.ModelForm):
             raise forms.ValidationError("Le projet sélectionné n'appartient pas à cette ferme.")
 
         if assigne_a and self.ferme and self.auteur:
-            role_auteur = Tache.role_dans_ferme(self.auteur, self.ferme)
-            roles_autorises = Tache.roles_assignables_par(role_auteur)
+            role_auteur = role_dans_ferme(self.auteur, self.ferme)
+            roles_autorises = roles_assignables_par(role_auteur)
             if not roles_autorises:
                 raise forms.ValidationError(
                     "Votre rôle ne vous permet pas de créer des tâches dans cette ferme."

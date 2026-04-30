@@ -2,7 +2,8 @@ import json
 import logging
 import os
 import pickle
-from datetime import timedelta
+import uuid
+from datetime import datetime, timedelta, timezone as dt_timezone
 from decimal import Decimal
 
 from asgiref.sync import async_to_sync
@@ -28,7 +29,8 @@ from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm, TacheForm, TacheStatutForm
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache, Conversation, Message
+from baay.messaging_contract import build_message_event_v1, build_read_receipt_event_v1
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache, Conversation, Message, MessageReaction
 from baay.permissions import (
     fermes_accessibles_qs,
     peut_changer_statut_tache,
@@ -48,6 +50,7 @@ from baay.permissions import (
     role_dans_ferme,
     roles_assignables_par,
 )
+from baay.services import ensure_profile_for_user
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -2366,10 +2369,7 @@ def _membres_ferme_communs(profile):
 @login_required
 def messagerie_inbox(request):
     """Liste des conversations de l'utilisateur."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
 
     conversations = (
         Conversation.objects.filter(participants=profile)
@@ -2379,6 +2379,7 @@ def messagerie_inbox(request):
 
     # Enrichir avec le dernier message + compteur de non-lus
     conv_data = []
+    online_threshold = timezone.now() - timedelta(minutes=5)
     for conv in conversations:
         dernier = conv.messages.last()
         non_lus = conv.messages.exclude(lu_par=profile).exclude(expediteur=profile).count()
@@ -2390,12 +2391,17 @@ def messagerie_inbox(request):
             titre = autres[0].user.username
         else:
             titre = f"Groupe ({len(autres) + 1})"
+        avatar_source = titre.strip() or "C"
+        avatar_initial = avatar_source[0].upper()
+        is_online = bool(dernier and dernier.date_envoi >= online_threshold)
         conv_data.append({
             'conv': conv,
             'titre': titre,
             'autres': autres,
             'dernier': dernier,
             'non_lus': non_lus,
+            'avatar_initial': avatar_initial,
+            'is_online': is_online,
         })
 
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
@@ -2411,10 +2417,7 @@ def messagerie_inbox(request):
 @login_required
 def derniere_conversation(request):
     """Redirige vers la conversation la plus récente (ou inbox si aucune)."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
     last_conv = (
         Conversation.objects.filter(participants=profile)
         .order_by('-dernier_message')
@@ -2432,10 +2435,7 @@ def derniere_conversation(request):
 @login_required
 def conversation_detail(request, conversation_id):
     """Affiche les messages d'une conversation et permet d'envoyer un message."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
 
     conversation = get_object_or_404(
         Conversation.objects.prefetch_related(
@@ -2453,6 +2453,13 @@ def conversation_detail(request, conversation_id):
         contenu = request.POST.get('contenu', '').strip()
         reply_to_id = request.POST.get('reply_to', '').strip()
         piece_jointe = request.FILES.get('piece_jointe')
+        client_message_id_raw = request.POST.get('client_message_id', '').strip()
+        client_message_id = None
+        if client_message_id_raw:
+            try:
+                client_message_id = uuid.UUID(client_message_id_raw)
+            except ValueError:
+                return JsonResponse({'error': 'client_message_id invalide'}, status=400)
         if contenu or piece_jointe:
             reply_to = None
             if reply_to_id:
@@ -2460,35 +2467,35 @@ def conversation_detail(request, conversation_id):
                     reply_to = conversation.messages.get(id=reply_to_id)
                 except Message.DoesNotExist:
                     pass
-            msg = Message.objects.create(
-                conversation=conversation,
-                expediteur=profile,
-                contenu=contenu,
-                piece_jointe=piece_jointe,
-                reply_to=reply_to,
-            )
+            msg = None
+            created = False
+            if client_message_id is not None:
+                msg = Message.objects.filter(
+                    conversation=conversation,
+                    expediteur=profile,
+                    client_message_id=client_message_id,
+                ).first()
+            if msg is None:
+                msg = Message.objects.create(
+                    conversation=conversation,
+                    expediteur=profile,
+                    contenu=contenu,
+                    piece_jointe=piece_jointe,
+                    reply_to=reply_to,
+                    client_message_id=client_message_id,
+                )
+                created = True
             msg.lu_par.add(profile)
-            conversation.dernier_message = msg.date_envoi
-            conversation.save(update_fields=['dernier_message'])
+            if created:
+                conversation.dernier_message = msg.date_envoi
+                conversation.save(update_fields=['dernier_message'])
 
             # Broadcast via WebSocket
             channel_layer = get_channel_layer()
             group_name = f"conversation_{str(conversation.id)}"
-            event_data = {
-                'type': 'chat_message',
-                'message_id': str(msg.id),
-                'sender_id': profile.id,
-                'sender_username': request.user.username,
-                'sender_name': request.user.get_full_name() or request.user.username,
-                'contenu': msg.contenu,
-                'date_envoi': msg.date_envoi.strftime('%H:%M'),
-                'conversation_id': str(conversation.id),
-                'reply_to_id': str(reply_to.id) if reply_to else None,
-                'piece_jointe_url': msg.piece_jointe.url if msg.piece_jointe else None,
-                'piece_jointe_name': os.path.basename(msg.piece_jointe.name) if msg.piece_jointe else None,
-                'reply_preview': (reply_to.expediteur.user.username + ': ' + reply_to.contenu[:50]) if reply_to else None,
-            }
-            async_to_sync(channel_layer.group_send)(group_name, event_data)
+            event_data = build_message_event_v1(msg)
+            if created:
+                async_to_sync(channel_layer.group_send)(group_name, event_data)
             
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('accept') == 'application/json':
                 return JsonResponse(event_data)
@@ -2502,11 +2509,10 @@ def conversation_detail(request, conversation_id):
         group_name = f"conversation_{str(conversation.id)}"
         for msg in messages_non_lus:
             msg.lu_par.add(profile)
-            async_to_sync(channel_layer.group_send)(group_name, {
-                'type': 'chat_read_receipt',
-                'message_id': str(msg.id),
-                'reader_id': profile.id,
-            })
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                build_read_receipt_event_v1(msg.id, profile.id, conversation.id),
+            )
 
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
@@ -2522,6 +2528,34 @@ def conversation_detail(request, conversation_id):
         'base_template': base_template,
         'is_mini': request.GET.get('mini') == 'true',
     })
+
+
+@login_required
+@require_GET
+def api_conversation_sync(request, conversation_id):
+    """
+    Return conversation messages since an optional timestamp for reconnect catch-up.
+    Query param:
+      - since: ISO datetime; returns messages with date_envoi > since
+    """
+    profile = ensure_profile_for_user(request.user)
+    conversation = get_object_or_404(
+        Conversation.objects.filter(participants=profile),
+        id=conversation_id,
+    )
+    since_raw = request.GET.get('since', '').strip()
+    messages_qs = conversation.messages.select_related('expediteur__user', 'reply_to__expediteur__user').prefetch_related('lu_par')
+    if since_raw:
+        try:
+            since_dt = datetime.fromisoformat(since_raw.replace("Z", "+00:00"))
+            if timezone.is_naive(since_dt):
+                since_dt = timezone.make_aware(since_dt, timezone=dt_timezone.utc)
+            messages_qs = messages_qs.filter(date_envoi__gt=since_dt)
+        except ValueError:
+            return JsonResponse({'error': 'Parametre since invalide'}, status=400)
+
+    messages_data = [build_message_event_v1(msg) for msg in messages_qs.order_by('date_envoi', 'id')]
+    return JsonResponse({'type': 'chat_sync_v1', 'messages': messages_data})
 
 
 @login_required
@@ -2598,10 +2632,7 @@ def nouvelle_conversation(request):
 @require_GET
 def api_messages_non_lus(request):
     """Retourne le nombre total de messages non lus pour l'utilisateur connecté."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
     count = Message.objects.filter(
         conversation__participants=profile,
     ).exclude(
@@ -2616,10 +2647,7 @@ def api_messages_non_lus(request):
 @require_GET
 def api_notifications_list(request):
     """Retourne la liste des messages non lus (notifications)."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
     messages_qs = Message.objects.filter(
         conversation__participants=profile,
     ).exclude(
@@ -2646,10 +2674,7 @@ def api_notifications_list(request):
 @require_POST
 def api_marquer_tout_lu(request):
     """Marque tous les messages non lus comme lus pour l'utilisateur connecté."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
     messages_qs = Message.objects.filter(
         conversation__participants=profile,
     ).exclude(
@@ -2752,10 +2777,7 @@ def api_voice_command(request):
 @require_POST
 def toggle_reaction(request, message_id):
     """Toggle une réaction emoji sur un message."""
-    try:
-        profile = request.user.profile
-    except Profile.DoesNotExist:
-        profile = Profile.objects.create(user=request.user)
+    profile = ensure_profile_for_user(request.user)
     emoji = request.POST.get('emoji', '').strip()
     if not emoji:
         return JsonResponse({'error': 'Emoji requis'}, status=400)
@@ -2777,4 +2799,4 @@ def toggle_reaction(request, message_id):
     for r in message.reactions.values('emoji').annotate(count=Count('id')):
         reactions[r['emoji']] = r['count']
 
-    return JsonResponse({'action': action, 'reactions': reactions})
+    return JsonResponse({'action': action, 'reactions': reactions, 'message_id': str(message.id)})

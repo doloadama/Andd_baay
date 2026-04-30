@@ -2,7 +2,9 @@ import random
 import logging
 from datetime import timedelta
 from datetime import date
-from .models import HistoriqueRendement
+from django.contrib.auth.models import User
+
+from .models import HistoriqueRendement, PrevisionRecolte, Profile
 
 logger = logging.getLogger(__name__)
 
@@ -97,3 +99,24 @@ def estimer_rendement_ia(projet_produit):
         'confiance': min(100.0, max(0.0, confiance)),
         'date_recolte_prevue': date_recolte
     }
+
+
+def ensure_profile_for_user(user: User) -> Profile:
+    """Return a profile for a user, creating it if missing."""
+    profile, _ = Profile.objects.get_or_create(user=user)
+    return profile
+
+
+def update_prediction_for_projet_produit(projet_produit):
+    """
+    Refresh the project's prediction from a ProjetProduit change.
+    Centralized here so signals/views share the same orchestration path.
+    """
+    resultats = estimer_rendement_ia(projet_produit)
+    prediction, _ = PrevisionRecolte.objects.get_or_create(projet=projet_produit.projet)
+    prediction.rendement_estime_min = resultats['min']
+    prediction.rendement_estime_max = resultats['max']
+    prediction.indice_confiance = resultats['confiance']
+    prediction.date_recolte_prevue = resultats['date_recolte_prevue']
+    prediction.save()
+    return prediction

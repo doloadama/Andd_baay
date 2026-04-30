@@ -340,6 +340,7 @@ class Message(models.Model):
     expediteur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='messages_envoyes')
     contenu = models.TextField()
     date_envoi = models.DateTimeField(auto_now_add=True)
+    client_message_id = models.UUIDField(null=True, blank=True, db_index=True)
     lu_par = models.ManyToManyField(Profile, related_name='messages_lus', blank=True)
     piece_jointe = models.FileField(upload_to='messages/%Y/%m/', blank=True, null=True)
     reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='reponses')
@@ -349,6 +350,13 @@ class Message(models.Model):
         indexes = [
             models.Index(fields=['conversation', 'date_envoi']),
             models.Index(fields=['expediteur', 'date_envoi']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['conversation', 'expediteur', 'client_message_id'],
+                condition=models.Q(client_message_id__isnull=False),
+                name='uniq_message_client_id_per_sender_conversation',
+            ),
         ]
 
     def __str__(self):
@@ -450,22 +458,15 @@ class Tache(models.Model):
 
     @staticmethod
     def role_dans_ferme(profile, ferme):
-        """Retourne 'proprietaire' / 'manager' / 'technicien' / 'ouvrier' / None."""
-        if ferme.proprietaire_id == profile.id:
-            return 'proprietaire'
-        membre = ferme.membres.filter(utilisateur=profile).first()
-        return membre.role if membre else None
+        """Compat helper delegating to centralized permission policy."""
+        from baay.permissions import role_dans_ferme as permission_role_dans_ferme
+        return permission_role_dans_ferme(profile, ferme)
 
     @staticmethod
     def roles_assignables_par(role):
-        """Rôles qu'un utilisateur peut assigner selon son propre rôle."""
-        return {
-            'proprietaire': ['manager', 'technicien', 'ouvrier'],
-            'manager': ['technicien', 'ouvrier'],
-            'technicien': ['ouvrier'],
-            'ouvrier': [],
-            None: [],
-        }.get(role, [])
+        """Compat helper delegating to centralized permission policy."""
+        from baay.permissions import roles_assignables_par as permission_roles_assignables_par
+        return permission_roles_assignables_par(role)
 
     def peut_etre_modifiee_par(self, profile):
         """Le créateur, le propriétaire de la ferme, ou l'assigné (statut/commentaire)."""
