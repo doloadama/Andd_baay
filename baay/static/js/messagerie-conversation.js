@@ -60,18 +60,45 @@
         return d.innerHTML;
     }
 
+    function renderReplyPreview(message, isOwn) {
+        if (!message.reply_preview) return "";
+        const background = isOwn ? "rgba(0,0,0,0.15)" : "var(--bg-main)";
+        const color = isOwn ? "inherit" : "var(--text-muted)";
+        return `<div class="mb-1 px-2 py-1 rounded-2" style="background: ${background}; font-size: 0.78rem; color: ${color};"><i class="fas fa-reply me-1"></i> ${escapeHtml(message.reply_preview)}</div>`;
+    }
+
+    function isImageAttachment(url) {
+        const path = String(url || "").split("?")[0].toLowerCase();
+        return [".jpg", ".jpeg", ".png", ".gif", ".webp"].some((extension) => path.endsWith(extension));
+    }
+
+    function renderAttachment(message, isOwn) {
+        if (!message.piece_jointe_url) return "";
+        const url = escapeHtml(message.piece_jointe_url);
+        const name = escapeHtml(message.piece_jointe_name || "Pièce jointe");
+        if (isImageAttachment(message.piece_jointe_url)) {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="${name}" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;"></a>`;
+        }
+        const background = isOwn ? "rgba(0,0,0,0.15)" : "var(--bg-main)";
+        const color = isOwn ? "inherit" : "var(--text-main)";
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: ${background}; color: ${color};"><i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">${name}</span></a>`;
+    }
+
     function renderMessage(message) {
         const isOwn = String(message.sender_id) === currentProfileId;
         const div = document.createElement("div");
         const bubbleClass = isOwn ? "msg-bubble-own" : "msg-bubble-other";
         const senderLine = isOwn ? "" : `<div class="fw-bold mb-1" style="font-size: 0.78rem; color: var(--accent-dark);">${escapeHtml(message.sender_name)}</div>`;
+        const replyPreview = renderReplyPreview(message, isOwn);
+        const attachment = renderAttachment(message, isOwn);
+        const content = message.contenu ? `<div style="white-space: pre-wrap;">${escapeHtml(message.contenu)}</div>` : "";
         const messageId = String(message.message_id || message.id);
         const checkMark = isOwn
             ? `<i class="fas fa-check-double ms-1 checkmark-icon${message.is_lu_par_tous ? " text-success" : ""}" id="check-${messageId}"></i>`
             : "";
         div.className = "d-flex mb-3 " + (isOwn ? "justify-content-end" : "justify-content-start");
         div.setAttribute("data-message-id", messageId);
-        div.innerHTML = `<div class="d-flex flex-column ${isOwn ? "align-items-end" : "align-items-start"}" style="max-width: 75%;"><div class="${bubbleClass} rounded-4">${senderLine}<div style="white-space: pre-wrap;">${escapeHtml(message.contenu)}</div><div class="${isOwn ? "text-end" : ""} mt-1" style="font-size: 0.68rem; opacity: 0.85;">${message.date_envoi || ""}${checkMark}</div></div></div>`;
+        div.innerHTML = `<div class="d-flex flex-column ${isOwn ? "align-items-end" : "align-items-start"}" style="max-width: 75%;"><div class="${bubbleClass} rounded-4">${senderLine}${replyPreview}${attachment}${content}<div class="${isOwn ? "text-end" : ""} mt-1" style="font-size: 0.68rem; opacity: 0.85;">${message.date_envoi || ""}${checkMark}</div></div></div>`;
         return div;
     }
 
@@ -161,7 +188,9 @@
     form.addEventListener("submit", function (e) {
         e.preventDefault();
         const contenu = textarea.value.trim();
-        if (!contenu) return;
+        const fileInput = form.querySelector('input[type="file"][name="piece_jointe"]');
+        const hasFile = Boolean(fileInput?.files?.length);
+        if (!contenu && !hasFile) return;
         const clientMessageId = crypto.randomUUID();
         pendingByClientId.set(clientMessageId, Date.now());
         const payload = new FormData(form);
