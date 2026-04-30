@@ -94,6 +94,20 @@
         }
     }
 
+    function updateReactionPills(messageId, reactions) {
+        const pills = document.querySelectorAll(`button[data-reaction-pill="1"][data-message-id="${messageId}"]`);
+        pills.forEach((pill) => {
+            const emoji = pill.getAttribute("data-emoji");
+            const count = Number(reactions?.[emoji] || 0);
+            if (count > 0) {
+                pill.textContent = `${emoji} ${count}`;
+                pill.style.display = "";
+            } else {
+                pill.style.display = "none";
+            }
+        });
+    }
+
     async function syncMissedMessages() {
         if (!syncUrl) return;
         let url = syncUrl;
@@ -117,17 +131,19 @@
         };
         ws.onmessage = function (e) {
             const data = JSON.parse(e.data);
-            if (data.type === "chat_message_v1" || data.type === "chat_message") {
+            if (data.type === "chat_message_v1") {
                 appendMessage(data);
-            } else if ((data.type === "chat_typing_v1" || data.type === "chat_typing") && String(data.sender_id) !== String(currentProfileId)) {
+            } else if (data.type === "chat_typing_v1" && String(data.sender_id) !== String(currentProfileId)) {
                 showTyping();
-            } else if (data.type === "chat_stop_typing_v1" || data.type === "chat_stop_typing") {
+            } else if (data.type === "chat_stop_typing_v1") {
                 hideTyping();
-            } else if (data.type === "chat_read_receipt_v1" || data.type === "chat_read_receipt") {
+            } else if (data.type === "chat_read_receipt_v1") {
                 const checkIcon = document.getElementById("check-" + data.message_id);
                 if (checkIcon) {
                     checkIcon.style.color = "#064e3b";
                 }
+            } else if (data.type === "reaction_updated_v1") {
+                updateReactionPills(String(data.message_id), data.reactions || {});
             }
         };
         ws.onclose = function () {
@@ -217,14 +233,7 @@
             .then((r) => r.json())
             .then((d) => {
                 if (d.reactions) {
-                    const reactionButtons = document.querySelectorAll(`button[onclick*="${messageId}"]`);
-                    reactionButtons.forEach((btn) => {
-                        const txt = btn.textContent.trim();
-                        const key = txt.split(" ")[0];
-                        if (d.reactions[key]) {
-                            btn.textContent = `${key} ${d.reactions[key]}`;
-                        }
-                    });
+                    updateReactionPills(String(messageId), d.reactions);
                 }
             });
     };

@@ -29,7 +29,13 @@ from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm, TacheForm, TacheStatutForm
-from baay.messaging_contract import build_message_event_v1, build_read_receipt_event_v1
+from baay.messaging_contract import (
+    build_inbox_update_event_v1,
+    build_message_event_v1,
+    build_reaction_updated_event_v1,
+    build_read_receipt_event_v1,
+    build_unread_count_event_v1,
+)
 from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache, Conversation, Message, MessageReaction
 from baay.permissions import (
     fermes_accessibles_qs,
@@ -2414,6 +2420,46 @@ def messagerie_inbox(request):
     })
 
 
+def _conversation_title_for_profile(conversation, profile):
+    autres = [p for p in conversation.participants.all() if p.id != profile.id]
+    if conversation.sujet:
+        return conversation.sujet
+    if len(autres) == 1:
+        return autres[0].user.username
+    return f"Groupe ({len(autres) + 1})"
+
+
+def _send_inbox_update(channel_layer, conversation, message_obj):
+    participants = list(conversation.participants.all())
+    online_threshold = timezone.now() - timedelta(minutes=5)
+    for participant in participants:
+        unread_count = conversation.messages.exclude(lu_par=participant).exclude(expediteur=participant).count()
+        titre = _conversation_title_for_profile(conversation, participant)
+        preview_sender = message_obj.expediteur.user.get_full_name() or message_obj.expediteur.user.username
+        preview_content = message_obj.contenu or "Piece jointe"
+        preview = f"{preview_sender}: {preview_content}"
+        event_payload = build_inbox_update_event_v1(
+            conversation_id=conversation.id,
+            titre=titre,
+            preview=preview,
+            date_envoi=message_obj.date_envoi,
+            unread_count=unread_count,
+            is_online=bool(message_obj.date_envoi and message_obj.date_envoi >= online_threshold),
+        )
+        async_to_sync(channel_layer.group_send)(f"inbox_{participant.id}", event_payload)
+        total_unread = Message.objects.filter(
+            conversation__participants=participant,
+        ).exclude(
+            lu_par=participant,
+        ).exclude(
+            expediteur=participant,
+        ).count()
+        async_to_sync(channel_layer.group_send)(
+            f"inbox_{participant.id}",
+            build_unread_count_event_v1(total_unread),
+        )
+
+
 @login_required
 def derniere_conversation(request):
     """Redirige vers la conversation la plus récente (ou inbox si aucune)."""
@@ -2496,6 +2542,7 @@ def conversation_detail(request, conversation_id):
             event_data = build_message_event_v1(msg)
             if created:
                 async_to_sync(channel_layer.group_send)(group_name, event_data)
+                _send_inbox_update(channel_layer, conversation, msg)
             
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('accept') == 'application/json':
                 return JsonResponse(event_data)
@@ -2513,6 +2560,7 @@ def conversation_detail(request, conversation_id):
                 group_name,
                 build_read_receipt_event_v1(msg.id, profile.id, conversation.id),
             )
+            _send_inbox_update(channel_layer, conversation, msg)
 
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
@@ -2611,6 +2659,8 @@ def nouvelle_conversation(request):
                     contenu=contenu,
                 )
                 msg.lu_par.add(profile)
+                channel_layer = get_channel_layer()
+                _send_inbox_update(channel_layer, existante, msg)
                 return redirect('conversation_detail', conversation_id=existante.id)
 
         conv = Conversation.objects.create(sujet=sujet or '')
@@ -2621,6 +2671,8 @@ def nouvelle_conversation(request):
             contenu=contenu,
         )
         msg.lu_par.add(profile)
+        channel_layer = get_channel_layer()
+        _send_inbox_update(channel_layer, conv, msg)
         return redirect('conversation_detail', conversation_id=conv.id)
 
     return render(request, 'messagerie/nouvelle_conversation.html', {
@@ -2684,6 +2736,11 @@ def api_marquer_tout_lu(request):
     )
     for msg in messages_qs:
         msg.lu_par.add(profile)
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"inbox_{profile.id}",
+        build_unread_count_event_v1(0),
+    )
     return JsonResponse({'cleared': True})
 
 
@@ -2798,5 +2855,11 @@ def toggle_reaction(request, message_id):
     reactions = {}
     for r in message.reactions.values('emoji').annotate(count=Count('id')):
         reactions[r['emoji']] = r['count']
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"conversation_{str(message.conversation_id)}",
+        build_reaction_updated_event_v1(message.id, message.conversation_id, reactions),
+    )
 
     return JsonResponse({'action': action, 'reactions': reactions, 'message_id': str(message.id)})

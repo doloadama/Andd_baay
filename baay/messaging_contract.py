@@ -38,3 +38,36 @@ def build_read_receipt_event_v1(message_id, reader_profile_id, conversation_id):
         "reader_id": str(reader_profile_id),
         "conversation_id": str(conversation_id),
     }
+
+
+def build_reaction_updated_event_v1(message_id, conversation_id, reactions):
+    return {
+        "type": "reaction_updated_v1",
+        "event_version": "v1",
+        "event_id": f"reaction:{message_id}",
+        "message_id": str(message_id),
+        "conversation_id": str(conversation_id),
+        "reactions": reactions,
+    }
+
+
+def build_inbox_update_event_v1(conversation_id, titre, preview, date_envoi, unread_count, is_online):
+    return {
+        "type": "inbox_update_v1",
+        "event_version": "v1",
+        "conversation_id": str(conversation_id),
+        "titre": titre,
+        "preview": preview,
+        "date_envoi": date_envoi.strftime("%d/%m %H:%M") if date_envoi else "",
+        "date_envoi_iso": date_envoi.isoformat() if date_envoi else "",
+        "unread_count": int(unread_count or 0),
+        "is_online": bool(is_online),
+    }
+
+
+def build_unread_count_event_v1(non_lus_total):
+    return {
+        "type": "unread_count_v1",
+        "event_version": "v1",
+        "non_lus_total": int(non_lus_total or 0),
+    }

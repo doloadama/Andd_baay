@@ -90,6 +90,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Someone read a message."""
         await self.send(text_data=json.dumps(event))
 
+    async def reaction_updated_v1(self, event):
+        """Reaction state changed for a message."""
+        await self.send(text_data=json.dumps(event))
+
     @database_sync_to_async
     def _check_participation(self, conv_id, user_id):
         from .models import Conversation, Profile
@@ -113,6 +117,42 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return msg.id
         except Profile.DoesNotExist:
             return None
+
+    @database_sync_to_async
+    def _get_profile_id(self, user_id):
+        from .models import Profile
+        profile = Profile.objects.filter(user_id=user_id).only("id").first()
+        return profile.id if profile else None
+
+
+class InboxConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope.get("user")
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+        profile_id = await self._get_profile_id(self.user.id)
+        if not profile_id:
+            await self.close()
+            return
+        self.profile_id = str(profile_id)
+        self.group_name = f"inbox_{self.profile_id}"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, "group_name"):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        # Inbox consumer is server-push only for now.
+        return
+
+    async def inbox_update_v1(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def unread_count_v1(self, event):
+        await self.send(text_data=json.dumps(event))
 
     @database_sync_to_async
     def _get_profile_id(self, user_id):

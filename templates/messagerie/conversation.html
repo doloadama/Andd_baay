@@ -98,6 +98,9 @@
                             {% regroup msg.reactions.all by emoji as reaction_groups %}
                             {% for group in reaction_groups %}
                             <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill"
+                                    data-reaction-pill="1"
+                                    data-message-id="{{ msg.id }}"
+                                    data-emoji="{{ group.grouper }}"
                                     onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
                                 <span>{{ group.grouper }}</span>
                                 <span class="reaction-count">{{ group.list|length }}</span>
@@ -148,6 +151,9 @@
                             {% regroup msg.reactions.all by emoji as reaction_groups %}
                             {% for group in reaction_groups %}
                             <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill"
+                                    data-reaction-pill="1"
+                                    data-message-id="{{ msg.id }}"
+                                    data-emoji="{{ group.grouper }}"
                                     onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
                                 <span>{{ group.grouper }}</span>
                                 <span class="reaction-count">{{ group.list|length }}</span>
