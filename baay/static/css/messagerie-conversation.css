@@ -11,6 +11,31 @@
         border: 1px solid var(--border-glass) !important;
     }
 }
+.chat-header-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #0ea5e9);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+.online-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+.chat-messages-bg {
+    background:
+        radial-gradient(circle at 10% 10%, rgba(74,222,128,0.08), transparent 38%),
+        radial-gradient(circle at 90% 30%, rgba(226,114,91,0.06), transparent 42%),
+        var(--bg-main);
+}
 .msg-bubble-own {
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
     color: var(--text-inverse);
@@ -101,6 +126,23 @@
 .chat-send-btn:active { transform: scale(0.95); }
 .reaction-pill { transition: all 0.15s ease; cursor: pointer; }
 .reaction-pill:hover { transform: scale(1.1); border-color: var(--accent) !important; }
+.reaction-pill {
+    background: var(--card-bg-solid);
+    border: 1px solid var(--border-glass);
+    font-size: 0.75rem;
+    line-height: 1.6;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.reaction-count {
+    background: rgba(74, 222, 128, 0.22);
+    color: var(--text-main);
+    border-radius: 999px;
+    padding: 0 6px;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
 .msg-date-sep {
     display: flex;
     align-items: center;
@@ -122,6 +164,24 @@
 #chatBox::-webkit-scrollbar-track { background: transparent; }
 #chatBox::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
 #chatBox::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.chat-input-icon-btn {
+    width: 36px;
+    height: 36px;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+}
+.chat-input-icon-btn:hover { color: var(--accent); }
+.chat-hit {
+    animation: chatHit 1.1s ease;
+}
+@keyframes chatHit {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
 @media (max-width: 768px) {
     .msg-bubble-own, .msg-bubble-other {
         font-size: 0.9rem;

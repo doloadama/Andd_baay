@@ -14,10 +14,12 @@ def create_user_profile(sender, instance, created, **kwargs):
         ensure_profile_for_user(instance)
 
 @receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Save the Profile instance whenever the User is saved."""
-    profile = ensure_profile_for_user(instance)
-    profile.save()
+def save_user_profile(sender, instance, created, **kwargs):
+    """Save existing profile on user updates without redundant create/fetch."""
+    if created:
+        return
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
 
 @receiver(post_save, sender=Projet)
 def creer_prediction_rendement_projet(sender, instance, created, **kwargs):

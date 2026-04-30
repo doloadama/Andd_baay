@@ -19,24 +19,51 @@
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 {% endif %}
+                <div class="chat-header-avatar">
+                    {% if autres|length == 1 %}
+                    {{ autres.0.user.first_name|default:autres.0.user.username|make_list|first|upper }}
+                    {% else %}
+                    {{ titre|make_list|first|upper }}
+                    {% endif %}
+                </div>
                 <div>
                     <h5 class="mb-0" style="font-family: var(--font-display);">{{ titre }}</h5>
-                    <small class="text-muted">{{ autres|length }} participant{{ autres|pluralize }}</small>
+                    {% now "Y-m-d" as today_str %}
+                    <small class="d-inline-flex align-items-center gap-1 text-success fw-semibold">
+                        <span class="online-dot"></span> En ligne
+                    </small>
                 </div>
             </div>
-            {% if is_mini %}
-            <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Fermer">
-                <i class="fas fa-times"></i>
-            </a>
-            {% endif %}
+            <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn-nav btn-nav-ghost" title="Rechercher dans la discussion" onclick="chatQuickSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button type="button" class="btn-nav btn-nav-ghost" title="Infos discussion" onclick="chatInfo('{{ titre|escapejs }}', '{{ autres|length }}')">
+                    <i class="fas fa-circle-info"></i>
+                </button>
+                {% if is_mini %}
+                <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Fermer">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Messages -->
-        <div class="chat-messages flex-grow-1 p-3" id="chatBox" style="overflow-y: auto; background: var(--bg-main);">
+        <div class="chat-messages flex-grow-1 p-3 chat-messages-bg" id="chatBox" style="overflow-y: auto;">
             {% for msg in messages_list %}
+                {% ifchanged msg.date_envoi|date:"Y-m-d" %}
+                <div class="msg-date-sep">
+                    {% if msg.date_envoi|date:"Y-m-d" == today_str %}
+                        Aujourd'hui
+                    {% else %}
+                        {{ msg.date_envoi|date:"d M Y" }}
+                    {% endif %}
+                </div>
+                {% endifchanged %}
                 {% if msg.expediteur_id == profile.id %}
                 <!-- Message envoyé (droite) -->
-                <div class="d-flex justify-content-end mb-3">
+                <div class="d-flex justify-content-end mb-3" data-message-id="{{ msg.id }}">
                     <div class="d-flex flex-column align-items-end" style="max-width: 75%;">
                         <div class="msg-bubble-own rounded-4">
                             {% if msg.reply_to %}
@@ -70,9 +97,10 @@
                         <div class="d-flex gap-1 mt-1 flex-wrap justify-content-end" style="font-size: 0.75rem;">
                             {% regroup msg.reactions.all by emoji as reaction_groups %}
                             {% for group in reaction_groups %}
-                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill" style="background: var(--card-bg-solid); border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.6;"
+                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill"
                                     onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
-                                {{ group.grouper }} {{ group.list|length }}
+                                <span>{{ group.grouper }}</span>
+                                <span class="reaction-count">{{ group.list|length }}</span>
                             </button>
                             {% endfor %}
                         </div>
@@ -86,7 +114,7 @@
                 </div>
                 {% else %}
                 <!-- Message reçu (gauche) -->
-                <div class="d-flex justify-content-start mb-3 gap-2">
+                <div class="d-flex justify-content-start mb-3 gap-2" data-message-id="{{ msg.id }}">
                     <div class="msg-avatar d-none d-md-flex mt-1">
                         {{ msg.expediteur.user.first_name|make_list|first|default:msg.expediteur.user.username|make_list|first|upper }}
                     </div>
@@ -119,9 +147,10 @@
                         <div class="d-flex gap-1 mt-1 flex-wrap" style="font-size: 0.75rem;">
                             {% regroup msg.reactions.all by emoji as reaction_groups %}
                             {% for group in reaction_groups %}
-                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill" style="background: var(--card-bg-solid); border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.6;"
+                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill"
                                     onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
-                                {{ group.grouper }} {{ group.list|length }}
+                                <span>{{ group.grouper }}</span>
+                                <span class="reaction-count">{{ group.list|length }}</span>
                             </button>
                             {% endfor %}
                         </div>
@@ -173,6 +202,9 @@
                 <input type="hidden" name="reply_to" id="replyToInput" value="">
                 
                 <div class="chat-input-wrapper flex-grow-1 d-flex align-items-end px-2 py-1">
+                    <button type="button" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center m-0 mb-1 chat-input-icon-btn" title="Ajouter un emoji" onclick="toggleEmojiPicker()">
+                        <i class="far fa-face-smile fs-6"></i>
+                    </button>
                     <label for="fileInput" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center m-0 mb-1" style="width: 36px; height: 36px; color: var(--text-muted); cursor: pointer; flex-shrink: 0; background: transparent; border: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
                         <i class="fas fa-paperclip fs-6"></i>
                     </label>
@@ -187,6 +219,13 @@
                     <i class="fas fa-paper-plane" style="margin-left: -1px; font-size: 0.9rem;"></i>
                 </button>
             </form>
+            <div id="emojiPicker" class="d-none mt-2 d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('😀')">😀</button>
+                <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('👍')">👍</button>
+                <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('❤️')">❤️</button>
+                <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('😂')">😂</button>
+                <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('🙏')">🙏</button>
+            </div>
         </div>
     </div>
 </div>
@@ -218,6 +257,33 @@
     window.clearFile = function () {
         document.getElementById("fileInput").value = "";
         document.getElementById("fileNameDisplay").classList.add("d-none");
+    };
+    window.toggleEmojiPicker = function () {
+        document.getElementById("emojiPicker").classList.toggle("d-none");
+    };
+    window.insertEmoji = function (emoji) {
+        const el = document.getElementById("msgTextarea");
+        if (!el) return;
+        el.value = (el.value || "") + emoji;
+        el.focus();
+    };
+    window.chatQuickSearch = function () {
+        const q = prompt("Rechercher dans les messages :");
+        if (!q) return;
+        const nodes = document.querySelectorAll('#chatBox [data-message-id]');
+        const query = q.toLowerCase();
+        for (const node of nodes) {
+            const txt = (node.textContent || "").toLowerCase();
+            if (txt.includes(query)) {
+                node.scrollIntoView({ behavior: "smooth", block: "center" });
+                node.classList.add("chat-hit");
+                setTimeout(() => node.classList.remove("chat-hit"), 1200);
+                break;
+            }
+        }
+    };
+    window.chatInfo = function (title, participantsCount) {
+        alert(`${title}\nParticipants: ${Number(participantsCount) + 1}\nMessagerie temps reel active.`);
     };
 </script>
 <script src="{% static 'js/messagerie-conversation.js' %}"></script>
