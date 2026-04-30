@@ -2471,9 +2471,17 @@ def conversation_detail(request, conversation_id):
             return redirect('conversation_detail', conversation_id=conversation.id)
 
     # Marquer comme lus les messages entrants
-    messages_non_lus = conversation.messages.exclude(lu_par=profile).exclude(expediteur=profile)
-    for msg in messages_non_lus:
-        msg.lu_par.add(profile)
+    messages_non_lus = list(conversation.messages.exclude(lu_par=profile).exclude(expediteur=profile))
+    if messages_non_lus:
+        channel_layer = get_channel_layer()
+        group_name = f"conversation_{str(conversation.id)}"
+        for msg in messages_non_lus:
+            msg.lu_par.add(profile)
+            async_to_sync(channel_layer.group_send)(group_name, {
+                'type': 'chat_read_receipt',
+                'message_id': str(msg.id),
+                'reader_id': profile.id,
+            })
 
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
