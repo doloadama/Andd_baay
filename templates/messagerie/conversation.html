@@ -4,8 +4,23 @@
 {% block title %}{{ titre }} — Messagerie{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="glass-card d-flex flex-column" style="height: calc(100vh - 180px); min-height: 500px;">
+<style>
+    .mobile-chat-card {
+        height: calc(100vh - 60px) !important;
+        min-height: 400px;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+    @media (min-width: 768px) {
+        .mobile-chat-card {
+            height: calc(100vh - 180px) !important;
+            border-radius: var(--radius-lg) !important;
+            border: 1px solid var(--border-glass) !important;
+        }
+    }
+</style>
+<div class="container-fluid container-md py-0 py-md-4 px-0 px-md-3">
+    <div class="glass-card d-flex flex-column h-100 mobile-chat-card">
         <!-- Header -->
         <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
@@ -47,9 +62,9 @@
                             <div class="text-end mt-1" style="font-size: 0.68rem; opacity: 0.85;">
                                 {{ msg.date_envoi|date:"H:i" }}
                                 {% if msg.is_lu_par_tous %}
-                                <i class="fas fa-check-double ms-1" style="color: #064e3b;"></i>
+                                <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}" style="color: #064e3b;"></i>
                                 {% else %}
-                                <i class="fas fa-check-double ms-1"></i>
+                                <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}"></i>
                                 {% endif %}
                             </div>
                         </div>
@@ -189,6 +204,11 @@
                 showTyping(data.sender_username);
             } else if (data.type === 'chat_stop_typing') {
                 hideTyping();
+            } else if (data.type === 'chat_read_receipt') {
+                const checkIcon = document.getElementById('check-' + data.message_id);
+                if (checkIcon) {
+                    checkIcon.style.color = '#064e3b';
+                }
             }
         };
         ws.onclose = function() { setTimeout(connect, 2000); };
@@ -228,7 +248,7 @@
             ? `<div class="px-3 py-2 rounded-4" style="background: var(--accent); color: var(--text-inverse); border-bottom-right-radius: 4px;">
                 ${replyHtml}${attachmentHtml}<div style="font-size: 0.9rem; white-space: pre-wrap;">${escapeHtml(data.contenu)}</div>
                 <div class="text-end mt-1" style="font-size: 0.68rem; opacity: 0.85;">
-                    ${data.date_envoi} <i class="fas fa-check-double ms-1"></i>
+                    ${data.date_envoi} <i class="fas fa-check-double ms-1 checkmark-icon" id="check-${data.message_id}"></i>
                 </div>
                </div>`
             : `<div class="px-3 py-2 rounded-4" style="background: var(--card-bg-solid); color: var(--text-main); border-bottom-left-radius: 4px; box-shadow: var(--shadow-sm);">
@@ -252,6 +272,11 @@
         // Remove empty-state placeholder
         const emptyState = box.querySelector('.text-center.text-muted.py-5');
         if (emptyState) emptyState.remove();
+
+        // Send read receipt if we are receiving and window is focused
+        if (!isOwn && document.hasFocus() && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'read_receipt', message_id: data.message_id }));
+        }
     }
 
     function escapeHtml(text) {
