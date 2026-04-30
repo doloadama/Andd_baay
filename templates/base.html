@@ -1242,6 +1242,152 @@
             transform: scale(1);
         }
 
+        /* ===== VOICE ASSISTANT ===== */
+        .voice-mic-btn {
+            position: fixed;
+            bottom: 96px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: var(--text-inverse);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1050;
+            box-shadow: var(--shadow-glow);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 20px;
+        }
+
+        .voice-mic-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .voice-mic-btn.listening {
+            animation: voicePulse 1.2s infinite ease-in-out;
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+        }
+
+        @keyframes voicePulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        }
+
+        .voice-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            z-index: 1060;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .voice-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .voice-modal {
+            background: var(--card-bg-solid);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px 28px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .voice-modal-overlay.show .voice-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .voice-modal-orb {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: var(--text-inverse);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 20px;
+            box-shadow: var(--shadow-glow);
+            transition: all 0.3s ease;
+        }
+
+        .voice-modal-orb.listening {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            animation: voicePulse 1.2s infinite ease-in-out;
+        }
+
+        .voice-modal-orb.processing {
+            background: linear-gradient(135deg, var(--info), #2563eb);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .voice-modal-text {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            min-height: 1.4em;
+        }
+
+        .voice-modal-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .voice-modal-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .voice-modal-hint kbd {
+            background: var(--card-bg-solid);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-family: var(--font-main);
+        }
+
+        .dark-mode .voice-modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .voice-mic-btn {
+                bottom: 88px;
+                right: 16px;
+                width: 48px;
+                height: 48px;
+                font-size: 18px;
+            }
+        }
+
         .chat-window {
             position: fixed;
             bottom: 100px;
@@ -2437,48 +2583,34 @@
     </footer>
 
     <!-- FIX #3: chat-bubble-container div is now properly closed before scripts -->
-    <!-- Chatbot Bubble -->
-    <div class="chat-bubble-container">
-        <!-- FIX #5: removed stray </button> inside the chat-bubble div -->
-        <div class="chat-bubble" id="chatBubble" role="button" tabindex="0" aria-label="Ouvrir le chat">
-            <i class="fas fa-robot chat-icon" aria-hidden="true"></i>
-            <i class="fas fa-times close-icon" aria-hidden="true"></i>
-            <div class="chat-notification" id="chatNotification" aria-live="polite" aria-atomic="true"></div>
-        </div>
-
-        <!-- Chatbot Window -->
-        <aside class="chat-window" aria-label="Fenêtre de chat" id="chatWindow">
-            <div class="chat-header">
-                <h4><i class="fas fa-robot"></i> Assistant IA</h4>
-                <div class="chat-actions">
-                    <button id="clearChat" title="Effacer" aria-label="Effacer le chat">
-                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
-                    </button>
-                    <button id="minimizeChat" title="Réduire" aria-label="Réduire le chat">
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions">
-                <div id="welcome-message" class="chat-welcome">
-                    <span class="welcome-emoji">🌾</span>
-                    <h5 class="welcome-title">Bonjour chef !</h5>
-                    <p class="welcome-text">Posez-moi vos questions sur les rendements, la météo ou la gestion de vos
-                        cultures.</p>
-                </div>
-            </div>
-
-            <div class="chat-input-container">
-                <label for="message" class="visually-hidden">Écrire un message</label>
-                <textarea id="message" class="chat-input" placeholder="Écrivez votre message..." rows="1"></textarea>
-                <button id="sendMessage" class="chat-send-btn" aria-label="Envoyer le message">
-                    <i class="fas fa-arrow-up"></i>
-                </button>
-            </div>
-        </aside>
+    <!-- Messagerie Floating Button (Replaces Chatbot temporarily) -->
+    <div class="chat-bubble-container d-none d-lg-block">
+        <a href="{% url 'derniere_conversation' %}?mini=true" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
+            <i class="fas fa-envelope chat-icon" aria-hidden="true" style="color: white; font-size: 24px;"></i>
+            <div class="chat-notification" id="floatingNotifBadge" aria-live="polite" aria-atomic="true"></div>
+        </a>
     </div>
-    <!-- FIX #3: chat-bubble-container properly closed here -->
+
+    <!-- Voice Assistant Floating Mic -->
+    {% if user.is_authenticated %}
+    <button type="button" class="voice-mic-btn d-none d-lg-flex" id="voiceMicBtn" aria-label="Assistant vocal" title="Assistant vocal">
+        <i class="fas fa-microphone" id="voiceMicIcon"></i>
+    </button>
+
+    <!-- Voice Assistant Modal -->
+    <div class="voice-modal-overlay" id="voiceModalOverlay" aria-hidden="true">
+        <div class="voice-modal" role="dialog" aria-modal="true" aria-labelledby="voiceModalText">
+            <div class="voice-modal-orb" id="voiceModalOrb">
+                <i class="fas fa-microphone" id="voiceModalIcon"></i>
+            </div>
+            <div class="voice-modal-text" id="voiceModalText">Parlez maintenant...</div>
+            <div class="voice-modal-sub" id="voiceModalSub">Appuyez sur le micro ou dites «&nbsp;Hey Baay&nbsp;»</div>
+            <div class="voice-modal-hint">
+                <kbd><i class="fas fa-microphone"></i></kbd> Messagerie &nbsp;·&nbsp; <kbd><i class="fas fa-home"></i></kbd> Dashboard &nbsp;·&nbsp; <kbd><i class="fas fa-folder"></i></kbd> Projets
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- FIX #4: Removed stray \n characters from script tags -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -2531,7 +2663,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'messagerie_inbox' %}" data-pjax class="{% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
+                <a href="{% url 'derniere_conversation' %}?mini=true" data-pjax class="{% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
                     <i class="fas fa-envelope" aria-hidden="true"></i>
                     <span>Message</span>
                 </a>
@@ -2567,12 +2699,21 @@
         const notifBellToggle = document.getElementById('notifBellToggle');
 
         function updateBadge(count) {
-            if (!badge) return;
+            const floatingBadge = document.getElementById('floatingNotifBadge');
+            
             if (count > 0) {
-                badge.textContent = count > 9 ? '9+' : count;
-                badge.style.display = 'inline-flex';
+                const displayCount = count > 9 ? '9+' : count;
+                if (badge) {
+                    badge.textContent = displayCount;
+                    badge.style.display = 'inline-flex';
+                }
+                if (floatingBadge) {
+                    floatingBadge.textContent = displayCount;
+                    floatingBadge.classList.add('show');
+                }
             } else {
-                badge.style.display = 'none';
+                if (badge) badge.style.display = 'none';
+                if (floatingBadge) floatingBadge.classList.remove('show');
             }
         }
 
@@ -2673,6 +2814,206 @@
 
         checkUnread();
         setInterval(checkUnread, 30000); // every 30s
+    })();
+    </script>
+
+    <script>
+    (function() {
+        // === Voice Assistant MVP ===
+        const micBtn = document.getElementById('voiceMicBtn');
+        const modalOverlay = document.getElementById('voiceModalOverlay');
+        const modalText = document.getElementById('voiceModalText');
+        const modalSub = document.getElementById('voiceModalSub');
+        const modalOrb = document.getElementById('voiceModalOrb');
+        const modalIcon = document.getElementById('voiceModalIcon');
+        if (!micBtn || !modalOverlay) return;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechSynthesis = window.speechSynthesis;
+        let recognition = null;
+        let isListening = false;
+
+        function getCsrfToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === 'csrftoken=') {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function speak(text) {
+            if (!SpeechSynthesis) return;
+            SpeechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            SpeechSynthesis.speak(utterance);
+        }
+
+        function showModal(state, mainText, subText) {
+            modalText.textContent = mainText || '';
+            modalSub.textContent = subText || '';
+            modalOrb.classList.remove('listening', 'processing');
+            modalIcon.className = 'fas fa-microphone';
+            if (state === 'listening') {
+                modalOrb.classList.add('listening');
+                modalIcon.className = 'fas fa-microphone';
+            } else if (state === 'processing') {
+                modalOrb.classList.add('processing');
+                modalIcon.className = 'fas fa-cog';
+            } else if (state === 'error') {
+                modalIcon.className = 'fas fa-exclamation-circle';
+            }
+            modalOverlay.classList.add('show');
+            modalOverlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideModal(delay) {
+            setTimeout(function() {
+                modalOverlay.classList.remove('show');
+                modalOverlay.setAttribute('aria-hidden', 'true');
+                micBtn.classList.remove('listening');
+                isListening = false;
+            }, delay || 0);
+        }
+
+        async function sendCommand(text) {
+            showModal('processing', 'Analyse en cours...', text);
+            try {
+                const res = await fetch('{% url "api_voice_command" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'text=' + encodeURIComponent(text)
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                if (data.action === 'redirect' && data.redirect) {
+                    modalText.textContent = data.message || 'Redirection...';
+                    modalSub.textContent = '';
+                    speak(data.message || 'Redirection');
+                    hideModal(1800);
+                    setTimeout(function() {
+                        window.location.href = data.redirect;
+                    }, 1200);
+                } else if (data.action === 'trigger') {
+                    modalText.textContent = data.message || 'Action effectuée';
+                    modalSub.textContent = '';
+                    speak(data.message || 'Action effectuée');
+                    hideModal(2500);
+                    if (data.trigger === 'openGuide') {
+                        const guideBtn = document.getElementById('openGuideBtn');
+                        if (guideBtn) guideBtn.click();
+                    } else if (data.trigger === 'logout') {
+                        const logoutLinks = document.querySelectorAll('.logout-link');
+                        if (logoutLinks.length) logoutLinks[0].click();
+                    }
+                } else {
+                    modalText.textContent = data.message || 'Terminé';
+                    modalSub.textContent = '';
+                    speak(data.message || 'Terminé');
+                    hideModal(2500);
+                }
+            } catch (err) {
+                showModal('error', 'Erreur réseau', 'Vérifiez votre connexion.');
+                speak("Une erreur s'est produite.");
+                hideModal(2500);
+            }
+        }
+
+        function startListening() {
+            if (!SpeechRecognition) {
+                showModal('error', 'Navigateur incompatible', 'Chrome ou Edge requis pour la reconnaissance vocale.');
+                speak("Votre navigateur ne supporte pas la reconnaissance vocale.");
+                hideModal(3000);
+                return;
+            }
+            if (isListening) {
+                if (recognition) recognition.stop();
+                return;
+            }
+            recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.continuous = false;
+
+            recognition.onstart = function() {
+                isListening = true;
+                micBtn.classList.add('listening');
+                showModal('listening', 'Écoute en cours...', 'Parlez clairement');
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                modalText.textContent = '"' + transcript + '"';
+                modalSub.textContent = 'Analyse...';
+                sendCommand(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                let msg = 'Erreur micro';
+                if (event.error === 'no-speech') msg = "Je n'ai rien entendu.";
+                else if (event.error === 'not-allowed') msg = 'Accès micro refusé.';
+                else if (event.error === 'network') msg = 'Problème réseau.';
+                showModal('error', msg, 'Réessayez.');
+                speak(msg);
+                hideModal(2500);
+            };
+
+            recognition.onend = function() {
+                if (isListening && modalSub.textContent === 'Parlez clairement') {
+                    // No result received before end
+                    showModal('error', "Je n'ai rien entendu", 'Réessayez.');
+                    hideModal(2000);
+                }
+                isListening = false;
+                micBtn.classList.remove('listening');
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                showModal('error', 'Micro indisponible', e.message);
+                hideModal(2000);
+            }
+        }
+
+        micBtn.addEventListener('click', startListening);
+
+        // Close modal on overlay click
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                if (recognition) recognition.stop();
+                hideModal(0);
+            }
+        });
+
+        // Keyboard shortcut: hold Space to activate
+        let spaceHeld = false;
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && !spaceHeld && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+                e.preventDefault();
+                spaceHeld = true;
+                startListening();
+            }
+        });
+        document.addEventListener('keyup', function(e) {
+            if (e.code === 'Space' && spaceHeld) {
+                spaceHeld = false;
+                if (recognition) recognition.stop();
+            }
+        });
     })();
     </script>
     {% endif %}

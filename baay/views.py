@@ -16,7 +16,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -2398,10 +2398,35 @@ def messagerie_inbox(request):
             'non_lus': non_lus,
         })
 
+    base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
+
     return render(request, 'messagerie/inbox.html', {
         'conv_data': conv_data,
         'profile': profile,
+        'base_template': base_template,
+        'is_mini': request.GET.get('mini') == 'true',
     })
+
+
+@login_required
+def derniere_conversation(request):
+    """Redirige vers la conversation la plus récente (ou inbox si aucune)."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    last_conv = (
+        Conversation.objects.filter(participants=profile)
+        .order_by('-dernier_message')
+        .first()
+    )
+    if last_conv:
+        url = reverse('conversation_detail', kwargs={'conversation_id': last_conv.id})
+    else:
+        url = reverse('messagerie_inbox')
+    if request.GET.get('mini') == 'true':
+        url += '?mini=true'
+    return redirect(url)
 
 
 @login_required
@@ -2486,12 +2511,16 @@ def conversation_detail(request, conversation_id):
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
 
+    base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
+
     return render(request, 'messagerie/conversation.html', {
         'conversation': conversation,
         'messages_list': conversation.messages.all(),
         'titre': titre,
         'autres': autres,
         'profile': profile,
+        'base_template': base_template,
+        'is_mini': request.GET.get('mini') == 'true',
     })
 
 
@@ -2631,6 +2660,92 @@ def api_marquer_tout_lu(request):
     for msg in messages_qs:
         msg.lu_par.add(profile)
     return JsonResponse({'cleared': True})
+
+
+@login_required
+@require_POST
+def api_voice_command(request):
+    """Interprète une commande vocale transcrite et retourne l'action à exécuter."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    text = request.POST.get('text', '').strip().lower()
+    if not text:
+        return JsonResponse({'action': 'speak', 'message': "Je n'ai pas compris. Pouvez-vous répéter ?"})
+
+    # --- Intent matching (rules-based MVP) ---
+    def redirect_action(url_name, msg, kwargs=None):
+        return JsonResponse({'action': 'redirect', 'redirect': reverse(url_name, kwargs=kwargs or {}), 'message': msg})
+
+    def speak_action(msg):
+        return JsonResponse({'action': 'speak', 'message': msg})
+
+    def trigger_action(trigger, msg):
+        return JsonResponse({'action': 'trigger', 'trigger': trigger, 'message': msg})
+
+    # 1. Messages / Messagerie
+    if any(k in text for k in ('message', 'messagerie', 'mail', 'email', 'sms', 'notification', 'non lu')):
+        if any(k in text for k in ('combien', 'nombre', 'count', 'total', 'combien de', 'non lu')):
+            count = Message.objects.filter(
+                conversation__participants=profile,
+            ).exclude(
+                lu_par=profile,
+            ).exclude(
+                expediteur=profile,
+            ).count()
+            if count > 0:
+                return speak_action(f"Vous avez {count} message{'s' if count > 1 else ''} non lu{'s' if count > 1 else ''}.")
+            return speak_action("Vous n'avez aucun message non lu.")
+        if any(k in text for k in ('envoie', 'envoyer', 'écrire', 'écris', 'envoie à', 'message à')):
+            return redirect_action('nouvelle_conversation', "Ouverture d'une nouvelle conversation.")
+        return redirect_action('derniere_conversation', "Ouverture de la messagerie.")
+
+    # 2. Dashboard / Accueil
+    if any(k in text for k in ('dashboard', 'accueil', 'tableau de bord', 'home', 'principal')):
+        return redirect_action('dashboard', "Retour au tableau de bord.")
+
+    # 3. Projets
+    if any(k in text for k in ('projet', 'projets', 'mes projets', 'annonces')):
+        if any(k in text for k in ('créer', 'crée', 'nouveau', 'nouvelle', 'ajouter', 'ajoute')):
+            return redirect_action('creer_projet', "Création d'un nouveau projet.")
+        return redirect_action('liste_projets', "Voici la liste de vos projets.")
+
+    # 4. Fermes
+    if any(k in text for k in ('ferme', 'fermes', 'exploitation', 'champ')):
+        return redirect_action('liste_fermes', "Voici la liste de vos fermes.")
+
+    # 5. Tâches
+    if any(k in text for k in ('tâche', 'taches', 'todo', 'liste de tâches', 'travail à faire')):
+        return redirect_action('taches_liste', "Voici la liste de vos tâches.")
+
+    # 6. Semis
+    if any(k in text for k in ('semi', 'semis', 'plantation', 'graine')):
+        return redirect_action('liste_semis', "Voici la liste de vos semis.")
+
+    # 7. Profil
+    if any(k in text for k in ('profil', 'mon compte', 'mon profil', 'paramètres', 'réglages')):
+        return redirect_action('profil', "Ouverture de votre profil.")
+
+    # 8. Guide / Aide
+    if any(k in text for k in ('aide', 'guide', 'comment faire', 'besoin d\'aide', 'tutorial')):
+        return trigger_action('openGuide', "Ouverture du guide utilisateur.")
+
+    # 9. Déconnexion
+    if any(k in text for k in ('déconnexion', 'déconnecte', 'logout', 'quitte', 'quitter')):
+        return trigger_action('logout', "Déconnexion en cours.")
+
+    # 10. Recherche
+    if any(k in text for k in ('recherche', 'chercher', 'trouve', 'cherche')):
+        q = text
+        for k in ('recherche', 'chercher', 'trouve', 'cherche'):
+            q = q.replace(k, '')
+        q = q.strip()
+        if q:
+            return redirect_action('recherche', f"Recherche de {q}.", kwargs={'q': q})
+
+    # Fallback
+    return speak_action("Je n'ai pas compris votre demande. Essayez : ouvre la messagerie, va au dashboard, ou liste mes projets.")
 
 
 @login_required
