@@ -5,6 +5,9 @@ import pickle
 from datetime import timedelta
 from decimal import Decimal
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.core.paginator import Paginator
@@ -25,7 +28,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
 from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm, TacheForm, TacheStatutForm
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache
+from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache, Conversation, Message
 from baay.permissions import (
     fermes_accessibles_qs,
     peut_changer_statut_tache,
@@ -2336,3 +2339,269 @@ def _notifier_tache_terminee(tache, executant_user):
         ),
         recipient_list=[email],
     )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Messagerie (Messaging)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _membres_ferme_communs(profile):
+    """Retourne les profils avec lesquels l'utilisateur partage au moins une ferme."""
+    ferme_ids = list(fermes_accessibles_qs(profile).values_list('id', flat=True))
+    membre_ids = set(
+        MembreFerme.objects.filter(ferme_id__in=ferme_ids)
+        .values_list('utilisateur_id', flat=True)
+    )
+    # Inclure les propriétaires des fermes accessibles
+    proprietaire_ids = set(
+        Ferme.objects.filter(id__in=ferme_ids)
+        .values_list('proprietaire_id', flat=True)
+    )
+    tous = membre_ids | proprietaire_ids
+    tous.discard(profile.id)
+    return Profile.objects.filter(id__in=tous).select_related('user')
+
+
+@login_required
+def messagerie_inbox(request):
+    """Liste des conversations de l'utilisateur."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+
+    conversations = (
+        Conversation.objects.filter(participants=profile)
+        .prefetch_related('participants', 'messages__expediteur')
+        .order_by('-dernier_message')
+    )
+
+    # Enrichir avec le dernier message + compteur de non-lus
+    conv_data = []
+    for conv in conversations:
+        dernier = conv.messages.last()
+        non_lus = conv.messages.exclude(lu_par=profile).exclude(expediteur=profile).count()
+        # Nom de l'interlocuteur (si 1:1) ou sujet
+        autres = [p for p in conv.participants.all() if p.id != profile.id]
+        if conv.sujet:
+            titre = conv.sujet
+        elif len(autres) == 1:
+            titre = autres[0].user.username
+        else:
+            titre = f"Groupe ({len(autres) + 1})"
+        conv_data.append({
+            'conv': conv,
+            'titre': titre,
+            'autres': autres,
+            'dernier': dernier,
+            'non_lus': non_lus,
+        })
+
+    return render(request, 'messagerie/inbox.html', {
+        'conv_data': conv_data,
+        'profile': profile,
+    })
+
+
+@login_required
+def conversation_detail(request, conversation_id):
+    """Affiche les messages d'une conversation et permet d'envoyer un message."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+
+    conversation = get_object_or_404(
+        Conversation.objects.prefetch_related(
+            'participants',
+            'messages__expediteur',
+            'messages__lu_par',
+            'messages__reactions',
+            'messages__reply_to__expediteur',
+        ),
+        id=conversation_id,
+        participants=profile,
+    )
+
+    if request.method == 'POST':
+        contenu = request.POST.get('contenu', '').strip()
+        reply_to_id = request.POST.get('reply_to', '').strip()
+        piece_jointe = request.FILES.get('piece_jointe')
+        if contenu or piece_jointe:
+            reply_to = None
+            if reply_to_id:
+                try:
+                    reply_to = conversation.messages.get(id=reply_to_id)
+                except Message.DoesNotExist:
+                    pass
+            msg = Message.objects.create(
+                conversation=conversation,
+                expediteur=profile,
+                contenu=contenu,
+                piece_jointe=piece_jointe,
+                reply_to=reply_to,
+            )
+            msg.lu_par.add(profile)
+            conversation.dernier_message = msg.date_envoi
+            conversation.save(update_fields=['dernier_message'])
+
+            # Broadcast via WebSocket
+            channel_layer = get_channel_layer()
+            group_name = f"conversation_{str(conversation.id)}"
+            event_data = {
+                'type': 'chat_message',
+                'message_id': str(msg.id),
+                'sender_id': profile.id,
+                'sender_username': request.user.username,
+                'sender_name': request.user.get_full_name() or request.user.username,
+                'contenu': msg.contenu,
+                'date_envoi': msg.date_envoi.strftime('%H:%M'),
+                'conversation_id': str(conversation.id),
+                'reply_to_id': str(reply_to.id) if reply_to else None,
+                'piece_jointe_url': msg.piece_jointe.url if msg.piece_jointe else None,
+                'piece_jointe_name': os.path.basename(msg.piece_jointe.name) if msg.piece_jointe else None,
+                'reply_preview': (reply_to.expediteur.user.username + ': ' + reply_to.contenu[:50]) if reply_to else None,
+            }
+            async_to_sync(channel_layer.group_send)(group_name, event_data)
+            
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('accept') == 'application/json':
+                return JsonResponse(event_data)
+                
+            return redirect('conversation_detail', conversation_id=conversation.id)
+
+    # Marquer comme lus les messages entrants
+    messages_non_lus = conversation.messages.exclude(lu_par=profile).exclude(expediteur=profile)
+    for msg in messages_non_lus:
+        msg.lu_par.add(profile)
+
+    autres = [p for p in conversation.participants.all() if p.id != profile.id]
+    titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
+
+    return render(request, 'messagerie/conversation.html', {
+        'conversation': conversation,
+        'messages_list': conversation.messages.all(),
+        'titre': titre,
+        'autres': autres,
+        'profile': profile,
+    })
+
+
+@login_required
+def nouvelle_conversation(request):
+    """Crée une nouvelle conversation avec un ou plusieurs membres."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+
+    membres = _membres_ferme_communs(profile)
+
+    if request.method == 'POST':
+        participant_ids = request.POST.getlist('participants')
+        sujet = request.POST.get('sujet', '').strip()
+        contenu = request.POST.get('contenu', '').strip()
+
+        if not participant_ids:
+            messages.error(request, "Veuillez sélectionner au moins un destinataire.")
+            return render(request, 'messagerie/nouvelle_conversation.html', {
+                'membres': membres,
+                'sujet': sujet,
+                'contenu': contenu,
+            })
+
+        if not contenu:
+            messages.error(request, "Veuillez saisir un message.")
+            return render(request, 'messagerie/nouvelle_conversation.html', {
+                'membres': membres,
+                'sujet': sujet,
+                'contenu': contenu,
+            })
+
+        # Vérifier que tous les participants sont bien des membres communs
+        ids_valides = set(str(m.id) for m in membres) | {str(profile.id)}
+        if not set(participant_ids).issubset(ids_valides):
+            messages.error(request, "Sélection invalide.")
+            return redirect('nouvelle_conversation')
+
+        # Si conversation 1:1 existe déjà, réutiliser
+        if len(participant_ids) == 1:
+            autre_id = participant_ids[0]
+            existante = (
+                Conversation.objects.annotate(nb=Count('participants'))
+                .filter(nb=2, participants=profile)
+                .filter(participants=autre_id)
+                .first()
+            )
+            if existante:
+                msg = Message.objects.create(
+                    conversation=existante,
+                    expediteur=profile,
+                    contenu=contenu,
+                )
+                msg.lu_par.add(profile)
+                return redirect('conversation_detail', conversation_id=existante.id)
+
+        conv = Conversation.objects.create(sujet=sujet or '')
+        conv.participants.add(profile, *list(Profile.objects.filter(id__in=participant_ids)))
+        msg = Message.objects.create(
+            conversation=conv,
+            expediteur=profile,
+            contenu=contenu,
+        )
+        msg.lu_par.add(profile)
+        return redirect('conversation_detail', conversation_id=conv.id)
+
+    return render(request, 'messagerie/nouvelle_conversation.html', {
+        'membres': membres,
+    })
+
+
+@login_required
+@require_GET
+def api_messages_non_lus(request):
+    """Retourne le nombre total de messages non lus pour l'utilisateur connecté."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    count = Message.objects.filter(
+        conversation__participants=profile,
+    ).exclude(
+        lu_par=profile,
+    ).exclude(
+        expediteur=profile,
+    ).count()
+    return JsonResponse({'non_lus': count})
+
+
+@login_required
+@require_POST
+def toggle_reaction(request, message_id):
+    """Toggle une réaction emoji sur un message."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    emoji = request.POST.get('emoji', '').strip()
+    if not emoji:
+        return JsonResponse({'error': 'Emoji requis'}, status=400)
+
+    message = get_object_or_404(
+        Message.objects.filter(conversation__participants=profile),
+        id=message_id,
+    )
+    existing = MessageReaction.objects.filter(message=message, utilisateur=profile, emoji=emoji).first()
+    if existing:
+        existing.delete()
+        action = 'removed'
+    else:
+        MessageReaction.objects.create(message=message, utilisateur=profile, emoji=emoji)
+        action = 'added'
+
+    # Récapitulatif des réactions groupées
+    reactions = {}
+    for r in message.reactions.values('emoji').annotate(count=Count('id')):
+        reactions[r['emoji']] = r['count']
+
+    return JsonResponse({'action': action, 'reactions': reactions})

@@ -58,6 +58,7 @@ if IS_VERCEL and VERCEL_URL:
         ALLOWED_HOSTS.append(VERCEL_URL)
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'channels',
 ]
 
 SITE_ID = 1
@@ -135,6 +137,25 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
+ASGI_APPLICATION = 'Andd_Baayi.asgi.application'
+
+# Channels (WebSockets) — in-memory for local dev; use Redis in production
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+# Override with Redis if REDIS_URL is set
+_redis_url = os.getenv('REDIS_URL')
+if _redis_url:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [_redis_url],
+            },
+        }
+    }
 
 
 # Database

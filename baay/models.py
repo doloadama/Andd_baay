@@ -317,6 +317,66 @@ class PrevisionRecolte(models.Model):
         return f"Prévision pour {self.projet.nom} ({self.indice_confiance or 0}%)"
 
 
+class Conversation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    sujet = models.CharField(max_length=200, blank=True)
+    participants = models.ManyToManyField(Profile, related_name='conversations')
+    dernier_message = models.DateTimeField(auto_now=True)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, null=True, blank=True, related_name='conversations')
+
+    class Meta:
+        ordering = ['-dernier_message']
+
+    def __str__(self):
+        p = list(self.participants.all())
+        if self.sujet:
+            return f"{self.sujet} ({len(p)} participants)"
+        return f"Conversation entre {', '.join(str(x) for x in p[:3])}"
+
+
+class Message(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    expediteur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='messages_envoyes')
+    contenu = models.TextField()
+    date_envoi = models.DateTimeField(auto_now_add=True)
+    lu_par = models.ManyToManyField(Profile, related_name='messages_lus', blank=True)
+    piece_jointe = models.FileField(upload_to='messages/%Y/%m/', blank=True, null=True)
+    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='reponses')
+
+    class Meta:
+        ordering = ['date_envoi']
+        indexes = [
+            models.Index(fields=['conversation', 'date_envoi']),
+            models.Index(fields=['expediteur', 'date_envoi']),
+        ]
+
+    def __str__(self):
+        return f"Message de {self.expediteur} — {self.date_envoi.strftime('%d/%m %H:%M')}"
+
+    def is_lu_par_tous(self):
+        """Returns True if all participants except sender have read the message."""
+        participants_count = self.conversation.participants.exclude(id=self.expediteur_id).count()
+        lu_count = self.lu_par.exclude(id=self.expediteur_id).count()
+        return lu_count >= participants_count
+
+
+class MessageReaction(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='reactions')
+    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='reactions_message')
+    emoji = models.CharField(max_length=8)
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['message', 'utilisateur', 'emoji']]
+        indexes = [
+            models.Index(fields=['message', 'emoji']),
+        ]
+
+    def __str__(self):
+        return f"{self.utilisateur} reacted {self.emoji} to {self.message.id}"
+
+
 class Tache(models.Model):
     """Tâche assignée à un membre d'une ferme par un supérieur hiérarchique.
 

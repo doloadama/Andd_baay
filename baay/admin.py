@@ -9,6 +9,9 @@ from .models import (
     Localite,
     Investissement,
     ProjetProduit,
+    Conversation,
+    Message,
+    MessageReaction,
 )
 
 
@@ -32,3 +35,6 @@ admin.site.register(Projet)
 admin.site.register(Localite)
 admin.site.register(Investissement)
 admin.site.register(ProjetProduit)
+admin.site.register(Conversation)
+admin.site.register(Message)
+admin.site.register(MessageReaction)

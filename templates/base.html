@@ -1993,6 +1993,13 @@
                                 <i class="fas fa-list-check"></i> Tâches
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link-modern {% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
+                                href="{% url 'messagerie_inbox' %}" data-pjax>
+                                <i class="fas fa-envelope"></i> Messagerie
+                                <span id="navUnreadBadge" class="badge rounded-pill bg-danger ms-1" style="font-size: 0.6rem; display: none;"></span>
+                            </a>
+                        </li>
                         <li class="nav-item me-lg-2">
                             <a class="btn-baay btn-baay-primary py-2 px-3" href="{% url 'creer_projet' %}">
                                 <i class="fas fa-plus"></i> Nouveau
@@ -2240,6 +2247,30 @@
         }
     </script>
     <script src="{% static 'js/sw-update.js' %}"></script>
+
+    {% if user.is_authenticated %}
+    <script>
+    (function() {
+        const badge = document.getElementById('navUnreadBadge');
+        if (!badge) return;
+        async function checkUnread() {
+            try {
+                const res = await fetch('{% url "api_messages_non_lus" %}');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.non_lus > 0) {
+                    badge.textContent = data.non_lus > 9 ? '9+' : data.non_lus;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (e) { /* silently fail */ }
+        }
+        checkUnread();
+        setInterval(checkUnread, 30000); // every 30s
+    })();
+    </script>
+    {% endif %}
 </body>
 
 </html>

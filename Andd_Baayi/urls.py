@@ -79,6 +79,13 @@ urlpatterns = [
     path('taches/creer/', views.creer_tache, name='creer_tache'),
     path('fermes/<uuid:ferme_id>/taches/creer/', views.creer_tache, name='creer_tache_ferme'),
     path('tache/<uuid:tache_id>/', views.tache_detail, name='tache_detail'),
+
+    # Messagerie (Messaging)
+    path('messagerie/', views.messagerie_inbox, name='messagerie_inbox'),
+    path('messagerie/nouvelle/', views.nouvelle_conversation, name='nouvelle_conversation'),
+    path('messagerie/conversation/<uuid:conversation_id>/', views.conversation_detail, name='conversation_detail'),
+    path('api/messages/non-lus/', views.api_messages_non_lus, name='api_messages_non_lus'),
+    path('api/messages/<uuid:message_id>/reaction/', views.toggle_reaction, name='toggle_reaction'),
 ]
 
 if settings.DEBUG:
