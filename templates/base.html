@@ -2531,6 +2531,12 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'messagerie_inbox' %}" data-pjax class="{% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
+                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                    <span>Message</span>
+                </a>
+            </li>
+            <li>
                 <a href="{% url 'profil' %}" class="{% if request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
                     <i class="fas fa-user" aria-hidden="true"></i>
                     <span>Profil</span>
