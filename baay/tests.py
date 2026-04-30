@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -601,6 +602,21 @@ class MessagerieReliabilityTests(TestCase):
             Message.objects.filter(conversation=self.conversation, expediteur=self.sender.profile, client_message_id=client_id).count(),
             1,
         )
+
+    def test_ajax_attachment_only_send_returns_attachment_metadata(self):
+        self.client.login(username='msg_sender', password='pass12345')
+        upload = SimpleUploadedFile('photo.jpg', b'image-bytes', content_type='image/jpeg')
+        resp = self.client.post(
+            self.url,
+            {'piece_jointe': upload},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['contenu'], '')
+        self.assertTrue(data['piece_jointe_url'])
+        self.assertEqual(data['piece_jointe_name'], 'photo.jpg')
 
     def test_sync_endpoint_returns_messages_since_timestamp(self):
         m1 = Message.objects.create(conversation=self.conversation, expediteur=self.sender.profile, contenu='m1')
