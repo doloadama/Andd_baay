@@ -2584,6 +2584,56 @@ def api_messages_non_lus(request):
 
 
 @login_required
+@require_GET
+def api_notifications_list(request):
+    """Retourne la liste des messages non lus (notifications)."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    messages_qs = Message.objects.filter(
+        conversation__participants=profile,
+    ).exclude(
+        lu_par=profile,
+    ).exclude(
+        expediteur=profile,
+    ).select_related('expediteur__user', 'conversation').order_by('-date_envoi')[:20]
+
+    notifications = []
+    for msg in messages_qs:
+        notifications.append({
+            'id': str(msg.id),
+            'sender_name': msg.expediteur.user.get_full_name() or msg.expediteur.user.username,
+            'sender_username': msg.expediteur.user.username,
+            'preview': msg.contenu[:80] + ('…' if len(msg.contenu) > 80 else ''),
+            'date': msg.date_envoi.strftime('%d/%m %H:%M'),
+            'conversation_id': str(msg.conversation.id),
+            'has_attachment': bool(msg.piece_jointe),
+        })
+    return JsonResponse({'notifications': notifications, 'count': len(notifications)})
+
+
+@login_required
+@require_POST
+def api_marquer_tout_lu(request):
+    """Marque tous les messages non lus comme lus pour l'utilisateur connecté."""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    messages_qs = Message.objects.filter(
+        conversation__participants=profile,
+    ).exclude(
+        lu_par=profile,
+    ).exclude(
+        expediteur=profile,
+    )
+    for msg in messages_qs:
+        msg.lu_par.add(profile)
+    return JsonResponse({'cleared': True})
+
+
+@login_required
 @require_POST
 def toggle_reaction(request, message_id):
     """Toggle une réaction emoji sur un message."""

@@ -85,6 +85,8 @@ urlpatterns = [
     path('messagerie/nouvelle/', views.nouvelle_conversation, name='nouvelle_conversation'),
     path('messagerie/conversation/<uuid:conversation_id>/', views.conversation_detail, name='conversation_detail'),
     path('api/messages/non-lus/', views.api_messages_non_lus, name='api_messages_non_lus'),
+    path('api/notifications/', views.api_notifications_list, name='api_notifications_list'),
+    path('api/notifications/clear/', views.api_marquer_tout_lu, name='api_marquer_tout_lu'),
     path('api/messages/<uuid:message_id>/reaction/', views.toggle_reaction, name='toggle_reaction'),
 ]
 
