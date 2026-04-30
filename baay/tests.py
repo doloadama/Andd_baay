@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
@@ -622,3 +624,11 @@ class MessagerieReliabilityTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         msg.refresh_from_db()
         self.assertTrue(msg.lu_par.filter(id=self.receiver.profile.id).exists())
+
+    def test_conversation_script_keeps_uuid_profile_ids_as_strings(self):
+        script = Path(__file__).resolve().parent.joinpath('static/js/messagerie-conversation.js').read_text()
+
+        self.assertIn('const currentProfileId = String(window.chatConfig?.currentProfileId || "");', script)
+        self.assertNotIn('Number(window.chatConfig?.currentProfileId)', script)
+        self.assertNotIn('Number(data.sender_id)', script)
+        self.assertNotIn('Number.isNaN(currentProfileId)', script)

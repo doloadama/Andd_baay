@@ -4,10 +4,10 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    const currentProfileId = Number(window.chatConfig?.currentProfileId);
+    const currentProfileId = String(window.chatConfig?.currentProfileId || "");
     const convId = window.chatConfig?.conversationId;
     const csrfToken = window.chatConfig?.csrfToken;
-    if (!box || !convId || !csrfToken || Number.isNaN(currentProfileId)) {
+    if (!box || !convId || !csrfToken || !currentProfileId) {
         return;
     }
 
@@ -61,7 +61,7 @@
     }
 
     function renderMessage(message) {
-        const isOwn = Number(message.sender_id) === currentProfileId;
+        const isOwn = String(message.sender_id) === currentProfileId;
         const div = document.createElement("div");
         const bubbleClass = isOwn ? "msg-bubble-own" : "msg-bubble-other";
         const senderLine = isOwn ? "" : `<div class="fw-bold mb-1" style="font-size: 0.78rem; color: var(--accent-dark);">${escapeHtml(message.sender_name)}</div>`;
@@ -84,7 +84,7 @@
     }
 
     function appendMessage(data, force = false) {
-        if (!force && Number(data.sender_id) === currentProfileId) return;
+        if (!force && String(data.sender_id) === currentProfileId) return;
         const wasNew = upsertMessage(data);
         if (data.client_message_id && pendingByClientId.has(data.client_message_id)) {
             pendingByClientId.delete(data.client_message_id);
