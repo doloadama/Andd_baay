@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
@@ -622,3 +624,16 @@ class MessagerieReliabilityTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         msg.refresh_from_db()
         self.assertTrue(msg.lu_par.filter(id=self.receiver.profile.id).exists())
+
+    def test_reconnect_sync_preserves_server_rendered_messages(self):
+        msg = Message.objects.create(conversation=self.conversation, expediteur=self.sender.profile, contenu='with-rich-markup')
+        self.client.login(username='msg_receiver', password='pass12345')
+
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, f'data-message-id="{msg.id}"')
+
+        js_path = Path(__file__).resolve().parent / 'static' / 'js' / 'messagerie-conversation.js'
+        script = js_path.read_text(encoding='utf-8')
+        self.assertIn('box.querySelector(`[data-message-id="${messageId}"]`)', script)
+        self.assertIn('appendRenderedMessage(message)', script)

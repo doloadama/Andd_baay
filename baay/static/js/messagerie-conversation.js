@@ -44,7 +44,7 @@
     function upsertMessage(message) {
         const messageId = String(message.message_id || message.id || "");
         if (!messageId) return false;
-        const exists = messagesById.has(messageId);
+        const exists = messagesById.has(messageId) || Boolean(box.querySelector(`[data-message-id="${messageId}"]`));
         messagesById.set(messageId, message);
         if (!exists) {
             orderedIds.push(messageId);
@@ -83,6 +83,11 @@
         box.scrollTop = box.scrollHeight;
     }
 
+    function appendRenderedMessage(message) {
+        box.appendChild(renderMessage(message));
+        box.scrollTop = box.scrollHeight;
+    }
+
     function appendMessage(data, force = false) {
         if (!force && String(data.sender_id) === currentProfileId) return;
         const wasNew = upsertMessage(data);
@@ -90,7 +95,7 @@
             pendingByClientId.delete(data.client_message_id);
         }
         if (wasNew) {
-            rerenderMessages();
+            appendRenderedMessage(data);
         }
     }
 
@@ -105,8 +110,11 @@
         });
         if (!response.ok) return;
         const payload = await response.json();
-        (payload.messages || []).forEach((message) => upsertMessage(message));
-        rerenderMessages();
+        (payload.messages || []).forEach((message) => {
+            if (upsertMessage(message)) {
+                appendRenderedMessage(message);
+            }
+        });
     }
 
     function connect() {
