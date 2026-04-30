@@ -2429,22 +2429,30 @@ def _conversation_title_for_profile(conversation, profile):
     return f"Groupe ({len(autres) + 1})"
 
 
-def _send_inbox_update(channel_layer, conversation, message_obj):
+def _send_inbox_update(channel_layer, conversation, message_obj, *, move_to_top=True):
     participants = list(conversation.participants.all())
     online_threshold = timezone.now() - timedelta(minutes=5)
+    preview_message = (
+        message_obj
+        if move_to_top
+        else conversation.messages.select_related('expediteur__user').order_by('-date_envoi', '-id').first()
+    )
+    if preview_message is None:
+        return
     for participant in participants:
         unread_count = conversation.messages.exclude(lu_par=participant).exclude(expediteur=participant).count()
         titre = _conversation_title_for_profile(conversation, participant)
-        preview_sender = message_obj.expediteur.user.get_full_name() or message_obj.expediteur.user.username
-        preview_content = message_obj.contenu or "Piece jointe"
+        preview_sender = preview_message.expediteur.user.get_full_name() or preview_message.expediteur.user.username
+        preview_content = preview_message.contenu or "Piece jointe"
         preview = f"{preview_sender}: {preview_content}"
         event_payload = build_inbox_update_event_v1(
             conversation_id=conversation.id,
             titre=titre,
             preview=preview,
-            date_envoi=message_obj.date_envoi,
+            date_envoi=preview_message.date_envoi,
             unread_count=unread_count,
-            is_online=bool(message_obj.date_envoi and message_obj.date_envoi >= online_threshold),
+            is_online=bool(preview_message.date_envoi and preview_message.date_envoi >= online_threshold),
+            move_to_top=move_to_top,
         )
         async_to_sync(channel_layer.group_send)(f"inbox_{participant.id}", event_payload)
         total_unread = Message.objects.filter(
@@ -2560,7 +2568,7 @@ def conversation_detail(request, conversation_id):
                 group_name,
                 build_read_receipt_event_v1(msg.id, profile.id, conversation.id),
             )
-            _send_inbox_update(channel_layer, conversation, msg)
+            _send_inbox_update(channel_layer, conversation, msg, move_to_top=False)
 
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')

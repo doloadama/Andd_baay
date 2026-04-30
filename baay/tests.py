@@ -1,3 +1,6 @@
+from types import SimpleNamespace
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
@@ -622,3 +625,36 @@ class MessagerieReliabilityTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         msg.refresh_from_db()
         self.assertTrue(msg.lu_par.filter(id=self.receiver.profile.id).exists())
+
+    def test_read_receipt_inbox_update_keeps_latest_preview(self):
+        old_unread = Message.objects.create(
+            conversation=self.conversation,
+            expediteur=self.sender.profile,
+            contenu='old unread',
+        )
+        latest = Message.objects.create(
+            conversation=self.conversation,
+            expediteur=self.sender.profile,
+            contenu='latest message',
+        )
+        latest.lu_par.add(self.receiver.profile)
+
+        self.client.login(username='msg_receiver', password='pass12345')
+        sent_events = []
+        with (
+            patch('baay.views.get_channel_layer', return_value=SimpleNamespace(group_send=lambda *args, **kwargs: None)),
+            patch('baay.views.async_to_sync', side_effect=lambda fn: lambda *args, **kwargs: sent_events.append(args)),
+        ):
+            resp = self.client.get(self.url)
+
+        self.assertEqual(resp.status_code, 200)
+        old_unread.refresh_from_db()
+        self.assertTrue(old_unread.lu_par.filter(id=self.receiver.profile.id).exists())
+        receiver_inbox_updates = [
+            payload
+            for group_name, payload in sent_events
+            if group_name == f'inbox_{self.receiver.profile.id}' and payload.get('type') == 'inbox_update_v1'
+        ]
+        self.assertEqual(len(receiver_inbox_updates), 1)
+        self.assertEqual(receiver_inbox_updates[0]['preview'], 'msg_sender: latest message')
+        self.assertFalse(receiver_inbox_updates[0]['move_to_top'])

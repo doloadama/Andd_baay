@@ -51,7 +51,9 @@
             item.classList.remove("unread");
         }
 
-        list.prepend(item);
+        if (event.move_to_top !== false) {
+            list.prepend(item);
+        }
     }
 
     function updateGlobalUnreadCount(nonLusTotal) {
