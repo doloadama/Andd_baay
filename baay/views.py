@@ -2660,6 +2660,10 @@ def nouvelle_conversation(request):
                 )
                 msg.lu_par.add(profile)
                 channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"conversation_{str(existante.id)}",
+                    build_message_event_v1(msg),
+                )
                 _send_inbox_update(channel_layer, existante, msg)
                 return redirect('conversation_detail', conversation_id=existante.id)
 
@@ -2672,6 +2676,10 @@ def nouvelle_conversation(request):
         )
         msg.lu_par.add(profile)
         channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"conversation_{str(conv.id)}",
+            build_message_event_v1(msg),
+        )
         _send_inbox_update(channel_layer, conv, msg)
         return redirect('conversation_detail', conversation_id=conv.id)
 
