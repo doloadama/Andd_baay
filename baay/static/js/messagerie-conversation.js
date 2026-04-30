@@ -156,6 +156,7 @@
     const form = document.querySelector('form[action*="conversation"]');
     if (!form) return;
     const textarea = form.querySelector('textarea[name="contenu"]');
+    if (!textarea) return;
 
     form.addEventListener("submit", function (e) {
         e.preventDefault();
