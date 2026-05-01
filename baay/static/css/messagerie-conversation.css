@@ -118,9 +118,8 @@
     background-size: 100% 100%, 100% 100%, 100% 100%, 22px 22px;
 }
 .chat-messages-inner {
-    padding: 16px 18px 24px;
-    max-width: 920px;
-    margin: 0 auto;
+    padding: 16px 24px 24px;
+    width: 100%;
 }
 
 /* ---------- Date separator ---------- */
@@ -187,7 +186,7 @@
 .msg-stack {
     display: flex;
     flex-direction: column;
-    max-width: 65%;
+    max-width: min(65%, 560px);
     min-width: 0;
 }
 .msg-row-own .msg-stack { align-items: flex-end; }
