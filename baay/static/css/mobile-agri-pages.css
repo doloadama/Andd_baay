@@ -165,3 +165,12 @@
         padding: 16px !important;
     }
 }
+
+/* Connexion / inscription : moins de marge latérale dans le layout principal */
+@media (max-width: 991.98px) {
+    main#main .container-modern:has(.auth-split) {
+        padding-left: max(12px, env(safe-area-inset-left, 0px));
+        padding-right: max(12px, env(safe-area-inset-right, 0px));
+        max-width: 100%;
+    }
+}

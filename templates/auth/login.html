@@ -227,27 +227,76 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: #374151;
     }
 
-        .auth-footer {
-            text-align: center; margin-top: 28px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
+    .auth-footer {
+        text-align: center;
+        margin-top: 28px;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
 
-        .auth-footer a {
-            color: var(--accent);
-            font-weight: 700;
-            text-decoration: none;
-        }
+    .auth-footer a {
+        color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+    }
 
+    @media (max-width: 991.98px) {
         .auth-split {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-gap: 32px;
-            align-items: center;
-            min-height: 100vh;
+            grid-template-columns: 1fr;
+            min-height: auto;
         }
 
-    /* ... */
+        .auth-visual {
+            display: none;
+        }
+
+        .auth-form-panel {
+            min-height: 0;
+            padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(28px, env(safe-area-inset-bottom, 0px));
+            align-items: flex-start;
+        }
+
+        .auth-form-container {
+            max-width: 100%;
+        }
+
+        .form-modern .form-control {
+            min-height: 48px;
+            font-size: 16px;
+        }
+
+        .form-modern .input-group-text {
+            min-width: 48px;
+            justify-content: center;
+        }
+
+        .form-modern .btn-toggle-pass {
+            min-width: 48px;
+            min-height: 48px;
+        }
+
+        .btn-submit,
+        .btn-google {
+            min-height: 48px;
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        .form-extras {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .form-extras a {
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .auth-header h2 {
+            font-size: 1.35rem;
+        }
+    }
 </style>
 
 <div class="auth-split">
