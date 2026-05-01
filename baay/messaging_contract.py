@@ -1,6 +1,25 @@
 import os
 
 
+def _build_reply_preview(reply_to):
+    """Defensively build a 'username: contenu...' preview string for a quoted
+    message. Each attribute hop is wrapped in getattr with a None default so
+    the broadcast cannot crash on partially-loaded or in-flight cascade-deleted
+    related rows. Returns None when there is nothing meaningful to show.
+    """
+    if reply_to is None:
+        return None
+    contenu = (getattr(reply_to, "contenu", "") or "")[:50]
+    expediteur = getattr(reply_to, "expediteur", None)
+    user = getattr(expediteur, "user", None) if expediteur is not None else None
+    username = getattr(user, "username", None) if user is not None else None
+    if username and contenu:
+        return f"{username}: {contenu}"
+    if username:
+        return f"{username}:"
+    return contenu or None
+
+
 def build_message_event_v1(message):
     reply_to = message.reply_to
     sender_user = message.expediteur.user
@@ -18,11 +37,7 @@ def build_message_event_v1(message):
         "date_envoi_iso": message.date_envoi.isoformat(),
         "conversation_id": str(message.conversation_id),
         "reply_to_id": str(reply_to.id) if reply_to else None,
-        "reply_preview": (
-            f"{reply_to.expediteur.user.username}: {reply_to.contenu[:50]}"
-            if reply_to
-            else None
-        ),
+        "reply_preview": _build_reply_preview(reply_to),
         "piece_jointe_url": message.piece_jointe.url if message.piece_jointe else None,
         "piece_jointe_name": os.path.basename(message.piece_jointe.name) if message.piece_jointe else None,
         "is_lu_par_tous": bool(message.is_lu_par_tous()),

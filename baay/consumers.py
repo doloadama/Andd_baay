@@ -59,12 +59,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         elif msg_type in {'read_receipt', 'read_receipt_v1'}:
             message_id = data.get('message_id')
-            valid_message_id = await self._mark_message_read(self.conv_id, self.user.id, message_id)
-            if valid_message_id is not None:
-                reader_profile_id = await self._get_profile_id(self.user.id)
-                if reader_profile_id is None:
-                    # Guard against emitting invalid read-receipt events.
-                    return
+            # Returns (message_id, profile_id) atomically, or None on any failure.
+            # Doing both lookups in one DB transaction eliminates the race where
+            # the profile could be deleted between mark + broadcast, leaving the
+            # message marked as read but no receipt event emitted.
+            result = await self._mark_message_read(self.conv_id, self.user.id, message_id)
+            if result is not None:
+                valid_message_id, reader_profile_id = result
                 await self.channel_layer.group_send(
                     self.group_name,
                     build_read_receipt_event_v1(valid_message_id, reader_profile_id, self.conv_id),
@@ -105,6 +106,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _mark_message_read(self, conv_id, user_id, message_id):
+        """Mark a message as read by the given user inside a single sync block.
+
+        Returns a (message_id, profile_id) tuple on success, or None on any
+        validation failure (no profile, missing message, not a participant).
+        Returning both ids together prevents an inconsistency where the side
+        effect (lu_par.add) lands but the broadcast is skipped because a
+        follow-up profile lookup race-loses against a profile deletion.
+        """
         from .models import Message, Profile
         try:
             profile = Profile.objects.get(user_id=user_id)
@@ -114,7 +123,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if not msg.conversation.participants.filter(id=profile.id).exists():
                 return None
             msg.lu_par.add(profile)
-            return msg.id
+            return (msg.id, profile.id)
         except Profile.DoesNotExist:
             return None
 

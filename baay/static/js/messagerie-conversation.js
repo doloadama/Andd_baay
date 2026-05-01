@@ -24,10 +24,12 @@
         var syncUrl = cfg.syncUrlTemplate;
         if (!convId || !csrfToken || !currentProfileId) return null;
 
-        // Tear down previous instance (if any).
+        // Tear down previous instance (if any) and null the global immediately
+        // so that a partial init failure below cannot leave a stale reference.
         if (window.__messagerieConvInstance && typeof window.__messagerieConvInstance.dispose === "function") {
             try { window.__messagerieConvInstance.dispose(); } catch (_) { /* noop */ }
         }
+        window.__messagerieConvInstance = null;
 
         box.scrollTop = box.scrollHeight;
 
@@ -169,6 +171,28 @@
             if (wasNew) rerenderMessages();
         }
 
+        // Read-receipt UI update: locate the message row via its canonical
+        // data-message-id attribute (decoupled from any specific id="check-..."
+        // format) and toggle the .read class so the styling stays consistent
+        // with the server-rendered template and our CSS.
+        function markMessageAsRead(rawMessageId) {
+            if (rawMessageId === undefined || rawMessageId === null) return;
+            var msgId = String(rawMessageId);
+            // Update in-memory state so subsequent rerenders preserve the flag.
+            var stored = messagesById.get(msgId);
+            if (stored) stored.is_lu_par_tous = true;
+            // CSS.escape is needed because UUIDs are safe but defensive coding
+            // protects against future id formats containing special chars.
+            var safeId = (window.CSS && typeof CSS.escape === "function") ? CSS.escape(msgId) : msgId.replace(/"/g, '\\"');
+            var row = document.querySelector('[data-message-id="' + safeId + '"]');
+            if (!row) return;
+            var icons = row.querySelectorAll(".checkmark-icon");
+            for (var i = 0; i < icons.length; i++) {
+                icons[i].classList.add("read");
+                icons[i].style.removeProperty("color");
+            }
+        }
+
         function updateReactionPills(messageId, reactions) {
             var pills = document.querySelectorAll('button[data-reaction-pill="1"][data-message-id="' + messageId + '"]');
             pills.forEach(function (pill) {
@@ -215,8 +239,7 @@
                 } else if (data.type === "chat_stop_typing_v1") {
                     hideTyping();
                 } else if (data.type === "chat_read_receipt_v1") {
-                    var checkIcon = document.getElementById("check-" + data.message_id);
-                    if (checkIcon) checkIcon.style.color = "#064e3b";
+                    markMessageAsRead(data.message_id);
                 } else if (data.type === "reaction_updated_v1") {
                     updateReactionPills(String(data.message_id), data.reactions || {});
                 }
@@ -318,6 +341,7 @@
         var instance = {
             conversationId: convId,
             dispose: function () {
+                if (disposed) return;
                 disposed = true;
                 if (ws) {
                     try { ws.onclose = null; ws.close(); } catch (_) { /* noop */ }
@@ -326,6 +350,11 @@
                 clearTimeout(typingTimer);
                 if (form && submitHandler) form.removeEventListener("submit", submitHandler);
                 if (textarea && keydownHandler) textarea.removeEventListener("keydown", keydownHandler);
+                // Self-clear the global slot if we still own it. Prevents stale
+                // references when callers dispose without subsequently calling init.
+                if (window.__messagerieConvInstance === instance) {
+                    window.__messagerieConvInstance = null;
+                }
             },
         };
         window.__messagerieConvInstance = instance;
