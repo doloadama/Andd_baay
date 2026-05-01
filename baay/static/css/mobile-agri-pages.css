@@ -164,6 +164,121 @@
     .investissement-page .card-body.p-4 {
         padding: 16px !important;
     }
+
+    /* ─── Fiche projet : semis / produits en cartes ─── */
+    .projet-detail-page .semis-products-wrap {
+        overflow: visible;
+    }
+
+    .projet-detail-page .semis-products-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .projet-detail-page .semis-products-table tbody tr {
+        display: block;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        background: var(--card-bg-solid, var(--card-bg));
+    }
+
+    .projet-detail-page .semis-products-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 0;
+        border: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        text-align: right !important;
+    }
+
+    .dark-mode .projet-detail-page .semis-products-table tbody td {
+        border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .projet-detail-page .semis-products-table tbody td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .projet-detail-page .semis-products-table tbody td:first-child {
+        padding-top: 0;
+    }
+
+    .projet-detail-page .semis-products-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        text-align: left;
+        max-width: 44%;
+    }
+
+    .projet-detail-page .semis-products-table .semis-td-value {
+        flex: 1;
+        min-width: 0;
+        text-align: right;
+    }
+
+    .projet-detail-page .semis-products-table .semis-td-actions {
+        flex-wrap: wrap;
+    }
+
+    .projet-detail-page .semis-products-table .semis-td-actions .semis-td-value {
+        width: 100%;
+        text-align: center;
+    }
+
+    .projet-detail-page .semis-products-table .semis-td-actions .btn-mini {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .projet-detail-page .semis-products-table tfoot tr {
+        display: block;
+        margin-top: 8px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(163, 230, 53, 0.08);
+        border: 1px solid rgba(163, 230, 53, 0.2);
+    }
+
+    .projet-detail-page .semis-products-table tfoot td {
+        display: block;
+        border: none;
+        padding: 6px 0;
+        text-align: center !important;
+    }
+
+    .projet-detail-page .semis-products-table tfoot td:empty {
+        display: none !important;
+    }
+
+    /* ─── Liste projets : cartes uniquement (masquer le tableau) ─── */
+    .projects-shell[data-projects-page] .view-toggle {
+        display: none !important;
+    }
+
+    .projects-shell[data-projects-page] .projects-table-shell {
+        display: none !important;
+    }
+
+    .projects-shell[data-projects-page] .projects-grid-shell {
+        display: block !important;
+    }
 }
 
 /* Connexion / inscription : moins de marge latérale dans le layout principal */

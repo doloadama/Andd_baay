@@ -28,7 +28,8 @@
     align-items: center;
     list-style: none;
     margin: 0;
-    padding: 6px 0 10px;
+    padding: 6px 4px 10px;
+    gap: 0;
 }
 
 .bottom-nav a {
@@ -41,12 +42,20 @@
     text-decoration: none;
     font-size: 0.65rem;
     font-weight: 500;
-    min-width: 56px;
+    min-width: 0;
+    flex: 1 1 0;
     min-height: 48px;
-    padding: 4px 8px;
+    padding: 4px 2px;
     border-radius: 12px;
     transition: all 0.15s ease;
     -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav a > span:not(.bottom-nav-badge) {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .bottom-nav a i {
@@ -67,6 +76,7 @@
     border-radius: 50%;
     width: 52px;
     height: 52px;
+    flex: 0 0 auto;
     min-width: 52px;
     min-height: 52px;
     margin-top: -18px;
@@ -110,6 +120,13 @@
 @media (max-width: 767.98px) {
     .bottom-nav {
         display: block;
+    }
+    .bottom-nav a {
+        font-size: 0.56rem;
+        padding: 4px 1px;
+    }
+    .bottom-nav a i {
+        font-size: 1.15rem;
     }
     body {
         padding-bottom: 74px;
