@@ -4,8 +4,368 @@
 {% block title %}{{ titre }} — Messagerie{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/messagerie-conversation.css' %}">
+<style>
+    .mobile-chat-card {
+        height: calc(100vh - 60px) !important;
+        min-height: 400px;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+    @media (min-width: 768px) {
+        .mobile-chat-card {
+            height: calc(100vh - 180px) !important;
+            border-radius: var(--radius-lg) !important;
+            border: 1px solid var(--border-glass) !important;
+        }
+    }
+
+    /* Chat Message Bubbles */
+    .msg-bubble-own {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: var(--text-inverse);
+        border-bottom-right-radius: 6px !important;
+        box-shadow: 0 2px 8px rgba(74, 222, 128, 0.25);
+        padding: 10px 14px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+    }
+
+    .msg-bubble-other {
+        background: var(--card-bg-solid);
+        color: var(--text-main);
+        border-bottom-left-radius: 6px !important;
+        box-shadow: var(--shadow-sm);
+        padding: 10px 14px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        border: 1px solid var(--border-glass);
+    }
+
+    .msg-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: var(--text-inverse);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 3px;
+        padding: 10px 14px;
+        background: var(--card-bg-solid);
+        border-radius: 18px 18px 18px 6px;
+        border: 1px solid var(--border-glass);
+        box-shadow: var(--shadow-sm);
+        width: fit-content;
+    }
+
+    .typing-indicator.show {
+        display: inline-flex;
+    }
+
+    .typing-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        animation: typingBounce 1.4s ease-in-out infinite both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typingBounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Input Area */
+    .chat-input-wrapper {
+        background: var(--card-bg-solid);
+        border: 1px solid var(--border-glass);
+        border-radius: 24px;
+        transition: all 0.25s ease;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .chat-input-wrapper:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15), inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .chat-send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: var(--text-inverse);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
+    }
+
+    .chat-send-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
+    }
+
+    .chat-send-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Reactions */
+    .reaction-pill {
+        transition: all 0.15s ease;
+        cursor: pointer;
+    }
+
+    .reaction-pill:hover {
+        transform: scale(1.1);
+        border-color: var(--accent) !important;
+    }
+
+    /* Date separator */
+    .msg-date-sep {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 0;
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .msg-date-sep::before,
+    .msg-date-sep::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border-glass);
+    }
+
+    /* Scrollbar */
+    #chatBox::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #chatBox::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #chatBox::-webkit-scrollbar-thumb {
+        background: var(--border-glass);
+        border-radius: 10px;
+    }
+
+    #chatBox::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+        .msg-bubble-own, .msg-bubble-other {
+            font-size: 0.9rem;
+            padding: 8px 12px;
+        }
+    }
+</style>
 <div class="container-fluid container-md py-0 py-md-4 px-0 px-md-3">
-    {% include 'messagerie/_conversation_view.html' %}
+    <div class="glass-card d-flex flex-column h-100 mobile-chat-card">
+        <!-- Header -->
+        <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                {% if is_mini %}
+                <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Retour à l'accueil">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                {% else %}
+                <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost" title="Retour">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                {% endif %}
+                <div>
+                    <h5 class="mb-0" style="font-family: var(--font-display);">{{ titre }}</h5>
+                    <small class="text-muted">{{ autres|length }} participant{{ autres|pluralize }}</small>
+                </div>
+            </div>
+            {% if is_mini %}
+            <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Fermer">
+                <i class="fas fa-times"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages flex-grow-1 p-3" id="chatBox" style="overflow-y: auto; background: var(--bg-main);">
+            {% for msg in messages_list %}
+                {% if msg.expediteur_id == profile.id %}
+                <!-- Message envoyé (droite) -->
+                <div class="d-flex justify-content-end mb-3">
+                    <div class="d-flex flex-column align-items-end" style="max-width: 75%;">
+                        <div class="msg-bubble-own rounded-4">
+                            {% if msg.reply_to %}
+                            <div class="mb-1 px-2 py-1 rounded-2" style="background: rgba(0,0,0,0.15); font-size: 0.78rem; opacity: 0.95;">
+                                <i class="fas fa-reply me-1"></i> {{ msg.reply_to.expediteur }}: {{ msg.reply_to.contenu|truncatechars:50 }}
+                            </div>
+                            {% endif %}
+                            {% if msg.piece_jointe %}
+                                {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
+                                <a href="{{ msg.piece_jointe.url }}" target="_blank">
+                                    <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;">
+                                </a>
+                                {% else %}
+                                <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: rgba(0,0,0,0.15); color: inherit;">
+                                    <i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                            <div style="white-space: pre-wrap;">{{ msg.contenu|linebreaksbr }}</div>
+                            <div class="text-end mt-1" style="font-size: 0.68rem; opacity: 0.85;">
+                                {{ msg.date_envoi|date:"H:i" }}
+                                {% if msg.is_lu_par_tous %}
+                                <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}" style="color: #064e3b;"></i>
+                                {% else %}
+                                <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- Reactions -->
+                        {% if msg.reactions.all %}
+                        <div class="d-flex gap-1 mt-1 flex-wrap justify-content-end" style="font-size: 0.75rem;">
+                            {% regroup msg.reactions.all by emoji as reaction_groups %}
+                            {% for group in reaction_groups %}
+                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill" style="background: var(--card-bg-solid); border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.6;"
+                                    onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
+                                {{ group.grouper }} {{ group.list|length }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="d-flex gap-2 mt-1">
+                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')">
+                                <i class="fas fa-reply"></i> Répondre
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Message reçu (gauche) -->
+                <div class="d-flex justify-content-start mb-3 gap-2">
+                    <div class="msg-avatar d-none d-md-flex mt-1">
+                        {{ msg.expediteur.user.first_name|make_list|first|default:msg.expediteur.user.username|make_list|first|upper }}
+                    </div>
+                    <div class="d-flex flex-column align-items-start" style="max-width: 75%;">
+                        <div class="msg-bubble-other rounded-4">
+                            <div class="fw-bold mb-1" style="font-size: 0.78rem; color: var(--accent-dark);">{{ msg.expediteur }}</div>
+                            {% if msg.reply_to %}
+                            <div class="mb-1 px-2 py-1 rounded-2" style="background: var(--bg-main); font-size: 0.78rem; color: var(--text-muted);">
+                                <i class="fas fa-reply me-1"></i> {{ msg.reply_to.expediteur }}: {{ msg.reply_to.contenu|truncatechars:50 }}
+                            </div>
+                            {% endif %}
+                            {% if msg.piece_jointe %}
+                                {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
+                                <a href="{{ msg.piece_jointe.url }}" target="_blank">
+                                    <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;">
+                                </a>
+                                {% else %}
+                                <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: var(--bg-main); color: var(--text-main);">
+                                    <i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                            <div style="white-space: pre-wrap;">{{ msg.contenu|linebreaksbr }}</div>
+                            <div class="mt-1" style="font-size: 0.68rem; color: var(--text-muted);">
+                                {{ msg.date_envoi|date:"H:i" }}
+                            </div>
+                        </div>
+                        <!-- Reactions -->
+                        {% if msg.reactions.all %}
+                        <div class="d-flex gap-1 mt-1 flex-wrap" style="font-size: 0.75rem;">
+                            {% regroup msg.reactions.all by emoji as reaction_groups %}
+                            {% for group in reaction_groups %}
+                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill" style="background: var(--card-bg-solid); border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.6;"
+                                    onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
+                                {{ group.grouper }} {{ group.list|length }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="d-flex gap-2 mt-1">
+                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')">
+                                <i class="fas fa-reply"></i> Répondre
+                            </button>
+                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '👍')">👍</button>
+                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '❤️')">❤️</button>
+                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '😂')">😂</button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% empty %}
+                <div class="d-flex flex-column align-items-center justify-content-center text-muted py-5 gap-3">
+                    <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-subtle), rgba(74,222,128,0.2)); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-comment-dots" style="font-size: 1.8rem; color: var(--accent-dark); opacity: 0.7;"></i>
+                    </div>
+                    <p class="mb-0" style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Aucun message pour le moment</p>
+                    <p class="small mb-0" style="color: var(--text-muted); opacity: 0.7;">Envoyez le premier message pour commencer la conversation.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Input -->
+        <div class="p-2 p-md-3 mt-auto" style="background: var(--card-bg-solid); border-top: 1px solid var(--border-glass); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+            <!-- Reply preview -->
+            <div id="replyPreview" class="d-none mb-2 px-3 py-2 rounded-3 d-flex justify-content-between align-items-center" style="background: var(--bg-secondary); font-size: 0.82rem; border-left: 3px solid var(--accent);">
+                <div class="text-truncate">
+                    <i class="fas fa-reply me-2" style="color: var(--accent);"></i>
+                    <span id="replyPreviewText" class="text-muted fw-medium"></span>
+                </div>
+                <button type="button" class="btn btn-sm p-0 ms-2 text-muted" onclick="clearReply()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- File preview -->
+            <div id="fileNameDisplay" class="d-none mb-2 px-3 py-2 rounded-3 d-flex justify-content-between align-items-center" style="background: var(--bg-secondary); font-size: 0.82rem; border-left: 3px solid var(--info);">
+                <div class="text-truncate">
+                    <i class="fas fa-file me-2 text-info"></i>
+                    <span id="fileNameText" class="text-muted fw-medium"></span>
+                </div>
+                <button type="button" class="btn btn-sm p-0 ms-2 text-danger" onclick="clearFile()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form method="post" action="{% url 'conversation_detail' conversation.id %}" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" id="msgForm">
+                {% csrf_token %}
+                <input type="hidden" name="reply_to" id="replyToInput" value="">
+                
+                <div class="chat-input-wrapper flex-grow-1 d-flex align-items-end px-2 py-1">
+                    <label for="fileInput" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center m-0 mb-1" style="width: 36px; height: 36px; color: var(--text-muted); cursor: pointer; flex-shrink: 0; background: transparent; border: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+                        <i class="fas fa-paperclip fs-6"></i>
+                    </label>
+                    <input type="file" name="piece_jointe" id="fileInput" class="d-none" onchange="showFileName(this)">
+                    
+                    <textarea name="contenu" class="form-control border-0 bg-transparent flex-grow-1 mx-1" rows="1" placeholder="Écrivez un message…"
+                              style="resize: none; box-shadow: none; padding: 10px 0; max-height: 120px; font-size: 0.95rem; overflow-y: hidden; color: var(--text-main);"
+                              oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight, 120)+'px'; if(this.scrollHeight>=120) this.style.overflowY='auto'; else this.style.overflowY='hidden';" id="msgTextarea"></textarea>
+                </div>
+                
+                <button type="submit" class="chat-send-btn" aria-label="Envoyer">
+                    <i class="fas fa-paper-plane" style="margin-left: -1px; font-size: 0.9rem;"></i>
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
