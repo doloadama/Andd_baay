@@ -115,8 +115,20 @@ if IS_VERCEL and VERCEL_URL:
     if origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(origin)
 
+_extra_csrf = os.getenv("CSRF_TRUSTED_ORIGINS_EXTRA", "").strip()
+if _extra_csrf:
+    for _o in _extra_csrf.split(","):
+        _o = _o.strip()
+        if _o and _o not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_o)
+
 # Vercel forwards HTTPS via X-Forwarded-Proto
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Cookies-only over HTTPS in production (avoids session issues behind Vercel TLS)
+if IS_VERCEL or not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'Andd_Baayi.urls'
 
@@ -225,6 +237,10 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# OAuth / email links must use https in production so redirect URIs match Google Console
+if IS_VERCEL or not DEBUG:
+    ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
 # ============================================================
 # django-allauth / Social Auth
 # ============================================================
@@ -244,7 +260,9 @@ SOCIALACCOUNT_EMAIL_REQUIRED = False
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
+        # select_account: évite qu’un 2e utilisateur reste bloqué sur la session Google
+        # du navigateur ; access_type online OK sans refresh_token pour login web.
+        'AUTH_PARAMS': {'access_type': 'online', 'prompt': 'select_account'},
         'OAUTH_PKCE_ENABLED': True,
     }
 }
