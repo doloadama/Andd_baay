@@ -124,6 +124,7 @@
     border: 1px solid var(--border-color);
     border-radius: 14px;
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    min-width: 0;
 }
 
 .pq-stat-icon {
@@ -149,17 +150,25 @@
     margin-bottom: 2px;
 }
 
+.pq-stat > div {
+    min-width: 0;
+    flex: 1;
+}
+
 .pq-stat-value {
     font-family: var(--font-display);
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--text-main);
     line-height: 1.2;
+    min-width: 0;
 }
 
 .pq-stat-value--status {
     font-size: 0.88rem;
     font-weight: 700;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 /* ─── Barre d’actions ─── */
@@ -280,9 +289,55 @@
     color: inherit !important;
 }
 
+.projet-action-dropdown {
+    flex: 1 1 auto;
+}
+
+@media (min-width: 768px) {
+    .projet-action-dropdown {
+        flex: 0 0 auto;
+    }
+}
+
+.projet-action-dropdown .dropdown-toggle::after {
+    margin-left: 0.5em;
+}
+
+.projet-action-dropdown-menu {
+    --bs-dropdown-min-width: 12rem;
+}
+
+.projet-dropdown-item--success {
+    color: #166534 !important;
+}
+
+.dark-mode .projet-dropdown-item--success {
+    color: #86efac !important;
+}
+
 .projet-action-btn--primary i,
 .projet-action-btn--primary span {
     color: inherit !important;
+}
+
+/* Carrousel photo : zone tactile élargie (WCAG 44px) */
+.projet-detail-page #photoCarousel .carousel-control-prev,
+.projet-detail-page #photoCarousel .carousel-control-next {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 1;
+}
+
+.projet-detail-page #photoCarousel .carousel-control-prev {
+    left: 8px;
+}
+
+.projet-detail-page #photoCarousel .carousel-control-next {
+    right: 8px;
 }
 
 /* ─── Sections ─── */

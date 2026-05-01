@@ -20,6 +20,47 @@
         font-size: 0.88rem !important;
         line-height: 1.45;
         padding: 0 10px;
+        max-width: 100%;
+    }
+
+    .projet-detail-page .projet-hero-product-list {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        text-align: left;
+    }
+
+    .projet-detail-page #photoCarousel .carousel-caption {
+        display: block !important;
+        font-size: 0.8rem;
+        padding: 6px 10px !important;
+        bottom: 8px !important;
+        background: rgba(0, 0, 0, 0.72) !important;
+        border-radius: 10px !important;
+    }
+
+    .projet-detail-page #photoCarousel .carousel-caption h6 {
+        color: #fff !important;
+    }
+
+    .projet-detail-page #photoCarousel .projet-carousel-caption-sub {
+        color: rgba(255, 255, 255, 0.92) !important;
+    }
+
+    .dark-mode .projet-detail-page #photoCarousel .carousel-caption {
+        background: rgba(15, 23, 42, 0.88) !important;
+    }
+
+    .projet-detail-page #photoCarousel .carousel-control-prev,
+    .projet-detail-page #photoCarousel .carousel-control-next {
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
+        padding: 0;
     }
 
     .projet-detail-page .project-content-wrapper {
@@ -49,6 +90,10 @@
         flex: 1 1 auto !important;
     }
 
+    .projet-detail-page .projet-actions-toolbar .projet-action-dropdown {
+        width: 100%;
+    }
+
     .projet-detail-page #photoCarousel .carousel-item img {
         height: 220px !important;
         object-fit: cover;
@@ -72,6 +117,11 @@
 
     .projet-detail-page .prediction-card .display-5 {
         font-size: 1.65rem !important;
+    }
+
+    /* Masqué sur mobile : déjà dans les tuiles KPI (superficie, lancement) */
+    .projet-detail-page .projet-apercu-skip-mobile {
+        display: none !important;
     }
 
     /* ─── Liste semis ─── */

@@ -29,14 +29,18 @@
             {{ projet.get_statut_display }}
         </div>
         <h1 class="fw-bold mb-2 mb-md-3 text-white text-shadow-lg animate__animated animate__fadeInUp projet-hero-title">{{ projet.nom }}</h1>
-        <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp projet-hero-subtitle" style="animation-delay: 0.1s;">
-            <i class="fas fa-map-marker-alt text-accent me-2"></i> {{ projet.localite.nom }} &nbsp;&bull;&nbsp; 
-            <i class="fas fa-seedling text-accent me-2"></i> 
-            {% for pp in projet_produits %}
+        <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp projet-hero-subtitle" style="animation-delay: 0.1s;" title="{{ projet.localite.nom }} — {% for pp in projet_produits %}{{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}{% empty %}{% if projet.culture %}{{ projet.culture.nom }}{% else %}Aucun produit{% endif %}{% endfor %}">
+            <span class="projet-hero-meta-line d-block">
+                <i class="fas fa-map-marker-alt text-accent me-2" aria-hidden="true"></i>{{ projet.localite.nom }}
+            </span>
+            <span class="projet-hero-products d-block mt-1">
+                <i class="fas fa-seedling text-accent me-2" aria-hidden="true"></i>
+                <span class="projet-hero-product-list">{% for pp in projet_produits %}
                 {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
-            {% empty %}
+                {% empty %}
                 {% if projet.culture %}{{ projet.culture.nom }}{% else %}Aucun produit{% endif %}
-            {% endfor %}
+                {% endfor %}</span>
+            </span>
         </p>
     </div>
 </div>
@@ -86,14 +90,25 @@
                 <i class="fas fa-plus" aria-hidden="true"></i><span>Investissement</span>
             </a>
             {% endif %}
-            {% if projet.statut != 'fini' %}
-            <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="projet-action-btn projet-action-btn--success">
-                <i class="fas fa-check-circle" aria-hidden="true"></i><span class="d-none d-sm-inline">Terminer & saisir récolte</span><span class="d-sm-none">Terminer</span>
-            </a>
-            {% endif %}
-            <a href="{% url 'supprimer_projet' projet.id %}" class="projet-action-btn projet-action-btn--danger">
-                <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Supprimer</span>
-            </a>
+            <div class="dropdown projet-action-dropdown">
+                <button type="button" class="projet-action-btn projet-action-btn--ghost dropdown-toggle w-100" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-haspopup="true" aria-label="Autres actions sur le projet" id="projetActionsMore">
+                    <i class="fas fa-ellipsis-h" aria-hidden="true"></i><span>Autres</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end projet-action-dropdown-menu shadow border" aria-labelledby="projetActionsMore">
+                    {% if projet.statut != 'fini' %}
+                    <li>
+                        <a class="dropdown-item projet-dropdown-item--success" href="{% url 'modifier_projet' projet.id %}?finish=1">
+                            <i class="fas fa-check-circle me-2" aria-hidden="true"></i>Terminer &amp; saisir récolte
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <a class="dropdown-item text-danger" href="{% url 'supprimer_projet' projet.id %}">
+                            <i class="fas fa-trash-alt me-2" aria-hidden="true"></i>Supprimer le projet
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </nav>
     </div>
 
@@ -108,7 +123,7 @@
                 </div>
                 <div class="glass-card-body">
                     <div class="row g-4">
-                        <div class="col-sm-6">
+                        <div class="col-sm-6 projet-apercu-skip-mobile">
                             <div class="info-block">
                                 <div class="info-icon"><i class="fas fa-ruler-combined"></i></div>
                                 <div>
@@ -120,7 +135,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-6 projet-apercu-skip-mobile">
                             <div class="info-block">
                                 <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
                                 <div>
@@ -174,8 +189,8 @@
                                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
                                         <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover projet-carousel-img" data-bs-toggle="tooltip" title="{{ photo.subtitle }}" {% if not forloop.first %}loading="lazy"{% endif %}>
                                         <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.6); border-radius: 12px; padding: 10px; bottom: 20px;">
-                                            <h6 class="mb-1 ">{{ photo.title }}</h6>
-                                            {% if photo.subtitle %}<p class="mb-0 small text-muted">{{ photo.subtitle }}</p>{% endif %}
+                                            <h6 class="mb-1 text-white">{{ photo.title }}</h6>
+                                            {% if photo.subtitle %}<p class="mb-0 small projet-carousel-caption-sub">{{ photo.subtitle }}</p>{% endif %}
                                         </div>
                                     </div>
                                 {% endfor %}
@@ -444,6 +459,14 @@
 
         var marker = L.marker([latitude, longitude]).addTo(map);
         marker.bindPopup("<div style='font-family: var(--font-display);'><b>{{ projet.localite.nom }}</b><br>Superficie: {{ projet.superficie }} ha</div>").openPopup();
+
+        function relayoutMap() {
+            setTimeout(function () {
+                map.invalidateSize();
+            }, 150);
+        }
+        window.addEventListener("resize", relayoutMap);
+        window.addEventListener("orientationchange", relayoutMap);
     });
 </script>
 
