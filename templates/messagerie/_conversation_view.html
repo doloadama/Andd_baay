@@ -4,18 +4,18 @@
 {% now "Y-m-d" as today_str %}
 <div class="glass-card d-flex flex-column h-100 mobile-chat-card msg-conv-partial" data-conversation-id="{{ conversation.id }}">
     <!-- Header -->
-    <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2">
+    <div class="chat-header msg-conv-header">
+        <div class="d-flex align-items-center gap-2 min-w-0">
             {% if drawer %}
-            <button type="button" class="btn-nav btn-nav-ghost" title="Retour" data-drawer-back="1">
+            <button type="button" class="btn-nav btn-nav-ghost chat-back-btn" title="Retour" data-drawer-back="1" aria-label="Retour">
                 <i class="fas fa-arrow-left"></i>
             </button>
             {% elif is_mini %}
-            <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Retour à l'accueil">
+            <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost chat-back-btn" title="Retour à l'accueil" aria-label="Retour à l'accueil">
                 <i class="fas fa-arrow-left"></i>
             </a>
             {% else %}
-            <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost" title="Retour">
+            <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost chat-back-btn" title="Retour" aria-label="Retour à la liste">
                 <i class="fas fa-arrow-left"></i>
             </a>
             {% endif %}
@@ -25,23 +25,29 @@
                 {% else %}
                 {{ titre|make_list|first|upper }}
                 {% endif %}
+                <span class="chat-header-avatar-dot"></span>
             </div>
-            <div>
-                <h5 class="mb-0" style="font-family: var(--font-display);">{{ titre }}</h5>
-                <small class="d-inline-flex align-items-center gap-1 text-success fw-semibold">
-                    <span class="online-dot"></span> En ligne
+            <div class="chat-header-meta min-w-0">
+                <h6 class="chat-header-title">{{ titre }}</h6>
+                <small class="chat-header-status">
+                    <span class="online-dot"></span>
+                    {% if autres|length > 1 %}
+                    {{ autres|length|add:1 }} membres · En ligne
+                    {% else %}
+                    En ligne
+                    {% endif %}
                 </small>
             </div>
         </div>
         <div class="d-flex align-items-center gap-1">
-            <button type="button" class="btn-nav btn-nav-ghost" title="Rechercher dans la discussion" onclick="chatQuickSearch()">
+            <button type="button" class="btn-nav btn-nav-ghost" title="Rechercher dans la discussion" onclick="chatQuickSearch()" aria-label="Rechercher">
                 <i class="fas fa-search"></i>
             </button>
-            <button type="button" class="btn-nav btn-nav-ghost" title="Infos discussion" onclick="chatInfo('{{ titre|escapejs }}', '{{ autres|length }}')">
+            <button type="button" class="btn-nav btn-nav-ghost" title="Infos discussion" onclick="chatInfo('{{ titre|escapejs }}', '{{ autres|length }}')" aria-label="Informations sur la discussion">
                 <i class="fas fa-circle-info"></i>
             </button>
             {% if is_mini and not drawer %}
-            <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Fermer">
+            <a href="{% url 'dashboard' %}" class="btn-nav btn-nav-ghost" title="Fermer" aria-label="Fermer la discussion">
                 <i class="fas fa-times"></i>
             </a>
             {% endif %}
@@ -49,53 +55,58 @@
     </div>
 
     <!-- Messages -->
-    <div class="chat-messages flex-grow-1 p-3 chat-messages-bg" id="chatBox" style="overflow-y: auto;">
+    <div class="chat-messages flex-grow-1 chat-messages-bg" id="chatBox" style="overflow-y: auto;">
+        <div class="chat-messages-inner">
         {% for msg in messages_list %}
             {% ifchanged msg.date_envoi|date:"Y-m-d" %}
             <div class="msg-date-sep">
-                {% if msg.date_envoi|date:"Y-m-d" == today_str %}
-                    Aujourd'hui
-                {% else %}
-                    {{ msg.date_envoi|date:"d M Y" }}
-                {% endif %}
+                <span class="msg-date-pill">
+                    {% if msg.date_envoi|date:"Y-m-d" == today_str %}
+                        Aujourd'hui
+                    {% else %}
+                        {{ msg.date_envoi|date:"l d F Y"|capfirst }}
+                    {% endif %}
+                </span>
             </div>
             {% endifchanged %}
+
             {% if msg.expediteur_id == profile.id %}
             <!-- Message envoyé (droite) -->
-            <div class="d-flex justify-content-end mb-3" data-message-id="{{ msg.id }}">
-                <div class="d-flex flex-column align-items-end" style="max-width: 75%;">
-                    <div class="msg-bubble-own rounded-4">
+            <div class="msg-row msg-row-own"
+                 data-message-id="{{ msg.id }}"
+                 data-author="own"
+                 data-day="{{ msg.date_envoi|date:'Y-m-d' }}">
+                <div class="msg-stack">
+                    <div class="msg-bubble msg-bubble-own">
                         {% if msg.reply_to %}
-                        <div class="mb-1 px-2 py-1 rounded-2" style="background: rgba(0,0,0,0.15); font-size: 0.78rem; opacity: 0.95;">
-                            <i class="fas fa-reply me-1"></i> {{ msg.reply_to.expediteur }}: {{ msg.reply_to.contenu|truncatechars:50 }}
+                        <div class="msg-reply-quote msg-reply-quote-own">
+                            <i class="fas fa-reply"></i>
+                            <span class="text-truncate">{{ msg.reply_to.expediteur }} : {{ msg.reply_to.contenu|truncatechars:60 }}</span>
                         </div>
                         {% endif %}
                         {% if msg.piece_jointe %}
                             {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
-                            <a href="{{ msg.piece_jointe.url }}" target="_blank">
-                                <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;">
+                            <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-img-link">
+                                <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="msg-attach-img">
                             </a>
                             {% else %}
-                            <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: rgba(0,0,0,0.15); color: inherit;">
-                                <i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
+                            <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-file msg-attach-file-own">
+                                <i class="fas fa-paperclip"></i>
+                                <span>{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
                             </a>
                             {% endif %}
                         {% endif %}
-                        <div style="white-space: pre-wrap;">{{ msg.contenu|linebreaksbr }}</div>
-                        <div class="text-end mt-1" style="font-size: 0.68rem; opacity: 0.85;">
-                            {{ msg.date_envoi|date:"H:i" }}
-                            {% if msg.is_lu_par_tous %}
-                            <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}" style="color: #064e3b;"></i>
-                            {% else %}
-                            <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}"></i>
-                            {% endif %}
+                        {% if msg.contenu %}<div class="msg-text">{{ msg.contenu|linebreaksbr }}</div>{% endif %}
+                        <div class="msg-meta msg-meta-own">
+                            <span class="msg-time">{{ msg.date_envoi|date:"H:i" }}</span>
+                            <i class="fas fa-check-double checkmark-icon{% if msg.is_lu_par_tous %} read{% endif %}" id="check-{{ msg.id }}"></i>
                         </div>
                     </div>
                     {% if msg.reactions.all %}
-                    <div class="d-flex gap-1 mt-1 flex-wrap justify-content-end" style="font-size: 0.75rem;">
+                    <div class="msg-reactions msg-reactions-own">
                         {% regroup msg.reactions.all by emoji as reaction_groups %}
                         {% for group in reaction_groups %}
-                        <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill"
+                        <button class="reaction-pill"
                                 data-reaction-pill="1"
                                 data-message-id="{{ msg.id }}"
                                 data-emoji="{{ group.grouper }}"
@@ -106,48 +117,58 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <div class="d-flex gap-2 mt-1">
-                        <button class="btn btn-sm p-0 msg-action-btn" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')">
-                            <i class="fas fa-reply"></i> Répondre
+                    <div class="msg-actions msg-actions-own">
+                        <button class="msg-action-btn" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')" title="Répondre">
+                            <i class="fas fa-reply"></i>
                         </button>
                     </div>
                 </div>
             </div>
             {% else %}
             <!-- Message reçu (gauche) -->
-            <div class="d-flex justify-content-start mb-3 gap-2" data-message-id="{{ msg.id }}">
-                <div class="msg-avatar d-none d-md-flex mt-1">
-                    {{ msg.expediteur.user.first_name|make_list|first|default:msg.expediteur.user.username|make_list|first|upper }}
+            <div class="msg-row msg-row-other"
+                 data-message-id="{{ msg.id }}"
+                 data-author="other"
+                 data-author-id="{{ msg.expediteur_id }}"
+                 data-day="{{ msg.date_envoi|date:'Y-m-d' }}">
+                <div class="msg-avatar-col">
+                    {% ifchanged msg.expediteur_id msg.date_envoi|date:"Y-m-d" %}
+                    <div class="msg-avatar">{{ msg.expediteur.user.first_name|make_list|first|default:msg.expediteur.user.username|make_list|first|upper }}</div>
+                    {% endifchanged %}
                 </div>
-                <div class="d-flex flex-column align-items-start" style="max-width: 75%;">
-                    <div class="msg-bubble-other rounded-4">
-                        <div class="fw-bold mb-1" style="font-size: 0.78rem; color: var(--accent-dark);">{{ msg.expediteur }}</div>
+                <div class="msg-stack">
+                    {% ifchanged msg.expediteur_id msg.date_envoi|date:"Y-m-d" %}
+                    <div class="msg-sender-name">{{ msg.expediteur }}</div>
+                    {% endifchanged %}
+                    <div class="msg-bubble msg-bubble-other">
                         {% if msg.reply_to %}
-                        <div class="mb-1 px-2 py-1 rounded-2" style="background: var(--bg-main); font-size: 0.78rem; color: var(--text-muted);">
-                            <i class="fas fa-reply me-1"></i> {{ msg.reply_to.expediteur }}: {{ msg.reply_to.contenu|truncatechars:50 }}
+                        <div class="msg-reply-quote msg-reply-quote-other">
+                            <i class="fas fa-reply"></i>
+                            <span class="text-truncate">{{ msg.reply_to.expediteur }} : {{ msg.reply_to.contenu|truncatechars:60 }}</span>
                         </div>
                         {% endif %}
                         {% if msg.piece_jointe %}
                             {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
-                            <a href="{{ msg.piece_jointe.url }}" target="_blank">
-                                <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;">
+                            <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-img-link">
+                                <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="msg-attach-img">
                             </a>
                             {% else %}
-                            <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: var(--bg-main); color: var(--text-main);">
-                                <i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
+                            <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-file msg-attach-file-other">
+                                <i class="fas fa-paperclip"></i>
+                                <span>{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
                             </a>
                             {% endif %}
                         {% endif %}
-                        <div style="white-space: pre-wrap;">{{ msg.contenu|linebreaksbr }}</div>
-                        <div class="mt-1" style="font-size: 0.68rem; color: var(--text-muted);">
-                            {{ msg.date_envoi|date:"H:i" }}
+                        {% if msg.contenu %}<div class="msg-text">{{ msg.contenu|linebreaksbr }}</div>{% endif %}
+                        <div class="msg-meta msg-meta-other">
+                            <span class="msg-time">{{ msg.date_envoi|date:"H:i" }}</span>
                         </div>
                     </div>
                     {% if msg.reactions.all %}
-                    <div class="d-flex gap-1 mt-1 flex-wrap" style="font-size: 0.75rem;">
+                    <div class="msg-reactions msg-reactions-other">
                         {% regroup msg.reactions.all by emoji as reaction_groups %}
                         {% for group in reaction_groups %}
-                        <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill"
+                        <button class="reaction-pill"
                                 data-reaction-pill="1"
                                 data-message-id="{{ msg.id }}"
                                 data-emoji="{{ group.grouper }}"
@@ -158,76 +179,79 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <div class="d-flex gap-2 mt-1">
-                        <button class="btn btn-sm p-0 msg-action-btn" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')">
-                            <i class="fas fa-reply"></i> Répondre
+                    <div class="msg-actions msg-actions-other">
+                        <button class="msg-action-btn" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')" title="Répondre">
+                            <i class="fas fa-reply"></i>
                         </button>
-                        <button class="btn btn-sm p-0 msg-action-btn" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '👍')">👍</button>
-                        <button class="btn btn-sm p-0 msg-action-btn" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '❤️')">❤️</button>
-                        <button class="btn btn-sm p-0 msg-action-btn" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '😂')">😂</button>
+                        <button class="msg-action-btn" onclick="toggleReaction('{{ msg.id }}', '👍')" title="Réagir 👍">👍</button>
+                        <button class="msg-action-btn" onclick="toggleReaction('{{ msg.id }}', '❤️')" title="Réagir ❤️">❤️</button>
+                        <button class="msg-action-btn" onclick="toggleReaction('{{ msg.id }}', '😂')" title="Réagir 😂">😂</button>
                     </div>
                 </div>
             </div>
             {% endif %}
         {% empty %}
-            <div class="d-flex flex-column align-items-center justify-content-center text-muted py-5 gap-3">
-                <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-subtle), rgba(74,222,128,0.2)); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-comment-dots" style="font-size: 1.8rem; color: var(--accent-dark); opacity: 0.7;"></i>
+            <div class="chat-empty">
+                <div class="chat-empty-icon">
+                    <i class="fas fa-comment-dots"></i>
                 </div>
-                <p class="mb-0" style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Aucun message pour le moment</p>
-                <p class="small mb-0" style="color: var(--text-muted); opacity: 0.7;">Envoyez le premier message pour commencer la conversation.</p>
+                <p class="chat-empty-title">Aucun message pour le moment</p>
+                <p class="chat-empty-sub">Envoyez le premier message pour commencer la conversation.</p>
             </div>
         {% endfor %}
+        </div>
     </div>
 
-    <!-- Input -->
-    <div class="msg-conv-composer p-2 p-md-3 mt-auto" style="background: var(--card-bg-solid); border-top: 1px solid var(--border-glass); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+    <!-- Composer -->
+    <div class="msg-conv-composer">
         <!-- Reply preview -->
-        <div id="replyPreview" class="d-none mb-2 px-3 py-2 rounded-3 d-flex justify-content-between align-items-center" style="background: var(--bg-secondary); font-size: 0.82rem; border-left: 3px solid var(--accent);">
+        <div id="replyPreview" class="composer-pill composer-pill-reply d-none">
             <div class="text-truncate">
-                <i class="fas fa-reply me-2" style="color: var(--accent);"></i>
-                <span id="replyPreviewText" class="text-muted fw-medium"></span>
+                <i class="fas fa-reply"></i>
+                <span id="replyPreviewText"></span>
             </div>
-            <button type="button" class="btn btn-sm p-0 ms-2 text-muted" onclick="clearReply()"><i class="fas fa-times"></i></button>
+            <button type="button" class="composer-pill-close" onclick="clearReply()" aria-label="Annuler la réponse"><i class="fas fa-times"></i></button>
         </div>
 
         <!-- File preview -->
-        <div id="fileNameDisplay" class="d-none mb-2 px-3 py-2 rounded-3 d-flex justify-content-between align-items-center" style="background: var(--bg-secondary); font-size: 0.82rem; border-left: 3px solid var(--info);">
+        <div id="fileNameDisplay" class="composer-pill composer-pill-file d-none">
             <div class="text-truncate">
-                <i class="fas fa-file me-2 text-info"></i>
-                <span id="fileNameText" class="text-muted fw-medium"></span>
+                <i class="fas fa-file"></i>
+                <span id="fileNameText"></span>
             </div>
-            <button type="button" class="btn btn-sm p-0 ms-2 text-danger" onclick="clearFile()"><i class="fas fa-times"></i></button>
+            <button type="button" class="composer-pill-close" onclick="clearFile()" aria-label="Retirer le fichier"><i class="fas fa-times"></i></button>
         </div>
 
-        <form method="post" action="{% url 'conversation_detail' conversation.id %}" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" id="msgForm">
+        <form method="post" action="{% url 'conversation_detail' conversation.id %}" class="composer-form" enctype="multipart/form-data" id="msgForm">
             {% csrf_token %}
             <input type="hidden" name="reply_to" id="replyToInput" value="">
 
-            <div class="chat-input-wrapper flex-grow-1 d-flex align-items-end px-2 py-1">
-                <button type="button" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center m-0 mb-1 chat-input-icon-btn" title="Ajouter un emoji" onclick="toggleEmojiPicker()">
-                    <i class="far fa-face-smile fs-6"></i>
+            <div class="chat-input-wrapper">
+                <button type="button" class="chat-input-icon-btn" title="Ajouter un emoji" onclick="toggleEmojiPicker()" aria-label="Emoji">
+                    <i class="far fa-face-smile"></i>
                 </button>
-                <label for="fileInput" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center m-0 mb-1" style="width: 36px; height: 36px; color: var(--text-muted); cursor: pointer; flex-shrink: 0; background: transparent; border: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
-                    <i class="fas fa-paperclip fs-6"></i>
+                <label for="fileInput" class="chat-input-icon-btn chat-input-attach" title="Joindre un fichier" aria-label="Joindre un fichier">
+                    <i class="fas fa-paperclip"></i>
                 </label>
                 <input type="file" name="piece_jointe" id="fileInput" class="d-none" onchange="showFileName(this)">
 
-                <textarea name="contenu" class="form-control border-0 bg-transparent flex-grow-1 mx-1" rows="1" placeholder="Écrivez un message…"
-                          style="resize: none; box-shadow: none; padding: 10px 0; max-height: 120px; font-size: 0.95rem; overflow-y: hidden; color: var(--text-main);"
+                <textarea name="contenu" class="chat-textarea" rows="1" placeholder="Écrivez un message…"
                           oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight, 120)+'px'; if(this.scrollHeight>=120) this.style.overflowY='auto'; else this.style.overflowY='hidden';" id="msgTextarea"></textarea>
             </div>
 
             <button type="submit" class="chat-send-btn" aria-label="Envoyer">
-                <i class="fas fa-paper-plane" style="margin-left: -1px; font-size: 0.9rem;"></i>
+                <i class="fas fa-paper-plane"></i>
             </button>
         </form>
-        <div id="emojiPicker" class="d-none mt-2 d-flex gap-2 flex-wrap">
-            <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('😀')">😀</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('👍')">👍</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('❤️')">❤️</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('😂')">😂</button>
-            <button type="button" class="btn btn-sm btn-light rounded-pill" onclick="insertEmoji('🙏')">🙏</button>
+        <div id="emojiPicker" class="emoji-picker d-none">
+            <button type="button" class="emoji-btn" onclick="insertEmoji('😀')">😀</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('👍')">👍</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('😂')">😂</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('🙏')">🙏</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('🔥')">🔥</button>
+            <button type="button" class="emoji-btn" onclick="insertEmoji('✅')">✅</button>
         </div>
     </div>
 </div>
@@ -247,7 +271,7 @@
             var wrap = document.getElementById("replyPreview");
             var ta = document.getElementById("msgTextarea");
             if (input) input.value = msgId;
-            if (preview) preview.textContent = senderName + ": " + contentPreview;
+            if (preview) preview.textContent = senderName + " : " + contentPreview;
             if (wrap) wrap.classList.remove("d-none");
             if (ta) ta.focus();
         };
@@ -298,8 +322,33 @@
             }
         };
         window.chatInfo = function (title, participantsCount) {
-            alert(title + "\nParticipants: " + (Number(participantsCount) + 1) + "\nMessagerie temps reel active.");
+            alert(title + "\nParticipants : " + (Number(participantsCount) + 1) + "\nMessagerie temps réel active.");
         };
+
+        // Continued-message grouping: tighten spacing for consecutive same-author messages
+        // (works for both static template render and JS-appended live messages).
+        function regroupMessages() {
+            var rows = document.querySelectorAll('#chatBox .msg-row, #chatBox [data-message-id]');
+            var prevAuthor = null;
+            var prevAuthorId = null;
+            var prevDay = null;
+            rows.forEach(function (row) {
+                var author = row.getAttribute("data-author");
+                var authorId = row.getAttribute("data-author-id") || author;
+                var day = row.getAttribute("data-day") || "";
+                var same = author === prevAuthor && authorId === prevAuthorId && day === prevDay;
+                row.classList.toggle("msg-continued", same);
+                row.classList.toggle("msg-first-in-group", !same);
+                prevAuthor = author;
+                prevAuthorId = authorId;
+                prevDay = day;
+            });
+        }
+        window.regroupMessagerieMessages = regroupMessages;
+        regroupMessages();
+        // Re-run after a tick in case the JS-appended messages run their re-render after this.
+        setTimeout(regroupMessages, 0);
+
         if (typeof window.initMessagerieConversation === "function") {
             window.initMessagerieConversation(cfg);
         }

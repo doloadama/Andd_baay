@@ -81,31 +81,84 @@
             return d.innerHTML;
         }
 
+        function isoToDay(iso) {
+            if (!iso) return "";
+            return String(iso).slice(0, 10);
+        }
+
         function renderMessage(message) {
             var isOwn = String(message.sender_id) === currentProfileId;
-            var div = document.createElement("div");
-            var bubbleClass = isOwn ? "msg-bubble-own" : "msg-bubble-other";
-            var senderLine = isOwn
-                ? ""
-                : '<div class="fw-bold mb-1" style="font-size: 0.78rem; color: var(--accent-dark);">' + escapeHtml(message.sender_name) + '</div>';
             var messageId = String(message.message_id || message.id);
-            var checkMark = isOwn
-                ? '<i class="fas fa-check-double ms-1 checkmark-icon' + (message.is_lu_par_tous ? " text-success" : "") + '" id="check-' + messageId + '"></i>'
-                : "";
-            div.className = "d-flex mb-3 " + (isOwn ? "justify-content-end" : "justify-content-start");
+            var senderName = message.sender_name || "";
+            var initial = (senderName.charAt(0) || "?").toUpperCase();
+            var day = isoToDay(message.date_envoi_iso);
+            var div = document.createElement("div");
+            div.className = "msg-row " + (isOwn ? "msg-row-own" : "msg-row-other");
             div.setAttribute("data-message-id", messageId);
+            div.setAttribute("data-author", isOwn ? "own" : "other");
+            if (!isOwn && message.sender_id) div.setAttribute("data-author-id", String(message.sender_id));
+            if (day) div.setAttribute("data-day", day);
+
+            var checkMark = isOwn
+                ? '<i class="fas fa-check-double checkmark-icon' + (message.is_lu_par_tous ? " read" : "") + '" id="check-' + messageId + '"></i>'
+                : "";
+            var senderHeader = isOwn
+                ? ""
+                : '<div class="msg-sender-name">' + escapeHtml(senderName) + '</div>';
+            var avatarCol = isOwn
+                ? ""
+                : '<div class="msg-avatar-col"><div class="msg-avatar">' + escapeHtml(initial) + '</div></div>';
+
             div.innerHTML =
-                '<div class="d-flex flex-column ' + (isOwn ? "align-items-end" : "align-items-start") + '" style="max-width: 75%;">' +
-                '<div class="' + bubbleClass + ' rounded-4">' + senderLine +
-                '<div style="white-space: pre-wrap;">' + escapeHtml(message.contenu) + '</div>' +
-                '<div class="' + (isOwn ? "text-end" : "") + ' mt-1" style="font-size: 0.68rem; opacity: 0.85;">' + (message.date_envoi || "") + checkMark + '</div></div></div>';
+                avatarCol +
+                '<div class="msg-stack">' +
+                    senderHeader +
+                    '<div class="msg-bubble ' + (isOwn ? "msg-bubble-own" : "msg-bubble-other") + '">' +
+                        '<div class="msg-text">' + escapeHtml(message.contenu) + '</div>' +
+                        '<div class="msg-meta ' + (isOwn ? "msg-meta-own" : "msg-meta-other") + '">' +
+                            '<span class="msg-time">' + (message.date_envoi || "") + '</span>' +
+                            checkMark +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
             return div;
         }
 
         function rerenderMessages() {
-            box.querySelectorAll("[data-message-id]").forEach(function (el) { el.remove(); });
-            orderedIds.forEach(function (id) { box.appendChild(renderMessage(messagesById.get(id))); });
+            // Rebuild only the inner container so the date separators stay simple.
+            var inner = box.querySelector(".chat-messages-inner") || box;
+            inner.querySelectorAll(".msg-row, [data-message-id]").forEach(function (el) { el.remove(); });
+            inner.querySelectorAll(".msg-date-sep").forEach(function (el) { el.remove(); });
+            var lastDay = null;
+            orderedIds.forEach(function (id) {
+                var msg = messagesById.get(id);
+                var day = isoToDay(msg.date_envoi_iso);
+                if (day && day !== lastDay) {
+                    var sep = document.createElement("div");
+                    sep.className = "msg-date-sep";
+                    sep.innerHTML = '<span class="msg-date-pill">' + escapeHtml(formatDayLabel(day)) + '</span>';
+                    inner.appendChild(sep);
+                    lastDay = day;
+                }
+                inner.appendChild(renderMessage(msg));
+            });
+            if (typeof window.regroupMessagerieMessages === "function") {
+                window.regroupMessagerieMessages();
+            }
             box.scrollTop = box.scrollHeight;
+        }
+
+        function formatDayLabel(day) {
+            try {
+                var today = new Date();
+                var ydToday = today.toISOString().slice(0, 10);
+                if (day === ydToday) return "Aujourd'hui";
+                var d = new Date(day + "T00:00:00");
+                if (isNaN(d.getTime())) return day;
+                return d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+            } catch (_) {
+                return day;
+            }
         }
 
         function appendMessage(data) {
