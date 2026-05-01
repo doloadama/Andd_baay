@@ -5,6 +5,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="{% static 'css/projet-detail.css' %}" />
 <link rel="stylesheet" href="{% static 'css/semis-cards.css' %}" />
 {% endblock %}
 
@@ -14,7 +15,8 @@
 <div class="project-hero-bg" style="background-image: url('{% if projet.image_fond %}{{ projet.image_fond.url }}{% else %}{% static 'images/default_farm_bg.png' %}{% endif %}'); background-size: cover; background-position: center; transition: background-image 0.5s ease;">
     <div class="african-motif"></div>
     <div class="hero-overlay"></div>
-    <div class="container relative z-10 h-100 d-flex flex-column justify-content-center text-center">
+    <div class="container relative z-10 h-100 d-flex flex-column justify-content-center text-center px-3">
+        <p class="projet-hero-kicker animate__animated animate__fadeInDown mb-0">Fiche projet</p>
         <div class="badge-modern mx-auto mb-3 animate__animated animate__fadeInDown">
             <span class="status-dot 
                 {% if projet.statut == 'en_cours' %}bg-primary
@@ -26,8 +28,8 @@
             </span>
             {{ projet.get_statut_display }}
         </div>
-        <h1 class="display-3 fw-bold  mb-3 text-shadow-lg animate__animated animate__fadeInUp" style="font-family: var(--font-display);">{{ projet.nom }}</h1>
-        <p class="lead text-muted text-shadow-md animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <h1 class="fw-bold mb-2 mb-md-3 text-white text-shadow-lg animate__animated animate__fadeInUp projet-hero-title">{{ projet.nom }}</h1>
+        <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp projet-hero-subtitle" style="animation-delay: 0.1s;">
             <i class="fas fa-map-marker-alt text-accent me-2"></i> {{ projet.localite.nom }} &nbsp;&bull;&nbsp; 
             <i class="fas fa-seedling text-accent me-2"></i> 
             {% for pp in projet_produits %}
@@ -39,38 +41,70 @@
     </div>
 </div>
 
-<div class="container project-content-wrapper">
-    <!-- Action Buttons Row -->
-    <div class="d-flex flex-wrap gap-3 justify-content-center mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.2s; margin-top: -30px; position: relative; z-index: 20;">
-        <a href="{% url 'liste_projets' %}" class="btn-modern btn-outline-modern bg-surface shadow-sm  px-4">
-            <i class="fas fa-arrow-left text-muted"></i> Retour
-        </a>
-        <a href="{% url 'modifier_projet' projet.id %}" class="btn-modern btn-primary-modern px-4">
-            <i class="fas fa-edit"></i> Modifier
-        </a>
-        {% if can_view_investissements %}
-        <a href="{% url 'ajouter_investissement' projet.id %}" class="btn-modern btn-accent px-4 shadow-sm" style="background: var(--accent); color: var(--text-inverse);">
-            <i class="fas fa-plus"></i> Investissement
-        </a>
-        {% endif %}
-        {% if projet.statut != 'fini' %}
-        <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="btn-modern px-4 shadow-sm" style="background: var(--success); color: white;">
-            <i class="fas fa-check-circle"></i> Terminer & Saisir Recolte
-        </a>
-        {% endif %}
-        <a href="{% url 'supprimer_projet' projet.id %}" class="btn-modern btn-danger-modern px-4 shadow-sm" style="background: var(--danger); color: white;">
-            <i class="fas fa-trash"></i>
-        </a>
+<div class="container project-content-wrapper px-3 px-md-4">
+    <div class="animate__animated animate__fadeInUp" style="animation-delay: 0.15s; margin-top: -28px; position: relative; z-index: 20;">
+        <div class="projet-quick-stats" role="region" aria-label="Indicateurs du projet">
+            <div class="pq-stat">
+                <span class="pq-stat-icon" aria-hidden="true"><i class="fas fa-ruler-combined"></i></span>
+                <div>
+                    <span class="pq-stat-label">Superficie</span>
+                    <strong class="pq-stat-value">{{ projet.superficie }}&nbsp;ha</strong>
+                </div>
+            </div>
+            <div class="pq-stat">
+                <span class="pq-stat-icon" aria-hidden="true"><i class="fas fa-calendar-alt"></i></span>
+                <div>
+                    <span class="pq-stat-label">Lancement</span>
+                    <strong class="pq-stat-value">{{ projet.date_lancement|date:"d/m/Y" }}</strong>
+                </div>
+            </div>
+            <div class="pq-stat">
+                <span class="pq-stat-icon" aria-hidden="true"><i class="fas fa-seedling"></i></span>
+                <div>
+                    <span class="pq-stat-label">Produits</span>
+                    <strong class="pq-stat-value">{{ projet_produits.count }}</strong>
+                </div>
+            </div>
+            <div class="pq-stat">
+                <span class="pq-stat-icon" aria-hidden="true"><i class="fas fa-flag-checkered"></i></span>
+                <div>
+                    <span class="pq-stat-label">Statut</span>
+                    <strong class="pq-stat-value pq-stat-value--status">{{ projet.get_statut_display }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <nav class="projet-actions-toolbar" aria-label="Actions sur le projet">
+            <a href="{% url 'liste_projets' %}" class="projet-action-btn projet-action-btn--ghost">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i><span>Retour</span>
+            </a>
+            <a href="{% url 'modifier_projet' projet.id %}" class="projet-action-btn projet-action-btn--primary">
+                <i class="fas fa-edit" aria-hidden="true"></i><span>Modifier</span>
+            </a>
+            {% if can_view_investissements %}
+            <a href="{% url 'ajouter_investissement' projet.id %}" class="projet-action-btn projet-action-btn--accent">
+                <i class="fas fa-plus" aria-hidden="true"></i><span>Investissement</span>
+            </a>
+            {% endif %}
+            {% if projet.statut != 'fini' %}
+            <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="projet-action-btn projet-action-btn--success">
+                <i class="fas fa-check-circle" aria-hidden="true"></i><span class="d-none d-sm-inline">Terminer & saisir récolte</span><span class="d-sm-none">Terminer</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'supprimer_projet' projet.id %}" class="projet-action-btn projet-action-btn--danger">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i><span>Supprimer</span>
+            </a>
+        </nav>
     </div>
 
-    <div class="row g-4 mb-5">
+    <div class="row projet-detail-two-col g-4 mb-5">
         <!-- Left Column -->
-        <div class="col-lg-7 d-flex flex-column gap-4 animate__animated animate__fadeInLeft">
+        <div class="col-lg-7 projet-detail-col-main d-flex flex-column gap-4 animate__animated animate__fadeInLeft">
             
             <!-- General Info Card -->
-            <div class="glass-card flex-fill">
+            <div class="glass-card flex-fill projet-section" id="apercu">
                 <div class="glass-card-header">
-                    <h5><i class="fas fa-info-circle text-accent me-2"></i> Aperçu du Projet</h5>
+                    <h5><i class="fas fa-info-circle text-accent me-2" aria-hidden="true"></i> En bref</h5>
                 </div>
                 <div class="glass-card-body">
                     <div class="row g-4">
@@ -134,11 +168,11 @@
                 </div>
                 <div class="glass-card-body p-3">
                     {% if plant_photos %}
-                        <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel" style="border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                        <div id="photoCarousel" class="carousel slide projet-photo-carousel" data-bs-ride="carousel">
                             <div class="carousel-inner">
                                 {% for photo in plant_photos %}
                                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                        <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover" style="height: 350px;" data-bs-toggle="tooltip" title="{{ photo.subtitle }}" {% if not forloop.first %}loading="lazy"{% endif %}>
+                                        <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 object-fit-cover projet-carousel-img" data-bs-toggle="tooltip" title="{{ photo.subtitle }}" {% if not forloop.first %}loading="lazy"{% endif %}>
                                         <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.6); border-radius: 12px; padding: 10px; bottom: 20px;">
                                             <h6 class="mb-1 ">{{ photo.title }}</h6>
                                             {% if photo.subtitle %}<p class="mb-0 small text-muted">{{ photo.subtitle }}</p>{% endif %}
@@ -167,7 +201,7 @@
         </div>
 
         <!-- Right Column -->
-        <div class="col-lg-5 d-flex flex-column gap-4 animate__animated animate__fadeInRight">
+        <div class="col-lg-5 projet-detail-col-side d-flex flex-column gap-4 animate__animated animate__fadeInRight">
             
             <!-- Prediction Card -->
             <div class="glass-card prediction-card bg-gradient-premium">
@@ -219,7 +253,7 @@
                     <h5><i class="fas fa-map text-accent me-2"></i> Localisation</h5>
                 </div>
                 <div class="glass-card-body p-2">
-                    <div id="map" class="rounded-modern" style="height: 250px; width: 100%; z-index: 1;"></div>
+                    <div id="map" class="rounded-modern projet-detail-map" style="height: 250px; width: 100%; z-index: 1;"></div>
                 </div>
             </div>
 
@@ -227,16 +261,17 @@
     </div>
 
     <!-- Products/Semis Section (Full Width) -->
-    <div class="row mb-5 animate__animated animate__fadeInUp">
+    <div class="row mb-5 animate__animated animate__fadeInUp" id="semis">
         <div class="col-12">
-            <div class="glass-card">
-                <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap">
-                    <h5 class="mb-0"><i class="fas fa-seedling text-accent me-2"></i> Produits & Semis</h5>
+            <div class="glass-card projet-section">
+                <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0"><i class="fas fa-seedling text-accent me-2" aria-hidden="true"></i> Produits & semis</h5>
                     {% if projet.statut == 'fini' %}
                     <span class="status-chip fini"><i class="fas fa-check-circle"></i> Recolte terminee</span>
                     {% endif %}
                 </div>
                 <div class="glass-card-body projet-semis-widget">
+                    <p class="projet-section-intro d-none d-md-block">Suivi parcelle par parcelle : semences, surfaces et rendements.</p>
                     {% if projet_produits %}
                         <div class="semis-grid">
                             {% for pp in projet_produits %}
@@ -328,14 +363,30 @@
     <!-- Investments Section (Full Width) -->
     <div class="row mb-5 animate__animated animate__fadeInUp">
         <div class="col-12">
-            <div class="glass-card">
-                <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap">
-                    <h5 class="mb-0"><i class="fas fa-coins text-accent me-2"></i> Investissements Financiers</h5>
+            <div class="glass-card projet-section" id="investissements">
+                <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0"><i class="fas fa-coins text-accent me-2" aria-hidden="true"></i> Investissements</h5>
                 </div>
                 <div class="glass-card-body">
                     {% if projet.investissement_set.all %}
-                        <div class="row g-4">
-                            <div class="col-lg-6">
+                        <p class="projet-section-intro">Coûts par poste et visualisation du poids du coût / ha.</p>
+                        <div class="invest-cards-mobile d-lg-none" role="list" aria-label="Liste des investissements">
+                            {% for inv in projet.investissement_set.all %}
+                            <article class="invest-card-mobile" role="listitem">
+                                <div class="invest-card-mobile__title">{{ inv.description }}</div>
+                                <div class="invest-card-mobile__row">
+                                    <span class="invest-card-mobile__label">Coût / ha</span>
+                                    <span class="invest-card-mobile__value">{{ inv.cout_par_hectare }}&nbsp;FCFA</span>
+                                </div>
+                                <div class="invest-card-mobile__row">
+                                    <span class="invest-card-mobile__label">Autres frais</span>
+                                    <span class="invest-card-mobile__value">{{ inv.autres_frais }}&nbsp;FCFA</span>
+                                </div>
+                            </article>
+                            {% endfor %}
+                        </div>
+                        <div class="row g-4 align-items-stretch">
+                            <div class="col-lg-6 d-none d-lg-block">
                                 <div class="table-responsive">
                                     <table class="table-modern w-100">
                                         <thead>
@@ -357,8 +408,8 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div style="height: 300px; width: 100%;">
+                            <div class="col-12 col-lg-6">
+                                <div class="invest-chart-wrap" style="min-height: 260px; height: 300px; width: 100%;">
                                     <canvas id="investmentChart"></canvas>
                                 </div>
                             </div>
@@ -379,112 +430,6 @@
     </div>
     {% endif %}
 </div>
-
-<style>
-    .project-hero-bg {
-        position: absolute; top: 0; left: 0; width: 100%; height: 40vh; min-height: 350px;
-        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
-        z-index: 0;
-        overflow: hidden;
-    }
-    .project-hero-bg .african-motif {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e2725b' fill-opacity='0.04'%3E%3Cpath d='M40 0l40 40-40 40L0 40zM20 40l20 20 20-20-20-20zM0 0h20v20H0zM60 60h20v20H60zM60 0h20v20H60zM0 60h20v20H0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        background-size: 70px 70px;
-        z-index: 1;
-    }
-    .dark-mode .project-hero-bg .african-motif {
-        background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2339FF14' fill-opacity='0.03'%3E%3Cpath d='M40 0l40 40-40 40L0 40zM20 40l20 20 20-20-20-20zM0 0h20v20H0zM60 60h20v20H60zM60 0h20v20H60zM0 60h20v20H0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-    .project-hero-bg .hero-overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: 
-            radial-gradient(circle at 10% 20%, rgba(163, 230, 53, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 90% 80%, rgba(226, 114, 91, 0.08) 0%, transparent 40%),
-            radial-gradient(circle at 50% 50%, rgba(2, 44, 34, 0.05) 0%, transparent 60%);
-        z-index: 2;
-    }
-
-    .project-content-wrapper {
-        position: relative; z-index: 10;
-        padding-top: max(40vh, 350px);
-    }
-
-    .glass-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
-        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-        overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .glass-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
-
-    .glass-card-header {
-        padding: 24px 32px 20px 32px;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .glass-card-header h5 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--text-main); }
-    .dark-mode .glass-card-header h5 { color: var(--text-main); }
-
-    .glass-card-body { padding: 32px; }
-
-    .info-block { display: flex; align-items: center; gap: 16px; }
-    .info-icon {
-        width: 50px; height: 50px; border-radius: 16px;
-        background: rgba(163, 230, 53, 0.15); color: var(--primary);
-        display: flex; align-items: center; justify-content: center; font-size: 20px;
-    }
-    .dark-mode .info-icon { color: var(--accent); }
-    .info-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .info-value { font-size: 2rem; font-weight: 800; color: var(--text-main); line-height: 1; font-family: var(--font-display); }
-    .info-value span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
-    .info-value-text { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
-
-    .bg-gradient-premium {
-        background: linear-gradient(135deg, var(--card-bg) 0%, rgba(163, 230, 53, 0.05) 100%);
-        border: 1px solid rgba(163, 230, 53, 0.2);
-    }
-
-    .tracking-widest { letter-spacing: 0.15em; }
-
-    .table-modern { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
-    .table-modern th { font-family: var(--font-display); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; padding: 12px; border-bottom: 1px solid var(--border-color); }
-    .table-modern td { padding: 16px 12px; background: var(--bg-main); color: var(--text-main); vertical-align: middle; }
-    .table-modern tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
-    .table-modern tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
-
-    .rounded-modern { border-radius: 16px; overflow: hidden; }
-
-    .badge-modern {
-        background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color);
-        color: var(--text-main); padding: 6px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem;
-        display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display);
-    }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-
-    .bg-surface { background: var(--bg-main); }
-    .text-shadow-lg { text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    
-    .confiance-gauge {
-        width: 120px;
-        height: 6px;
-        background: var(--border-color);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-    .gauge-bar {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 1s ease-out;
-    }
-
-    @media (max-width: 991px) {
-        .project-content-wrapper { padding-top: max(30vh, 250px); }
-        .project-hero-bg { height: 30vh; min-height: 250px; }
-    }
-</style>
 
 <!-- Scripts -->
 <script>
@@ -514,11 +459,13 @@
         {% endif %}
 
         if (investmentLabels.length > 0) {
+            const chartEl = document.getElementById('investmentChart');
+            if (chartEl) {
             const isDark = document.body.classList.contains('dark-mode');
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
             const textColor = isDark ? '#94a3b8' : '#64748b';
 
-            var ctx = document.getElementById('investmentChart').getContext('2d');
+            var ctx = chartEl.getContext('2d');
             const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
             gradient1.addColorStop(0, 'rgba(163, 230, 53, 0.8)');
             gradient1.addColorStop(1, 'rgba(163, 230, 53, 0.2)');
@@ -563,6 +510,7 @@
                     }
                 }
             });
+            }
         }
 
         // Growth Curve Chart (Predictive S-Curve)

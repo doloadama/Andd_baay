@@ -10,36 +10,43 @@
         max-height: 420px;
     }
 
-    .projet-detail-page .project-hero-bg h1.display-3 {
-        font-size: clamp(1.45rem, 6vw, 2rem) !important;
+    .projet-detail-page .projet-hero-title {
+        font-size: clamp(1.35rem, 6vw, 2rem) !important;
         line-height: 1.15;
         padding: 0 8px;
     }
 
-    .projet-detail-page .project-hero-bg .lead {
+    .projet-detail-page .projet-hero-subtitle {
         font-size: 0.88rem !important;
         line-height: 1.45;
         padding: 0 10px;
     }
 
     .projet-detail-page .project-content-wrapper {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+        padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+        padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
     }
 
-    .projet-detail-page .project-content-wrapper > .d-flex.flex-wrap.gap-3 {
+    .projet-detail-page .project-content-wrapper > .animate__fadeInUp:first-of-type {
+        margin-top: -18px !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .projet-detail-page .projet-quick-stats {
+        gap: 10px;
+    }
+
+    .projet-detail-page .projet-actions-toolbar {
         flex-direction: column;
         align-items: stretch !important;
-        margin-top: -20px !important;
-        padding: 0 12px;
+        padding: 12px;
     }
 
-    .projet-detail-page .project-content-wrapper > .d-flex.flex-wrap.gap-3 > a,
-    .projet-detail-page .project-content-wrapper > .d-flex.flex-wrap.gap-3 > .btn-modern {
+    .projet-detail-page .projet-action-btn {
         width: 100%;
-        justify-content: center;
-        min-height: 48px;
-        text-align: center;
+        flex: 1 1 auto !important;
     }
 
     .projet-detail-page #photoCarousel .carousel-item img {

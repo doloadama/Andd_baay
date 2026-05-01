@@ -1,0 +1,554 @@
+/**
+ * Fiche projet détail — lisibilité, repères visuels, mobile-first
+ */
+
+/* ─── Hero ─── */
+.projet-detail-page .project-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40vh;
+    min-height: 320px;
+    background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
+    z-index: 0;
+    overflow: hidden;
+}
+
+.projet-detail-page .project-hero-bg .african-motif {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e2725b' fill-opacity='0.04'%3E%3Cpath d='M40 0l40 40-40 40L0 40zM20 40l20 20 20-20-20-20zM0 0h20v20H0zM60 60h20v20H60zM60 0h20v20H60zM0 60h20v20H0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-size: 70px 70px;
+    z-index: 1;
+}
+
+.dark-mode .projet-detail-page .project-hero-bg .african-motif {
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2339FF14' fill-opacity='0.03'%3E%3Cpath d='M40 0l40 40-40 40L0 40zM20 40l20 20 20-20-20-20zM0 0h20v20H0zM60 60h20v20H60zM60 0h20v20H60zM0 60h20v20H0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.projet-detail-page .project-hero-bg .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(163, 230, 53, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(226, 114, 91, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(2, 44, 34, 0.05) 0%, transparent 60%);
+    z-index: 2;
+}
+
+.projet-hero-kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(248, 250, 252, 0.75);
+    margin-bottom: 10px;
+}
+
+.projet-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 5vw, 2.75rem);
+    line-height: 1.15;
+    word-break: break-word;
+}
+
+.projet-hero-subtitle {
+    font-size: clamp(0.85rem, 3vw, 1.1rem);
+    max-width: 36rem;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.45;
+}
+
+.projet-photo-carousel {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.projet-carousel-img {
+    height: 220px;
+    object-fit: cover;
+}
+
+@media (min-width: 768px) {
+    .projet-carousel-img {
+        height: 350px;
+    }
+}
+
+.projet-detail-map {
+    min-height: 220px;
+}
+
+@media (min-width: 992px) {
+    .projet-detail-map {
+        min-height: 250px;
+    }
+}
+
+.projet-detail-page .project-content-wrapper {
+    position: relative;
+    z-index: 10;
+    padding-top: max(40vh, 320px);
+    padding-bottom: 32px;
+}
+
+/* ─── Indicateurs rapides ─── */
+.projet-quick-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 576px) {
+    .projet-quick-stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.pq-stat {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.pq-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(163, 230, 53, 0.14);
+    color: var(--accent-dark, #65a30d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.pq-stat-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.pq-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.pq-stat-value--status {
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+/* ─── Barre d’actions ─── */
+.projet-actions-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 28px;
+    padding: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.projet-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    min-height: 48px;
+    flex: 1 1 auto;
+    text-align: center;
+}
+
+.projet-action-btn:focus-visible {
+    outline: 3px solid rgba(163, 230, 53, 0.45);
+    outline-offset: 2px;
+}
+
+.projet-action-btn--ghost {
+    background: var(--bg-secondary);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+.projet-action-btn--ghost:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+}
+
+.projet-action-btn--primary {
+    background: linear-gradient(135deg, #022c22 0%, #065f46 100%);
+    color: #fff;
+    border-color: transparent;
+    flex: 1 1 140px;
+}
+
+.projet-action-btn--primary:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(2, 44, 34, 0.25);
+}
+
+.projet-action-btn--accent {
+    background: var(--accent);
+    color: #022c22;
+    border-color: transparent;
+}
+
+.projet-action-btn--accent:hover {
+    color: #022c22;
+    filter: brightness(1.05);
+}
+
+.projet-action-btn--success {
+    background: var(--success);
+    color: #fff;
+    border-color: transparent;
+}
+
+.projet-action-btn--success:hover {
+    color: #fff;
+    filter: brightness(1.05);
+}
+
+.projet-action-btn--danger {
+    background: transparent;
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.35);
+    flex: 1 1 100%;
+}
+
+@media (min-width: 768px) {
+    .projet-action-btn--danger {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+}
+
+.projet-action-btn--danger:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+}
+
+/* ─── Sections ─── */
+.projet-section {
+    margin-bottom: 24px;
+}
+
+.projet-section-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.projet-section-title h2,
+.projet-section-title h5 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--text-main);
+}
+
+.projet-section-intro {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin: 0 0 16px 0;
+    max-width: 62ch;
+    line-height: 1.5;
+}
+
+/* ─── Cartes glass (fiche) ─── */
+.projet-detail-page .glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.projet-detail-page .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft, 0 14px 40px rgba(15, 23, 42, 0.08));
+}
+
+.projet-detail-page .glass-card-header {
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.projet-detail-page .glass-card-header h5 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-main);
+}
+
+.projet-detail-page .glass-card-body {
+    padding: 22px;
+}
+
+.projet-detail-page .info-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.projet-detail-page .info-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(163, 230, 53, 0.15);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.dark-mode .projet-detail-page .info-icon {
+    color: var(--accent);
+}
+
+.projet-detail-page .info-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.projet-detail-page .info-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
+    font-family: var(--font-display);
+}
+
+.projet-detail-page .info-value span {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.projet-detail-page .info-value-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.projet-detail-page .bg-gradient-premium {
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(163, 230, 53, 0.06) 100%);
+    border: 1px solid rgba(163, 230, 53, 0.22);
+}
+
+.projet-detail-page .tracking-widest {
+    letter-spacing: 0.15em;
+}
+
+.projet-detail-page .table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 4px;
+}
+
+.projet-detail-page .table-modern th {
+    font-family: var(--font-display);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.projet-detail-page .table-modern td {
+    padding: 14px 12px;
+    background: var(--bg-main);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.projet-detail-page .table-modern tr td:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.projet-detail-page .table-modern tr td:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.projet-detail-page .rounded-modern {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.projet-detail-page .badge-modern {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+}
+
+.projet-detail-page .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.projet-detail-page .bg-surface {
+    background: var(--bg-main);
+}
+
+.projet-detail-page .text-shadow-lg {
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.projet-detail-page .confiance-gauge {
+    width: 120px;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.projet-detail-page .gauge-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease-out;
+}
+
+/* ─── Investissements : cartes mobile ─── */
+.invest-cards-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.invest-card-mobile {
+    padding: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+}
+
+.invest-card-mobile__title {
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.invest-card-mobile__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+    font-size: 0.88rem;
+}
+
+.dark-mode .invest-card-mobile__row {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.invest-card-mobile__row:last-child {
+    border-bottom: none;
+}
+
+.invest-card-mobile__label {
+    color: var(--text-muted);
+}
+
+.invest-card-mobile__value {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* ─── Grille desktop 2 colonnes : ordre lecture mobile ─── */
+@media (max-width: 991.98px) {
+    .projet-detail-page .project-content-wrapper {
+        padding-top: max(34vh, 280px);
+    }
+
+    .projet-detail-page .project-hero-bg {
+        height: 34vh;
+        min-height: 260px;
+    }
+
+    .projet-detail-two-col {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Prédiction puis carte avant le bloc “long” (aperçu + photos) */
+    .projet-detail-col-side {
+        order: -1;
+    }
+}
+
+@media (min-width: 992px) {
+    .projet-detail-two-col .projet-detail-col-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .projet-detail-two-col .projet-detail-col-side {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+}
