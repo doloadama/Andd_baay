@@ -301,6 +301,13 @@
             alert(title + "\nParticipants: " + (Number(participantsCount) + 1) + "\nMessagerie temps reel active.");
         };
         if (typeof window.initMessagerieConversation === "function") {
+            var scripts = document.getElementsByTagName("script");
+            var currentScript = document.currentScript || scripts[scripts.length - 1];
+            var root = currentScript ? currentScript.previousElementSibling : null;
+            if (!root || !root.classList || !root.classList.contains("msg-conv-partial")) {
+                root = document.querySelector('.msg-conv-partial[data-conversation-id="{{ conversation.id }}"]');
+            }
+            cfg.container = root || (currentScript ? currentScript.parentElement : document);
             window.initMessagerieConversation(cfg);
         }
     })();
