@@ -1119,4 +1119,19 @@ button.status-badge {
         bottom: 16px;
         width: auto;
     }
+
+    .action-link {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    button.status-badge {
+        min-height: 44px;
+    }
+
+    .projects-shell[data-projects-page] {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
 }

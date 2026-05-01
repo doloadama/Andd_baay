@@ -1,0 +1,167 @@
+/**
+ * mobile-agri-pages.css — Touch-first layouts for Projets, Semis, Investissement
+ * Loaded after mobile.css on all pages.
+ */
+
+@media (max-width: 767.98px) {
+    /* ─── Projet détail ─── */
+    .projet-detail-page .project-hero-bg {
+        min-height: 38vh;
+        max-height: 420px;
+    }
+
+    .projet-detail-page .project-hero-bg h1.display-3 {
+        font-size: clamp(1.45rem, 6vw, 2rem) !important;
+        line-height: 1.15;
+        padding: 0 8px;
+    }
+
+    .projet-detail-page .project-hero-bg .lead {
+        font-size: 0.88rem !important;
+        line-height: 1.45;
+        padding: 0 10px;
+    }
+
+    .projet-detail-page .project-content-wrapper {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .projet-detail-page .project-content-wrapper > .d-flex.flex-wrap.gap-3 {
+        flex-direction: column;
+        align-items: stretch !important;
+        margin-top: -20px !important;
+        padding: 0 12px;
+    }
+
+    .projet-detail-page .project-content-wrapper > .d-flex.flex-wrap.gap-3 > a,
+    .projet-detail-page .project-content-wrapper > .d-flex.flex-wrap.gap-3 > .btn-modern {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+        text-align: center;
+    }
+
+    .projet-detail-page #photoCarousel .carousel-item img {
+        height: 220px !important;
+        object-fit: cover;
+    }
+
+    .projet-detail-page #photoCarousel .carousel-caption {
+        display: block !important;
+        font-size: 0.8rem;
+        padding: 6px 10px !important;
+        bottom: 8px !important;
+    }
+
+    .projet-detail-page #map {
+        height: 200px !important;
+        min-height: 180px;
+    }
+
+    .projet-detail-page .info-block {
+        gap: 10px;
+    }
+
+    .projet-detail-page .prediction-card .display-5 {
+        font-size: 1.65rem !important;
+    }
+
+    /* ─── Liste semis ─── */
+    .semis-list-page .page-header {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .semis-list-page .page-title {
+        font-size: 1.45rem;
+    }
+
+    .semis-list-page .page-header .btn-modern {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+    }
+
+    .semis-list-page .semis-card-footer .btn-card {
+        min-height: 44px;
+        flex: 1 1 calc(50% - 4px);
+    }
+
+    .semis-list-page .filter-select {
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .semis-list-page .pagination-wrapper {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+
+    /* ─── Détail semis ─── */
+    .semis-detail-page .page-title {
+        font-size: 1.35rem;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+
+    .semis-detail-page .page-subtitle .ms-3 {
+        margin-left: 0 !important;
+        display: block;
+        margin-top: 6px;
+    }
+
+    .semis-detail-page .header-actions {
+        flex-direction: column;
+    }
+
+    .semis-detail-page .header-actions .btn-modern {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+    }
+
+    .semis-detail-page .detail-card,
+    .semis-detail-page .sidebar-card {
+        padding: 18px 16px;
+    }
+
+    .semis-detail-page .rendement-value {
+        font-size: 1.75rem;
+    }
+
+    .semis-detail-page .culture-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 2rem;
+    }
+
+    /* ─── Investissement ─── */
+    .investissement-page.container {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        padding-top: 24px !important;
+        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .investissement-page .display-5 {
+        font-size: 1.5rem !important;
+    }
+
+    .investissement-page .glass-form-card {
+        border-radius: 20px !important;
+    }
+
+    .investissement-page .card-header-modern {
+        padding: 20px 18px !important;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .investissement-page .card-body.p-4 {
+        padding: 16px !important;
+    }
+}

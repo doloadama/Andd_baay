@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bindShortcuts();
     bindDeleteConfirms();
     initStickyToolbar();
-    restoreSavedView();
+    applyProjectsViewportView();
+    window.matchMedia('(max-width: 767.98px)').addEventListener('change', applyProjectsViewportView);
     filterProjects();
 });
 
@@ -190,9 +191,14 @@ function bindViewToggle() {
     });
 }
 
-function restoreSavedView() {
-    const savedView = localStorage.getItem('projectsView') || 'table';
-    setView(savedView);
+function applyProjectsViewportView() {
+    const saved = localStorage.getItem('projectsView');
+    const isMobile = window.matchMedia('(max-width: 767.98px)').matches;
+    if (isMobile) {
+        setView(saved === 'table' ? 'table' : 'grid');
+    } else {
+        setView(saved || 'table');
+    }
 }
 
 function setView(view) {

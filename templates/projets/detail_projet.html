@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="projet-detail-page">
 <!-- Immersive Hero Background -->
 <div class="project-hero-bg" style="background-image: url('{% if projet.image_fond %}{{ projet.image_fond.url }}{% else %}{% static 'images/default_farm_bg.png' %}{% endif %}'); background-size: cover; background-position: center; transition: background-image 0.5s ease;">
     <div class="african-motif"></div>
@@ -605,4 +606,5 @@
         });
     });
 </script>
+</div>
 {% endblock %}
