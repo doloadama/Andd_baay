@@ -4,70 +4,288 @@
 {% block title %}Nouvelle conversation — Andd Baay{% endblock %}
 
 {% block content %}
-<div class="container py-5" style="max-width: 720px;">
-    <div class="glass-card">
-        <div class="glass-card-header">
-            <h5 class="mb-0"><i class="fas fa-pen-to-square text-accent me-2"></i> Nouvelle conversation</h5>
+<style>
+    .nc-shell { max-width: 720px; margin: 0 auto; }
+    @media (max-width: 767.98px) {
+        .nc-shell { padding-left: 0 !important; padding-right: 0 !important; }
+    }
+    .nc-back {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+        margin-bottom: 14px; padding: 8px 4px;
+        border-radius: 10px; transition: color 0.15s ease, background 0.15s ease;
+    }
+    .nc-back:hover { color: var(--accent-dark); background: rgba(34, 197, 94, 0.08); }
+    .nc-card {
+        border-radius: 22px !important;
+        border: 1px solid rgba(15, 23, 42, 0.06) !important;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+    @media (max-width: 767.98px) {
+        .nc-card { border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+    }
+    .nc-card-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border-glass);
+        background: linear-gradient(135deg,
+            rgba(34, 197, 94, 0.12) 0%,
+            rgba(14, 165, 233, 0.06) 100%);
+    }
+    .nc-card-header h1 {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-main);
+    }
+    .nc-card-header p { margin: 6px 0 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
+    .nc-card-body { padding: 18px 20px 22px; }
+    .nc-search-wrap {
+        position: relative;
+        margin-bottom: 14px;
+    }
+    .nc-search-wrap input {
+        width: 100%;
+        padding: 11px 12px 11px 40px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        background: var(--bg-main, #f8fafc);
+        font-size: 0.9rem;
+        color: var(--text-main);
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+    .nc-search-wrap input:focus {
+        outline: none;
+        background: var(--card-bg-solid);
+        border-color: rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
+    }
+    .nc-search-wrap .nc-search-ico {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        pointer-events: none;
+    }
+    .nc-meta {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 8px;
+        margin-bottom: 10px;
+    }
+    .nc-count {
+        font-size: 0.78rem; font-weight: 600; color: var(--msg-accent-dark, #15803d);
+        background: rgba(34, 197, 94, 0.12);
+        padding: 4px 10px; border-radius: 999px;
+    }
+    .nc-list {
+        display: flex; flex-direction: column; gap: 10px;
+        max-height: min(52vh, 420px);
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 4px;
+    }
+    .nc-list::-webkit-scrollbar { width: 5px; }
+    .nc-list::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
+    .nc-membre-item {
+        display: none;
+        margin: 0;
+    }
+    .nc-membre-item.nc-visible { display: block; }
+    .nc-membre-label {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border-glass);
+        background: var(--card-bg-solid);
+        cursor: pointer;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        min-height: 56px;
+    }
+    .nc-membre-label:hover {
+        border-color: rgba(34, 197, 94, 0.35);
+        box-shadow: 0 4px 14px rgba(34, 197, 94, 0.08);
+    }
+    .nc-membre-label:has(input:checked) {
+        border-color: var(--accent, #22c55e);
+        background: rgba(34, 197, 94, 0.06);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+    }
+    .nc-membre-label .form-check-input {
+        width: 1.15rem; height: 1.15rem;
+        margin-top: 0;
+        flex-shrink: 0;
+        accent-color: #22c55e;
+    }
+    .nc-avatar {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-weight: 700; font-size: 0.95rem;
+        font-family: var(--font-display);
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+    }
+    .nc-avatar.g1 { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .nc-avatar.g2 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .nc-avatar.g3 { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+    .nc-avatar.g4 { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
+    .nc-avatar.g5 { background: linear-gradient(135deg, #f97316, #fbbf24); }
+    .nc-avatar.g6 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .nc-empty-filter {
+        text-align: center; padding: 28px 16px;
+        color: var(--text-muted); font-size: 0.88rem;
+        display: none;
+    }
+    .nc-empty-filter.nc-show { display: block; }
+    .nc-actions {
+        display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end;
+        margin-top: 8px; padding-top: 16px;
+        border-top: 1px solid var(--border-glass);
+    }
+    @media (max-width: 767.98px) {
+        .nc-actions { flex-direction: column-reverse; }
+        .nc-actions .btn-modern { width: 100%; justify-content: center; min-height: 48px; }
+    }
+</style>
+
+<div class="container py-3 py-md-5 nc-shell">
+    <a href="{% url 'messagerie_inbox' %}" class="nc-back" aria-label="Retour à la messagerie">
+        <i class="fas fa-arrow-left"></i> Retour aux conversations
+    </a>
+
+    <div class="glass-card nc-card">
+        <div class="nc-card-header">
+            <h1><i class="fas fa-pen-to-square text-success me-2"></i>Nouvelle conversation</h1>
+            <p>Choisissez un ou plusieurs membres de votre ferme, puis envoyez le premier message. Les discussions en direct s’ouvrent tout de suite.</p>
         </div>
-        <div class="glass-card-body">
-            <form method="post" action="{% url 'nouvelle_conversation' %}">
+        <div class="nc-card-body">
+            <form method="post" action="{% url 'nouvelle_conversation' %}" id="ncForm">
                 {% csrf_token %}
 
                 <div class="mb-3">
-                    <label class="form-label-modern" for="id_sujet">Sujet (optionnel)</label>
+                    <label class="form-label-modern" for="id_sujet">Sujet <span class="text-muted fw-normal">(optionnel)</span></label>
                     <input type="text" name="sujet" id="id_sujet" class="form-control modern-input" maxlength="200"
-                           placeholder="Ex: Réunion hebdomadaire…" value="{{ sujet|default:'' }}">
+                           placeholder="Ex. : Suivi semaine 12, équipe riz…" value="{{ sujet|default:'' }}">
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label-modern">Destinataire(s)</label>
+                    <label class="form-label-modern" id="ncDestLabel">Destinataires</label>
                     {% if membres %}
-                        <div class="row g-2">
-                            {% for membre in membres %}
-                            <div class="col-md-6">
-                                <label class="d-flex align-items-center gap-2 p-2 rounded-3 cursor-pointer"
-                                       style="border: 1px solid var(--border-glass); background: var(--card-bg-solid); transition: var(--transition);"
-                                       onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border-glass)'">
-                                    <input type="checkbox" name="participants" value="{{ membre.id }}" class="form-check-input mt-0">
-                                    <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                             style="width: 36px; height: 36px; background: var(--accent-dark); font-size: 0.85rem;">
-                                            {{ membre.user.username|first|upper }}
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold" style="font-size: 0.9rem;">{{ membre.user.username }}</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">{{ membre.user.get_full_name|default:membre.user.email|default:'' }}</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                            {% endfor %}
+                    <div class="nc-search-wrap">
+                        <span class="nc-search-ico"><i class="fas fa-search"></i></span>
+                        <input type="search" id="ncSearch" autocomplete="off"
+                               placeholder="Rechercher par nom, pseudo ou e-mail…"
+                               aria-describedby="ncDestLabel">
+                    </div>
+                    <div class="nc-meta">
+                        <span class="text-muted small">Cochez au moins une personne.</span>
+                        <span class="nc-count" id="ncSelectedCount" aria-live="polite">0 sélectionné(s)</span>
+                    </div>
+                    <div class="nc-empty-filter" id="ncEmptyFilter" role="status">
+                        Aucun contact ne correspond à votre recherche.
+                    </div>
+                    <div class="nc-list" id="ncList" role="group" aria-label="Liste des membres">
+                        {% for membre in membres %}
+                        <div class="nc-membre-item nc-visible"
+                             data-nc-search="{{ membre.user.username }} {{ membre.user.get_full_name }} {{ membre.user.email }}">
+                            <label class="nc-membre-label w-100 mb-0">
+                                <input type="checkbox" name="participants" value="{{ membre.id }}"
+                                       class="form-check-input nc-cb" aria-describedby="nc-help-{{ membre.id }}">
+                                <span class="nc-avatar {% cycle 'g1' 'g2' 'g3' 'g4' 'g5' 'g6' %}">
+                                    {{ membre.user.first_name|default:membre.user.username|make_list|first|upper }}
+                                </span>
+                                <span class="flex-grow-1 text-start min-w-0">
+                                    <span class="fw-semibold d-block text-truncate" id="nc-help-{{ membre.id }}">{{ membre.user.username }}</span>
+                                    <span class="small text-muted text-truncate d-block">
+                                        {{ membre.user.get_full_name|default:membre.user.email|default:"" }}
+                                    </span>
+                                </span>
+                            </label>
                         </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <div class="icon-circle mx-auto mb-2 text-muted"><i class="fas fa-users fs-3"></i></div>
-                            <p class="text-muted mb-0">Aucun membre disponible pour la messagerie.</p>
-                            <small class="text-muted">Vous devez appartenir à une ferme avec d'autres membres.</small>
+                    <div class="text-center py-5 px-2">
+                        <div class="rounded-4 d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(14,165,233,0.1)); color: #16a34a;">
+                            <i class="fas fa-users fs-2"></i>
                         </div>
+                        <p class="fw-semibold mb-1">Aucun membre disponible</p>
+                        <p class="text-muted small mb-3">Vous devez partager une ferme avec d’autres personnes pour démarrer une conversation.</p>
+                        <a href="{% url 'liste_fermes' %}" class="btn-modern btn-primary-modern btn-sm px-3">Voir mes fermes</a>
+                    </div>
                     {% endif %}
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label-modern" for="id_contenu">Message</label>
+                <div class="mb-0">
+                    <label class="form-label-modern" for="id_contenu">Premier message</label>
                     <textarea name="contenu" id="id_contenu" class="form-control modern-input" rows="4" required
                               placeholder="Écrivez votre premier message…">{{ contenu|default:'' }}</textarea>
                 </div>
 
-                <div class="d-flex gap-2 justify-content-end">
-                    <a href="{% url 'messagerie_inbox' %}" class="btn-modern btn-outline-modern bg-surface shadow-sm px-4">
+                <div class="nc-actions">
+                    <a href="{% url 'messagerie_inbox' %}" class="btn-modern btn-outline-modern bg-surface shadow-sm px-4 order-2 order-md-1">
                         Annuler
                     </a>
-                    <button type="submit" class="btn-modern btn-primary-modern px-4" {% if not membres %}disabled{% endif %}>
-                        <i class="fas fa-paper-plane"></i> Envoyer
+                    <button type="submit" class="btn-modern btn-primary-modern px-4 order-1 order-md-2" id="ncSubmit"
+                            {% if not membres %}disabled aria-disabled="true"{% endif %}>
+                        <i class="fas fa-paper-plane me-1"></i> Démarrer la conversation
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+{% if membres %}
+<script>
+(function () {
+    var search = document.getElementById("ncSearch");
+    var items = document.querySelectorAll(".nc-membre-item");
+    var emptyEl = document.getElementById("ncEmptyFilter");
+    var countEl = document.getElementById("ncSelectedCount");
+    var form = document.getElementById("ncForm");
+    if (!search || !items.length) return;
+
+    function norm(s) {
+        return (s || "").toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    function refreshFilter() {
+        var q = norm(search.value);
+        var visible = 0;
+        for (var i = 0; i < items.length; i++) {
+            var el = items[i];
+            var hay = norm(el.getAttribute("data-nc-search") || el.textContent || "");
+            var show = !q || hay.indexOf(q) !== -1;
+            el.classList.toggle("nc-visible", show);
+            if (show) visible++;
+        }
+        if (emptyEl) {
+            emptyEl.classList.toggle("nc-show", visible === 0 && q.length > 0);
+        }
+    }
+
+    function refreshCount() {
+        var n = form ? form.querySelectorAll(".nc-cb:checked").length : 0;
+        if (countEl) {
+            countEl.textContent = n === 0 ? "0 sélectionné(s)" : (n === 1 ? "1 sélectionné" : n + " sélectionnés");
+        }
+    }
+
+    search.addEventListener("input", refreshFilter);
+    search.addEventListener("search", refreshFilter);
+    if (form) {
+        form.addEventListener("change", function (e) {
+            if (e.target && e.target.classList && e.target.classList.contains("nc-cb")) refreshCount();
+        });
+    }
+    refreshFilter();
+    refreshCount();
+})();
+</script>
+{% endif %}
 {% endblock %}
