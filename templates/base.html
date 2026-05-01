@@ -2530,37 +2530,37 @@
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 gap-2 mt-3 mt-lg-0">
                         {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
                                 href="{% url 'dashboard' %}" data-pjax>
                                 <i class="fas fa-chart-pie"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}"
+                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name == 'liste_projets' %}active{% endif %}"
                                 href="{% url 'liste_projets' %}" data-pjax>
                                 <i class="fas fa-folder"></i> Projets
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if 'ferme' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'liste_fermes' %}" data-pjax>
                                 <i class="fas fa-warehouse"></i> Mes Fermes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if 'semis' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern {% if request.resolver_match %}{% with n=request.resolver_match.url_name %}{% if n == 'liste_semis' or n == 'creer_semis' or n == 'detail_semis' or n == 'modifier_semis' or n == 'supprimer_semis' %}active{% endif %}{% endwith %}{% endif %}"
                                 href="{% url 'liste_semis' %}" data-pjax>
                                 <i class="fas fa-seedling"></i> Semis
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if 'tache' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'taches_liste' %}" data-pjax>
                                 <i class="fas fa-list-check"></i> Tâches
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'messagerie_inbox' %}" data-pjax
                                 data-drawer-toggle="messagerie">
                                 <i class="fas fa-envelope"></i> Messagerie
@@ -2810,19 +2810,19 @@
     <nav class="bottom-nav d-lg-none" aria-label="Navigation mobile">
         <ul>
             <li>
-                <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
+                <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
                     <i class="fas fa-chart-pie" aria-hidden="true"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="{% url 'liste_projets' %}" data-pjax class="{% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" aria-label="Projets">
+                <a href="{% url 'liste_projets' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" aria-label="Projets">
                     <i class="fas fa-folder" aria-hidden="true"></i>
                     <span>Projets</span>
                 </a>
             </li>
             <li>
-                <a href="{% url 'liste_semis' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}" aria-label="Semis">
+                <a href="{% url 'liste_semis' %}" data-pjax class="{% if request.resolver_match %}{% with n=request.resolver_match.url_name %}{% if n == 'liste_semis' or n == 'creer_semis' or n == 'detail_semis' or n == 'modifier_semis' or n == 'supprimer_semis' %}active{% endif %}{% endwith %}{% endif %}" aria-label="Semis">
                     <i class="fas fa-seedling" aria-hidden="true"></i>
                     <span>Semis</span>
                 </a>
@@ -2833,20 +2833,20 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'liste_fermes' %}" data-pjax class="{% if 'ferme' in request.resolver_match.url_name %}active{% endif %}" aria-label="Fermes">
+                <a href="{% url 'liste_fermes' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}" aria-label="Fermes">
                     <i class="fas fa-warehouse" aria-hidden="true"></i>
                     <span>Fermes</span>
                 </a>
             </li>
             <li>
-                <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
+                <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
                     <i class="fas fa-envelope" aria-hidden="true"></i>
                     <span>Message</span>
                     <span id="bottomNavMessagerieBadge" class="bottom-nav-badge" aria-live="polite" aria-atomic="true"></span>
                 </a>
             </li>
             <li>
-                <a href="{% url 'profil' %}" class="{% if request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
+                <a href="{% url 'profil' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
                     <i class="fas fa-user" aria-hidden="true"></i>
                     <span>Profil</span>
                 </a>

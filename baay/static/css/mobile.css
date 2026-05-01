@@ -15,7 +15,7 @@
     backdrop-filter: blur(12px) saturate(1.4);
     -webkit-backdrop-filter: blur(12px) saturate(1.4);
     border-top: 1px solid var(--border-color);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: 0;
 }
 .dark-mode .bottom-nav {
     background: rgba(15, 23, 42, 0.92);
@@ -24,12 +24,27 @@
 
 .bottom-nav ul {
     display: flex;
-    justify-content: space-around;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-end;
     list-style: none;
     margin: 0;
-    padding: 6px 4px 10px;
-    gap: 0;
+    padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+}
+
+.bottom-nav ul::-webkit-scrollbar {
+    display: none;
+}
+
+.bottom-nav ul > li {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
 }
 
 .bottom-nav a {
@@ -42,10 +57,11 @@
     text-decoration: none;
     font-size: 0.65rem;
     font-weight: 500;
-    min-width: 0;
-    flex: 1 1 0;
+    min-width: 56px;
+    max-width: 76px;
+    flex: 0 0 auto;
     min-height: 48px;
-    padding: 4px 2px;
+    padding: 4px 6px;
     border-radius: 12px;
     transition: all 0.15s ease;
     -webkit-tap-highlight-color: transparent;
@@ -122,14 +138,13 @@
         display: block;
     }
     .bottom-nav a {
-        font-size: 0.56rem;
-        padding: 4px 1px;
+        font-size: 0.62rem;
     }
     .bottom-nav a i {
-        font-size: 1.15rem;
+        font-size: 1.2rem;
     }
     body {
-        padding-bottom: 74px;
+        padding-bottom: 84px;
     }
     /* Hide top desktop-only nav items on mobile */
     .navbar-collapse .navbar-nav .nav-item.d-none.d-lg-block {

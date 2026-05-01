@@ -183,6 +183,27 @@ function sortRows() {
     });
 
     rows.forEach((row) => tbody.appendChild(row));
+    reorderGridCardsToMatchTable();
+}
+
+/** Keep card order in sync with the table after sort (mobile shows cards only). */
+function reorderGridCardsToMatchTable() {
+    const tbody = document.getElementById('projectsTable');
+    const grid = document.querySelector('#gridView .projects-grid');
+    if (!tbody || !grid) return;
+
+    const order = Array.from(tbody.querySelectorAll('tr[data-id]')).map((r) => r.dataset.id);
+    const fragment = document.createDocumentFragment();
+    const byId = new Map();
+    grid.querySelectorAll('.project-card[data-id]').forEach((card) => byId.set(card.dataset.id, card));
+    order.forEach((id) => {
+        const card = byId.get(id);
+        if (card) fragment.appendChild(card);
+    });
+    byId.forEach((card) => {
+        if (!fragment.contains(card)) fragment.appendChild(card);
+    });
+    grid.appendChild(fragment);
 }
 
 function bindViewToggle() {
@@ -193,16 +214,13 @@ function bindViewToggle() {
 
 function applyProjectsViewportView() {
     const saved = localStorage.getItem('projectsView');
-    const isMobile = window.matchMedia('(max-width: 767.98px)').matches;
-    if (isMobile) {
-        setView(saved === 'table' ? 'table' : 'grid');
-    } else {
-        setView(saved || 'table');
-    }
+    setView(saved || 'table');
 }
 
 function setView(view) {
-    projectsState.currentView = view === 'grid' ? 'grid' : 'table';
+    const isMobile = window.matchMedia('(max-width: 767.98px)').matches;
+    const resolved = isMobile ? 'grid' : (view === 'grid' ? 'grid' : 'table');
+    projectsState.currentView = resolved;
 
     document.querySelectorAll('.view-toggle button').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.view === projectsState.currentView);
@@ -210,7 +228,10 @@ function setView(view) {
 
     document.getElementById('tableView')?.classList.toggle('is-active', projectsState.currentView === 'table');
     document.getElementById('gridView')?.classList.toggle('is-active', projectsState.currentView === 'grid');
-    localStorage.setItem('projectsView', projectsState.currentView);
+
+    if (!isMobile) {
+        localStorage.setItem('projectsView', projectsState.currentView);
+    }
 }
 
 function bindCardsAndRows() {
