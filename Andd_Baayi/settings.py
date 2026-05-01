@@ -257,13 +257,19 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 
 # Social account settings
+# GOOGLE_OAUTH_PROMPT :
+#   - vide (défaut) : comportement Google standard, moins d’écrans « verify it's you » pour certains comptes.
+#   - select_account : force le choix du compte (utile si plusieurs Gmail sur le même navigateur).
+_google_oauth_prompt = os.getenv("GOOGLE_OAUTH_PROMPT", "").strip()
+_google_auth_params = {"access_type": "online"}
+if _google_oauth_prompt:
+    _google_auth_params["prompt"] = _google_oauth_prompt
+
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': ['profile', 'email'],
-        # select_account: évite qu’un 2e utilisateur reste bloqué sur la session Google
-        # du navigateur ; access_type online OK sans refresh_token pour login web.
-        'AUTH_PARAMS': {'access_type': 'online', 'prompt': 'select_account'},
-        'OAUTH_PKCE_ENABLED': True,
+    "google": {
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": _google_auth_params,
+        "OAUTH_PKCE_ENABLED": True,
     }
 }
 
