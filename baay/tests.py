@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
@@ -622,3 +623,20 @@ class MessagerieReliabilityTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         msg.refresh_from_db()
         self.assertTrue(msg.lu_par.filter(id=self.receiver.profile.id).exists())
+
+    def test_mobile_fullscreen_chrome_rules_are_not_triggered_by_drawer_fragment(self):
+        self.client.login(username='msg_sender', password='pass12345')
+
+        full_page = self.client.get(self.url)
+        self.assertEqual(full_page.status_code, 200)
+        self.assertContains(full_page, 'msg-conv-page')
+
+        drawer_url = reverse('drawer_conversation_fragment', args=[self.conversation.id])
+        drawer_fragment = self.client.get(drawer_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(drawer_fragment.status_code, 200)
+        self.assertContains(drawer_fragment, 'msg-conv-partial')
+        self.assertNotContains(drawer_fragment, 'msg-conv-page')
+
+        css = (settings.BASE_DIR / 'baay' / 'static' / 'css' / 'mobile.css').read_text()
+        self.assertIn('body:has(.msg-conv-page) .navbar-wrapper', css)
+        self.assertNotIn('body:has(.msg-conv-partial) .navbar-wrapper', css)

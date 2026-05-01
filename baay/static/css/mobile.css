@@ -236,18 +236,17 @@
    ===================================================================== */
 
 /* ---------- Conversation page: full-screen immersive (mobile) ----------
-   Uses :has() so we only modify body chrome when the conversation partial
-   is rendered as a full page (not in the desktop drawer, which is hidden
-   below 992px anyway). */
+   Scope body chrome changes to the full-page wrapper. The reusable
+   .msg-conv-partial can also be injected into the desktop drawer. */
 @media (max-width: 991.98px) {
-    body:has(.msg-conv-partial) .navbar-wrapper { display: none !important; }
-    body:has(.msg-conv-partial) .bottom-nav { display: none !important; }
-    body:has(.msg-conv-partial) {
+    body:has(.msg-conv-page) .navbar-wrapper { display: none !important; }
+    body:has(.msg-conv-page) .bottom-nav { display: none !important; }
+    body:has(.msg-conv-page) {
         padding-top: 0 !important;
         padding-bottom: 0 !important;
     }
-    body:has(.msg-conv-partial) .container-fluid,
-    body:has(.msg-conv-partial) .container-md {
+    body:has(.msg-conv-page) .container-fluid,
+    body:has(.msg-conv-page) .container-md {
         padding-left: 0 !important;
         padding-right: 0 !important;
         padding-top: 0 !important;
@@ -255,8 +254,8 @@
         max-width: 100% !important;
     }
     /* Hide the floating chat bubble while in a conversation */
-    body:has(.msg-conv-partial) .chat-bubble-container,
-    body:has(.msg-conv-partial) .chat-window { display: none !important; }
+    body:has(.msg-conv-page) .chat-bubble-container,
+    body:has(.msg-conv-page) .chat-window { display: none !important; }
 }
 
 /* ---------- Inbox page: edge-to-edge app feel (mobile) ---------- */
@@ -323,5 +322,5 @@
 }
 /* Keep FAB out of the way when bottom nav is hidden (conversation page) */
 @media (max-width: 991.98px) {
-    body:has(.msg-conv-partial) .msg-fab { display: none !important; }
+    body:has(.msg-conv-page) .msg-fab { display: none !important; }
 }
