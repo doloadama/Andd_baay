@@ -248,8 +248,8 @@ if IS_VERCEL or not DEBUG:
 # Account settings
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+# email* / username* / password* = champs obligatoires (remplace ACCOUNT_EMAIL_REQUIRED déprécié)
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 
 # Skip email verification for social logins (Google already verified the email)
