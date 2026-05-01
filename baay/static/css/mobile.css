@@ -230,3 +230,98 @@
         height: min(460px, calc(100vh - 180px)) !important;
     }
 }
+
+/* =====================================================================
+   MESSAGERIE — MOBILE OVERRIDES
+   ===================================================================== */
+
+/* ---------- Conversation page: full-screen immersive (mobile) ----------
+   Uses :has() so we only modify body chrome when the conversation partial
+   is rendered as a full page (not in the desktop drawer, which is hidden
+   below 992px anyway). */
+@media (max-width: 991.98px) {
+    body:has(.msg-conv-partial) .navbar-wrapper { display: none !important; }
+    body:has(.msg-conv-partial) .bottom-nav { display: none !important; }
+    body:has(.msg-conv-partial) {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    body:has(.msg-conv-partial) .container-fluid,
+    body:has(.msg-conv-partial) .container-md {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        max-width: 100% !important;
+    }
+    /* Hide the floating chat bubble while in a conversation */
+    body:has(.msg-conv-partial) .chat-bubble-container,
+    body:has(.msg-conv-partial) .chat-window { display: none !important; }
+}
+
+/* ---------- Inbox page: edge-to-edge app feel (mobile) ---------- */
+@media (max-width: 767.98px) {
+    .msg-shell {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+    .msg-shell > .row { margin: 0 !important; }
+    .msg-shell > .row > [class*="col-"] {
+        padding: 0 !important;
+    }
+    .msg-shell .msg-card {
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        min-height: calc(100vh - 60px - 74px) !important;
+    }
+    @supports (height: 100dvh) {
+        .msg-shell .msg-card {
+            min-height: calc(100dvh - 60px - 74px) !important;
+        }
+    }
+    /* Hide the inline "Nouveau" header button — replaced by FAB below */
+    .msg-shell .msg-new-btn { display: none !important; }
+    .msg-shell .msg-sidebar-header {
+        padding: 12px 14px 10px !important;
+    }
+    .msg-shell .msg-sidebar-title { font-size: 1.05rem; }
+    .msg-shell .msg-search-wrap { padding: 10px 12px; }
+    .msg-shell .msg-filter-chips { padding: 8px 12px; }
+    /* Conv items: tighter horizontal padding, comfortable vertical */
+    .msg-shell .conv-item { padding: 12px 14px !important; }
+}
+
+/* ---------- Floating Action Button (new conversation) ---------- */
+.msg-fab {
+    display: none;
+    position: fixed;
+    right: 16px;
+    bottom: calc(86px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    box-shadow: 0 10px 28px rgba(34, 197, 94, 0.45);
+    z-index: 1035;
+    text-decoration: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.msg-fab:hover,
+.msg-fab:focus {
+    transform: scale(1.06);
+    color: #fff;
+    box-shadow: 0 14px 36px rgba(34, 197, 94, 0.55);
+}
+.msg-fab:active { transform: scale(0.94); }
+@media (max-width: 767.98px) {
+    .msg-fab { display: inline-flex; }
+}
+/* Keep FAB out of the way when bottom nav is hidden (conversation page) */
+@media (max-width: 991.98px) {
+    body:has(.msg-conv-partial) .msg-fab { display: none !important; }
+}
