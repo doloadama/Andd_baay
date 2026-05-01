@@ -117,7 +117,7 @@
         }
 
         function updateReactionPills(messageId, reactions) {
-            var pills = document.querySelectorAll('button[data-reaction-pill="1"][data-message-id="' + messageId + '"]');
+            var pills = root.querySelectorAll('button[data-reaction-pill="1"][data-message-id="' + messageId + '"]');
             pills.forEach(function (pill) {
                 var emoji = pill.getAttribute("data-emoji");
                 var count = Number((reactions || {})[emoji] || 0);
@@ -162,7 +162,7 @@
                 } else if (data.type === "chat_stop_typing_v1") {
                     hideTyping();
                 } else if (data.type === "chat_read_receipt_v1") {
-                    var checkIcon = document.getElementById("check-" + data.message_id);
+                    var checkIcon = root.querySelector("#check-" + data.message_id);
                     if (checkIcon) checkIcon.style.color = "#064e3b";
                 } else if (data.type === "reaction_updated_v1") {
                     updateReactionPills(String(data.message_id), data.reactions || {});
@@ -175,7 +175,7 @@
             };
         }
 
-        var typingIndicator = document.getElementById("typingIndicator");
+        var typingIndicator = root.querySelector("#typingIndicator");
         if (!typingIndicator) {
             typingIndicator = document.createElement("div");
             typingIndicator.id = "typingIndicator";
@@ -191,7 +191,7 @@
             typingIndicator.classList.remove("show");
         }
 
-        var form = document.querySelector('form#msgForm') || document.querySelector('form[action*="conversation"]');
+        var form = root.querySelector('form#msgForm') || root.querySelector('form[action*="conversation"]');
         var textarea = form ? form.querySelector('textarea[name="contenu"]') : null;
         var submitHandler = null;
         var keydownHandler = null;

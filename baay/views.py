@@ -2513,22 +2513,24 @@ def conversation_detail(request, conversation_id):
                     reply_to = conversation.messages.get(id=reply_to_id)
                 except Message.DoesNotExist:
                     pass
-            msg = None
-            created = False
             if client_message_id is not None:
-                msg = Message.objects.filter(
+                msg, created = Message.objects.get_or_create(
                     conversation=conversation,
                     expediteur=profile,
                     client_message_id=client_message_id,
-                ).first()
-            if msg is None:
+                    defaults={
+                        'contenu': contenu,
+                        'piece_jointe': piece_jointe,
+                        'reply_to': reply_to,
+                    },
+                )
+            else:
                 msg = Message.objects.create(
                     conversation=conversation,
                     expediteur=profile,
                     contenu=contenu,
                     piece_jointe=piece_jointe,
                     reply_to=reply_to,
-                    client_message_id=client_message_id,
                 )
                 created = True
             msg.lu_par.add(profile)
