@@ -5,6 +5,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="{% static 'css/semis-cards.css' %}" />
 {% endblock %}
 
 {% block content %}
@@ -235,76 +236,78 @@
                     <span class="status-chip fini"><i class="fas fa-check-circle"></i> Recolte terminee</span>
                     {% endif %}
                 </div>
-                <div class="glass-card-body">
+                <div class="glass-card-body projet-semis-widget">
                     {% if projet_produits %}
-                        <div class="table-responsive semis-products-wrap">
-                            <table class="table-modern w-100 semis-products-table">
-                                <thead>
-                                    <tr>
-                                        <th>Produit</th>
-                                        <th class="text-center">Semences (kg)</th>
-                                        <th class="text-center">Superficie</th>
-                                        <th class="text-center">Date Semis</th>
-                                        <th class="text-center">Rendement Estime</th>
-                                        <th class="text-center">Rendement Final</th>
-                                        <th class="text-end">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for pp in projet_produits %}
-                                        <tr>
-                                            <td data-label="Produit">
-                                                <span class="semis-td-value">
-                                                    <strong>{{ pp.produit.nom }}</strong>
-                                                    {% if pp.notes %}<br><small class="text-muted">{{ pp.notes|truncatewords:10 }}</small>{% endif %}
-                                                </span>
-                                            </td>
-                                            <td class="text-center" data-label="Semences (kg)"><span class="semis-td-value">{{ pp.quantite_semences|default:"-" }}</span></td>
-                                            <td class="text-center" data-label="Superficie"><span class="semis-td-value">{{ pp.superficie_allouee|default:"-" }} ha</span></td>
-                                            <td class="text-center" data-label="Date semis"><span class="semis-td-value">{{ pp.date_semis|date:"d/m/Y"|default:"-" }}</span></td>
-                                            <td class="text-center" data-label="Rendement estime">
-                                                <span class="semis-td-value">
-                                                {% if pp.rendement_estime %}
-                                                    {{ pp.rendement_estime|floatformat:0 }} kg
-                                                {% else %}
-                                                    -
-                                                {% endif %}
-                                                </span>
-                                            </td>
-                                            <td class="text-center" data-label="Rendement final">
-                                                <span class="semis-td-value">
-                                                {% if pp.rendement_final %}
-                                                    <span class="tag tag-success">{{ pp.rendement_final }} kg</span>
-                                                {% else %}
-                                                    <span class="text-muted">Non saisi</span>
-                                                {% endif %}
-                                                </span>
-                                            </td>
-                                            <td class="text-end semis-td-actions" data-label="Actions">
-                                                <span class="semis-td-value">
-                                                    <a href="{% url 'modifier_semis' pp.id %}" class="btn-modern btn-outline-modern btn-mini" title="Modifier">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                                <tfoot>
-                                    <tr style="background: rgba(163, 230, 53, 0.05);">
-                                        <td colspan="2" class="text-end fw-bold">Total superficie:</td>
-                                        <td class="text-center fw-bold text-accent">{{ projet.superficie }} ha</td>
-                                        <td colspan="4"></td>
-                                    </tr>
-                                    {% if projet.statut == 'fini' %}
-                                    <tr style="background: rgba(163, 230, 53, 0.1);">
-                                        <td colspan="5" class="text-end fw-bold">Total Rendement Final:</td>
-                                        <td class="text-center fw-bold text-success-modern">{{ projet.rendement_total_final }} kg</td>
-                                        <td></td>
-                                    </tr>
+                        <div class="semis-grid">
+                            {% for pp in projet_produits %}
+                            <article class="semis-card animate__animated animate__fadeInUp">
+                                <div class="semis-card-header">
+                                    <div>
+                                        <h3 class="semis-card-title">{{ pp.produit.nom }}</h3>
+                                        <p class="semis-card-date">
+                                            {% if pp.notes %}
+                                            <i class="fas fa-sticky-note"></i> {{ pp.notes|truncatewords:14 }}
+                                            {% elif pp.date_semis %}
+                                            <i class="fas fa-calendar"></i> Semis le {{ pp.date_semis|date:"d/m/Y" }}
+                                            {% else %}
+                                            <i class="fas fa-seedling"></i> Produit du projet
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    {% if pp.rendement_final %}
+                                    <span class="semis-status status-fini">Recolte</span>
+                                    {% elif pp.rendement_estime %}
+                                    <span class="semis-status status-en_cours">Estime</span>
+                                    {% else %}
+                                    <span class="semis-status status-en_pause">Suivi</span>
                                     {% endif %}
-                                </tfoot>
-                            </table>
+                                </div>
+                                <div class="semis-card-body">
+                                    <div class="semis-stats">
+                                        <div class="semis-stat">
+                                            <div class="semis-stat-value">{{ pp.quantite_semences|default:"-" }}{% if pp.quantite_semences %} kg{% endif %}</div>
+                                            <div class="semis-stat-label">Semences</div>
+                                        </div>
+                                        <div class="semis-stat">
+                                            <div class="semis-stat-value">{{ pp.superficie_allouee|default:"-" }}{% if pp.superficie_allouee %} ha{% endif %}</div>
+                                            <div class="semis-stat-label">Superficie</div>
+                                        </div>
+                                    </div>
+                                    {% if pp.date_semis or pp.date_recolte_prevue %}
+                                    <div class="semis-info-strip">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {% if pp.date_semis %}Semis {{ pp.date_semis|date:"d/m/Y" }}{% else %}Date de semis non renseignee{% endif %}
+                                        {% if pp.date_recolte_prevue %}
+                                        <span class="d-block mt-1">Recolte prevue : {{ pp.date_recolte_prevue|date:"d/m/Y" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    {% if pp.rendement_final %}
+                                    <div class="semis-yield-final">
+                                        <i class="fas fa-trophy me-1"></i> Rendement final : {{ pp.rendement_final }} kg
+                                    </div>
+                                    {% elif pp.rendement_estime %}
+                                    <div class="semis-yield-estimate">
+                                        <i class="fas fa-chart-line me-1"></i> Rendement estime : {{ pp.rendement_estime|floatformat:0 }} kg
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="semis-card-footer">
+                                    <a href="{% url 'detail_semis' pp.id %}" class="btn-card btn-card-primary">
+                                        <i class="fas fa-eye"></i> Detail
+                                    </a>
+                                    <a href="{% url 'modifier_semis' pp.id %}" class="btn-card btn-card-secondary">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </a>
+                                </div>
+                            </article>
+                            {% endfor %}
+                        </div>
+                        <div class="projet-semis-widget-summary">
+                            <span class="summary-item">Total superficie : <strong class="text-accent">{{ projet.superficie }} ha</strong></span>
+                            {% if projet.statut == 'fini' %}
+                            <span class="summary-item">Total rendement final : <strong class="text-success-modern">{{ projet.rendement_total_final }} kg</strong></span>
+                            {% endif %}
                         </div>
                     {% else %}
                         <div class="text-center py-5">
