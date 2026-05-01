@@ -1,5 +1,6 @@
 # Core Django dependencies
 Django>=5.2,<5.3
+django-unfold>=0.90,<1
 djangorestframework>=3.14.0
 django-cors-headers>=4.3.0
 djangorestframework-simplejwt>=5.3.0

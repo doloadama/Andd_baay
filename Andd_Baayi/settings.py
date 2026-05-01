@@ -14,6 +14,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+
 # Charger les variables du fichier .env
 load_dotenv()
 
@@ -59,6 +62,8 @@ if IS_VERCEL and VERCEL_URL:
 
 INSTALLED_APPS = [
     'daphne',
+    'unfold',
+    'unfold.contrib.filters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -327,6 +332,30 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/static/media')
 
 
+# Environnement d'exécution affiché dans l'admin Unfold (badge + préfixe title).
+# Ex. .env : DJANGO_ENVIRONMENT=staging  |  production  |  development
+DJANGO_DEPLOY_ENV = (
+    os.getenv("DJANGO_ENVIRONMENT", "").strip().lower()
+    or os.getenv("DJANGO_DEPLOY_ENV", "").strip().lower()
+    or ("development" if DEBUG else "production")
+)
+DJANGO_DEPLOY_LABELS = {
+    "production": ("Production", "danger"),
+    "staging": ("Pré-production", "warning"),
+    "preview": ("Aperçu", "warning"),
+    "development": ("Développement", "primary"),
+    "local": ("Local", "info"),
+    "default": ("Environnement", "primary"),
+}
+DJANGO_DEPLOY_TITLE_PREFIX_MAP = {
+    "staging": "[Préprod] ",
+    "preview": "[Aperçu] ",
+    "development": "[Dev] ",
+    "local": "[Local] ",
+}
+DJANGO_DEPLOY_TITLE_PREFIX = DJANGO_DEPLOY_TITLE_PREFIX_MAP.get(DJANGO_DEPLOY_ENV, "")
+
+
 # Logging configuration
 LOGGING = {
     'version': 1,
@@ -357,5 +386,67 @@ LOGGING = {
             'level': os.getenv('LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
+    },
+}
+
+
+# =============================================================================
+# Django Unfold — thème admin (mobile-first, palette Andd Baay)
+# =============================================================================
+
+UNFOLD = {
+    "SITE_TITLE": "Andd Baay — Administration",
+    "SITE_HEADER": "Gestion agricole collaborative",
+    "SITE_SUBHEADER": "Sénégal — console d'administration",
+    "SITE_URL": reverse_lazy("dashboard"),
+    "SITE_ICON": lambda request: static("admin/anddbaay-mark.svg"),
+    "SITE_LOGO": lambda request: {
+        "light": static("admin/anddbaay-mark.svg"),
+        "dark": static("admin/anddbaay-mark.svg"),
+    },
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "sizes": "32x32",
+            "type": "image/svg+xml",
+            "href": lambda request: static("admin/anddbaay-mark.svg"),
+        },
+        {
+            "rel": "icon",
+            "sizes": "192x192",
+            "type": "image/png",
+            "href": lambda request: static("icons/icon-192x192.png"),
+        },
+    ],
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SHOW_BACK_BUTTON": True,
+    "ENVIRONMENT_TITLE_PREFIX": "baay.unfold_callbacks.unfold_environment_title_prefix",
+    "ENVIRONMENT": "baay.unfold_callbacks.unfold_environment_badge",
+    "BORDER_RADIUS": "16px",
+    "COLORS": {
+        "primary": {
+            "50": "#ecfdf5",
+            "100": "#d1fae5",
+            "200": "#a7f3d0",
+            "300": "#6ee7b7",
+            "400": "#34d399",
+            "500": "#22c55e",
+            "600": "#16a34a",
+            "700": "#15803d",
+            "800": "#166534",
+            "900": "#14532d",
+            "950": "#052e16",
+        },
+    },
+    "DASHBOARD_CALLBACK": "baay.admin_dashboard.dashboard_callback",
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "command_search": True,
+    },
+    "COMMAND": {
+        "search_models": True,
+        "show_history": False,
     },
 }
