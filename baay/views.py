@@ -11,8 +11,9 @@ from channels.layers import get_channel_layer
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
@@ -23,8 +24,20 @@ from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from django.db.models import Q, Sum, Count, Avg
-from django.db.models.functions import TruncMonth
+from django.db.models import (
+    Q,
+    Sum,
+    Count,
+    Avg,
+    F,
+    OuterRef,
+    Subquery,
+    Prefetch,
+    ExpressionWrapper,
+    DecimalField as ModelDecimalField,
+    Value,
+)
+from django.db.models.functions import TruncMonth, Coalesce
 from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
@@ -36,7 +49,23 @@ from baay.messaging_contract import (
     build_read_receipt_event_v1,
     build_unread_count_event_v1,
 )
-from baay.models import Profile, Projet, ProduitAgricole, PrevisionRecolte, ProjetProduit, Localite, Investissement, Ferme, MembreFerme, DemandeAccesFerme, Tache, Conversation, Message, MessageReaction
+from baay.models import (
+    Profile,
+    Projet,
+    ProduitAgricole,
+    PhotoProduitAgricole,
+    PrevisionRecolte,
+    ProjetProduit,
+    Localite,
+    Investissement,
+    Ferme,
+    MembreFerme,
+    DemandeAccesFerme,
+    Tache,
+    Conversation,
+    Message,
+    MessageReaction,
+)
 from baay.permissions import (
     fermes_accessibles_qs,
     peut_changer_statut_tache,
@@ -211,6 +240,10 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     def form_valid(self, form):
         user = form.user
         response = super().form_valid(form)
+        messages.success(
+            self.request,
+            "Votre mot de passe a été réinitialisé avec succès. Vous pouvez vous connecter.",
+        )
 
         # Send password change notification email
         from django.core.mail import EmailMultiAlternatives
@@ -283,16 +316,25 @@ def logout_view(request):
     messages.success(request, "Vous avez été déconnecté avec succès.")
     return redirect('home')
 
-class CustomPasswordResetView(PasswordResetView):
+class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
     # Use the non-empty auth templates (the registration/ ones were left empty).
     template_name = 'auth/password_reset_form.html'
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
+    success_message = (
+        "Si cette adresse correspond à un compte, vous recevrez un email "
+        "avec les instructions pour réinitialiser votre mot de passe."
+    )
 
 
 
 logger = logging.getLogger(__name__)
+
+
+def _htmx_request(request):
+    """True when the request is issued by HTMX (header set by htmx.js)."""
+    return (request.headers.get('HX-Request') or '').lower() == 'true'
 
 # Create Gemini client only if available
 client = None
@@ -481,7 +523,22 @@ def creer_projet(request):
             projet.save()
 
             messages.success(request, "Le projet a ete cree avec succes.")
+            if _htmx_request(request):
+                resp = HttpResponse()
+                resp['HX-Redirect'] = reverse('liste_projets')
+                return resp
             return redirect('liste_projets')
+        if _htmx_request(request):
+            return render(
+                request,
+                'projets/partials/_creer_projet_form_fragment.html',
+                {
+                    'projet_form': projet_form,
+                    'produits': ProduitAgricole.objects.all(),
+                    'from_ferme': from_ferme,
+                },
+                status=422,
+            )
     else:
         initial = {}
         if from_ferme:
@@ -661,6 +718,7 @@ def ajouter_investissement(request, projet_id):
             investissement = investissement_form.save(commit=False)
             investissement.projet = projet  # Associer l'investissement au projet
             investissement.save()
+            messages.success(request, "Investissement enregistré.")
             return redirect('detail_projet', projet_id=projet.id)
     else:
         investissement_form = InvestissementForm()
@@ -673,14 +731,32 @@ def ajouter_investissement(request, projet_id):
 @login_required
 def detail_projet(request, projet_id):
     # Recuperer le projet pour l'utilisateur connecte
-    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    projet = get_object_or_404(
+        Projet.objects.select_related(
+            'ferme',
+            'culture',
+            'localite',
+            'pays',
+            'utilisateur__user',
+        ).prefetch_related(
+            Prefetch(
+                'culture__photos',
+                queryset=PhotoProduitAgricole.objects.only('id', 'produit_id', 'image', 'description'),
+            ),
+        ),
+        id=projet_id,
+    )
     if not peut_voir_projet(request.user.profile, projet):
         messages.error(request, "Vous n'avez pas accès à ce projet.")
         return redirect('liste_projets')
 
     # Recuperer les investissements associes au projet (si autorise)
     can_view_investissements = peut_voir_investissements(request.user.profile, projet.ferme)
-    investissements = projet.investissement_set.all() if can_view_investissements else Investissement.objects.none()
+    investissements = (
+        projet.investissement_set.select_related('projet').all()
+        if can_view_investissements
+        else Investissement.objects.none()
+    )
 
     # Recuperer la prediction de rendement (s'il y en a une)
     prediction = PrevisionRecolte.objects.filter(projet=projet).first()
@@ -721,7 +797,12 @@ def detail_projet(request, projet_id):
 
 @login_required
 def liste_projets(request):
-    projets_list = projets_accessibles_qs(request.user.profile).order_by('-date_lancement')
+    projets_list = (
+        projets_accessibles_qs(request.user.profile)
+        .select_related('culture', 'localite', 'ferme')
+        .prefetch_related('projet_produits__produit')
+        .order_by('-date_lancement')
+    )
     paginator = Paginator(projets_list, 10)  # Affichez 10 projets par page
     page_number = request.GET.get('page')
     projets = paginator.get_page(page_number)
@@ -753,9 +834,29 @@ def dashboard(request):
             return _dashboard_ouvrier(request, utilisateur, memberships)
 
     # --- Base querysets ---
-    user_fermes = Ferme.objects.filter(
-        Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
-    ).distinct().prefetch_related('membres').order_by('nom')
+    user_fermes = (
+        Ferme.objects.filter(
+            Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
+        )
+        .distinct()
+        .prefetch_related(
+            Prefetch('membres', queryset=MembreFerme.objects.select_related('utilisateur__user'))
+        )
+        .annotate(
+            membres_count_ann=Count('membres', distinct=True),
+            projets_count_ann=Count('projets', distinct=True),
+            projets_actifs_ann=Count(
+                'projets',
+                filter=Q(projets__statut='en_cours'),
+                distinct=True,
+            ),
+            superficie_utilisee_ann=Sum(
+                'projets__superficie',
+                filter=Q(projets__statut='en_cours'),
+            ),
+        )
+        .order_by('nom')
+    )
 
     # Optional farm filter from GET
     selected_ferme_id = request.GET.get('ferme')
@@ -792,10 +893,18 @@ def dashboard(request):
     rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
     can_view_investissements = peut_voir_investissements_any(utilisateur)
     if can_view_investissements:
-        investissements = Investissement.objects.filter(projet__in=projets_qs)
-        investissement_total = sum(
-            inv.calculer_investissement_total() for inv in investissements
-        ) or 0
+        investissement_expr = ExpressionWrapper(
+            F('cout_par_hectare') * F('projet__superficie')
+            + Coalesce(
+                F('autres_frais'),
+                Value(Decimal('0'), output_field=ModelDecimalField(max_digits=12, decimal_places=4)),
+            ),
+            output_field=ModelDecimalField(max_digits=28, decimal_places=8),
+        )
+        inv_agg = Investissement.objects.filter(projet__in=projets_qs).aggregate(
+            total=Sum(investissement_expr)
+        )
+        investissement_total = inv_agg['total'] or 0
     else:
         investissement_total = 0
 
@@ -811,19 +920,18 @@ def dashboard(request):
 
     fermes_data = []
     for ferme in user_fermes:
-        f_projets = Projet.objects.filter(ferme=ferme)
-        f_projets_actifs = f_projets.filter(statut='en_cours').count()
         f_superficie_ferme = ferme.superficie_totale or 0
-        f_superficie_utilisee = f_projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
-        f_membres = ferme.membres.count()
-        f_utilisation = round((f_superficie_utilisee / f_superficie_ferme) * 100, 1) if f_superficie_ferme else 0
+        f_superficie_utilisee = ferme.superficie_utilisee_ann or 0
+        f_utilisation = round(
+            (float(f_superficie_utilisee) / float(f_superficie_ferme)) * 100, 1
+        ) if f_superficie_ferme else 0
         fermes_data.append({
             'ferme': ferme,
-            'projets_count': f_projets.count(),
-            'projets_actifs': f_projets_actifs,
+            'projets_count': ferme.projets_count_ann or 0,
+            'projets_actifs': ferme.projets_actifs_ann or 0,
             'superficie_ferme': f_superficie_ferme,
             'superficie_utilisee': f_superficie_utilisee,
-            'membres_count': f_membres + 1,
+            'membres_count': (ferme.membres_count_ann or 0) + 1,
             'utilisation_pct': f_utilisation,
         })
 
@@ -847,7 +955,7 @@ def dashboard(request):
         f_sup = selected_ferme.superficie_totale or 0
         f_sup_u = f_proj.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
         f_util = round((f_sup_u / f_sup) * 100, 1) if f_sup else 0
-        f_mem = selected_ferme.membres.count() + 1
+        f_mem = (selected_ferme.membres_count_ann or 0) + 1
         f_rend = f_proj.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
     else:
         f_sup = f_sup_u = f_util = f_mem = f_rend = 0
@@ -1178,7 +1286,6 @@ def evaluer_modele(model, X_test, y_test):
 @require_GET
 def dashboard_stats_api(request):
     """API endpoint for dashboard statistics with filtering (including ferme)"""
-    from django.db.models import Q
     try:
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
@@ -1192,9 +1299,26 @@ def dashboard_stats_api(request):
     date_to = request.GET.get('date_to', '')
     
     # Resolve selected farm
-    user_fermes = Ferme.objects.filter(
-        Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
-    ).distinct().prefetch_related('membres')
+    user_fermes = (
+        Ferme.objects.filter(
+            Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
+        )
+        .distinct()
+        .select_related('localite', 'pays')
+        .annotate(
+            membres_count_ann=Count('membres', distinct=True),
+            projets_count_ann=Count('projets', distinct=True),
+            projets_actifs_ann=Count(
+                'projets',
+                filter=Q(projets__statut='en_cours'),
+                distinct=True,
+            ),
+            superficie_utilisee_ann=Sum(
+                'projets__superficie',
+                filter=Q(projets__statut='en_cours'),
+            ),
+        )
+    )
     selected_ferme = None
     if ferme_filter:
         try:
@@ -1223,10 +1347,18 @@ def dashboard_stats_api(request):
     # Get investissements total (cout_par_hectare * superficie + autres_frais)
     can_view_investissements = peut_voir_investissements_any(utilisateur)
     if can_view_investissements:
-        investissements = Investissement.objects.filter(projet__in=projets)
-        investissement_total = sum(
-            inv.calculer_investissement_total() for inv in investissements
-        ) or Decimal('0')
+        investissement_expr = ExpressionWrapper(
+            F('cout_par_hectare') * F('projet__superficie')
+            + Coalesce(
+                F('autres_frais'),
+                Value(Decimal('0'), output_field=ModelDecimalField(max_digits=12, decimal_places=4)),
+            ),
+            output_field=ModelDecimalField(max_digits=28, decimal_places=8),
+        )
+        inv_agg = Investissement.objects.filter(projet__in=projets).aggregate(
+            total=Sum(investissement_expr)
+        )
+        investissement_total = inv_agg['total'] or Decimal('0')
     else:
         investissement_total = Decimal('0')
     
@@ -1267,20 +1399,17 @@ def dashboard_stats_api(request):
 
     fermes_data = []
     for ferme in user_fermes.order_by('nom'):
-        f_projets = Projet.objects.filter(ferme=ferme)
-        f_projets_actifs = f_projets.filter(statut='en_cours').count()
         f_superficie_ferme = float(ferme.superficie_totale or 0)
-        f_superficie_utilisee = float(f_projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0)
-        f_membres = ferme.membres.count()
+        f_superficie_utilisee = float(ferme.superficie_utilisee_ann or 0)
         f_utilisation = round((f_superficie_utilisee / f_superficie_ferme) * 100, 1) if f_superficie_ferme else 0
         fermes_data.append({
             'id': str(ferme.id),
             'nom': ferme.nom,
-            'projets_count': f_projets.count(),
-            'projets_actifs': f_projets_actifs,
+            'projets_count': ferme.projets_count_ann or 0,
+            'projets_actifs': ferme.projets_actifs_ann or 0,
             'superficie_ferme': f_superficie_ferme,
             'superficie_utilisee': f_superficie_utilisee,
-            'membres_count': f_membres + 1,
+            'membres_count': (ferme.membres_count_ann or 0) + 1,
             'utilisation_pct': f_utilisation,
         })
 
@@ -1289,12 +1418,15 @@ def dashboard_stats_api(request):
     # Farm-specific KPIs when a farm is selected
     ferme_kpis = None
     if selected_ferme:
-        f_proj = Projet.objects.filter(ferme=selected_ferme)
+        f_proj = Projet.objects.filter(ferme=selected_ferme, utilisateur=utilisateur)
         f_sup = float(selected_ferme.superficie_totale or 0)
         f_sup_u = float(f_proj.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0)
         f_util = round((f_sup_u / f_sup) * 100, 1) if f_sup else 0
-        f_mem = selected_ferme.membres.count() + 1
-        f_rend = float(f_proj.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0)
+        f_mem = (selected_ferme.membres_count_ann or 0) + 1
+        f_rend_agg = f_proj.aggregate(Sum('rendement_estime'))[
+            'rendement_estime__sum'
+        ] or Decimal('0')
+        f_rend = decimal_to_float(f_rend_agg)
         ferme_kpis = {
             'id': str(selected_ferme.id),
             'nom': selected_ferme.nom,
@@ -2220,12 +2352,19 @@ def _dashboard_manager(request, utilisateur, memberships):
     nombre_membres = selected.membres.count() + 1
 
     # Tâches de cette ferme
-    taches = Tache.objects.filter(ferme=selected)
-    taches_a_faire = taches.filter(statut='a_faire').count()
-    taches_en_cours = taches.filter(statut='en_cours').count()
-    taches_terminees = taches.filter(statut='terminee').count()
-    taches_en_retard = sum(1 for t in taches.filter(statut__in=['a_faire', 'en_cours']) if t.est_en_retard)
-    taches_recentes = taches.select_related('assigne_a__user', 'projet').order_by('-date_creation')[:8]
+    today_d = timezone.now().date()
+    taches_base = Tache.objects.filter(ferme=selected)
+    taches_a_faire = taches_base.filter(statut='a_faire').count()
+    taches_en_cours = taches_base.filter(statut='en_cours').count()
+    taches_terminees = taches_base.filter(statut='terminee').count()
+    taches_en_retard = taches_base.filter(
+        statut__in=['a_faire', 'en_cours'],
+        date_echeance__isnull=False,
+        date_echeance__lt=today_d,
+    ).count()
+    taches_recentes = (
+        taches_base.select_related('assigne_a__user', 'projet').order_by('-date_creation')[:8]
+    )
 
     return render(request, 'projets/dashboard_manager.html', {
         'utilisateur': utilisateur,
@@ -2310,6 +2449,7 @@ def _dashboard_technicien(request, utilisateur, memberships):
 
 def _dashboard_ouvrier(request, utilisateur, memberships):
     """Dashboard ouvrier : uniquement ses tâches."""
+    today_d = timezone.now().date()
     taches = Tache.objects.filter(assigne_a=utilisateur).select_related(
         'ferme', 'projet', 'assigne_par__user'
     ).order_by('statut', 'date_echeance', '-date_creation')
@@ -2317,7 +2457,11 @@ def _dashboard_ouvrier(request, utilisateur, memberships):
     a_faire = taches.filter(statut='a_faire')
     en_cours = taches.filter(statut='en_cours')
     terminees = taches.filter(statut='terminee')[:5]
-    en_retard = sum(1 for t in taches.filter(statut__in=['a_faire', 'en_cours']) if t.est_en_retard)
+    en_retard = taches.filter(
+        statut__in=['a_faire', 'en_cours'],
+        date_echeance__isnull=False,
+        date_echeance__lt=today_d,
+    ).count()
 
     return render(request, 'projets/dashboard_ouvrier.html', {
         'utilisateur': utilisateur,
@@ -2369,7 +2513,7 @@ def _membres_ferme_communs(profile):
     )
     tous = membre_ids | proprietaire_ids
     tous.discard(profile.id)
-    return Profile.objects.filter(id__in=tous).select_related('user')
+    return Profile.objects.filter(id__in=tous).select_related('user').order_by('user__username')
 
 
 @login_required
@@ -2377,19 +2521,44 @@ def messagerie_inbox(request):
     """Liste des conversations de l'utilisateur."""
     profile = ensure_profile_for_user(request.user)
 
-    conversations = (
-        Conversation.objects.filter(participants=profile)
-        .prefetch_related('participants', 'messages__expediteur')
-        .order_by('-dernier_message')
+    unread_rows = (
+        Message.objects.filter(conversation__participants=profile)
+        .exclude(expediteur=profile)
+        .exclude(lu_par=profile)
+        .values('conversation_id')
+        .annotate(nb=Count('id'))
+    )
+    unread_by_conv = {str(r['conversation_id']): r['nb'] for r in unread_rows}
+
+    last_msg_subquery = (
+        Message.objects.filter(conversation_id=OuterRef('pk'))
+        .order_by('-date_envoi')
+        .values('id')[:1]
     )
 
-    # Enrichir avec le dernier message + compteur de non-lus
+    conv_qs = (
+        Conversation.objects.filter(participants=profile)
+        .annotate(last_message_pk=Subquery(last_msg_subquery))
+        .order_by('-dernier_message')
+        .prefetch_related(
+            Prefetch('participants', queryset=Profile.objects.select_related('user'))
+        )
+    )
+
+    conversations = list(conv_qs)
+    conv_ids = [c.last_message_pk for c in conversations if c.last_message_pk]
+    last_by_id = {}
+    if conv_ids:
+        last_by_id = {
+            m.id: m
+            for m in Message.objects.filter(pk__in=conv_ids).select_related('expediteur__user')
+        }
+
     conv_data = []
     online_threshold = timezone.now() - timedelta(minutes=5)
     for conv in conversations:
-        dernier = conv.messages.last()
-        non_lus = conv.messages.exclude(lu_par=profile).exclude(expediteur=profile).count()
-        # Nom de l'interlocuteur (si 1:1) ou sujet
+        dernier = last_by_id.get(conv.last_message_pk) if conv.last_message_pk else None
+        non_lus = unread_by_conv.get(str(conv.id), 0)
         autres = [p for p in conv.participants.all() if p.id != profile.id]
         if conv.sujet:
             titre = conv.sujet

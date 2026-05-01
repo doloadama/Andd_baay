@@ -1,0 +1,114 @@
+<style>
+    .django-toast-host {
+        position: fixed;
+        bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+        right: max(1rem, env(safe-area-inset-right, 0px));
+        left: max(1rem, env(safe-area-inset-left, 0px));
+        z-index: 4500;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+        pointer-events: none;
+        max-width: 100%;
+    }
+
+    .django-toast-host .django-toast {
+        pointer-events: auto;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        max-width: 22rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.875rem;
+        border: 1px solid transparent;
+        font-size: 0.875rem;
+        line-height: 1.35;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        animation: djangoToastIn 0.28s ease-out;
+    }
+
+    @keyframes djangoToastIn {
+        from {
+            opacity: 0;
+            transform: translateY(0.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .django-toast-host .django-toast--success {
+        background: rgba(22, 101, 52, 0.95);
+        color: #ecfdf5;
+        border-color: rgba(74, 222, 128, 0.45);
+    }
+
+    .django-toast-host .django-toast--danger {
+        background: rgba(127, 29, 29, 0.95);
+        color: #fef2f2;
+        border-color: rgba(248, 113, 113, 0.45);
+    }
+
+    .django-toast-host .django-toast--warning {
+        background: rgba(120, 53, 15, 0.95);
+        color: #fffbeb;
+        border-color: rgba(251, 191, 36, 0.45);
+    }
+
+    .django-toast-host .django-toast--info {
+        background: rgba(15, 23, 42, 0.94);
+        color: #f1f5f9;
+        border-color: rgba(148, 163, 184, 0.35);
+    }
+
+    .django-toast-host .django-toast-dismiss {
+        margin-left: auto;
+        flex-shrink: 0;
+        border: none;
+        background: rgba(255, 255, 255, 0.12);
+        color: inherit;
+        border-radius: 0.5rem;
+        padding: 0.15rem 0.45rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .django-toast-host .django-toast-dismiss:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
+
+{% if messages %}
+<div id="django-messages-source" class="visually-hidden" aria-hidden="true">
+    {% for message in messages %}
+    <span data-msg-tag="{{ message.tags|default:'info' }}">{{ message }}</span>
+    {% endfor %}
+</div>
+
+<div
+    class="django-toast-host"
+    x-data="djangoToastStack()"
+    x-init="$nextTick(() => boot())"
+    aria-live="polite"
+    aria-atomic="false"
+>
+    <template x-for="t in items" :key="t.id">
+        <div class="django-toast" role="status" :class="'django-toast--' + (t.kind || 'info')">
+            <span class="django-toast-icon" aria-hidden="true">
+                <i class="fas" :class="{
+                    'fa-check-circle': t.kind === 'success',
+                    'fa-exclamation-circle': t.kind === 'danger',
+                    'fa-exclamation-triangle': t.kind === 'warning',
+                    'fa-info-circle': t.kind === 'info'
+                }"></i>
+            </span>
+            <p class="mb-0 flex-grow-1" style="margin: 0; flex: 1" x-text="t.text"></p>
+            <button type="button" class="django-toast-dismiss" @click="items = items.filter((x) => x.id !== t.id)" aria-label="Fermer la notification">
+                ✕
+            </button>
+        </div>
+    </template>
+</div>
+{% endif %}

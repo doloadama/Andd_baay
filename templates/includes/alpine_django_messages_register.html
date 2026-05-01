@@ -1,0 +1,36 @@
+<script defer>
+document.addEventListener('alpine:init', function () {
+    Alpine.data('djangoToastStack', function () {
+        return {
+            items: [],
+            nextKey: 1,
+            pushToast: function (text, tag) {
+                var t = tag || '';
+                var kind = 'info';
+                if (t.indexOf('error') !== -1 || t.indexOf('danger') !== -1) kind = 'danger';
+                else if (t.indexOf('warning') !== -1) kind = 'warning';
+                else if (t.indexOf('success') !== -1) kind = 'success';
+                var id = this.nextKey++;
+                this.items.push({ id: id, kind: kind, text: text });
+                var delay = kind === 'danger' ? 9000 : 5500;
+                var self = this;
+                setTimeout(function () {
+                    self.items = self.items.filter(function (x) {
+                        return x.id !== id;
+                    });
+                }, delay);
+            },
+            boot: function () {
+                var src = document.getElementById('django-messages-source');
+                if (!src) return;
+                var nodes = src.querySelectorAll('[data-msg-tag]');
+                for (var i = 0; i < nodes.length; i++) {
+                    var el = nodes[i];
+                    this.pushToast(el.textContent.trim(), el.getAttribute('data-msg-tag') || 'info');
+                }
+                src.remove();
+            },
+        };
+    });
+});
+</script>

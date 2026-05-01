@@ -1,0 +1,39 @@
+# Andd Baay — règles Cursor
+
+## Stack et architecture
+
+- Backend : **Django 5.2**, **PostgreSQL**, **django-allauth**, **Channels** (WebSocket). API : **DRF / JWT** selon les zones existantes.
+- Frontend : gabarits Django, **Bootstrap 5**, feuilles `static/css/` ; déploiement **Vercel / Render** possible (variables d’environnement dans `Andd_Baayi/settings.py`).
+- Préférer la cohérence avec le code actuel : logique métier dans `baay/`, URLs dispatchées vers `baay/views.py` via des modules `views_*.py` légers (réexports).
+
+## ORM Django — règles strictes (éviter N+1)
+
+- **Interdit** : exécuter des requêtes SQL à l’intérieur d’une boucle sur des objets déjà chargés (`for x in qs: Model.objects.filter(...)`, `x.fk.field` sans `select_related`, `x.children.all()` répété sans `prefetch_related`).
+- **Obligatoire** sur les listes et agrégats :
+  - `select_related(...)` pour toutes les `ForeignKey` / `OneToOne` utilisées dans le gabarit ou la vue ;
+  - `prefetch_related(...)` pour les `ManyToMany` et relations inverses affichées en masse ;
+  - regrouper les comptages et sommes avec **`annotate()`** / **`Count`**, **`Sum`**, **`Subquery`** plutôt que des `.count()` / `.aggregate()` par ligne dans une boucle.
+- Une vue qui construit une liste Python à partir de querysets doit **documenter implicitement par le code** une stratégie d’agrégation (souvent une seule requête annotée ou un petit nombre de requêtes fixes, pas O(n)).
+- Réutiliser ou factoriser les querysets métier déjà présents (ex. helpers du type `projets_accessibles_qs`) avant d’introduire de nouvelles branches.
+
+## Accessibilité mobile — zones tactiles
+
+- **Cible minimale tactile : 44×44 px** (recommandations Apple HIG / WCAG 2.5.5) pour tout contrôle cliquable : boutons, liens d’action, icônes, cases à cocher visibles, pastilles de messagerie, etc.
+- Si le design impose un élément visuel plus petit, utiliser **`min-height: 44px`**, **`min-width: 44px`**, ou un **`padding`** suffisant sur la zone interactive (pas seulement sur l’icône).
+- Espacement entre cibles adjacentes pour limiter les erreurs de tap ; états **focus** visibles pour clavier (ne pas retirer `outline` sans alternative).
+- Textes et contrastes : rester aligné avec les correctifs déjà appliqués dans les gabarits (lisibilité, labels de formulaires).
+
+## Dynamisme : HTMX et Alpine.js
+
+- **Préférer HTMX** pour les mises à jour partielles (fragments de gabarits Django, `hx-get` / `hx-post`, en-têtes `HX-Request`), et **Alpine.js** pour l’état local du UI (onglets, menus, modales légères, toggles) sans multiplier les endpoints JSON.
+- Les nouvelles interactions ne doivent **pas** ajouter de gros modules React/Vue sauf décision explicite ; respecter l’existant (JS vanilla + Bootstrap) en migrant progressivement vers HTMX/Alpine si une zone devient trop lourde.
+- Pour HTMX : vues qui renvoient **partiellement** du HTML (`HttpResponse` avec fragment dédié ou `TemplateResponse` ciblé) ; maintenir la **sécurité CSRF** sur les POST.
+- Pour Alpine : limiter la logique au présentationnel ; le métier reste dans Django (vues / services).
+
+## Tests et régressions
+
+- Toute optimisation ORM qui change le comportement observable doit être vérifiable (tests existants dans `baay/tests.py` ou nouveaux tests ciblés).
+
+## Langue
+
+- Commentaires et docstrings : **français** lorsque le fichier existant est déjà en français ; rester cohérent avec le fichier modifié.

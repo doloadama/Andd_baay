@@ -43,6 +43,7 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-agri-pages.css' %}">
+    {% include 'includes/tailwind_htmx_alpine_head.html' %}
 
     <!-- FIX #1: Inline CSS is now properly wrapped in <style> tags -->
     <style>
@@ -197,6 +198,44 @@
         .btn-baay-ghost:hover {
             background: rgba(148, 163, 184, 0.1);
             color: var(--text-main) !important;
+        }
+
+        /* Cibles tactiles (≈44px) sur mobile et pointeur grossier */
+        @media (hover: none) and (pointer: coarse), (max-width: 991.98px) {
+            .btn-baay {
+                min-height: 44px;
+                min-width: 44px;
+                box-sizing: border-box;
+            }
+
+            .nav-link-modern {
+                min-height: 44px;
+                align-items: center;
+            }
+
+            .navbar-toggler-modern {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .theme-toggle {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .navbar-brand {
+                min-height: 44px;
+                align-items: center;
+            }
+
+            .footer-content .social-links a {
+                min-width: 44px;
+                min-height: 44px;
+            }
         }
 
         .logout-confirm-modal .modal-content {
@@ -2509,7 +2548,7 @@
     <header class="navbar-wrapper">
         <nav class="navbar navbar-expand-lg navbar-floating animate__animated animate__fadeInDown">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{% url 'home' %}">
+                <a class="navbar-brand tw-inline-flex tw-items-center tw-gap-2 tw-touch-manipulation tw-rounded-xl tw-px-1" href="{% url 'home' %}">
                     <div class="brand-icon"><i class="fas fa-leaf"></i></div>
                     Andd Baay
                 </a>
@@ -2530,44 +2569,44 @@
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 gap-2 mt-3 mt-lg-0">
                         {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
                                 href="{% url 'dashboard' %}" data-pjax>
                                 <i class="fas fa-chart-pie"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name == 'liste_projets' %}active{% endif %}"
+                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name == 'liste_projets' %}active{% endif %}"
                                 href="{% url 'liste_projets' %}" data-pjax>
                                 <i class="fas fa-folder"></i> Projets
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'liste_fermes' %}" data-pjax>
                                 <i class="fas fa-warehouse"></i> Mes Fermes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match %}{% with n=request.resolver_match.url_name %}{% if n == 'liste_semis' or n == 'creer_semis' or n == 'detail_semis' or n == 'modifier_semis' or n == 'supprimer_semis' %}active{% endif %}{% endwith %}{% endif %}"
+                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match %}{% with n=request.resolver_match.url_name %}{% if n == 'liste_semis' or n == 'creer_semis' or n == 'detail_semis' or n == 'modifier_semis' or n == 'supprimer_semis' %}active{% endif %}{% endwith %}{% endif %}"
                                 href="{% url 'liste_semis' %}" data-pjax>
                                 <i class="fas fa-seedling"></i> Semis
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'taches_liste' %}" data-pjax>
                                 <i class="fas fa-list-check"></i> Tâches
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'messagerie_inbox' %}" data-pjax
                                 data-drawer-toggle="messagerie">
                                 <i class="fas fa-envelope"></i> Messagerie
                             </a>
                         </li>
                         <li class="nav-item me-lg-2">
-                            <a class="btn-baay btn-baay-primary py-2 px-3" href="{% url 'creer_projet' %}">
+                            <a class="btn-baay btn-baay-primary py-2 px-3 tw-min-h-[44px] tw-inline-flex tw-items-center tw-touch-manipulation" href="{% url 'creer_projet' %}">
                                 <i class="fas fa-plus"></i> Nouveau
                             </a>
                         </li>
@@ -2636,22 +2675,22 @@
                         {% else %}
                         {% if request.resolver_match.url_name == 'home' %}
                         <li class="nav-item">
-                            <a class="nav-link-modern landing-nav-link" href="#accueil">Accueil</a>
+                            <a class="nav-link-modern tw-touch-manipulation landing-nav-link" href="#accueil">Accueil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern landing-nav-link" href="#defis">Défis</a>
+                            <a class="nav-link-modern tw-touch-manipulation landing-nav-link" href="#defis">Défis</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern landing-nav-link" href="#solution">Solution</a>
+                            <a class="nav-link-modern tw-touch-manipulation landing-nav-link" href="#solution">Solution</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern landing-nav-link" href="#etapes">Étapes</a>
+                            <a class="nav-link-modern tw-touch-manipulation landing-nav-link" href="#etapes">Étapes</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern landing-nav-link" href="#temoignages">Témoignages</a>
+                            <a class="nav-link-modern tw-touch-manipulation landing-nav-link" href="#temoignages">Témoignages</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link-modern landing-nav-link" href="#faq">FAQ</a>
+                            <a class="nav-link-modern tw-touch-manipulation landing-nav-link" href="#faq">FAQ</a>
                         </li>
                         {% endif %}
                         <li class="nav-item">
@@ -2706,19 +2745,7 @@
     <!-- Main Content -->
     <main id="main">
         <div class="container-modern animate__animated animate__fadeIn">
-            {% if messages %}
-            <div class="messages mb-4">
-                {% for message in messages %}
-                <div class="alert alert-modern {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show d-flex align-items-center"
-                    role="alert">
-                    <i
-                        class="fas {% if message.tags == 'success' %}fa-check-circle text-success{% elif message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle text-danger{% else %}fa-info-circle text-accent{% endif %} me-3 fs-5"></i>
-                    <div>{{ message }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            {% include 'includes/django_message_toasts.html' %}
 
             {% block content %}{% endblock %}
         </div>
@@ -2732,10 +2759,10 @@
                     <div class="footer-brand">Andd Baay</div>
                     <p class="footer-tagline mb-0">Intelligence agricole de demain.</p>
                 </div>
-                <div class="social-links">
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <div class="social-links tw-flex tw-flex-wrap tw-items-center tw-justify-center tw-gap-2 md:tw-justify-end">
+                    <a href="#" aria-label="Twitter" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="LinkedIn" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="Instagram" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
         </div>

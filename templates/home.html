@@ -73,6 +73,9 @@
 }
 .home-v2 .hero .lede { color: var(--text-muted); font-size: 1.15rem; line-height: 1.65; max-width: 540px; }
 .home-v2 .cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+@media (max-width: 639.98px) {
+    .home-v2 .cta-row { flex-direction: column; align-items: stretch; }
+}
 .home-v2 .hero-bullets {
     list-style: none; padding: 0; margin: 30px 0 0;
     display: flex; flex-wrap: wrap; gap: 22px;
@@ -225,7 +228,7 @@
 .home-v2 .cta-card .cta-row { justify-content: center; }
 </style>
 
-<div class="home-v2">
+<div class="home-v2 tw-w-full tw-overflow-x-hidden tw-antialiased">
 
     <!-- ============================ HERO ============================ -->
     <section class="hero" id="accueil">
@@ -238,19 +241,19 @@
                         Andd Baay reunit dans une seule plateforme le suivi de vos fermes, vos projets agricoles
                         et l'intelligence artificielle pour estimer vos rendements avec precision.
                     </p>
-                    <div class="cta-row">
+                    <div class="cta-row tw-w-full">
                         {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary tw-w-full tw-min-h-[48px] sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation tw-text-center">
                             Acceder au dashboard <i class="fas fa-arrow-right"></i>
                         </a>
-                        <a href="{% url 'creer_projet' %}" class="btn btn-ghost">
+                        <a href="{% url 'creer_projet' %}" class="btn btn-ghost tw-w-full tw-min-h-[48px] sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation tw-text-center">
                             <i class="fas fa-plus"></i> Nouveau projet
                         </a>
                         {% else %}
-                        <a href="{% url 'register' %}" class="btn btn-primary">
+                        <a href="{% url 'register' %}" class="btn btn-primary tw-w-full tw-min-h-[48px] sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation tw-text-center">
                             Commencer gratuitement <i class="fas fa-arrow-right"></i>
                         </a>
-                        <a href="{% url 'login' %}" class="btn btn-ghost">
+                        <a href="{% url 'login' %}" class="btn btn-ghost tw-w-full tw-min-h-[48px] sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation tw-text-center">
                             <i class="fas fa-user"></i> Se connecter
                         </a>
                         {% endif %}

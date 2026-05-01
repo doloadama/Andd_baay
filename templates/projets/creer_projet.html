@@ -511,6 +511,22 @@
             justify-content: center;
         }
     }
+
+    /* HTMX création projet + étapes lisibles au doigt */
+    #creer-projet-htmx-indicator {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        pointer-events: none;
+    }
+
+    #creer-projet-htmx-indicator.htmx-request {
+        opacity: 1;
+    }
+
+    .progress-step .step-circle {
+        min-width: 44px;
+        min-height: 44px;
+    }
 </style>
 
 <!-- Background -->
@@ -525,11 +541,11 @@
     </div>
 </div>
 
-<div class="container animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
-    
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold  mb-3" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
-        <p class="lead text-muted" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
+<div class="container animate__animated animate__fadeIn tw-relative tw-mx-auto tw-max-w-[100vw] tw-overflow-x-hidden tw-px-3 sm:tw-px-4 md:tw-px-6" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
+
+    <div class="tw-mx-auto tw-mb-8 tw-max-w-2xl tw-text-center tw-px-1">
+        <h1 class="display-4 fw-bold tw-mb-3 tw-text-3xl sm:tw-text-5xl md:tw-text-6xl" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
+        <p class="lead text-muted tw-text-base sm:tw-text-lg" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
     </div>
 
     {% if messages %}
@@ -575,327 +591,13 @@
                     </div>
                 </div>
                 
-                <div class="card-body p-4 p-md-5">
-                    <form method="post" enctype="multipart/form-data" novalidate autocomplete="off" class="modern-form" id="projectForm">
-                        {% csrf_token %}
-
-                        <!-- Info Card -->
-                        <div class="info-card">
-                            <div class="info-card-icon">
-                                <i class="fas fa-lightbulb"></i>
-                            </div>
-                            <div class="info-card-content">
-                                <h5>Conseil</h5>
-                                <p>Plus vos informations sont precises, plus nos predictions IA seront pertinentes pour optimiser votre rendement.</p>
-                            </div>
-                        </div>
-
-                        <!-- Section 1: General Info -->
-                        <div class="form-section visible mb-5" data-section="1">
-                            <h5 class="form-section-title">
-                                <i class="fas fa-info-circle"></i> 
-                                Informations Generales
-                            </h5>
-                            <div class="row g-4">
-                                <div class="col-md-12">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.nom.id_for_label }}" class="form-label-modern">
-                                            Nom du projet
-                                            <span class="required">*</span>
-                                            <span class="form-label-hint">Ex: Riziere Nord 2024</span>
-                                        </label>
-                                        <div class="input-wrapper" id="nomWrapper">
-                                            <i class="fas fa-signature input-icon"></i>
-                                            {{ projet_form.nom }}
-                                            <i class="fas fa-check validation-icon success"></i>
-                                            <i class="fas fa-exclamation-circle validation-icon error"></i>
-                                        </div>
-                                        {% if projet_form.nom.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.nom.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                {% if from_ferme %}
-                                <div class="col-md-12">
-                                    <div class="input-modern-group">
-                                        <label class="form-label-modern">
-                                            Ferme
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-warehouse input-icon"></i>
-                                            <input type="text" class="form-control" value="{{ from_ferme.nom }}" disabled readonly style="background: rgba(255,255,255,0.05);">
-                                        </div>
-                                        {{ projet_form.ferme.as_hidden }}
-                                    </div>
-                                </div>
-                                {% else %}
-                                <div class="col-md-12">
-                                    <div class="input-modern-group">
-                                        <label for="id_ferme" class="form-label-modern">
-                                            Ferme
-                                            <span class="required">*</span>
-                                            <span class="form-label-hint">Sélectionnez la ferme associée au projet</span>
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-warehouse input-icon"></i>
-                                            <select name="ferme" id="id_ferme" class="form-control" required>
-                                                <option value="">Sélectionner une ferme...</option>
-                                                {% for f in projet_form.fields.ferme.queryset %}
-                                                <option value="{{ f.id }}" data-pays="{{ f.pays.id|default:'' }}" data-localite="{{ f.localite.id|default:'' }}" data-superficie="{{ f.superficie_totale|default:'' }}" {% if projet_form.ferme.value|stringformat:"s" == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        {% if projet_form.ferme.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.ferme.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                                <div class="col-md-12">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.image_fond.id_for_label }}" class="form-label-modern">
-                                            Photo de la Ferme 
-                                            <span class="form-label-hint">Peut être utilisée comme fond du projet</span>
-                                        </label>
-                                        <div class="input-wrapper" style="padding: 10px;">
-                                            <i class="fas fa-image input-icon" style="margin-right: 15px;"></i>
-                                            {{ projet_form.image_fond }}
-                                        </div>
-                                        {% if projet_form.image_fond.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.image_fond.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-12">
-                                    <div class="input-modern-group">
-                                        <label class="form-label-modern">
-                                            Produits a Cultiver
-                                            <span class="required">*</span>
-                                            <span class="form-label-hint">Selectionnez un ou plusieurs produits</span>
-                                        </label>
-                                        <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px;">
-                                            {% for produit in produits %}
-                                            <label class="product-checkbox-item" data-produit-id="{{ produit.id }}" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <input type="checkbox"
-                                                           class="produit-checkbox"
-                                                           name="produits_selection"
-                                                           value="{{ produit.id }}"
-                                                           data-produit-id="{{ produit.id }}"
-                                                           style="width: 20px; height: 20px; accent-color: var(--accent);">
-                                                    <div class="flex-grow-1">
-                                                        <div class="fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
-                                                        {% if produit.rendement_moyen %}
-                                                        <small class="text-muted">~{{ produit.rendement_moyen }} kg/ha</small>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                                <div class="produit-superficie-wrapper mt-3" style="display: none;">
-                                                    <label class="form-label-modern" style="font-size: 0.8rem; margin-bottom: 4px;">Superficie (ha)</label>
-                                                    <input type="number"
-                                                           name="superficie_{{ produit.id }}"
-                                                           class="form-control form-control-sm produit-superficie"
-                                                           data-produit-id="{{ produit.id }}"
-                                                           step="0.01"
-                                                           min="0.01"
-                                                           placeholder="Ex: 1.5"
-                                                           disabled
-                                                           onclick="event.stopPropagation();">
-                                                </div>
-                                            </label>
-                                            {% endfor %}
-                                        </div>
-                                        {% if projet_form.errors.produits_selection %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.errors.produits_selection.0 }}</div>
-                                        {% endif %}
-                                        {% for error in projet_form.non_field_errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                {% if from_ferme %}
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label class="form-label-modern">
-                                            Pays
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-globe-africa input-icon"></i>
-                                            <input type="text" class="form-control" value="{{ from_ferme.pays.nom|default:'Non spécifié' }}" disabled readonly style="background: rgba(255,255,255,0.05);">
-                                        </div>
-                                        {{ projet_form.pays.as_hidden }}
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label class="form-label-modern">
-                                            Localite
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-map-marker-alt input-icon"></i>
-                                            <input type="text" class="form-control" value="{{ from_ferme.localite.nom|default:'Non spécifiée' }}" disabled readonly style="background: rgba(255,255,255,0.05);">
-                                        </div>
-                                        {{ projet_form.localite.as_hidden }}
-                                    </div>
-                                </div>
-                                {% else %}
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.pays.id_for_label }}" class="form-label-modern">
-                                            Pays
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-globe-africa input-icon"></i>
-                                            {{ projet_form.pays }}
-                                        </div>
-                                        {% if projet_form.pays.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.pays.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.localite.id_for_label }}" class="form-label-modern">
-                                            Localite
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-map-marker-alt input-icon"></i>
-                                            {{ projet_form.localite }}
-                                        </div>
-                                        {% if projet_form.localite.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.localite.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Section 2: Technical Specs -->
-                        <div class="form-section visible mb-5" data-section="2">
-                            <h5 class="form-section-title">
-                                <i class="fas fa-chart-area"></i> 
-                                Specifications Techniques
-                            </h5>
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="id_superficie_total_display" class="form-label-modern">
-                                            Superficie totale (ha)
-                                            <span class="form-label-hint">Calculee automatiquement depuis les produits</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-ruler-combined input-icon"></i>
-                                            <input type="number"
-                                                   id="id_superficie_total_display"
-                                                   class="form-control"
-                                                   value="0"
-                                                   step="0.01"
-                                                   readonly
-                                                   style="background: rgba(255,255,255,0.05);">
-                                        </div>
-                                        {% if projet_form.superficie.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.superficie.errors.0 }}</div>
-                                        {% endif %}
-                                        {% for error in projet_form.non_field_errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.rendement_estime.id_for_label }}" class="form-label-modern">
-                                            Rendement estime (kg)
-                                            <span class="form-label-hint">Optionnel</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-weight-hanging input-icon"></i>
-                                            {{ projet_form.rendement_estime }}
-                                        </div>
-                                        {% if projet_form.rendement_estime.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.rendement_estime.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.date_lancement.id_for_label }}" class="form-label-modern">
-                                            Date de lancement
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-calendar-alt input-icon"></i>
-                                            {{ projet_form.date_lancement }}
-                                        </div>
-                                        {% if projet_form.date_lancement.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.date_lancement.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.statut.id_for_label }}" class="form-label-modern">
-                                            Statut
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-tasks input-icon"></i>
-                                            {{ projet_form.statut }}
-                                        </div>
-                                        {% if projet_form.statut.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.statut.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.type_irrigation.id_for_label }}" class="form-label-modern">
-                                            Type d'irrigation
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-water input-icon"></i>
-                                            {{ projet_form.type_irrigation }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="{{ projet_form.type_engrais.id_for_label }}" class="form-label-modern">
-                                            Type d'engrais
-                                        </label>
-                                        <div class="input-wrapper select-wrapper">
-                                            <i class="fas fa-seedling input-icon"></i>
-                                            {{ projet_form.type_engrais }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="form-actions border-0 pt-4">
-                            <a href="{% url 'liste_projets' %}" class="btn-baay btn-baay-outline">
-                                <i class="fas fa-times"></i> Annuler
-                            </a>
-                            <button type="submit" class="btn-baay btn-baay-primary px-5" id="submitBtn">
-                                <i class="fas fa-plus"></i> Créer le projet
-                            </button>
-                        </div>
-                    </form>
+                <div class="card-body tw-p-4 sm:tw-p-5 md:tw-p-8">
+                    <div id="creer-projet-htmx-indicator" class="tw-mb-3 tw-min-h-[1.25rem] tw-text-center tw-text-sm" aria-live="polite">
+                        <span class="tw-inline-flex tw-items-center tw-gap-2"><i class="fas fa-spinner fa-spin"></i> Envoi en cours…</span>
+                    </div>
+                    <div id="creer-projet-swap">
+                        {% include 'projets/partials/_creer_projet_form_fragment.html' %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -903,43 +605,81 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('projectForm');
-    const inputs = form.querySelectorAll('input, select');
-    const progressSteps = document.querySelectorAll('.progress-step');
-    const connectors = document.querySelectorAll('.step-connector');
-    
-    // Animate sections on load
-    const sections = document.querySelectorAll('.form-section');
-    sections.forEach((section, index) => {
-        setTimeout(() => {
-            section.classList.add('visible');
-        }, 100 * index);
+(function () {
+    const paysId = '{{ projet_form.pays.id_for_label }}';
+    const locId = '{{ projet_form.localite.id_for_label }}';
+
+    function resetCreerSubmitBtn() {
+        const btn = document.getElementById('submitBtn');
+        if (!btn) return;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i> Créer le projet';
+    }
+
+    document.body.addEventListener('htmx:beforeRequest', function (ev) {
+        if (!ev.detail.elt || ev.detail.elt.id !== 'projectForm') return;
+        const btn = document.getElementById('submitBtn');
+        if (!btn) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création…';
     });
-    
-    // Real-time validation
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            validateInput(this);
+
+    document.body.addEventListener('htmx:afterRequest', function (ev) {
+        if (!ev.detail.elt || ev.detail.elt.id !== 'projectForm') return;
+        if (ev.detail.xhr && ev.detail.xhr.status === 422) {
+            resetCreerSubmitBtn();
+        }
+    });
+
+    function updateProgressIndicators() {
+        const progressSteps = document.querySelectorAll('.glass-form-card .progress-step');
+        const connectors = document.querySelectorAll('.glass-form-card .step-connector');
+        if (!progressSteps.length) return;
+
+        const section1Inputs = document.querySelectorAll('[data-section="1"] input, [data-section="1"] select');
+        const section1Complete = Array.from(section1Inputs).every(input => input.value.trim());
+
+        const section2Inputs = document.querySelectorAll('[data-section="2"] input:not([type="hidden"]), [data-section="2"] select');
+        const requiredSection2 = Array.from(section2Inputs).filter(input => {
+            return input.closest('.input-modern-group') && input.closest('.input-modern-group').querySelector('.required');
         });
-        
-        input.addEventListener('input', function() {
-            if (this.value) {
-                this.parentElement.classList.remove('error');
-                const icon = this.parentElement.querySelector('.validation-icon.error');
-                if (icon) icon.style.opacity = '0';
+        const section2Complete = requiredSection2.every(input => input.value.trim());
+
+        if (section1Complete) {
+            progressSteps[0].classList.add('completed');
+            progressSteps[0].classList.remove('active');
+            if (progressSteps[1]) progressSteps[1].classList.add('active');
+            if (connectors[0]) connectors[0].classList.add('active');
+        } else {
+            progressSteps[0].classList.remove('completed');
+            progressSteps[0].classList.add('active');
+            if (progressSteps[1]) progressSteps[1].classList.remove('active');
+            if (connectors[0]) connectors[0].classList.remove('active');
+        }
+
+        if (section1Complete && section2Complete) {
+            if (progressSteps[1]) {
+                progressSteps[1].classList.add('completed');
+                progressSteps[1].classList.remove('active');
             }
-        });
-    });
-    
-    function validateInput(input) {
+            if (progressSteps[2]) progressSteps[2].classList.add('active');
+            if (connectors[1]) connectors[1].classList.add('active');
+        } else if (section1Complete) {
+            if (progressSteps[1]) progressSteps[1].classList.remove('completed');
+            if (progressSteps[2]) progressSteps[2].classList.remove('active');
+            if (connectors[1]) connectors[1].classList.remove('active');
+        }
+    }
+
+    function validateInput(input, updateProgressFn) {
         const wrapper = input.closest('.input-wrapper');
         if (!wrapper) return;
-        
-        const isRequired = input.hasAttribute('required') || 
-                          input.closest('.input-modern-group')?.querySelector('.required');
-        const value = input.value.trim();
-        
+
+        var group = input.closest('.input-modern-group');
+        var isRequired = input.hasAttribute('required') ||
+            (group && group.querySelector('.required'));
+        var value = (input.value || '').trim();
+
         if (isRequired && !value) {
             wrapper.classList.add('error');
             wrapper.classList.remove('success');
@@ -947,171 +687,165 @@ document.addEventListener('DOMContentLoaded', function() {
             wrapper.classList.add('success');
             wrapper.classList.remove('error');
         }
-        
-        updateProgress();
-    }
-    
-    function updateProgress() {
-        // Check section 1
-        const section1Inputs = document.querySelectorAll('[data-section="1"] input, [data-section="1"] select');
-        const section1Complete = Array.from(section1Inputs).every(input => input.value.trim());
-        
-        // Check section 2
-        const section2Inputs = document.querySelectorAll('[data-section="2"] input:not([type="hidden"]), [data-section="2"] select');
-        const requiredSection2 = Array.from(section2Inputs).filter(input => {
-            return input.closest('.input-modern-group')?.querySelector('.required');
-        });
-        const section2Complete = requiredSection2.every(input => input.value.trim());
-        
-        // Update progress UI
-        if (section1Complete) {
-            progressSteps[0].classList.add('completed');
-            progressSteps[0].classList.remove('active');
-            progressSteps[1].classList.add('active');
-            connectors[0].classList.add('active');
-        } else {
-            progressSteps[0].classList.remove('completed');
-            progressSteps[0].classList.add('active');
-            progressSteps[1].classList.remove('active');
-            connectors[0].classList.remove('active');
-        }
-        
-        if (section1Complete && section2Complete) {
-            progressSteps[1].classList.add('completed');
-            progressSteps[1].classList.remove('active');
-            progressSteps[2].classList.add('active');
-            connectors[1].classList.add('active');
-        } else if (section1Complete) {
-            progressSteps[1].classList.remove('completed');
-            progressSteps[2].classList.remove('active');
-            connectors[1].classList.remove('active');
-        }
-    }
-    
-    // Form submission animation
-    form.addEventListener('submit', function(e) {
-        const btn = document.getElementById('submitBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creation en cours...';
-        btn.disabled = true;
-    });
-    
-    // Initialize progress
-    updateProgress();
-});
 
-// Dynamic filtering for Pays -> Localite
-document.addEventListener('DOMContentLoaded', function() {
-    const paysSelect = document.getElementById('{{ projet_form.pays.id_for_label }}');
-    const localiteSelect = document.getElementById('{{ projet_form.localite.id_for_label }}');
-    
-    if (paysSelect && localiteSelect && paysSelect.tagName === 'SELECT' && localiteSelect.tagName === 'SELECT') {
-        const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({
-            value: opt.value,
-            text: opt.text,
-            selected: opt.selected
-        }));
-        
-        const localitesMapping = {
-            {% for loc in projet_form.localite.field.queryset %}
-                "{{ loc.id }}": "{{ loc.pays_id|default:'' }}",
-            {% endfor %}
-        };
-        
-        function filterLocalites() {
-            const selectedPays = paysSelect.value;
-            const currentSelectedLocalite = localiteSelect.value;
-            
-            localiteSelect.innerHTML = '';
-            
-            allLocaliteOptions.forEach(opt => {
-                if (!opt.value || localitesMapping[opt.value] === selectedPays) {
-                    const option = new Option(opt.text, opt.value);
-                    if (opt.value === currentSelectedLocalite && localitesMapping[opt.value] === selectedPays) {
-                        option.selected = true;
-                    }
-                    localiteSelect.add(option);
+        updateProgressFn();
+    }
+
+    function initCreerProjetFormInteractions() {
+        const form = document.getElementById('projectForm');
+        if (!form) return;
+        if (form._creerInteractionsBound) return;
+        form._creerInteractionsBound = true;
+
+        const sections = form.querySelectorAll('.form-section');
+        sections.forEach(function (section, index) {
+            setTimeout(function () {
+                section.classList.add('visible');
+            }, 100 * index);
+        });
+
+        form.querySelectorAll('input, select').forEach(function (input) {
+            input.addEventListener('blur', function () {
+                validateInput(input, updateProgressIndicators);
+            });
+            input.addEventListener('input', function () {
+                if (input.value && input.parentElement) {
+                    input.parentElement.classList.remove('error');
+                    var errIcon = input.parentElement.querySelector('.validation-icon.error');
+                    if (errIcon) errIcon.style.opacity = '0';
                 }
             });
-        }
-        
-        paysSelect.addEventListener('change', filterLocalites);
-        filterLocalites(); // Apply filter initially
+        });
+
+        updateProgressIndicators();
     }
 
-    // Auto-fill pays/localite/superficie when farm is selected
-    const fermeSelect = document.getElementById('id_ferme');
-    if (fermeSelect) {
-        fermeSelect.addEventListener('change', function() {
-            const option = this.options[this.selectedIndex];
-            const paysId = option.getAttribute('data-pays');
-            const localiteId = option.getAttribute('data-localite');
-            const superficie = option.getAttribute('data-superficie');
-            if (paysId && paysSelect) {
-                paysSelect.value = paysId;
-                paysSelect.dispatchEvent(new Event('change'));
+    function wirePaysLocaliteFermeEtProduits() {
+        var paysSelect = document.getElementById(paysId);
+        var localiteSelect = document.getElementById(locId);
+
+        if (paysSelect && localiteSelect && paysSelect.tagName === 'SELECT' && localiteSelect.tagName === 'SELECT') {
+            var allLocaliteOptions = Array.from(localiteSelect.options).map(function (opt) {
+                return { value: opt.value, text: opt.text, selected: opt.selected };
+            });
+
+            var localitesMapping = {
+                {% for loc in projet_form.localite.field.queryset %}
+                "{{ loc.id }}": "{{ loc.pays_id|default:'' }}"{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            };
+
+            function filterLocalites() {
+                var selectedPaysVal = paysSelect.value;
+                var currentSelectedLocalite = localiteSelect.value;
+                localiteSelect.innerHTML = '';
+                allLocaliteOptions.forEach(function (opt) {
+                    if (!opt.value || localitesMapping[opt.value] === selectedPaysVal) {
+                        var option = new Option(opt.text, opt.value);
+                        if (opt.value === currentSelectedLocalite && localitesMapping[opt.value] === selectedPaysVal) {
+                            option.selected = true;
+                        }
+                        localiteSelect.add(option);
+                    }
+                });
             }
-            if (localiteId && localiteSelect) {
-                localiteSelect.value = localiteId;
-            }
-            if (superficie) {
-                const totalDisplay = document.getElementById('id_superficie_total_display');
-                if (totalDisplay) {
-                    totalDisplay.setAttribute('max', superficie);
-                    totalDisplay.setAttribute('title', 'Max ferme: ' + superficie + ' ha');
+
+            if (paysSelect._creerFiltPaysFn) paysSelect.removeEventListener('change', paysSelect._creerFiltPaysFn);
+            paysSelect._creerFiltPaysFn = filterLocalites;
+            paysSelect.addEventListener('change', paysSelect._creerFiltPaysFn);
+            filterLocalites();
+        }
+
+        var fermeSelect = document.getElementById('id_ferme');
+        if (fermeSelect && paysSelect && paysSelect.tagName === 'SELECT') {
+            if (fermeSelect._creerFarmChFn) fermeSelect.removeEventListener('change', fermeSelect._creerFarmChFn);
+            fermeSelect._creerFarmChFn = function () {
+                var option = this.options[this.selectedIndex];
+                var paysIdAttr = option.getAttribute('data-pays');
+                var localiteVal = option.getAttribute('data-localite');
+                var superficieFarm = option.getAttribute('data-superficie');
+                if (paysIdAttr) {
+                    paysSelect.value = paysIdAttr;
+                    paysSelect.dispatchEvent(new Event('change'));
                 }
-            }
-        });
-    }
-
-    // ===== Per-product superficie logic =====
-    const produitItems = document.querySelectorAll('.product-checkbox-item');
-    const totalDisplay = document.getElementById('id_superficie_total_display');
-
-    function updateTotalSuperficie() {
-        let total = 0;
-        document.querySelectorAll('.produit-checkbox:checked').forEach(function(cb) {
-            const produitId = cb.getAttribute('data-produit-id');
-            const surfInput = document.querySelector('.produit-superficie[data-produit-id="' + produitId + '"]');
-            if (surfInput) {
-                const v = parseFloat(surfInput.value);
-                if (!isNaN(v) && v > 0) total += v;
-            }
-        });
-        if (totalDisplay) totalDisplay.value = total.toFixed(2);
-    }
-
-    function applyItemStyle(item, checked) {
-        item.style.borderColor = checked ? 'var(--accent)' : 'var(--border-color)';
-        item.style.background = checked ? 'rgba(163, 230, 53, 0.1)' : 'var(--bg-secondary)';
-    }
-
-    produitItems.forEach(function(item) {
-        const cb = item.querySelector('.produit-checkbox');
-        const wrapper = item.querySelector('.produit-superficie-wrapper');
-        const surfInput = item.querySelector('.produit-superficie');
-        if (!cb) return;
-
-        applyItemStyle(item, cb.checked);
-        if (cb.checked && wrapper) wrapper.style.display = 'block';
-        if (cb.checked && surfInput) surfInput.disabled = false;
-
-        cb.addEventListener('change', function() {
-            applyItemStyle(item, cb.checked);
-            if (wrapper) wrapper.style.display = cb.checked ? 'block' : 'none';
-            if (surfInput) {
-                surfInput.disabled = !cb.checked;
-                if (!cb.checked) surfInput.value = '';
-                else surfInput.focus();
-            }
-            updateTotalSuperficie();
-        });
-
-        if (surfInput) {
-            surfInput.addEventListener('input', updateTotalSuperficie);
+                if (localiteVal && localiteSelect && localiteSelect.tagName === 'SELECT') {
+                    localiteSelect.value = localiteVal;
+                }
+                if (superficieFarm) {
+                    var td = document.getElementById('id_superficie_total_display');
+                    if (td) {
+                        td.setAttribute('max', superficieFarm);
+                        td.setAttribute('title', 'Max ferme: ' + superficieFarm + ' ha');
+                    }
+                }
+            };
+            fermeSelect.addEventListener('change', fermeSelect._creerFarmChFn);
         }
-    });
 
-    updateTotalSuperficie();
-});
+        var totalDisplay = document.getElementById('id_superficie_total_display');
+
+        function updateTotalSuperficie() {
+            var total = 0;
+            document.querySelectorAll('.produit-checkbox:checked').forEach(function (cb) {
+                var produitId = cb.getAttribute('data-produit-id');
+                var surfInput = document.querySelector('.produit-superficie[data-produit-id="' + produitId + '"]');
+                if (surfInput) {
+                    var v = parseFloat(surfInput.value);
+                    if (!isNaN(v) && v > 0) total += v;
+                }
+            });
+            if (totalDisplay) totalDisplay.value = total.toFixed(2);
+        }
+
+        function applyItemStyle(item, checked) {
+            item.style.borderColor = checked ? 'var(--accent)' : 'var(--border-color)';
+            item.style.background = checked ? 'rgba(163, 230, 53, 0.1)' : 'var(--bg-secondary)';
+        }
+
+        document.querySelectorAll('.product-checkbox-item').forEach(function (item) {
+            var cb = item.querySelector('.produit-checkbox');
+            var wrapper = item.querySelector('.produit-superficie-wrapper');
+            var surfInput = item.querySelector('.produit-superficie');
+            if (!cb) return;
+
+            applyItemStyle(item, cb.checked);
+            if (cb.checked && wrapper) wrapper.style.display = 'block';
+            if (cb.checked && surfInput) surfInput.disabled = false;
+
+            var newCb = cb.cloneNode(true);
+            cb.parentNode.replaceChild(newCb, cb);
+            newCb.addEventListener('change', function () {
+                applyItemStyle(item, newCb.checked);
+                if (wrapper) wrapper.style.display = newCb.checked ? 'block' : 'none';
+                if (surfInput) {
+                    surfInput.disabled = !newCb.checked;
+                    if (!newCb.checked) surfInput.value = '';
+                    else surfInput.focus();
+                }
+                updateTotalSuperficie();
+                updateProgressIndicators();
+            });
+
+            if (surfInput) {
+                surfInput.addEventListener('input', updateTotalSuperficie);
+            }
+        });
+
+        updateTotalSuperficie();
+    }
+
+    function initCreerProjetPageAll() {
+        initCreerProjetFormInteractions();
+        wirePaysLocaliteFermeEtProduits();
+    }
+
+    document.addEventListener('DOMContentLoaded', initCreerProjetPageAll);
+
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        if (!evt.detail || !evt.detail.target) return;
+        if (evt.detail.target.id !== 'creer-projet-swap') return;
+        initCreerProjetPageAll();
+    });
+})();
 </script>
 {% endblock %}

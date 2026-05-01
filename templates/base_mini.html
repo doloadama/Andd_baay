@@ -144,9 +144,12 @@
             });
         });
     </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js" crossorigin="anonymous"></script>
+    {% include 'includes/alpine_django_messages_register.html' %}
 </head>
 <body>
     <div class="container-mini">
+        {% include 'includes/django_message_toasts.html' %}
         {% block content %}{% endblock %}
     </div>
 
