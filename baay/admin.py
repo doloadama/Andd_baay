@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group, User
+from django.utils.text import Truncator
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import (
     AutocompleteSelectFilter,
@@ -61,7 +62,8 @@ class ProfileAdmin(ModelAdmin):
 
 @admin.register(Ferme)
 class FermeAdmin(ModelAdmin):
-    list_display = ("nom", "proprietaire", "pays", "localite", "code_acces", "date_creation")
+    # Colonnes réduites : pays / localité restent filtrables sans encombrer la grille
+    list_display = ("nom", "proprietaire", "code_acces", "date_creation")
     list_filter = [
         ("pays", AutocompleteSelectFilter),
         ("localite", AutocompleteSelectFilter),
@@ -74,7 +76,7 @@ class FermeAdmin(ModelAdmin):
 
 @admin.register(ProduitAgricole)
 class ProduitAgricoleAdmin(ModelAdmin):
-    list_display = ("nom", "saison", "prix_par_kg", "quantite_disponible", "etat")
+    list_display = ("nom", "etat", "prix_par_kg")
     search_fields = ("nom", "saison")
     list_filter = [
         ("etat", ChoicesDropdownFilter),
@@ -86,7 +88,11 @@ class ProduitAgricoleAdmin(ModelAdmin):
 
 @admin.register(PhotoProduitAgricole)
 class PhotoProduitAgricoleAdmin(ModelAdmin):
-    list_display = ("produit", "description", "date_ajout")
+    @admin.display(description="Description")
+    def description_courte(self, obj):
+        return Truncator(obj.description or "").chars(48)
+
+    list_display = ("produit", "description_courte", "date_ajout")
     search_fields = ("produit__nom",)
     ordering = ("-date_ajout",)
     list_per_page = 25
@@ -95,7 +101,7 @@ class PhotoProduitAgricoleAdmin(ModelAdmin):
 
 @admin.register(Projet)
 class ProjetAdmin(ModelAdmin):
-    list_display = ("nom", "ferme", "statut", "culture", "superficie", "date_lancement")
+    list_display = ("nom", "ferme", "statut", "date_lancement")
     list_filter = [
         ("statut", ChoicesDropdownFilter),
         ("ferme", AutocompleteSelectFilter),
@@ -111,7 +117,7 @@ class ProjetAdmin(ModelAdmin):
 
 @admin.register(Localite)
 class LocaliteAdmin(ModelAdmin):
-    list_display = ("nom", "pays", "type_sol", "pluviometrie_moyenne")
+    list_display = ("nom", "pays", "type_sol")
     list_filter = [
         ("pays", AutocompleteSelectFilter),
         ("type_sol", ChoicesDropdownFilter),
@@ -123,7 +129,7 @@ class LocaliteAdmin(ModelAdmin):
 
 @admin.register(Investissement)
 class InvestissementAdmin(ModelAdmin):
-    list_display = ("projet", "cout_par_hectare", "autres_frais", "date_investissement")
+    list_display = ("projet", "cout_par_hectare", "date_investissement")
     list_filter = [
         ("date_investissement", RangeDateFilter),
         ("projet", AutocompleteSelectFilter),
@@ -136,7 +142,7 @@ class InvestissementAdmin(ModelAdmin):
 
 @admin.register(DemandeAccesFerme)
 class DemandeAccesFermeAdmin(ModelAdmin):
-    list_display = ("utilisateur", "ferme", "code", "statut", "date_demande")
+    list_display = ("utilisateur", "ferme", "statut", "date_demande")
     list_filter = [
         ("ferme", AutocompleteSelectFilter),
         ("utilisateur", AutocompleteSelectFilter),
@@ -152,7 +158,7 @@ class DemandeAccesFermeAdmin(ModelAdmin):
 @admin.register(ProjetProduit)
 class ProjetProduitAdmin(ModelAdmin):
     readonly_fields = ("date_creation", "date_modification")
-    list_display = ("produit", "projet", "date_semis", "superficie_allouee", "rendement_final")
+    list_display = ("produit", "projet", "superficie_allouee")
     list_filter = [
         ("produit", AutocompleteSelectFilter),
         ("projet", AutocompleteSelectFilter),
@@ -166,13 +172,15 @@ class ProjetProduitAdmin(ModelAdmin):
 
 @admin.register(PrevisionRecolte)
 class PrevisionRecolteAdmin(ModelAdmin):
+    @admin.display(description="Rendement (min – max)")
+    def rendement_fourchette(self, obj):
+        return f"{obj.rendement_estime_min} – {obj.rendement_estime_max}"
+
     list_display = (
         "projet",
-        "rendement_estime_min",
-        "rendement_estime_max",
+        "rendement_fourchette",
         "indice_confiance",
         "date_recolte_prevue",
-        "date_prediction",
     )
     list_filter = [
         ("projet", AutocompleteSelectFilter),
@@ -198,7 +206,11 @@ class ConversationAdmin(ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(ModelAdmin):
-    list_display = ("conversation", "expediteur", "date_envoi", "contenu")
+    @admin.display(description="Aperçu")
+    def contenu_apercu(self, obj):
+        return Truncator(obj.contenu or "").chars(56)
+
+    list_display = ("conversation", "expediteur", "date_envoi", "contenu_apercu")
     list_filter = [
         ("conversation", AutocompleteSelectFilter),
         ("expediteur", AutocompleteSelectFilter),
@@ -212,7 +224,11 @@ class MessageAdmin(ModelAdmin):
 
 @admin.register(MessageReaction)
 class MessageReactionAdmin(ModelAdmin):
-    list_display = ("message", "utilisateur", "emoji", "date_ajout")
+    @admin.display(description="Message")
+    def message_ref(self, obj):
+        return Truncator(str(obj.message)).chars(40)
+
+    list_display = ("message_ref", "utilisateur", "emoji", "date_ajout")
     search_fields = ("emoji", "utilisateur__user__username")
     ordering = ("-date_ajout",)
     list_select_related = ("message", "utilisateur__user")
@@ -221,7 +237,8 @@ class MessageReactionAdmin(ModelAdmin):
 
 @admin.register(Tache)
 class TacheAdmin(ModelAdmin):
-    list_display = ("titre", "ferme", "projet", "assigne_a", "statut", "priorite", "date_echeance")
+    # ferme / projet / priorité : filtres latéraux ; liste centrée sur exécution
+    list_display = ("titre", "assigne_a", "statut", "date_echeance")
     list_filter = [
         ("statut", ChoicesDropdownFilter),
         ("priorite", ChoicesDropdownFilter),
