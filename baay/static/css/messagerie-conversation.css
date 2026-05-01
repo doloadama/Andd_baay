@@ -4,12 +4,25 @@
     border-radius: 0 !important;
     border: none !important;
 }
+@supports (height: 100dvh) {
+    .mobile-chat-card {
+        height: calc(100dvh - 60px) !important;
+    }
+}
 @media (min-width: 768px) {
     .mobile-chat-card {
         height: calc(100vh - 180px) !important;
         border-radius: var(--radius-lg) !important;
         border: 1px solid var(--border-glass) !important;
     }
+    @supports (height: 100dvh) {
+        .mobile-chat-card {
+            height: calc(100dvh - 180px) !important;
+        }
+    }
+}
+.msg-conv-composer {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)) !important;
 }
 .chat-header-avatar {
     width: 38px;
@@ -186,5 +199,27 @@
     .msg-bubble-own, .msg-bubble-other {
         font-size: 0.9rem;
         padding: 8px 12px;
+    }
+    /* Larger touch targets on mobile (Apple HIG / Material >= 44px / 48px). */
+    .reaction-pill {
+        min-height: 36px;
+        min-width: 44px;
+        padding: 6px 10px !important;
+        font-size: 0.85rem;
+    }
+    .msg-action-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 8px 10px !important;
+        font-size: 0.78rem !important;
+    }
+    .chat-input-icon-btn,
+    .chat-input-wrapper label[for="fileInput"] {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .chat-send-btn {
+        width: 44px;
+        height: 44px;
     }
 }

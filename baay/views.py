@@ -2871,3 +2871,96 @@ def toggle_reaction(request, message_id):
     )
 
     return JsonResponse({'action': action, 'reactions': reactions, 'message_id': str(message.id)})
+
+
+@login_required
+@require_GET
+def drawer_inbox_fragment(request):
+    """Render the inbox list as a bare HTML fragment for injection into the
+    desktop messagerie drawer. Same data as `messagerie_inbox` but returns the
+    `_inbox_list.html` partial only (no base layout)."""
+    profile = ensure_profile_for_user(request.user)
+
+    conversations = (
+        Conversation.objects.filter(participants=profile)
+        .prefetch_related('participants', 'messages__expediteur')
+        .order_by('-dernier_message')
+    )
+
+    conv_data = []
+    online_threshold = timezone.now() - timedelta(minutes=5)
+    for conv in conversations:
+        dernier = conv.messages.last()
+        non_lus = conv.messages.exclude(lu_par=profile).exclude(expediteur=profile).count()
+        autres = [p for p in conv.participants.all() if p.id != profile.id]
+        if conv.sujet:
+            titre = conv.sujet
+        elif len(autres) == 1:
+            titre = autres[0].user.username
+        else:
+            titre = f"Groupe ({len(autres) + 1})"
+        avatar_source = titre.strip() or "C"
+        avatar_initial = avatar_source[0].upper()
+        is_online = bool(dernier and dernier.date_envoi >= online_threshold)
+        conv_data.append({
+            'conv': conv,
+            'titre': titre,
+            'autres': autres,
+            'dernier': dernier,
+            'non_lus': non_lus,
+            'avatar_initial': avatar_initial,
+            'is_online': is_online,
+        })
+
+    return render(request, 'messagerie/_inbox_list.html', {
+        'conv_data': conv_data,
+        'profile': profile,
+    })
+
+
+@login_required
+@require_GET
+def drawer_conversation_fragment(request, conversation_id):
+    """Render a single conversation view as a bare HTML fragment for the drawer.
+    Returns the `_conversation_view.html` partial only. Marks incoming messages
+    as read on open (same as `conversation_detail` GET)."""
+    profile = ensure_profile_for_user(request.user)
+
+    conversation = get_object_or_404(
+        Conversation.objects.prefetch_related(
+            'participants',
+            'messages__expediteur',
+            'messages__lu_par',
+            'messages__reactions',
+            'messages__reply_to__expediteur',
+        ),
+        id=conversation_id,
+        participants=profile,
+    )
+
+    messages_non_lus = list(
+        conversation.messages.exclude(lu_par=profile).exclude(expediteur=profile)
+    )
+    if messages_non_lus:
+        channel_layer = get_channel_layer()
+        group_name = f"conversation_{str(conversation.id)}"
+        for msg in messages_non_lus:
+            msg.lu_par.add(profile)
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                build_read_receipt_event_v1(msg.id, profile.id, conversation.id),
+            )
+            _send_inbox_update(channel_layer, conversation, msg)
+
+    autres = [p for p in conversation.participants.all() if p.id != profile.id]
+    titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
+
+    return render(request, 'messagerie/_conversation_view.html', {
+        'conversation': conversation,
+        'messages_list': conversation.messages.all(),
+        'titre': titre,
+        'autres': autres,
+        'profile': profile,
+        'is_mini': False,
+        'drawer': True,
+    })

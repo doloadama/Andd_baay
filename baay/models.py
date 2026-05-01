@@ -320,7 +320,11 @@ class PrevisionRecolte(models.Model):
 class Conversation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sujet = models.CharField(max_length=200, blank=True)
-    participants = models.ManyToManyField(Profile, related_name='conversations')
+    participants = models.ManyToManyField(
+        Profile,
+        related_name='conversations',
+        through='ParticipationConversation',
+    )
     dernier_message = models.DateTimeField(auto_now=True)
     ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, null=True, blank=True, related_name='conversations')
 
@@ -332,6 +336,36 @@ class Conversation(models.Model):
         if self.sujet:
             return f"{self.sujet} ({len(p)} participants)"
         return f"Conversation entre {', '.join(str(x) for x in p[:3])}"
+
+
+class ParticipationConversation(models.Model):
+    """Through-model for Conversation.participants enabling per-user state
+    (last_read_at, pinned, archived, muted) without altering the M2M API.
+
+    All extra fields are nullable so existing `conversation.participants.add(...)`
+    calls keep working without further changes.
+    """
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='participations'
+    )
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name='participations'
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+    last_read_at = models.DateTimeField(null=True, blank=True)
+    pinned_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+    muted_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [('profile', 'conversation')]
+        indexes = [
+            models.Index(fields=['profile', 'pinned_at']),
+            models.Index(fields=['profile', 'archived_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.profile} <-> {self.conversation_id}"
 
 
 class Message(models.Model):

@@ -1,0 +1,40 @@
+{% load static %}
+{# Desktop messagerie drawer included once in base.html. Hidden by default,
+   activated only on viewports >= 992px by messagerie-drawer.js. #}
+<link rel="stylesheet" href="{% static 'css/messagerie-drawer.css' %}">
+<div id="messagerieDrawer" class="msg-drawer" aria-hidden="true" role="dialog" aria-labelledby="msgDrawerTitle" aria-modal="false">
+    <div class="msg-drawer-backdrop" data-drawer-close="1" aria-hidden="true"></div>
+    <aside class="msg-drawer-panel" tabindex="-1">
+        <header class="msg-drawer-header">
+            <button type="button" class="msg-drawer-back btn-nav btn-nav-ghost" data-drawer-back="1" title="Retour" aria-label="Retour" hidden>
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h6 id="msgDrawerTitle" class="msg-drawer-title mb-0">Messages</h6>
+            <div class="ms-auto d-flex align-items-center gap-1">
+                <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost" title="Voir tout en plein écran" aria-label="Voir tout en plein écran">
+                    <i class="fas fa-up-right-from-square"></i>
+                </a>
+                <button type="button" class="msg-drawer-close btn-nav btn-nav-ghost" data-drawer-close="1" title="Fermer (Esc)" aria-label="Fermer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </header>
+        <div class="msg-drawer-body" id="messagerieDrawerBody">
+            <div class="msg-drawer-loading text-center py-5 text-muted">
+                <i class="fas fa-circle-notch fa-spin fs-3"></i>
+                <p class="small mt-2 mb-0">Chargement…</p>
+            </div>
+        </div>
+    </aside>
+</div>
+<script>
+    window.messagerieDrawerConfig = {
+        inboxUrl: "{% url 'drawer_inbox_fragment' %}",
+        conversationUrlTemplate: "{% url 'drawer_conversation_fragment' '00000000-0000-0000-0000-000000000000' %}"
+    };
+</script>
+<script src="{% static 'js/messagerie-drawer.js' %}"></script>
+{% if user.is_authenticated %}
+<script src="{% static 'js/messagerie-conversation.js' %}" defer></script>
+<script src="{% static 'js/messagerie-inbox.js' %}" defer></script>
+{% endif %}

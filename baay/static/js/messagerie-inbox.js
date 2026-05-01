@@ -1,47 +1,47 @@
 (function () {
-    const list = document.getElementById("conversationList");
-    if (!list) return;
+    "use strict";
 
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = wsProtocol + "//" + window.location.host + "/ws/messagerie/inbox/";
-    const unreadApiUrl = window.inboxConfig?.unreadApiUrl;
-    let ws;
-    let reconnectDelayMs = 1500;
+    var wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    var wsUrl = wsProtocol + "//" + window.location.host + "/ws/messagerie/inbox/";
+    var ws = null;
+    var connected = false;
+    var reconnectDelayMs = 1500;
+    var pollIntervalId = null;
+
+    function getList() {
+        return document.getElementById("conversationList");
+    }
 
     function getOrCreateUnreadBadge(item) {
-        let badge = item.querySelector(".conv-unread");
+        var badge = item.querySelector(".conv-unread");
         if (badge) return badge;
         badge = document.createElement("span");
         badge.className = "badge rounded-pill unread-badge ms-1 conv-unread";
-        const title = item.querySelector(".conv-title");
-        if (title) {
-            title.appendChild(badge);
-        }
+        var title = item.querySelector(".conv-title");
+        if (title) title.appendChild(badge);
         return badge;
     }
 
     function updateConversationItem(event) {
-        const item = list.querySelector(`.conv-item[data-conversation-id="${event.conversation_id}"]`);
+        var list = getList();
+        if (!list) return;
+        var item = list.querySelector('.conv-item[data-conversation-id="' + event.conversation_id + '"]');
         if (!item) return;
 
-        const previewEl = item.querySelector(".conv-preview");
-        const timeEl = item.querySelector(".conv-time");
-        const avatarEl = item.querySelector(".avatar-pill");
+        var previewEl = item.querySelector(".conv-preview");
+        var timeEl = item.querySelector(".conv-time");
+        var avatarEl = item.querySelector(".avatar-pill");
 
         if (previewEl) {
             previewEl.textContent = event.preview || "Aucun message";
             previewEl.classList.toggle("preview-unread", Number(event.unread_count) > 0);
             previewEl.classList.toggle("text-muted", Number(event.unread_count) <= 0);
         }
-        if (timeEl) {
-            timeEl.textContent = event.date_envoi || "";
-        }
-        if (avatarEl) {
-            avatarEl.classList.toggle("online", Boolean(event.is_online));
-        }
+        if (timeEl) timeEl.textContent = event.date_envoi || "";
+        if (avatarEl) avatarEl.classList.toggle("online", Boolean(event.is_online));
 
-        const unreadCount = Number(event.unread_count || 0);
-        const badge = getOrCreateUnreadBadge(item);
+        var unreadCount = Number(event.unread_count || 0);
+        var badge = getOrCreateUnreadBadge(item);
         if (unreadCount > 0) {
             badge.textContent = String(unreadCount);
             badge.style.display = "";
@@ -55,32 +55,66 @@
     }
 
     function updateGlobalUnreadCount(nonLusTotal) {
-        const navBadge = document.querySelector("#notif-badge, .notif-badge");
-        if (!navBadge) return;
-        const total = Number(nonLusTotal || 0);
-        navBadge.textContent = String(total);
-        navBadge.style.display = total > 0 ? "" : "none";
-    }
+        var total = Number(nonLusTotal || 0);
+        var displayCount = total > 9 ? "9+" : String(total);
 
-    async function pollFallback() {
-        if (!unreadApiUrl) return;
-        try {
-            const response = await fetch(unreadApiUrl, { headers: { Accept: "application/json" } });
-            if (!response.ok) return;
-            const data = await response.json();
-            updateGlobalUnreadCount(data.non_lus);
-        } catch (_) {
-            // Silent fallback poll errors.
+        var navBadge = document.getElementById("navUnreadBadge");
+        if (navBadge) {
+            if (total > 0) {
+                navBadge.textContent = displayCount;
+                navBadge.style.display = "inline-flex";
+            } else {
+                navBadge.textContent = "";
+                navBadge.style.display = "none";
+            }
+        }
+
+        var floatingBadge = document.getElementById("floatingNotifBadge");
+        if (floatingBadge) {
+            if (total > 0) {
+                floatingBadge.textContent = displayCount;
+                floatingBadge.classList.add("show");
+            } else {
+                floatingBadge.textContent = "";
+                floatingBadge.classList.remove("show");
+            }
+        }
+
+        var bottomNavBadge = document.getElementById("bottomNavMessagerieBadge");
+        if (bottomNavBadge) {
+            if (total > 0) {
+                bottomNavBadge.textContent = displayCount;
+                bottomNavBadge.style.display = "inline-flex";
+            } else {
+                bottomNavBadge.textContent = "";
+                bottomNavBadge.style.display = "none";
+            }
         }
     }
 
+    function pollFallback() {
+        var unreadApiUrl = window.inboxConfig && window.inboxConfig.unreadApiUrl;
+        if (!unreadApiUrl) return;
+        fetch(unreadApiUrl, { headers: { Accept: "application/json" } })
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (data) { if (data) updateGlobalUnreadCount(data.non_lus); })
+            .catch(function () { /* noop */ });
+    }
+
     function connect() {
-        ws = new WebSocket(wsUrl);
+        if (connected) return;
+        try {
+            ws = new WebSocket(wsUrl);
+        } catch (_) {
+            return;
+        }
         ws.onopen = function () {
+            connected = true;
             reconnectDelayMs = 1500;
         };
         ws.onmessage = function (e) {
-            const data = JSON.parse(e.data);
+            var data;
+            try { data = JSON.parse(e.data); } catch (_) { return; }
             if (data.type === "inbox_update_v1") {
                 updateConversationItem(data);
             } else if (data.type === "unread_count_v1") {
@@ -88,11 +122,24 @@
             }
         };
         ws.onclose = function () {
+            connected = false;
             setTimeout(connect, reconnectDelayMs);
             reconnectDelayMs = Math.min(reconnectDelayMs * 2, 10000);
         };
+        ws.onerror = function () { /* allow onclose to handle reconnect */ };
     }
 
-    connect();
-    window.setInterval(pollFallback, 30000);
+    function initMessagerieInbox() {
+        connect();
+        if (pollIntervalId === null) {
+            pollIntervalId = window.setInterval(pollFallback, 30000);
+            // Run once at startup to seed badges quickly.
+            pollFallback();
+        }
+    }
+
+    window.initMessagerieInbox = initMessagerieInbox;
+    window.updateMessagerieGlobalUnread = updateGlobalUnreadCount;
+
+    initMessagerieInbox();
 })();

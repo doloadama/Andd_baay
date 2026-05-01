@@ -905,6 +905,37 @@
             background: var(--danger-subtle);
         }
 
+        .nav-notif-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-main);
+        }
+
+        .nav-notif-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-notif-tab:hover {
+            background: rgba(74, 222, 128, 0.08);
+            color: var(--text-main);
+        }
+
+        .nav-notif-tab.active {
+            background: var(--accent-subtle);
+            color: var(--accent-dark);
+        }
+
         .nav-notif-list {
             max-height: 320px;
             overflow-y: auto;
@@ -2529,7 +2560,8 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link-modern {% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
-                                href="{% url 'messagerie_inbox' %}" data-pjax>
+                                href="{% url 'messagerie_inbox' %}" data-pjax
+                                data-drawer-toggle="messagerie">
                                 <i class="fas fa-envelope"></i> Messagerie
                             </a>
                         </li>
@@ -2548,10 +2580,24 @@
                                     <h6>Notifications</h6>
                                     <button type="button" class="nav-notif-clear" id="notifClearAll" title="Tout marquer comme lu">Tout effacer</button>
                                 </div>
-                                <div class="nav-notif-list" id="notifList">
+                                <div class="nav-notif-tabs" role="tablist">
+                                    <button type="button" class="nav-notif-tab active" data-notif-tab="messages" role="tab" aria-selected="true">
+                                        <i class="fas fa-comment-dots me-1"></i> Messages
+                                    </button>
+                                    <button type="button" class="nav-notif-tab" data-notif-tab="systeme" role="tab" aria-selected="false">
+                                        <i class="fas fa-bell me-1"></i> Système
+                                    </button>
+                                </div>
+                                <div class="nav-notif-list" id="notifList" data-notif-panel="messages" role="tabpanel">
                                     <div class="nav-notif-empty" id="notifEmpty">
                                         <i class="fas fa-bell-slash"></i>
                                         Aucune notification
+                                    </div>
+                                </div>
+                                <div class="nav-notif-list" id="notifListSysteme" data-notif-panel="systeme" role="tabpanel" hidden>
+                                    <div class="nav-notif-empty">
+                                        <i class="fas fa-info-circle"></i>
+                                        Pas de notification système pour l'instant.
                                     </div>
                                 </div>
                             </div>
@@ -2697,7 +2743,7 @@
     <!-- FIX #3: chat-bubble-container div is now properly closed before scripts -->
     <!-- Messagerie Floating Button (Replaces Chatbot temporarily) -->
     <div class="chat-bubble-container d-none d-lg-block">
-        <a href="{% url 'derniere_conversation' %}?mini=true" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
+        <a href="{% url 'messagerie_inbox' %}" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" data-drawer-toggle="messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
             <i class="fas fa-envelope chat-icon" aria-hidden="true" style="color: white; font-size: 24px;"></i>
             <div class="chat-notification" id="floatingNotifBadge" aria-live="polite" aria-atomic="true"></div>
         </a>
@@ -2786,9 +2832,10 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'derniere_conversation' %}?mini=true" data-pjax class="{% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
+                <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
                     <i class="fas fa-envelope" aria-hidden="true"></i>
                     <span>Message</span>
+                    <span id="bottomNavMessagerieBadge" class="bottom-nav-badge" aria-live="polite" aria-atomic="true"></span>
                 </a>
             </li>
             <li>
@@ -2820,6 +2867,27 @@
         const notifEmpty = document.getElementById('notifEmpty');
         const notifClearAll = document.getElementById('notifClearAll');
         const notifBellToggle = document.getElementById('notifBellToggle');
+        const notifTabs = document.querySelectorAll('.nav-notif-tab');
+        const notifPanels = document.querySelectorAll('[data-notif-panel]');
+
+        notifTabs.forEach(function(tab) {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const target = tab.getAttribute('data-notif-tab');
+                notifTabs.forEach(function(t) {
+                    const isActive = t.getAttribute('data-notif-tab') === target;
+                    t.classList.toggle('active', isActive);
+                    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+                notifPanels.forEach(function(panel) {
+                    panel.hidden = panel.getAttribute('data-notif-panel') !== target;
+                });
+                if (notifClearAll) {
+                    notifClearAll.style.display = target === 'messages' ? '' : 'none';
+                }
+            });
+        });
 
         function updateBadge(count) {
             const floatingBadge = document.getElementById('floatingNotifBadge');
@@ -2861,6 +2929,8 @@
                 const item = document.createElement('a');
                 item.className = 'nav-notif-item unread';
                 item.href = '/messagerie/conversation/' + n.conversation_id + '/?msg=' + n.id;
+                item.setAttribute('data-drawer-deep-conversation-id', n.conversation_id);
+                item.setAttribute('data-drawer-deep-conversation-title', n.sender_name || 'Conversation');
                 const initials = n.sender_name.charAt(0).toUpperCase();
                 const attachmentIcon = n.has_attachment ? '<i class="fas fa-paperclip ms-1" title="Pièce jointe"></i>' : '';
                 item.innerHTML =
@@ -2871,7 +2941,7 @@
                         '<div class="nav-notif-meta"><i class="far fa-clock"></i> ' + escapeHtml(n.date) + '</div>' +
                     '</div>';
                 item.addEventListener('click', function() {
-                    badge.style.display = 'none';
+                    if (badge) badge.style.display = 'none';
                 });
                 notifList.appendChild(item);
             });
@@ -3161,6 +3231,10 @@
         });
     })();
     </script>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    {% include 'includes/messagerie_drawer.html' %}
     {% endif %}
 </body>
 

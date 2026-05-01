@@ -5,7 +5,7 @@
 
 {% block content %}
 <style>
-    .msg-search-wrap { padding: 12px 14px; border-bottom: 1px solid var(--border-glass); }
+    .msg-search-wrap { padding: 12px 14px; border-bottom: 1px solid var(--border-glass); position: sticky; top: 0; z-index: 2; background: var(--card-bg-solid); }
     .msg-search-input {
         background: var(--card-bg-solid);
         border: 1px solid var(--border-glass);
@@ -51,57 +51,8 @@
                         <i class="fas fa-plus"></i> Nouveau
                     </a>
                 </div>
-                <div class="msg-search-wrap">
-                    <div class="position-relative">
-                        <i class="fas fa-search msg-search-icon"></i>
-                        <input id="conversationSearch" class="msg-search-input" type="text" placeholder="Rechercher une conversation..." />
-                    </div>
-                </div>
-                <div class="glass-card-body p-0 flex-grow-1 overflow-auto">
-                    {% if conv_data %}
-                        <div class="list-group list-group-flush" id="conversationList">
-                            {% for item in conv_data %}
-                            <a href="{% url 'conversation_detail' item.conv.id %}"
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-start py-3 px-3 border-0 conv-item {% if item.non_lus > 0 %}unread{% endif %}"
-                               data-conversation-id="{{ item.conv.id }}"
-                               data-search="{{ item.titre|lower }} {% if item.dernier %}{{ item.dernier.contenu|lower }}{% endif %}"
-                               style="background: transparent; border-bottom: 1px solid var(--border-glass) !important;">
-                                <div class="d-flex align-items-start gap-3 me-auto overflow-hidden">
-                                    <div class="avatar-pill {% if item.is_online %}online{% endif %}">
-                                        {{ item.avatar_initial }}
-                                    </div>
-                                    <div class="overflow-hidden">
-                                    <div class="text-truncate conv-title {% if item.non_lus > 0 %}fw-bold{% else %}fw-semibold{% endif %}" style="font-family: var(--font-display); font-size: 0.95rem;">
-                                        {{ item.titre }}
-                                        {% if item.non_lus > 0 %}
-                                        <span class="badge rounded-pill unread-badge ms-1 conv-unread">{{ item.non_lus }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="text-truncate conv-preview {% if item.non_lus > 0 %}preview-unread{% else %}text-muted{% endif %}" style="font-size: 0.82rem;">
-                                        {% if item.dernier %}
-                                            {% if item.non_lus > 0 %}<strong>{% endif %}{{ item.dernier.expediteur }}: {{ item.dernier.contenu }}{% if item.non_lus > 0 %}</strong>{% endif %}
-                                        {% else %}
-                                            Aucun message
-                                        {% endif %}
-                                    </div>
-                                    </div>
-                                </div>
-                                <small class="text-muted text-end flex-shrink-0 ms-2 conv-time" style="font-size: 0.72rem;">
-                                    {% if item.dernier %}{{ item.dernier.date_envoi|date:"d/m H:i" }}{% endif %}
-                                </small>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5 px-3">
-                            <div class="icon-circle mx-auto mb-3 text-muted" style="width: 60px; height: 60px; background: rgba(0,0,0,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-inbox fs-3"></i></div>
-                            <h6 class="text-muted fw-bold">Aucune conversation</h6>
-                            <p class="text-muted small">Commencez à discuter avec les membres de vos fermes.</p>
-                            <a href="{% url 'nouvelle_conversation' %}" class="btn-modern btn-primary-modern px-4 mt-2">
-                                <i class="fas fa-plus"></i> Nouvelle conversation
-                            </a>
-                        </div>
-                    {% endif %}
+                <div class="glass-card-body p-0 flex-grow-1 overflow-auto d-flex flex-column">
+                    {% include 'messagerie/_inbox_list.html' %}
                 </div>
             </div>
         </div>
@@ -128,23 +79,4 @@
         </div>
     </div>
 </div>
-<script>
-    window.inboxConfig = {
-        currentProfileId: "{{ profile.id }}",
-        unreadApiUrl: "{% url 'api_messages_non_lus' %}",
-    };
-    (function () {
-        const input = document.getElementById("conversationSearch");
-        const items = document.querySelectorAll("#conversationList .conv-item");
-        if (!input || !items.length) return;
-        input.addEventListener("input", function () {
-            const query = input.value.trim().toLowerCase();
-            items.forEach((item) => {
-                const haystack = item.getAttribute("data-search") || "";
-                item.style.display = !query || haystack.includes(query) ? "" : "none";
-            });
-        });
-    })();
-</script>
-<script src="{% static 'js/messagerie-inbox.js' %}"></script>
 {% endblock %}

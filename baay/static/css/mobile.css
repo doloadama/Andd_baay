@@ -81,6 +81,31 @@
     transform: translateY(-2px);
 }
 
+/* Unread badge on the bottom-nav messagerie icon (mobile) */
+.bottom-nav .bottom-nav-messagerie {
+    position: relative;
+}
+.bottom-nav .bottom-nav-badge {
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 14px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    box-shadow: 0 0 0 2px rgba(252, 252, 251, 0.92);
+}
+.dark-mode .bottom-nav .bottom-nav-badge {
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.92);
+}
+
 /* Show bottom nav below 768px and add body padding */
 @media (max-width: 767.98px) {
     .bottom-nav {
