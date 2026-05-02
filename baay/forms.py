@@ -1,9 +1,39 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 import json
 from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme, DemandeAccesFerme, Tache
 from baay.permissions import role_dans_ferme, roles_assignables_par
+
+
+class EmailOrUsernameAuthenticationForm(AuthenticationForm):
+    """Accepte l’adresse email (recommandé) ou le nom d’utilisateur Django pour la connexion."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = 'Adresse email'
+        self.fields['username'].widget.attrs.update(
+            {
+                'class': 'form-control',
+                'placeholder': 'vous@exemple.com',
+                'autocomplete': 'username',
+            }
+        )
+        self.fields['password'].widget.attrs.update(
+            {
+                'class': 'form-control',
+                'placeholder': '••••••••',
+                'autocomplete': 'current-password',
+            }
+        )
+
+    def clean_username(self):
+        identifier = (self.cleaned_data.get('username') or '').strip()
+        if '@' in identifier:
+            user = User.objects.filter(email__iexact=identifier).first()
+            if user:
+                return user.username
+        return identifier
 
 
 class CustomUserCreationForm(UserCreationForm):

@@ -5,13 +5,13 @@
 
 {% block meta_description %}
 <meta name="description"
-    content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest. Transformez vos cultures des aujourd'hui." />
+    content="Découvrez Andd Baay, l'outil idéal pour la prédiction de rendement IA et la gestion agricole en Afrique de l'Ouest. Transformez vos cultures dès aujourd'hui." />
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:title" content="Accueil | Andd Baay" />
 <meta property="og:description"
-    content="Decouvrez Andd Baay, l'outil ideal pour la prediction de rendement IA et la gestion agricole en Afrique de l'Ouest." />
+    content="Découvrez Andd Baay, l'outil idéal pour la prédiction de rendement IA et la gestion agricole en Afrique de l'Ouest." />
 <meta property="og:type" content="website" />
 {% endblock %}
 
@@ -107,10 +107,13 @@
 .home-v2 .trust { padding: 50px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background: var(--bg-secondary); }
 .home-v2 .trust-label { text-align: center; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 28px; }
 .home-v2 .trust-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.home-v2 .trust-stats--numeric3 { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 720px) { .home-v2 .trust-stats { grid-template-columns: repeat(2, 1fr); } }
 .home-v2 .trust-stats > div { text-align: center; }
 .home-v2 .trust-stats strong { display: block; font-family: 'Space Grotesk'; font-size: 2.2rem; font-weight: 800; color: var(--accent); }
 .home-v2 .trust-stats span { display: block; font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+.home-v2 .trust-stats--qualitative strong { font-size: 1.05rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; }
+.home-v2 .trust-stats--qualitative span { line-height: 1.45; max-width: 280px; margin-left: auto; margin-right: auto; }
 
 /* === PROBLEMS === */
 .home-v2 .problems { padding: 100px 0; }
@@ -236,15 +239,15 @@
             <div class="hero-grid">
                 <div>
                     <span class="eyebrow"><i class="fas fa-leaf"></i> Agritech ouest-africaine</span>
-                    <h1>Pilotez vos cultures.<br><span class="grad">Anticipez vos recoltes.</span></h1>
+                    <h1>Pilotez vos cultures.<br><span class="grad">Anticipez vos récoltes.</span></h1>
                     <p class="lede">
-                        Andd Baay reunit dans une seule plateforme le suivi de vos fermes, vos projets agricoles
-                        et l'intelligence artificielle pour estimer vos rendements avec precision.
+                        Andd Baay réunit dans une seule plateforme le suivi de vos fermes, vos projets agricoles
+                        et l'intelligence artificielle pour estimer vos rendements avec précision.
                     </p>
                     <div class="cta-row tw-w-full">
                         {% if user.is_authenticated %}
                         <a href="{% url 'dashboard' %}" class="btn btn-primary tw-w-full tw-min-h-[48px] sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation tw-text-center">
-                            Acceder au dashboard <i class="fas fa-arrow-right"></i>
+                            Accéder au tableau de bord <i class="fas fa-arrow-right"></i>
                         </a>
                         <a href="{% url 'creer_projet' %}" class="btn btn-ghost tw-w-full tw-min-h-[48px] sm:tw-w-auto tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation tw-text-center">
                             <i class="fas fa-plus"></i> Nouveau projet
@@ -260,8 +263,8 @@
                     </div>
                     <ul class="hero-bullets">
                         <li><i class="fas fa-check"></i> Sans engagement</li>
-                        <li><i class="fas fa-check"></i> Donnees privees</li>
-                        <li><i class="fas fa-check"></i> Multi-fermes & equipe</li>
+                        <li><i class="fas fa-check"></i> Données privées</li>
+                        <li><i class="fas fa-check"></i> Multi-fermes & équipe</li>
                     </ul>
                 </div>
 
@@ -275,7 +278,7 @@
                     <div class="mock-stats">
                         <div class="mock-stat"><div class="v">12</div><div class="l">Projets actifs</div></div>
                         <div class="mock-stat"><div class="v">42 ha</div><div class="l">Superficie</div></div>
-                        <div class="mock-stat"><div class="v">87%</div><div class="l">Completion</div></div>
+                        <div class="mock-stat"><div class="v">87%</div><div class="l">Complétion</div></div>
                         <div class="mock-stat"><div class="v">3.2t</div><div class="l">Rendement IA</div></div>
                     </div>
                     <div class="mock-bars">
@@ -295,25 +298,38 @@
     <!-- ============================ TRUST STRIP ============================ -->
     <section class="trust" id="trust">
         <div class="container-narrow">
-            <p class="trust-label">Adopte par les producteurs et cooperatives</p>
-            <div class="trust-stats">
+            <p class="trust-label">{% if stats.show_trust_metrics %}Adopté par les producteurs et coopératives{% else %}Phase de lancement · Conçu avec le terrain{% endif %}</p>
+            {% if stats.show_trust_metrics %}
+            <div class="trust-stats trust-stats--numeric3">
                 <div>
-                    <strong><span class="counter" data-target="{{ stats.nb_users|default:'500' }}">0</span>+</strong>
+                    <strong><span class="counter" data-target="{{ stats.nb_users }}">0</span>+</strong>
                     <span>Utilisateurs</span>
                 </div>
                 <div>
-                    <strong><span class="counter" data-target="{{ stats.nb_projets|default:'1200' }}">0</span>+</strong>
-                    <span>Projets pilotes</span>
+                    <strong><span class="counter" data-target="{{ stats.nb_projets }}">0</span>+</strong>
+                    <span>Projets</span>
                 </div>
                 <div>
-                    <strong><span class="counter" data-target="15">0</span>+</strong>
-                    <span>Regions</span>
-                </div>
-                <div>
-                    <strong><span class="counter" data-target="95">0</span>%</strong>
-                    <span>Precision IA</span>
+                    <strong><span class="counter" data-target="{{ stats.nb_localites }}">0</span>+</strong>
+                    <span>Localités suivies</span>
                 </div>
             </div>
+            {% else %}
+            <div class="trust-stats trust-stats--qualitative">
+                <div>
+                    <strong>Pilote terrain</strong>
+                    <span>Coopérations et producteurs partenaires en Afrique de l'Ouest</span>
+                </div>
+                <div>
+                    <strong>Données protégées</strong>
+                    <span>Hébergement sécurisé · Accès par invitation</span>
+                </div>
+                <div>
+                    <strong>Rejoignez les premiers</strong>
+                    <span>Gratuit · Sans carte bancaire</span>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -321,30 +337,30 @@
     <section class="problems" id="defis">
         <div class="container-narrow">
             <div class="head">
-                <span class="eyebrow"><i class="fas fa-bolt"></i> Vos defis</span>
-                <h2>L'agriculture moderne ne devrait pas etre un casse-tete</h2>
+                <span class="eyebrow"><i class="fas fa-bolt"></i> Vos défis</span>
+                <h2>L'agriculture moderne ne devrait pas être un casse-tête</h2>
                 <p>Trop d'outils dispersés, trop d'incertitudes, et des décisions prises trop tard.</p>
             </div>
             <div class="problem-grid">
                 <article>
                     <i class="fas fa-question-circle"></i>
-                    <h3>Rendements imprevisibles</h3>
-                    <p>Sans donnees ni historique, chaque saison est un pari. Les pertes s'accumulent.</p>
+                    <h3>Rendements imprévisibles</h3>
+                    <p>Sans données ni historique, chaque saison est un pari. Les pertes s'accumulent.</p>
                 </article>
                 <article>
                     <i class="fas fa-folder-tree"></i>
                     <h3>Donnees dispersees</h3>
-                    <p>Cahiers, WhatsApp, fichiers Excel... rien de centralise, rien d'exploitable.</p>
+                    <p>Cahiers, WhatsApp, fichiers Excel... rien de centralisé, rien d'exploitable.</p>
                 </article>
                 <article>
                     <i class="fas fa-users-slash"></i>
                     <h3>Coordination difficile</h3>
-                    <p>Aligner ouvriers, techniciens et investisseurs reste un defi quotidien.</p>
+                    <p>Aligner ouvriers, techniciens et investisseurs reste un défi quotidien.</p>
                 </article>
                 <article>
                     <i class="fas fa-coins"></i>
-                    <h3>Rentabilite opaque</h3>
-                    <p>Vous decouvrez les couts reels apres la recolte. Trop tard pour corriger.</p>
+                    <h3>Rentabilité opaque</h3>
+                    <p>Vous découvrez les coûts réels après la récolte. Trop tard pour corriger.</p>
                 </article>
             </div>
         </div>
@@ -356,13 +372,13 @@
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-sparkles"></i> La solution</span>
                 <h2>Une plateforme. <span class="grad">Tous vos cycles agricoles.</span></h2>
-                <p>Concue avec et pour les producteurs ouest-africains. Pensee pour le terrain.</p>
+                <p>Conçue avec et pour les producteurs ouest-africains. Pensée pour le terrain.</p>
             </div>
             <div class="feature-grid">
                 <article>
                     <div class="ico"><i class="fas fa-brain"></i></div>
-                    <h3>Predictions IA</h3>
-                    <p>Modeles entraines sur des donnees regionales. Estimez vos rendements avant meme le semis.</p>
+                    <h3>Prédictions IA</h3>
+                    <p>Modèles entraînés sur des données régionales. Estimez vos rendements avant même le semis.</p>
                 </article>
                 <article>
                     <div class="ico"><i class="fas fa-warehouse"></i></div>
@@ -377,12 +393,12 @@
                 <article>
                     <div class="ico"><i class="fas fa-chart-line"></i></div>
                     <h3>Dashboard intelligent</h3>
-                    <p>KPIs, graphiques, filtres dynamiques. Visualisez votre activite en temps reel.</p>
+                    <p>KPIs, graphiques, filtres dynamiques. Visualisez votre activité en temps réel.</p>
                 </article>
                 <article>
                     <div class="ico"><i class="fas fa-coins"></i></div>
                     <h3>Suivi financier</h3>
-                    <p>Couts par hectare, frais annexes, totaux automatiques. La rentabilite enfin claire.</p>
+                    <p>Coûts par hectare, frais annexes, totaux automatiques. La rentabilité enfin claire.</p>
                 </article>
                 <article>
                     <div class="ico"><i class="fas fa-comments"></i></div>
@@ -398,23 +414,23 @@
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-rocket"></i> En 3 etapes</span>
-                <h2>De l'inscription a la prediction en 5 minutes</h2>
+                <h2>De l'inscription à la prédiction en quelques minutes</h2>
             </div>
             <div class="step-grid">
                 <div class="step">
                     <span class="step-num">01</span>
-                    <h3>Creez votre compte</h3>
-                    <p>Inscription gratuite, sans carte bancaire. Acces immediat a la plateforme.</p>
+                    <h3>Créez votre compte</h3>
+                    <p>Inscription gratuite, sans carte bancaire. Accès immédiat à la plateforme.</p>
                 </div>
                 <div class="step">
                     <span class="step-num">02</span>
                     <h3>Ajoutez votre ferme</h3>
-                    <p>Renseignez la localite, la superficie, le pays. Invitez votre equipe via le code d'acces.</p>
+                    <p>Renseignez la localité, la superficie, le pays. Invitez votre équipe via le code d'accès.</p>
                 </div>
                 <div class="step">
                     <span class="step-num">03</span>
                     <h3>Lancez vos projets</h3>
-                    <p>Choisissez vos cultures, allouez les superficies, obtenez vos predictions IA.</p>
+                    <p>Choisissez vos cultures, allouez les superficies, obtenez vos prédictions IA.</p>
                 </div>
             </div>
         </div>
@@ -424,27 +440,27 @@
     <section class="testimonials" id="temoignages">
         <div class="container-narrow">
             <div class="head">
-                <span class="eyebrow"><i class="fas fa-quote-left"></i> Temoignages</span>
-                <h2>Ils utilisent deja Andd Baay</h2>
-                <p>Des producteurs et cooperatives qui pilotent leurs cultures avec precision.</p>
+                <span class="eyebrow"><i class="fas fa-quote-left"></i> Témoignages</span>
+                <h2>Ils utilisent déjà Andd Baay</h2>
+                <p>Des producteurs et coopératives qui pilotent leurs cultures avec précision.</p>
             </div>
             <div class="testimonial-grid">
                 <article>
-                    <p>Avant je notais mes superficies dans un cahier. Maintenant je vois la rentabilite de chaque parcelle en temps reel.</p>
+                    <p>Avant je notais mes superficies dans un cahier. Maintenant je vois la rentabilité de chaque parcelle en temps réel.</p>
                     <footer>
                         <strong>Awa N.</strong>
-                        <span>Productrice maraichere, Thies</span>
+                        <span>Productrice maraîchère, Thiès</span>
                     </footer>
                 </article>
                 <article>
-                    <p>Le code d'acces permet a mon technicien et a mes ouvriers de mettre a jour les projets sans que je sois sur place.</p>
+                    <p>Le code d'accès permet à mon technicien et à mes ouvriers de mettre à jour les projets sans que je sois sur place.</p>
                     <footer>
                         <strong>Moussa D.</strong>
-                        <span>Cooperative riz, Saint-Louis</span>
+                        <span>Coopérative riz, Saint-Louis</span>
                     </footer>
                 </article>
                 <article>
-                    <p>Les predictions de l'IA m'ont fait revoir le calendrier de semis. Recolte +18% cette saison.</p>
+                    <p>Les prédictions de l'IA m'ont fait revoir le calendrier de semis. Récolte +18 % cette saison.</p>
                     <footer>
                         <strong>Fatou S.</strong>
                         <span>Exploitation arachide, Kaolack</span>
@@ -459,32 +475,32 @@
         <div class="container-narrow">
             <div class="head">
                 <span class="eyebrow"><i class="fas fa-circle-question"></i> FAQ</span>
-                <h2>On repond a vos questions</h2>
+                <h2>On répond à vos questions</h2>
             </div>
             <div class="faq-list">
                 <details>
                     <summary>Andd Baay est-il vraiment gratuit ?</summary>
-                    <p>Oui. L'inscription, la creation de fermes et de projets, le dashboard et le chatbot sont gratuits. Aucune carte bancaire n'est demandee.</p>
+                    <p>Oui. L'inscription, la création de fermes et de projets, le tableau de bord et le chatbot sont gratuits. Aucune carte bancaire n'est demandée.</p>
                 </details>
                 <details>
-                    <summary>Mes donnees sont-elles privees ?</summary>
-                    <p>Vos donnees vous appartiennent. Elles ne sont visibles que par vous et les membres que vous avez explicitement invites dans vos fermes.</p>
+                    <summary>Mes données sont-elles privées ?</summary>
+                    <p>Vos données vous appartiennent. Elles ne sont visibles que par vous et les membres que vous avez explicitement invités dans vos fermes.</p>
                 </details>
                 <details>
-                    <summary>L'IA fonctionne-t-elle pour ma region ?</summary>
-                    <p>Les modeles sont entraines sur des donnees agricoles ouest-africaines (sols Dior et Deck, climat sahelien et soudanien). Si votre region n'est pas couverte, un moteur de calcul agronomique deterministe prend le relais.</p>
+                    <summary>L'IA fonctionne-t-elle pour ma région ?</summary>
+                    <p>Les modèles sont entraînés sur des données agricoles ouest-africaines (sols Dior et Deck, climat sahélien et soudanien). Si votre région n'est pas couverte, un moteur de calcul agronomique déterministe prend le relais.</p>
                 </details>
                 <details>
-                    <summary>Puis-je inviter mon equipe ?</summary>
-                    <p>Oui. Chaque ferme genere un code d'acces unique a 8 caracteres. Partagez-le pour qu'un collaborateur puisse demander a rejoindre la ferme avec un role (manager, technicien ou ouvrier).</p>
+                    <summary>Puis-je inviter mon équipe ?</summary>
+                    <p>Oui. Chaque ferme génère un code d'accès unique à 8 caractères. Partagez-le pour qu'un collaborateur puisse demander à rejoindre la ferme avec un rôle (manager, technicien ou ouvrier).</p>
                 </details>
                 <details>
-                    <summary>Comment se passe la prediction de rendement ?</summary>
-                    <p>Notre moteur combine du machine learning (scikit-learn) avec un Smart Engine agronomique qui prend en compte le type de sol, l'eau disponible, les dates de semis et l'historique de votre localite.</p>
+                    <summary>Comment se passe la prédiction de rendement ?</summary>
+                    <p>Notre moteur combine du machine learning (scikit-learn) avec un moteur agronomique qui prend en compte le type de sol, l'eau disponible, les dates de semis et l'historique de votre localité.</p>
                 </details>
                 <details>
-                    <summary>Quelles cultures sont supportees ?</summary>
-                    <p>Mil, riz, arachide, mais, sorgho, manioc, et de nombreuses cultures maraicheres (tomate, oignon, piment, gombo, pasteque...). Vous pouvez egalement ajouter vos propres produits.</p>
+                    <summary>Quelles cultures sont supportées ?</summary>
+                    <p>Mil, riz, arachide, maïs, sorgho, manioc, et de nombreuses cultures maraîchères (tomate, oignon, piment, gombo, pastèque…). Vous pouvez également ajouter vos propres produits.</p>
                 </details>
             </div>
         </div>
@@ -494,21 +510,21 @@
     <section class="final-cta" id="cta">
         <div class="container-narrow">
             <div class="cta-card">
-                <h2>Pret a transformer votre saison ?</h2>
-                <p>Rejoignez les producteurs et cooperatives qui pilotent deja leurs cultures avec Andd Baay.</p>
+                <h2>Prêt à transformer votre saison ?</h2>
+                <p>Rejoignez les producteurs et coopératives qui pilotent déjà leurs cultures avec Andd Baay.</p>
                 <div class="cta-row">
                     {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}" class="btn btn-primary">
-                        Acceder a mon dashboard <i class="fas fa-arrow-right"></i>
+                        Accéder à mon tableau de bord <i class="fas fa-arrow-right"></i>
                     </a>
                     <a href="{% url 'creer_projet' %}" class="btn btn-ghost">
                         <i class="fas fa-plus"></i> Nouveau projet
                     </a>
                     {% else %}
                     <a href="{% url 'register' %}" class="btn btn-primary">
-                        Creer mon compte gratuit <i class="fas fa-arrow-right"></i>
+                        Créer mon compte gratuit <i class="fas fa-arrow-right"></i>
                     </a>
-                    <a href="{% url 'login' %}" class="btn btn-ghost">J'ai deja un compte</a>
+                    <a href="{% url 'login' %}" class="btn btn-ghost">J'ai déjà un compte</a>
                     {% endif %}
                 </div>
             </div>

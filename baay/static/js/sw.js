@@ -3,7 +3,7 @@
  * Strategy: stale-while-revalidate for static assets,
  *            network-first for HTML pages.
  */
-const CACHE_NAME = 'andd-baay-v2';
+const CACHE_NAME = 'andd-baay-v4';
 
 /** Toujours mis en cache (page hors ligne + PWA). */
 const PRECACHE_CRITICAL = [
@@ -11,7 +11,8 @@ const PRECACHE_CRITICAL = [
   '/static/manifest.json',
   '/static/icons/icon-192x192.png',
   '/static/icons/icon-512x512.png',
-  '/static/images/logo.jpg',
+  '/static/images/anddbaay-mark.svg',
+  '/static/images/anddbaay-logo-wordmark.svg',
 ];
 
 /** Ressources utiles ; l’échec d’un seul fichier ne bloque pas le reste. */

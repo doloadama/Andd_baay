@@ -40,11 +40,8 @@
 
     .auth-visual-content { position: relative; z-index: 2; text-align: center; max-width: 420px; }
 
-    .visual-icon {
-        width: 56px; height: 56px;
-        background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.3);
-        border-radius: 16px; display: flex; align-items: center; justify-content: center;
-        font-size: 24px; color: #a3e635; margin: 0 auto 24px auto;
+    .auth-visual .brand-wordmark-text--on-dark {
+        fill: #f8fafc !important;
     }
 
     .visual-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: #f8fafc; line-height: 1.2; margin-bottom: 12px; }
@@ -208,7 +205,7 @@
     <!-- Left Visual Panel -->
     <div class="auth-visual">
         <div class="auth-visual-content animate__animated animate__fadeInLeft">
-            <div class="visual-icon"><i class="fas fa-rocket"></i></div>
+            {% include 'includes/brand_wordmark.html' with variant='auth' %}
             <h2 class="visual-title">Rejoignez l'aventure</h2>
             <p class="visual-subtitle">En quelques étapes, accédez à des outils conçus pour l'agriculture moderne.</p>
             <div class="visual-steps">
@@ -243,6 +240,7 @@
             <div class="auth-header">
                 <h2>Créer un compte</h2>
                 <p>Rejoignez la nouvelle ère agricole</p>
+                <p class="tw-mt-2 tw-mb-0 tw-text-xs" style="color: var(--text-muted);">Gratuit · Sans carte bancaire · Données privées</p>
             </div>
 
             {% if form.errors %}
@@ -348,7 +346,7 @@
                 <div class="mb-3 form-check d-flex gap-2">
                     <input type="checkbox" class="form-check-input" id="termsCheck" name="terms_accepted" required>
                     <label class="form-check-label text-muted" for="termsCheck" style="font-size: 0.85rem; line-height: 1.4;">
-                        J'accepte les <a href="#" style="color: var(--accent);">conditions</a> et la <a href="#" style="color: var(--accent);">politique de confidentialité</a>
+                        J'accepte les <a href="{% url 'cgu' %}" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">conditions générales d'utilisation</a> et la <a href="{% url 'confidentialite' %}" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">politique de confidentialité</a>.
                     </label>
                 </div>
 
@@ -356,6 +354,8 @@
                     S'inscrire <i class="fas fa-arrow-right ms-2"></i>
                 </button>
             </form>
+
+            <p class="tw-text-center tw-text-xs tw-mt-3 tw-mb-0" style="color: var(--text-muted);"><i class="fas fa-lock me-1"></i> {% if request.is_secure %}Connexion sécurisée (HTTPS){% else %}En production, votre connexion est chiffrée (HTTPS).{% endif %}</p>
 
             <div class="auth-footer">
                 Déjà membre ? <a href="{% url 'login' %}">Se connecter</a>

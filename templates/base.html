@@ -678,22 +678,48 @@
             opacity: 0.8;
         }
 
-        .brand-icon {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: var(--text-inverse);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            box-shadow: var(--shadow-glow);
-            transition: transform var(--transition);
+        .brand-wordmark-svg {
+            display: block;
+            height: 34px;
+            width: auto;
+            max-width: min(200px, 52vw);
         }
 
-        .navbar-brand:hover .brand-icon {
-            transform: scale(1.05);
+        .brand-wordmark-svg--footer {
+            height: 28px;
+            max-width: min(180px, 70vw);
+        }
+
+        .brand-wordmark-svg--auth {
+            height: 42px;
+            max-width: 220px;
+            margin: 0 auto 20px auto;
+        }
+
+        .brand-wordmark-svg .brand-wordmark-text {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 17px;
+            letter-spacing: -0.02em;
+            fill: currentColor;
+        }
+
+        .navbar-brand .brand-wordmark-svg {
+            color: var(--text-main);
+        }
+
+        .footer-wordmark-link {
+            color: var(--text-main);
+            text-decoration: none;
+            transition: opacity var(--transition-fast);
+        }
+
+        .footer-wordmark-link:hover {
+            opacity: 0.85;
+        }
+
+        .footer-wordmark-link .brand-wordmark-text {
+            fill: currentColor;
         }
 
         /* Nav Links */
@@ -1841,13 +1867,6 @@
             gap: 20px;
         }
 
-        .footer-brand {
-            font-family: var(--font-display);
-            font-weight: 800;
-            font-size: 1rem;
-            color: var(--text-main);
-        }
-
         .footer-tagline {
             color: var(--text-muted);
             font-size: 0.9rem;
@@ -2548,9 +2567,8 @@
     <header class="navbar-wrapper">
         <nav class="navbar navbar-expand-lg navbar-floating animate__animated animate__fadeInDown">
             <div class="container-fluid">
-                <a class="navbar-brand tw-inline-flex tw-items-center tw-gap-2 tw-touch-manipulation tw-rounded-xl tw-px-1" href="{% url 'home' %}">
-                    <div class="brand-icon"><i class="fas fa-leaf"></i></div>
-                    Andd Baay
+                <a class="navbar-brand tw-inline-flex tw-items-center tw-touch-manipulation tw-rounded-xl tw-px-1" href="{% url 'home' %}" aria-label="Andd Baay — Accueil">
+                    {% include 'includes/brand_wordmark.html' with variant='nav' %}
                 </a>
 
                 <div class="d-flex align-items-center gap-2 d-lg-none">
@@ -2756,8 +2774,19 @@
         <div class="container-modern">
             <div class="footer-content">
                 <div>
-                    <div class="footer-brand">Andd Baay</div>
-                    <p class="footer-tagline mb-0">Intelligence agricole de demain.</p>
+                    <div class="footer-brand-row mb-1">
+                        <a href="{% url 'home' %}" class="footer-wordmark-link tw-inline-flex tw-items-center" aria-label="Andd Baay — Accueil">
+                            {% include 'includes/brand_wordmark.html' with variant='footer' %}
+                        </a>
+                    </div>
+                    <p class="footer-tagline mb-2">Intelligence agricole de demain.</p>
+                    <nav class="footer-legal tw-flex tw-flex-wrap tw-gap-x-4 tw-gap-y-2 tw-text-sm" aria-label="Liens pied de page">
+                        <a href="{% url 'cgu' %}" class="text-decoration-none" style="color: var(--text-muted);">CGU</a>
+                        <a href="{% url 'confidentialite' %}" class="text-decoration-none" style="color: var(--text-muted);">Confidentialité</a>
+                        <a href="{% url 'home' %}#faq" class="text-decoration-none" style="color: var(--text-muted);">FAQ</a>
+                        <a href="mailto:contact@anddbaay.local" class="text-decoration-none" style="color: var(--text-muted);">Contact</a>
+                    </nav>
+                    <p class="mb-0 tw-mt-2 tw-text-xs" style="color: var(--text-muted);">© {% now "Y" %} Andd Baay</p>
                 </div>
                 <div class="social-links tw-flex tw-flex-wrap tw-items-center tw-justify-center tw-gap-2 md:tw-justify-end">
                     <a href="#" aria-label="Twitter" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-twitter"></i></a>

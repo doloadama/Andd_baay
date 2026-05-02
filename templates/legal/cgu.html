@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Conditions générales d'utilisation | Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Conditions générales d'utilisation du service Andd Baay." />
+{% endblock %}
+
+{% block content %}
+<div class="container-modern py-5" style="max-width: 760px;">
+    <h1 class="mb-3" style="font-family: var(--font-display); font-weight: 800;">Conditions générales d'utilisation</h1>
+    <p class="text-muted small mb-4">Document d'information — version minimale. Dernière mise à jour : mai 2026. Pour toute question : contactez-nous via les coordonnées indiquées sur le site.</p>
+
+    <h2 class="h5 mt-4">1. Objet</h2>
+    <p>Andd Baay est une plateforme logicielle de suivi agricole, de gestion de projets et d'outils d'aide à la décision (y compris des fonctionnalités d'estimation ou de prédiction). Les présentes conditions encadrent l'accès et l'utilisation du service tel que publié à l'adresse utilisée pour y accéder.</p>
+
+    <h2 class="h5 mt-4">2. Compte utilisateur</h2>
+    <p>L'ouverture d'un compte peut nécessiter une adresse électronique valide, un mot de passe robuste et l'acceptation de la politique de confidentialité. Vous êtes responsable de la confidentialité de vos identifiants et de l'activité réalisée sous votre compte.</p>
+
+    <h2 class="h5 mt-4">3. Contenu et données</h2>
+    <p>Vous conservez la responsabilité des informations que vous saisissez (données agricoles, financières ou d'organisation). Vous garantissez disposer des droits nécessaires pour les enregistrer et, le cas échéant, pour inviter des collaborateurs au sein de vos espaces.</p>
+
+    <h2 class="h5 mt-4">4. Disponibilité et évolution</h2>
+    <p>Le service est fourni en l'état. Des interruptions (maintenance, déploiement, cas de force majeure ou dépendance à des prestataires techniques) peuvent survenir. Les fonctionnalités peuvent évoluer ; une information raisonnable pourra être donnée lors de changements majeurs affectant l'usage courant.</p>
+
+    <h2 class="h5 mt-4">5. Limitation</h2>
+    <p>Les estimations ou prédictions proposées par la plateforme (y compris via des modèles automatiques) constituent des aides à la décision et non des engagements de résultat. Vous restez seul responsable de vos choix agronomiques, commerciaux et financiers.</p>
+
+    <h2 class="h5 mt-4">6. Contact</h2>
+    <p>Pour toute demande relative à ces conditions, utilisez le lien « Contact » en pied de page ou l'adresse électronique indiquée sur le site.</p>
+
+    <p class="mt-4 mb-0"><a href="{% url 'home' %}">← Retour à l'accueil</a></p>
+</div>
+{% endblock %}

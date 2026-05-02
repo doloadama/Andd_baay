@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Politique de confidentialité | Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Politique de confidentialité et traitement des données personnelles — Andd Baay." />
+{% endblock %}
+
+{% block content %}
+<div class="container-modern py-5" style="max-width: 760px;">
+    <h1 class="mb-3" style="font-family: var(--font-display); font-weight: 800;">Politique de confidentialité</h1>
+    <p class="text-muted small mb-4">Document d'information — version minimale, conforme à une collecte standard (email, téléphone, données de profil et données agricoles saisies dans l'application). Dernière mise à jour : mai 2026. Andd Baay applique les principes de minimisation, de sécurité et de transparence décrits ci-dessous, dans le respect des textes applicables en matière de protection des données personnelles.</p>
+
+    <h2 class="h5 mt-4">1. Responsable du traitement</h2>
+    <p>L'éditeur du service Andd Baay, identifiable depuis les mentions affichées sur le site ou l'application, agit comme responsable des traitements liés à la gestion des comptes, au support et au fonctionnement de la plateforme.</p>
+
+    <h2 class="h5 mt-4">2. Données collectées</h2>
+    <p>Selon votre usage, peuvent être collectées notamment : identité (nom, prénom), coordonnées (adresse email, numéro de téléphone), données de compte (identifiant technique), données d'usage (logs techniques, préférences), ainsi que les données agricoles et d'exploitation que vous ou vos équipes saisissez dans les fermes et projets.</p>
+
+    <h2 class="h5 mt-4">3. Finalités</h2>
+    <ul>
+        <li>Création et gestion de votre compte, authentification et sécurité ;</li>
+        <li>Fourniture des fonctionnalités de la plateforme (suivi, collaboration, tableaux de bord, prédiction ou estimation) ;</li>
+        <li>Communications nécessaires au service (confirmations, messages techniques) ;</li>
+        <li>Amélioration qualitative et sécurité du service, respect d'obligations légales.</li>
+    </ul>
+
+    <h2 class="h5 mt-4">4. Base légale</h2>
+    <p>L'exécution du contrat ou des mesures précontractuelles (utilisation du service), l'intérêt légitime (sécurité, amélioration mesurée du service), et le cas échéant votre consentement explicite pour certaines options (cookies non essentiels, newsletters si proposées) ou cases à cocher lors de l'inscription.</p>
+
+    <h2 class="h5 mt-4">5. Durée de conservation</h2>
+    <p>Les données de compte sont conservées pendant la durée d'utilisation du service puis, après suppression du compte ou inactivité prolongée, pour les délais nécessaires aux obligations légales et la gestion des litiges. Les sauvegardes techniques peuvent retenir des copies de manière temporaire.</p>
+
+    <h2 class="h5 mt-4">6. Destinataires et sous-traitants</h2>
+    <p>Les données peuvent être traitées par des prestataires d'hébergement, d'envoi d'emails ou d'analytique, strictement dans le cadre de leurs missions et sous contrat. Aucune revente de données personnelles à des tiers n'est réalisée à des fins publicitaires sans base légale claire et information préalable.</p>
+
+    <h2 class="h5 mt-4">7. Transferts</h2>
+    <p>Si des serveurs ou outils sont situés hors de votre pays, des garanties appropriées (clauses types, pays reconnus adéquats ou mesures complémentaires) sont recherchées lorsque la loi l'exige.</p>
+
+    <h2 class="h5 mt-4">8. Vos droits</h2>
+    <p>Selon le droit applicable, vous pouvez disposer d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité lorsque les conditions légales sont réunies, ainsi que du droit de définir des directives relatives au sort de vos données après votre décès lorsque reconnu. Vous pouvez introduire une réclamation auprès de l'autorité de protection des données compétente.</p>
+
+    <h2 class="h5 mt-4">9. Sécurité</h2>
+    <p>Des mesures techniques et organisationnelles raisonnables sont mises en œuvre pour protéger les données contre l'accès non autorisé, la perte ou l'altération. Aucun système n'est toutefois exempt de risque.</p>
+
+    <h2 class="h5 mt-4">10. Contact</h2>
+    <p>Pour exercer vos droits ou poser une question relative à cette politique, utilisez le lien « Contact » en pied de page.</p>
+
+    <p class="mt-4 mb-0"><a href="{% url 'home' %}">← Retour à l'accueil</a> · <a href="{% url 'cgu' %}">CGU</a></p>
+</div>
+{% endblock %}

@@ -15,8 +15,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.urls import reverse, reverse_lazy
 from django.core.exceptions import ValidationError
@@ -43,7 +42,20 @@ from django.db.models.functions import TruncMonth, Coalesce
 from django.views.decorators.http import require_GET, require_POST
 
 from Andd_Baayi import settings
-from baay.forms import CustomUserCreationForm, ProjetForm, InvestissementForm, ProjetProduitForm, RendementFinalForm, PlantDetailsForm, FermeForm, MembreFermeForm, DemandeAccesFermeForm, TacheForm, TacheStatutForm
+from baay.forms import (
+    CustomUserCreationForm,
+    EmailOrUsernameAuthenticationForm,
+    ProjetForm,
+    InvestissementForm,
+    ProjetProduitForm,
+    RendementFinalForm,
+    PlantDetailsForm,
+    FermeForm,
+    MembreFermeForm,
+    DemandeAccesFermeForm,
+    TacheForm,
+    TacheStatutForm,
+)
 from baay.messaging_contract import (
     build_inbox_update_event_v1,
     build_message_event_v1,
@@ -120,10 +132,22 @@ def home_view(request):
     from django.contrib.auth import get_user_model
     User = get_user_model()
 
+    nb_users = User.objects.count()
+    nb_projets = Projet.objects.count()
+    nb_localites = (
+        Projet.objects.values('localite_id').distinct().count()
+        if nb_projets
+        else 0
+    )
+    # Chiffres publics uniquement lorsqu’il y a une activité réelle (évite « 0+ » et faux placeholders).
+    show_trust_metrics = nb_users > 0 and nb_projets > 0
+
     context = {
         'stats': {
-            'nb_users': User.objects.count(),
-            'nb_projets': Projet.objects.count(),
+            'nb_users': nb_users,
+            'nb_projets': nb_projets,
+            'nb_localites': nb_localites,
+            'show_trust_metrics': show_trust_metrics,
         }
     }
 
@@ -151,6 +175,15 @@ def home_view(request):
             context['prochain_projet'] = None
 
     return render(request, 'home.html', context)
+
+
+def cgu_view(request):
+    return render(request, 'legal/cgu.html')
+
+
+def confidentialite_view(request):
+    return render(request, 'legal/confidentialite.html')
+
 
 def _send_confirmation_email(user, request):
     """Send email confirmation link using Django token generator."""
@@ -303,27 +336,21 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 # Vue pour la connexion
 def login_view(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = EmailOrUsernameAuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                if not user.is_active:
-                    messages.error(
-                        request,
-                        "Votre compte n'est pas encore activé. Vérifiez vos emails et cliquez sur le lien de confirmation."
-                    )
-                    return redirect('login')
-                login(request, user)
-                messages.success(request, f"Bienvenue, {username} !")
-                return redirect('dashboard')
-            else:
-                messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
-        else:
-            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+            user = form.get_user()
+            if not user.is_active:
+                messages.error(
+                    request,
+                    "Votre compte n'est pas encore activé. Vérifiez vos emails et cliquez sur le lien de confirmation."
+                )
+                return redirect('login')
+            login(request, user)
+            hello = (user.first_name or "").strip() or (user.email or user.username)
+            messages.success(request, f"Bienvenue, {hello} !")
+            return redirect('dashboard')
     else:
-        form = AuthenticationForm()
+        form = EmailOrUsernameAuthenticationForm()
     return render(request, 'auth/login.html', {'form': form})
 
 # Vue pour la déconnexion

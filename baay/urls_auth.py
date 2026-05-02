@@ -4,6 +4,8 @@ from django.urls import path
 from .views_auth import (
     CustomPasswordResetConfirmView,
     CustomPasswordResetView,
+    cgu_view,
+    confidentialite_view,
     confirm_email_view,
     login_view,
     logout_view,
@@ -11,6 +13,8 @@ from .views_auth import (
 )
 
 urlpatterns = [
+    path("cgu/", cgu_view, name="cgu"),
+    path("confidentialite/", confidentialite_view, name="confidentialite"),
     path("login/", login_view, name="login"),
     path("register/", register_view, name="register"),
     path("confirm-email/<uidb64>/<token>/", confirm_email_view, name="confirm_email"),
