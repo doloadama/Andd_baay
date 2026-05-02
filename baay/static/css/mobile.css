@@ -3,6 +3,122 @@
  * Loaded only on authenticated pages; bottom nav visible below 768px.
  */
 
+/* Bottom sheet — Exploitation (Alpine x-show sur .bottom-nav-wrap) */
+.bottom-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    background: rgba(8, 80, 65, 0.45);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+.bottom-sheet-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1060;
+    max-height: min(78vh, 520px);
+    overflow-y: auto;
+    padding: 12px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 0 0;
+    background: var(--card-bg-solid, #fff);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    box-shadow: 0 -12px 40px rgba(8, 80, 65, 0.18);
+}
+.dark-mode .bottom-sheet-panel {
+    background: var(--card-bg-solid, #121c19);
+}
+.bottom-sheet-handle {
+    width: 40px;
+    height: 4px;
+    margin: 4px auto 14px;
+    border-radius: 99px;
+    background: var(--border-color);
+}
+.bottom-sheet-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+.bottom-sheet-link-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bottom-sheet-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.bottom-sheet-link i {
+    width: 1.35rem;
+    text-align: center;
+    color: var(--accent);
+}
+.bottom-sheet-link:hover,
+.bottom-sheet-link:focus {
+    border-color: rgba(29, 158, 117, 0.35);
+    background: var(--accent-subtle);
+    color: var(--accent-dark);
+}
+.bottom-sheet-link.is-active {
+    border-color: rgba(29, 158, 117, 0.45);
+    background: rgba(29, 158, 117, 0.12);
+    color: var(--accent);
+    box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.bottom-nav-exploitation-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 600;
+    min-width: 56px;
+    max-width: 76px;
+    min-height: 48px;
+    padding: 4px 6px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav-exploitation-btn i {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+.bottom-nav-exploitation-btn:hover,
+.bottom-nav-exploitation-btn:focus {
+    color: var(--accent);
+    background: rgba(29, 158, 117, 0.12);
+}
+.bottom-nav-exploitation-btn.active,
+.bottom-nav-exploitation-btn.bottom-nav-exploitation-btn--open {
+    color: var(--accent);
+    background: rgba(29, 158, 117, 0.14);
+}
+
 /* ========== BOTTOM NAVIGATION ========== */
 .bottom-nav {
     display: none;
@@ -83,7 +199,7 @@
 .bottom-nav a:hover,
 .bottom-nav a:focus {
     color: var(--accent);
-    background: rgba(163, 230, 53, 0.12);
+    background: rgba(29, 158, 117, 0.12);
 }
 
 .bottom-nav .bottom-nav-new {
@@ -96,13 +212,13 @@
     min-width: 52px;
     min-height: 52px;
     margin-top: -18px;
-    box-shadow: 0 4px 14px rgba(163, 230, 53, 0.35);
+    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
     font-size: 1.5rem;
 }
 
 .bottom-nav .bottom-nav-new:hover,
 .bottom-nav .bottom-nav-new:focus {
-    background: #84cc16;
+    background: var(--accent-dark);
     color: #fff;
     transform: translateY(-2px);
 }
@@ -273,7 +389,7 @@
    below 992px anyway). */
 @media (max-width: 991.98px) {
     body:has(.msg-conv-partial) .navbar-wrapper { display: none !important; }
-    body:has(.msg-conv-partial) .bottom-nav { display: none !important; }
+    body:has(.msg-conv-partial) .bottom-nav-wrap { display: none !important; }
     body:has(.msg-conv-partial) {
         padding-top: 0 !important;
         padding-bottom: 0 !important;

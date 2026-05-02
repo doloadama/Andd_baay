@@ -21,7 +21,7 @@
     {% endblock %}
 
     {% block meta_tags %}{% endblock %}
-    <meta name="theme-color" content="#4ade80" />
+    <meta name="theme-color" content="#1D9E75" />
 
     <title>{% block title %}Andd Baay | L'agriculture de demain{% endblock %}</title>
 
@@ -47,6 +47,8 @@
 
     <!-- FIX #1: Inline CSS is now properly wrapped in <style> tags -->
     <style>
+        [x-cloak] { display: none !important; }
+
         /* Palette de base — charte Andd Baay (identité) */
         :root {
             --brand-primary: #1D9E75;
@@ -760,6 +762,68 @@
 
         .dark-mode .nav-link-modern:hover {
             background: var(--border-color);
+        }
+
+        /* Exploitation — menu parent (desktop) */
+        .nav-exploitation-trigger {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font: inherit;
+            width: auto;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .nav-exploitation-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: auto;
+            min-width: min(260px, calc(100vw - 32px));
+            padding: 8px;
+            margin: 0;
+            border-radius: 14px;
+            background: var(--card-bg-solid, var(--card-bg));
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            z-index: 1080;
+        }
+        @media (min-width: 992px) {
+            .nav-exploitation-panel {
+                left: auto;
+                right: 0;
+            }
+        }
+        @media (max-width: 991.98px) {
+            .navbar-collapse .nav-exploitation-panel {
+                position: static;
+                width: 100%;
+                margin-top: 6px;
+                margin-bottom: 8px;
+                box-shadow: none;
+            }
+        }
+        .nav-exploitation-sublink {
+            display: flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .nav-exploitation-sublink:hover,
+        .nav-exploitation-sublink:focus {
+            background: var(--accent-subtle);
+            color: var(--accent-dark);
+        }
+        .nav-exploitation-sublink.active {
+            background: rgba(29, 158, 117, 0.14);
+            color: var(--accent);
+            box-shadow: inset 3px 0 0 var(--accent);
         }
 
         /* Nav Buttons */
@@ -2605,23 +2669,53 @@
                                 <i class="fas fa-chart-pie"></i> Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name == 'liste_projets' %}active{% endif %}"
-                                href="{% url 'liste_projets' %}" data-pjax>
-                                <i class="fas fa-folder"></i> Projets
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}"
-                                href="{% url 'liste_fermes' %}" data-pjax>
-                                <i class="fas fa-warehouse"></i> Mes Fermes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match %}{% with n=request.resolver_match.url_name %}{% if n == 'liste_semis' or n == 'creer_semis' or n == 'detail_semis' or n == 'modifier_semis' or n == 'supprimer_semis' %}active{% endif %}{% endwith %}{% endif %}"
-                                href="{% url 'liste_semis' %}" data-pjax>
-                                <i class="fas fa-seedling"></i> Semis
-                            </a>
+                        <li class="nav-item tw-relative nav-exploitation-dropdown"
+                            x-data="{
+                                open: {% if exploitation_section_active %}true{% else %}false{% endif %}
+                            }"
+                            @click.outside="open = false"
+                            @keydown.escape.window="open = false">
+                            <button type="button"
+                                class="nav-link-modern nav-exploitation-trigger tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if exploitation_section_active %}active{% endif %}"
+                                id="nav-exploitation-trigger"
+                                :aria-expanded="open ? 'true' : 'false'"
+                                aria-haspopup="true"
+                                aria-controls="nav-exploitation-menu"
+                                @click.prevent="open = !open">
+                                <i class="fas fa-tractor" aria-hidden="true"></i>
+                                <span>Exploitation</span>
+                                <i class="fas fa-chevron-down tw-text-[0.65rem] tw-opacity-75 tw-transition-transform tw-duration-200" :class="{'tw-rotate-180': open}" aria-hidden="true"></i>
+                            </button>
+                            <ul id="nav-exploitation-menu"
+                                class="nav-exploitation-panel list-unstyled"
+                                role="menu"
+                                x-show="open"
+                                x-cloak
+                                x-transition:enter="tw-transition-all tw-ease-out tw-duration-200"
+                                x-transition:enter-start="tw-opacity-0 tw--translate-y-2"
+                                x-transition:enter-end="tw-opacity-100 tw-translate-y-0"
+                                x-transition:leave="tw-transition-all tw-ease-in tw-duration-150"
+                                x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
+                                x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_fermes' %}" data-pjax @click="open = false">
+                                        <i class="fas fa-warehouse" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Mes fermes
+                                    </a>
+                                </li>
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false">
+                                        <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Projets en cours
+                                    </a>
+                                </li>
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_semis' %}" data-pjax @click="open = false">
+                                        <i class="fas fa-seedling" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Suivi des semis
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
@@ -2876,52 +2970,92 @@
     </script>
     {% endif %}
     {% if user.is_authenticated %}
-    <nav class="bottom-nav d-lg-none" aria-label="Navigation mobile">
-        <ul>
-            <li>
-                <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
-                    <i class="fas fa-chart-pie" aria-hidden="true"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'liste_projets' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" aria-label="Projets">
-                    <i class="fas fa-folder" aria-hidden="true"></i>
-                    <span>Projets</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'liste_semis' %}" data-pjax class="{% if request.resolver_match %}{% with n=request.resolver_match.url_name %}{% if n == 'liste_semis' or n == 'creer_semis' or n == 'detail_semis' or n == 'modifier_semis' or n == 'supprimer_semis' %}active{% endif %}{% endwith %}{% endif %}" aria-label="Semis">
-                    <i class="fas fa-seedling" aria-hidden="true"></i>
-                    <span>Semis</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'creer_projet' %}" class="bottom-nav-new" title="Nouveau projet" aria-label="Nouveau projet">
-                    <i class="fas fa-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'liste_fermes' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}" aria-label="Fermes">
-                    <i class="fas fa-warehouse" aria-hidden="true"></i>
-                    <span>Fermes</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
-                    <i class="fas fa-envelope" aria-hidden="true"></i>
-                    <span>Message</span>
-                    <span id="bottomNavMessagerieBadge" class="bottom-nav-badge" aria-live="polite" aria-atomic="true"></span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'profil' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
-                    <i class="fas fa-user" aria-hidden="true"></i>
-                    <span>Profil</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <div class="bottom-nav-wrap d-lg-none"
+         x-data="{ sheetOpen: false }"
+         @keydown.escape.window="sheetOpen = false">
+        <div class="bottom-sheet-backdrop"
+             x-show="sheetOpen"
+             x-transition.opacity.duration.200ms
+             @click="sheetOpen = false"
+             x-cloak></div>
+        <div class="bottom-sheet-panel"
+             id="bottom-sheet-exploitation"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="bottom-sheet-exploitation-title"
+             x-show="sheetOpen"
+             x-cloak
+             x-transition:enter="tw-transition-all tw-duration-200 tw-ease-out"
+             x-transition:enter-start="tw-translate-y-full tw-opacity-95"
+             x-transition:enter-end="tw-translate-y-0 tw-opacity-100"
+             x-transition:leave="tw-transition-all tw-duration-150 tw-ease-in"
+             x-transition:leave-start="tw-translate-y-0"
+             x-transition:leave-end="tw-translate-y-full">
+            <div class="bottom-sheet-handle" aria-hidden="true"></div>
+            <h2 class="bottom-sheet-title" id="bottom-sheet-exploitation-title">Exploitation</h2>
+            <p class="bottom-sheet-sub text-muted small mb-2 px-1">Fermes, projets et semis</p>
+            <ul class="bottom-sheet-link-list list-unstyled mb-0" role="list">
+                <li>
+                    <a href="{% url 'liste_fermes' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false">
+                        <i class="fas fa-warehouse" aria-hidden="true"></i>
+                        <span>Mes fermes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false">
+                        <i class="fas fa-folder-open" aria-hidden="true"></i>
+                        <span>Projets en cours</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'liste_semis' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false">
+                        <i class="fas fa-seedling" aria-hidden="true"></i>
+                        <span>Suivi des semis</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <nav class="bottom-nav" aria-label="Navigation mobile">
+            <ul>
+                <li>
+                    <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
+                        <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <button type="button"
+                            class="bottom-nav-exploitation-btn {% if exploitation_section_active %}active{% endif %}"
+                            :class="sheetOpen ? 'bottom-nav-exploitation-btn--open' : ''"
+                            @click="sheetOpen = !sheetOpen"
+                            :aria-expanded="sheetOpen ? 'true' : 'false'"
+                            aria-controls="bottom-sheet-exploitation"
+                            aria-label="Exploitation : fermes, projets, semis">
+                        <i class="fas fa-tractor" aria-hidden="true"></i>
+                        <span>Exploit.</span>
+                    </button>
+                </li>
+                <li>
+                    <a href="{% url 'creer_projet' %}" class="bottom-nav-new" title="Nouveau projet" aria-label="Nouveau projet">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                        <span>Message</span>
+                        <span id="bottomNavMessagerieBadge" class="bottom-nav-badge" aria-live="polite" aria-atomic="true"></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'profil' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                        <span>Profil</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
     {% endif %}
 
     <script>
