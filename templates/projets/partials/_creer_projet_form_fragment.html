@@ -118,9 +118,10 @@ Fragment échangé via HTMX (réponse 422) ou rendu inclus dans creer_projet.htm
                                        name="produits_selection"
                                        value="{{ produit.id }}"
                                        data-produit-id="{{ produit.id }}"
+                                       {% if produit.selected_on_form %}checked{% endif %}
                                        style="accent-color: var(--accent);">
-                                <div class="tw-flex-1 tw-min-w-0">
-                                    <div class="fw-bold" style="font-size: 0.95rem;">{{ produit.nom }}</div>
+                                <div class="tw-flex-1 tw-min-w-0 tw-overflow-visible">
+                                    <div class="fw-bold tw-break-words" style="font-size: 0.95rem; line-height: 1.3;">{{ produit.nom }}</div>
                                     {% if produit.rendement_moyen %}
                                     <small class="text-muted">~{{ produit.rendement_moyen }} kg/ha</small>
                                     {% endif %}
@@ -135,6 +136,7 @@ Fragment échangé via HTMX (réponse 422) ou rendu inclus dans creer_projet.htm
                                        step="0.01"
                                        min="0.01"
                                        placeholder="Ex: 1.5"
+                                       value="{{ produit.superficie_saisie|default:'' }}"
                                        disabled
                                        onclick="event.stopPropagation();">
                             </div>
@@ -316,6 +318,8 @@ Fragment échangé via HTMX (réponse 422) ou rendu inclus dans creer_projet.htm
             </div>
         </div>
     </div>
+
+    <div style="display:none;">{{ projet_form.superficie }}</div>
 
     <div class="form-actions border-0 pt-4 tw-flex tw-flex-col-reverse tw-gap-3 sm:tw-flex-row sm:tw-items-center sm:tw-justify-between">
         <a href="{% url 'liste_projets' %}" class="btn-baay btn-baay-outline tw-w-full sm:tw-w-auto tw-min-h-[48px] tw-inline-flex tw-items-center tw-justify-center tw-touch-manipulation">

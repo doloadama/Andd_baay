@@ -273,7 +273,9 @@
         color: var(--accent); 
     }
 
-    .modern-form input,
+    /* Ne pas appliquer width:100% + gros padding aux cases à cocher / radio :
+       sinon elles écrasent la colonne texte à côté (noms de produits tronqués). */
+    .modern-form input:not([type="checkbox"]):not([type="radio"]),
     .modern-form select,
     .modern-form textarea {
         background: transparent !important;
@@ -285,6 +287,14 @@
         box-shadow: none !important;
         outline: none !important;
         font-weight: 500;
+    }
+
+    .modern-form input[type="checkbox"],
+    .modern-form input[type="radio"] {
+        width: auto !important;
+        max-width: none;
+        padding: 0 !important;
+        flex-shrink: 0;
     }
     
     .modern-form input::placeholder {
@@ -636,8 +646,17 @@
         const connectors = document.querySelectorAll('.glass-form-card .step-connector');
         if (!progressSteps.length) return;
 
-        const section1Inputs = document.querySelectorAll('[data-section="1"] input, [data-section="1"] select');
-        const section1Complete = Array.from(section1Inputs).every(input => input.value.trim());
+        const nomInput = document.getElementById('id_nom');
+        const fermeInput = document.getElementById('id_ferme');
+        const paysInput = document.getElementById(paysId);
+        const localiteInput = document.getElementById(locId);
+        const selectedProducts = document.querySelectorAll('.produit-checkbox:checked');
+        const section1Complete =
+            !!(nomInput && nomInput.value.trim()) &&
+            (fermeInput ? !!fermeInput.value.trim() : true) &&
+            (paysInput ? !!paysInput.value.trim() : true) &&
+            (localiteInput ? !!localiteInput.value.trim() : true) &&
+            selectedProducts.length > 0;
 
         const section2Inputs = document.querySelectorAll('[data-section="2"] input:not([type="hidden"]), [data-section="2"] select');
         const requiredSection2 = Array.from(section2Inputs).filter(input => {
@@ -783,6 +802,7 @@
         }
 
         var totalDisplay = document.getElementById('id_superficie_total_display');
+        var hiddenSuperficie = document.getElementById('id_superficie');
 
         function updateTotalSuperficie() {
             var total = 0;
@@ -795,6 +815,9 @@
                 }
             });
             if (totalDisplay) totalDisplay.value = total.toFixed(2);
+            if (hiddenSuperficie) {
+                hiddenSuperficie.value = total > 0 ? total.toFixed(2) : '';
+            }
         }
 
         function applyItemStyle(item, checked) {

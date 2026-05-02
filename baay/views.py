@@ -493,6 +493,22 @@ def ask_chatbot(request):
 
 @login_required
 def creer_projet(request):
+    def _produits_with_form_state(form=None):
+        produits = list(ProduitAgricole.objects.all())
+        form_data = getattr(form, 'data', None)
+        selected_ids = set()
+        if form_data:
+            selected_ids = set(form_data.getlist('produits_selection'))
+        elif form is not None:
+            raw_value = form['produits_selection'].value() or []
+            selected_ids = {str(v) for v in raw_value}
+
+        for produit in produits:
+            produit_id = str(produit.id)
+            produit.selected_on_form = produit_id in selected_ids
+            produit.superficie_saisie = (form_data.get(f'superficie_{produit.id}') or '') if form_data else ''
+        return produits
+
     ferme_id = request.GET.get('ferme')
     from_ferme = None
     if ferme_id:
@@ -550,7 +566,7 @@ def creer_projet(request):
                 'projets/partials/_creer_projet_form_fragment.html',
                 {
                     'projet_form': projet_form,
-                    'produits': ProduitAgricole.objects.all(),
+                    'produits': _produits_with_form_state(projet_form),
                     'from_ferme': from_ferme,
                 },
                 status=422,
@@ -567,7 +583,7 @@ def creer_projet(request):
 
     return render(request, 'projets/creer_projet.html', {
         'projet_form': projet_form,
-        'produits': ProduitAgricole.objects.all(),
+        'produits': _produits_with_form_state(projet_form),
         'from_ferme': from_ferme,
     })
 
