@@ -8,9 +8,9 @@ import json
 from decimal import Decimal
 
 from django import template
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 
-from baay.models import ProjetProduit
+from baay.models import Profile, Projet, ProjetProduit
 
 register = template.Library()
 
@@ -23,23 +23,34 @@ def _float_or(v, default=0.0) -> float:
     return float(v)
 
 
-@register.inclusion_tag("admin/partials/yield_compare_chart.html")
-def admin_yield_compare_chart(max_points=18):
+@register.inclusion_tag("admin/partials/yield_compare_chart.html", takes_context=True)
+def admin_yield_compare_chart(context, max_points=18):
     """
     Prépare un jeu de données pour comparer, pour chaque ProjetProduit terminé
     (rendement_final renseigné), le rendement réel à la part proportionnelle
     de la prévision IA enregistrée sur le ProjetProduit (PrevisionRecolte).
     """
+    request = context.get("request")
     max_points = max(4, min(int(max_points), 40))
 
-    base_qs = (
-        ProjetProduit.objects.filter(
-            rendement_final__gt=0,
-            prevision__isnull=False,
-        )
-        .select_related("projet", "prevision", "produit")
-        .order_by("-projet__date_lancement", "produit__nom")
-    )
+    base_qs = ProjetProduit.objects.filter(
+        rendement_final__gt=0,
+        prevision__isnull=False,
+    ).select_related("projet", "prevision", "produit")
+
+    user = getattr(request, "user", None) if request else None
+    if user and user.is_authenticated and not user.is_superuser:
+        try:
+            profile = user.profile
+        except Profile.DoesNotExist:
+            profile = None
+        if profile is not None:
+            projet_ids = Projet.objects.filter(
+                Q(ferme__proprietaire=profile) | Q(ferme__membres__utilisateur=profile)
+            ).distinct()
+            base_qs = base_qs.filter(projet__in=projet_ids)
+
+    base_qs = base_qs.order_by("-projet__date_lancement", "produit__nom")
 
     candidates = list(base_qs[: max_points * 3])
     if not candidates:

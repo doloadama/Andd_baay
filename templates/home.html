@@ -98,7 +98,9 @@
     padding: 14px; background: var(--bg-secondary);
     border-radius: 12px; border: 1px solid var(--border-color);
 }
+.home-v2 .mock-stat[title] { cursor: help; }
 .home-v2 .mock-stat .v { font-family: 'Space Grotesk'; font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+.home-v2 .mock-stat .v .hero-mock-suffix { font-size: 1.35rem; font-weight: 800; }
 .home-v2 .mock-stat .l { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 .home-v2 .mock-bars { display: flex; align-items: end; gap: 8px; height: 110px; padding: 8px; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); }
 .home-v2 .mock-bar { flex: 1; background: linear-gradient(180deg, var(--accent), rgba(163,230,53,0.15)); border-radius: 4px 4px 0 0; }
@@ -174,16 +176,49 @@
 .home-v2 .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 @media (max-width: 900px) { .home-v2 .testimonial-grid { grid-template-columns: 1fr; } }
 .home-v2 .testimonial-grid article {
-    padding: 30px; border-radius: 18px;
+    padding: 28px; border-radius: 18px;
     background: var(--card-bg); border: 1px solid var(--border-color);
     position: relative;
 }
-.home-v2 .testimonial-grid article::before {
-    content: '\201C'; position: absolute; top: 8px; left: 18px;
-    font-size: 4rem; color: var(--accent); opacity: 0.25; font-family: serif; line-height: 1;
+.home-v2 .testimonial-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
 }
-.home-v2 .testimonial-grid p { color: var(--text-main); font-size: 1rem; line-height: 1.7; margin: 0 0 22px; padding-top: 18px; }
-.home-v2 .testimonial-grid footer { display: flex; flex-direction: column; gap: 2px; padding-top: 18px; border-top: 1px solid var(--border-color); }
+.home-v2 .testimonial-avatar {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 0.95rem;
+    color: #022c22; flex-shrink: 0;
+    background: linear-gradient(145deg, var(--accent), #86efac);
+    border: 1px solid rgba(163, 230, 53, 0.4);
+}
+.home-v2 .testimonial-avatar.is-b { background: linear-gradient(145deg, #0ea5e9, #7dd3fc); color: #0c4a6e; border-color: rgba(14, 165, 233, 0.35); }
+.home-v2 .testimonial-avatar.is-c { background: linear-gradient(145deg, #d97706, #fbbf24); color: #422006; border-color: rgba(217, 119, 6, 0.35); }
+.home-v2 .testimonial-stars {
+    color: #fbbf24;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+.home-v2 .testimonial-name-block strong {
+    display: block;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+.home-v2 .testimonial-name-block span {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+.home-v2 .testimonial-grid article::before {
+    content: '\201C'; position: absolute; top: 8px; right: 16px;
+    font-size: 3.25rem; color: var(--accent); opacity: 0.2; font-family: serif; line-height: 1;
+}
+.home-v2 .testimonial-grid p { color: var(--text-main); font-size: 1rem; line-height: 1.7; margin: 0 0 18px; padding-top: 0; }
+.home-v2 .testimonial-grid footer { display: flex; flex-direction: column; gap: 2px; padding-top: 14px; border-top: 1px solid var(--border-color); }
 .home-v2 .testimonial-grid footer strong { color: var(--text-main); font-size: 0.95rem; }
 .home-v2 .testimonial-grid footer span { color: var(--text-muted); font-size: 0.82rem; }
 
@@ -276,10 +311,22 @@
                         <span style="margin-left:10px; color:var(--text-muted); font-size:0.8rem;">dashboard.anddbaay.app</span>
                     </div>
                     <div class="mock-stats">
-                        <div class="mock-stat"><div class="v">12</div><div class="l">Projets actifs</div></div>
-                        <div class="mock-stat"><div class="v">42 ha</div><div class="l">Superficie</div></div>
-                        <div class="mock-stat"><div class="v">87%</div><div class="l">Complétion</div></div>
-                        <div class="mock-stat"><div class="v">3.2t</div><div class="l">Rendement IA</div></div>
+                        <div class="mock-stat" title="Nombre de campagnes en cours suivies sur le tableau de bord (données d'exemple).">
+                            <div class="v"><span class="hero-mock-val" data-target="12" data-decimals="0">0</span></div>
+                            <div class="l">Projets actifs</div>
+                        </div>
+                        <div class="mock-stat" title="Superficie totale dédiée aux cultures actives, en hectares.">
+                            <div class="v"><span class="hero-mock-val" data-target="42" data-decimals="0">0</span><span class="hero-mock-suffix"> ha</span></div>
+                            <div class="l">Superficie</div>
+                        </div>
+                        <div class="mock-stat" title="Progression moyenne des tâches et données renseignées sur la saison.">
+                            <div class="v"><span class="hero-mock-val" data-target="87" data-decimals="0">0</span><span class="hero-mock-suffix">%</span></div>
+                            <div class="l">Complétion</div>
+                        </div>
+                        <div class="mock-stat" title="Estimation de rendement agrégée générée par les modèles (exemple indicatif).">
+                            <div class="v"><span class="hero-mock-val" data-target="3.2" data-decimals="1">0</span><span class="hero-mock-suffix">t</span></div>
+                            <div class="l">Rendement IA</div>
+                        </div>
                     </div>
                     <div class="mock-bars">
                         <div class="mock-bar" style="height: 45%"></div>
@@ -349,7 +396,7 @@
                 </article>
                 <article>
                     <i class="fas fa-folder-tree"></i>
-                    <h3>Donnees dispersees</h3>
+                    <h3>Données dispersées</h3>
                     <p>Cahiers, WhatsApp, fichiers Excel... rien de centralisé, rien d'exploitable.</p>
                 </article>
                 <article>
@@ -446,24 +493,51 @@
             </div>
             <div class="testimonial-grid">
                 <article>
+                    <div class="testimonial-head">
+                        <div class="testimonial-avatar" aria-hidden="true">AN</div>
+                        <div>
+                            <div class="testimonial-stars" aria-label="5 sur 5 étoiles">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                            <div class="testimonial-name-block">
+                                <strong>Awa N.</strong>
+                                <span>Productrice maraîchère, Thiès</span>
+                            </div>
+                        </div>
+                    </div>
                     <p>Avant je notais mes superficies dans un cahier. Maintenant je vois la rentabilité de chaque parcelle en temps réel.</p>
                     <footer>
-                        <strong>Awa N.</strong>
-                        <span>Productrice maraîchère, Thiès</span>
+                        <span style="font-size:0.78rem;color:var(--text-muted);">Illustration — parcours type plateforme</span>
                     </footer>
                 </article>
                 <article>
+                    <div class="testimonial-head">
+                        <div class="testimonial-avatar is-b" aria-hidden="true">MD</div>
+                        <div>
+                            <div class="testimonial-stars" aria-label="5 sur 5 étoiles">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                            <div class="testimonial-name-block">
+                                <strong>Moussa D.</strong>
+                                <span>Coopérative riz, Saint-Louis</span>
+                            </div>
+                        </div>
+                    </div>
                     <p>Le code d'accès permet à mon technicien et à mes ouvriers de mettre à jour les projets sans que je sois sur place.</p>
                     <footer>
-                        <strong>Moussa D.</strong>
-                        <span>Coopérative riz, Saint-Louis</span>
+                        <span style="font-size:0.78rem;color:var(--text-muted);">Illustration — parcours type plateforme</span>
                     </footer>
                 </article>
                 <article>
+                    <div class="testimonial-head">
+                        <div class="testimonial-avatar is-c" aria-hidden="true">FS</div>
+                        <div>
+                            <div class="testimonial-stars" aria-label="5 sur 5 étoiles">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                            <div class="testimonial-name-block">
+                                <strong>Fatou S.</strong>
+                                <span>Exploitation arachide, Kaolack</span>
+                            </div>
+                        </div>
+                    </div>
                     <p>Les prédictions de l'IA m'ont fait revoir le calendrier de semis. Récolte +18 % cette saison.</p>
                     <footer>
-                        <strong>Fatou S.</strong>
-                        <span>Exploitation arachide, Kaolack</span>
+                        <span style="font-size:0.78rem;color:var(--text-muted);">Illustration — parcours type plateforme</span>
                     </footer>
                 </article>
             </div>
@@ -571,6 +645,41 @@
             bar.style.transition = 'height 1.2s ease ' + (i * 80) + 'ms';
             setTimeout(() => { bar.style.height = finalH; }, 200);
         });
+
+        // Compteur hero (mini-dashboard)
+        (function bindHeroMockCountUp() {
+            const wrap = document.querySelector('.home-v2 .mock-stats');
+            if (!wrap || wrap.dataset.heroAnimInit) return;
+            wrap.dataset.heroAnimInit = '1';
+            const vals = wrap.querySelectorAll('.hero-mock-val');
+            if (!vals.length) return;
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    if (wrap.dataset.heroCountUpDone) return;
+                    wrap.dataset.heroCountUpDone = '1';
+                    const duration = 1500;
+                    vals.forEach((el, idx) => {
+                        const target = parseFloat(el.getAttribute('data-target'), 10);
+                        const dec = parseInt(el.getAttribute('data-decimals') || '0', 10);
+                        const delay = idx * 110;
+                        const start = performance.now();
+                        function tick(now) {
+                            const elapsed = Math.max(0, now - start - delay);
+                            const p = easeOutCubic(Math.min(1, elapsed / duration));
+                            const cur = target * p;
+                            el.textContent = dec > 0 ? cur.toFixed(dec) : String(Math.round(cur));
+                            if (p < 1) requestAnimationFrame(tick);
+                            else el.textContent = dec > 0 ? target.toFixed(dec) : String(Math.round(target));
+                        }
+                        requestAnimationFrame(tick);
+                    });
+                    io.unobserve(wrap);
+                });
+            }, { threshold: 0.32 });
+            io.observe(wrap);
+        })();
 
         // ===== LANDING PAGE SCROLL SPY =====
         const landingLinks = document.querySelectorAll('.landing-nav-link');

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Bienvenue — Premiers pas | Andd Baay{% endblock %}
+
+{% block content %}
+<style>
+    .ob-wrap {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 32px 16px 56px;
+    }
+    .ob-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: clamp(28px, 4vw, 40px);
+        box-shadow: var(--shadow-md);
+    }
+    .ob-steps {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 28px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .ob-step-pill {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-family: var(--font-display);
+    }
+    .ob-step-pill.is-active {
+        background: var(--accent-subtle);
+        border-color: rgba(163, 230, 53, 0.45);
+        color: var(--text-inverse);
+    }
+    .ob-step-pill.is-done {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: rgba(34, 197, 94, 0.35);
+        color: var(--accent-dark);
+    }
+    .ob-step-pill--next {
+        opacity: 0.55;
+    }
+    .ob-card h1 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.45rem;
+        margin: 0 0 12px;
+        letter-spacing: -0.02em;
+        color: var(--text-main);
+    }
+    .ob-card .ob-lede {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 0 0 24px;
+    }
+    .ob-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .ob-actions .btn-baay { justify-content: center; }
+    .ob-secondary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+    .ob-hint {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 20px;
+        line-height: 1.5;
+    }
+</style>
+
+<div class="ob-wrap animate__animated animate__fadeIn">
+    <div class="ob-card">
+        <div class="ob-steps" aria-hidden="true">
+            <span class="ob-step-pill {% if onboarding_step == 1 %}is-active{% endif %} {% if onboarding_step == 2 %}is-done{% endif %}">1 · Ferme</span>
+            <span class="ob-step-pill {% if onboarding_step == 2 %}is-active{% endif %}">2 · Projet</span>
+            <span class="ob-step-pill ob-step-pill--next">3 · Prédictions</span>
+        </div>
+
+        {% if onboarding_step == 1 %}
+        <h1>Créez votre première ferme</h1>
+        <p class="ob-lede">
+            Une ferme regroupe vos parcelles, votre équipe et vos projets. Vous pourrez ensuite lancer des campagnes
+            et obtenir des estimations de rendement adaptées à votre zone.
+        </p>
+        <div class="ob-actions">
+            <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'creer_ferme' %}">
+                <i class="fas fa-tractor me-2"></i> Créer ma ferme
+            </a>
+            <a class="btn-baay btn-baay-outline tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'demander_acces_ferme' %}">
+                <i class="fas fa-key me-2"></i> J'ai un code d'accès
+            </a>
+        </div>
+        {% else %}
+        <h1>Lancez votre premier projet</h1>
+        <p class="ob-lede">
+            Ajoutez une culture, une superficie et une localité : le tableau de bord et les prédictions IA s'appuient sur ces informations.
+            {% if premiere_ferme %}Nous avons présélectionné la ferme <strong>{{ premiere_ferme.nom }}</strong>.{% endif %}
+        </p>
+        <div class="ob-actions">
+            <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{{ creer_projet_url }}">
+                <i class="fas fa-seedling me-2"></i> Créer un projet
+            </a>
+            <a class="btn-baay btn-baay-outline tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'liste_fermes' %}">
+                <i class="fas fa-warehouse me-2"></i> Mes fermes
+            </a>
+        </div>
+        {% endif %}
+
+        <p class="ob-hint">
+            Étape 3 : après la création du projet, ouvrez sa fiche pour voir les prédictions de rendement et ajuster vos semis.
+        </p>
+
+        <div class="ob-secondary">
+            <form method="post" action="{% url 'onboarding_complete' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-baay btn-baay-ghost tw-min-h-[44px]">
+                    Plus tard, accéder au tableau de bord
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

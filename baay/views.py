@@ -185,6 +185,67 @@ def confidentialite_view(request):
     return render(request, 'legal/confidentialite.html')
 
 
+@login_required
+def onboarding_wizard_view(request):
+    """Assistant première connexion : ferme → projet → prêt."""
+    profile = request.user.profile
+    if profile.onboarding_completed:
+        return redirect('dashboard')
+
+    if projets_accessibles_qs(profile).exists():
+        profile.onboarding_completed = True
+        profile.save(update_fields=['onboarding_completed'])
+        return redirect('dashboard')
+
+    has_any_ferme = Ferme.objects.filter(
+        Q(proprietaire=profile) | Q(membres__utilisateur=profile)
+    ).exists()
+    owns_ferme = Ferme.objects.filter(proprietaire=profile).exists()
+
+    if has_any_ferme and not owns_ferme:
+        profile.onboarding_completed = True
+        profile.save(update_fields=['onboarding_completed'])
+        return redirect('dashboard')
+
+    onboarding_step = 1 if not has_any_ferme else 2
+    premiere_ferme = (
+        Ferme.objects.filter(proprietaire=profile).order_by('date_creation').first()
+    )
+    creer_projet_url = reverse('creer_projet')
+    if premiere_ferme:
+        creer_projet_url = f'{creer_projet_url}?ferme={premiere_ferme.id}'
+
+    return render(
+        request,
+        'onboarding/wizard.html',
+        {
+            'onboarding_step': onboarding_step,
+            'premiere_ferme': premiere_ferme,
+            'creer_projet_url': creer_projet_url,
+        },
+    )
+
+
+@login_required
+@require_POST
+def onboarding_complete_view(request):
+    """Marque l'assistant comme terminé (« Plus tard » ou fin du parcours)."""
+    request.user.profile.onboarding_completed = True
+    request.user.profile.save(update_fields=['onboarding_completed'])
+    messages.success(request, "Bienvenue sur votre espace — vous pouvez créer d'autres fermes ou projets quand vous voulez.")
+    return redirect('dashboard')
+
+
+def page_not_found_view(request, exception=None):
+    """Page 404 personnalisée — utilisée automatiquement lorsque DEBUG=False."""
+    return render(request, 'errors/404.html', status=404)
+
+
+def page_not_found_preview(request):
+    """Aperçu de la 404 en local (DEBUG=True uniquement ; réponse HTTP 200)."""
+    return render(request, 'errors/404.html', status=200)
+
+
 def _send_confirmation_email(user, request):
     """Send email confirmation link using Django token generator."""
     uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -947,6 +1008,21 @@ def dashboard(request):
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
         utilisateur = Profile.objects.create(user=request.user)
+
+    projets_any = projets_accessibles_qs(utilisateur).exists()
+    if not utilisateur.onboarding_completed:
+        if projets_any:
+            utilisateur.onboarding_completed = True
+            utilisateur.save(update_fields=['onboarding_completed'])
+        else:
+            has_any_ferme = Ferme.objects.filter(
+                Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
+            ).exists()
+            owns_ferme = Ferme.objects.filter(proprietaire=utilisateur).exists()
+            if not has_any_ferme:
+                return redirect('onboarding')
+            if owns_ferme:
+                return redirect('onboarding')
 
     # --- Dispatch selon le rôle primaire ---
     # Si l'utilisateur n'est propriétaire d'aucune ferme, on l'oriente vers

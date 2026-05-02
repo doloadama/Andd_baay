@@ -14,6 +14,10 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     last_login = models.DateTimeField(auto_now=True)
+    onboarding_completed = models.BooleanField(
+        default=False,
+        help_text="True lorsque l'utilisateur a terminé ou ignoré l'assistant de première connexion.",
+    )
 
     def __str__(self):
         return self.user.username

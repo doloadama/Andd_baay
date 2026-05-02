@@ -1,0 +1,95 @@
+{% load i18n %}
+{% if dashboard_apex_json %}
+<section id="baay-apex-dashboard" class="scroll-mt-8 space-y-10" aria-label="{% trans 'Tableau de bord graphique par rôle' %}">
+    <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h3 class="text-font-important-light text-base font-semibold dark:text-font-important-dark lg:text-lg">
+                {% trans "Analytique — axes par rôle" %}
+            </h3>
+            <p class="text-font-subtle-light mt-0.5 max-w-3xl text-xs dark:text-font-subtle-dark">
+                {% trans "Thème agri : verts et bruns. Données filtrées selon vos fermes (MembreFerme), sauf vue superutilisateur plateforme." %}
+            </p>
+        </div>
+    </div>
+
+    {% if dashboard_ouvrier_only %}
+    <p class="text-font-subtle-light rounded-default border border-base-200 bg-base-50 px-4 py-3 text-sm dark:border-base-700 dark:bg-base-900/60" role="status">
+        {% trans "Les graphiques Propriétaire / Manager / Technicien sont masqués pour le périmètre « ouvrier uniquement »." %}
+    </p>
+    {% endif %}
+
+    {% if dashboard_layers.owner %}
+    <div class="space-y-4">
+        <h4 class="border-b border-[#2D5A27]/25 pb-1 text-sm font-semibold uppercase tracking-wide text-[#2D5A27] dark:border-primary-700/50 dark:text-primary-300">
+            {% trans "Propriétaire" %}
+        </h4>
+        <div class="@xl:grid-cols-2 grid grid-cols-1 gap-4">
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Jauges — ROI (revenu vs investissements)" %}</p>
+                <div id="baay-chart-roi" class="mt-2 min-h-[260px]"></div>
+                <p class="text-font-subtle-light mt-1 text-xs">{% trans "Revenu = Σ rendement final × prix au kg (lignes ProjetProduit). Invest. = coût/ha × superficie + frais." %}</p>
+            </div>
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Donut — cultures (ha alloués)" %}</p>
+                <div id="baay-chart-cultures" class="mt-2 min-h-[280px]"></div>
+            </div>
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900 @xl:col-span-2">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Barres — investissements par ferme" %}</p>
+                <div id="baay-chart-fermes" class="mt-2 min-h-[280px]"></div>
+            </div>
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900 @xl:col-span-2">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Aire — flux d'investissements (12 mois)" %}</p>
+                <div id="baay-chart-cashflow" class="mt-2 min-h-[260px]"></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if dashboard_layers.manager %}
+    <div class="space-y-4">
+        <h4 class="border-b border-[#8B5A2B]/30 pb-1 text-sm font-semibold uppercase tracking-wide text-[#8B5A2B] dark:text-amber-300">
+            {% trans "Manager" %}
+        </h4>
+        <div class="@xl:grid-cols-3 grid grid-cols-1 gap-4">
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Radial — taux de complétion des tâches" %}</p>
+                <div id="baay-chart-task-completion" class="mt-2 min-h-[260px]"></div>
+            </div>
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900 @xl:col-span-2">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Donut — répartition des investissements par projet" %}</p>
+                <div id="baay-chart-budget-projects" class="mt-2 min-h-[300px]"></div>
+            </div>
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900 @xl:col-span-3">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Radial — charge (tâches ouvertes par membre)" %}</p>
+                <div id="baay-chart-workload" class="mt-2 min-h-[280px]"></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if dashboard_layers.technicien %}
+    <div class="space-y-4">
+        <h4 class="border-b border-[#2D5A27]/25 pb-1 text-sm font-semibold uppercase tracking-wide text-[#2D5A27] dark:text-primary-300">
+            {% trans "Technicien" %}
+        </h4>
+        <div class="@xl:grid-cols-2 grid grid-cols-1 gap-4">
+            <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+                <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Nuage — précision IA (prévision vs réel, kg)" %}</p>
+                <div id="baay-chart-scatter-ml" class="mt-2 min-h-[320px]"></div>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+                    <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide">{% trans "Prochaine récolte (jours)" %}</p>
+                    <p id="baay-tech-countdown" class="text-font-important-light mt-2 text-3xl font-bold tabular-nums dark:text-font-important-dark">—</p>
+                    <p id="baay-tech-countdown-hint" class="text-font-subtle-light mt-1 text-xs"></p>
+                </div>
+                <div class="border-base-200 rounded-xl border border-red-200/80 bg-red-50/50 p-4 shadow-xs dark:border-red-900/50 dark:bg-red-950/30">
+                    <p class="text-xs font-medium uppercase tracking-wide text-red-800 dark:text-red-200">{% trans "Alertes — tâches critiques en retard" %}</p>
+                    <p id="baay-tech-alerts" class="text-font-important-light mt-2 text-2xl font-bold tabular-nums text-red-700 dark:text-red-300">—</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endif %}

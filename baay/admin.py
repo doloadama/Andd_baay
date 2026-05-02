@@ -11,6 +11,8 @@ from unfold.contrib.filters.admin import (
     RangeDateTimeFilter,
 )
 
+from baay.dashboard_services import DashboardChangelistMixin
+
 from .models import (
     Conversation,
     DemandeAccesFerme,
@@ -54,14 +56,16 @@ class PaysAdmin(ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(ModelAdmin):
-    list_display = ("user", "phone_number")
+    list_display = ("user", "phone_number", "onboarding_completed")
     search_fields = ("user__username", "user__email", "phone_number")
     ordering = ("user__username",)
     list_filter_submit = True
 
 
 @admin.register(Ferme)
-class FermeAdmin(ModelAdmin):
+class FermeAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_before_template = "admin/baay/changelist_dashboard_note.html"
+    baay_dashboard_slug = "ferme"
     # Colonnes réduites : pays / localité restent filtrables sans encombrer la grille
     list_display = ("nom", "proprietaire", "code_acces", "date_creation")
     list_filter = [
@@ -100,7 +104,9 @@ class PhotoProduitAgricoleAdmin(ModelAdmin):
 
 
 @admin.register(Projet)
-class ProjetAdmin(ModelAdmin):
+class ProjetAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_before_template = "admin/baay/changelist_dashboard_note.html"
+    baay_dashboard_slug = "projet"
     list_display = ("nom", "ferme", "statut", "date_lancement")
     list_filter = [
         ("statut", ChoicesDropdownFilter),
@@ -128,7 +134,9 @@ class LocaliteAdmin(ModelAdmin):
 
 
 @admin.register(Investissement)
-class InvestissementAdmin(ModelAdmin):
+class InvestissementAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_before_template = "admin/baay/changelist_dashboard_note.html"
+    baay_dashboard_slug = "investissement"
     list_display = ("projet", "cout_par_hectare", "date_investissement")
     list_filter = [
         ("date_investissement", RangeDateFilter),
@@ -171,7 +179,10 @@ class ProjetProduitAdmin(ModelAdmin):
 
 
 @admin.register(PrevisionRecolte)
-class PrevisionRecolteAdmin(ModelAdmin):
+class PrevisionRecolteAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_before_template = "admin/baay/changelist_dashboard_note.html"
+    baay_dashboard_slug = "previsionrecolte"
+
     @admin.display(description="Rendement (min – max)")
     def rendement_fourchette(self, obj):
         return f"{obj.rendement_estime_min} – {obj.rendement_estime_max}"
@@ -237,7 +248,9 @@ class MessageReactionAdmin(ModelAdmin):
 
 
 @admin.register(Tache)
-class TacheAdmin(ModelAdmin):
+class TacheAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_before_template = "admin/baay/changelist_dashboard_note.html"
+    baay_dashboard_slug = "tache"
     # ferme / projet / priorité : filtres latéraux ; liste centrée sur exécution
     list_display = ("titre", "assigne_a", "statut", "date_echeance")
     list_filter = [

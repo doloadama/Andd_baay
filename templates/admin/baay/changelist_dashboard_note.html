@@ -1,0 +1,20 @@
+{% load i18n %}
+{% if baay_changelist_dashboard %}
+<div class="mb-4 rounded-default border border-base-200 bg-[#2D5A27]/5 px-4 py-3 text-sm dark:border-base-700 dark:bg-[#2D5A27]/10">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+            <p class="font-semibold text-[#2D5A27] dark:text-primary-300">
+                {{ baay_changelist_dashboard.title }}
+            </p>
+            <p class="text-font-subtle-light mt-0.5 dark:text-font-subtle-dark">
+                {{ baay_changelist_dashboard.body }}
+            </p>
+        </div>
+        <a href="{% url 'admin:index' %}#baay-apex-dashboard"
+           class="text-primary-600 hover:text-primary-700 dark:text-primary-400 inline-flex shrink-0 items-center gap-1 font-medium underline-offset-2 hover:underline">
+            {% trans "Voir le tableau de bord" %}
+            <span class="material-symbols-outlined md-18" aria-hidden="true">dashboard</span>
+        </a>
+    </div>
+</div>
+{% endif %}

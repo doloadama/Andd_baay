@@ -1,80 +1,37 @@
 """
 Données agrégées pour le tableau de bord Unfold (admin index).
-Requêtes groupées / annotate pour éviter le N+1 et limiter le nombre de hits DB.
+
+Délègue les calculs rôle / périmètre à `baay.dashboard_services`.
 """
 
 from __future__ import annotations
 
 import json
-from datetime import timedelta
-from decimal import Decimal
 from typing import Any
 
 from django.contrib.auth import get_user_model
-from django.db.models import Avg, Count, ExpressionWrapper, F, Q, Sum, Value
-from django.db.models import DecimalField as ModelDecimalField
-from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
+
+from baay import dashboard_services as dash
 
 
 def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
-    from baay.models import (
-        DemandeAccesFerme,
-        Ferme,
-        Investissement,
-        Message,
-        PrevisionRecolte,
-        Projet,
-        Tache,
-    )
+    now = timezone.now()
+    scope = dash.resolve_scope(request)
+    fermes_qs = scope["fermes_qs"]
+    projets_qs = scope["projets_qs"]
+    profile = scope["profile"]
+    is_global = scope["is_global"]
 
     User = get_user_model()
-    now = timezone.now()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    six_m_ago = month_start - timedelta(days=180)
 
-    demandes_aggr = DemandeAccesFerme.objects.aggregate(
-        pending=Count("id", filter=Q(statut="en_attente")),
-    )
-
-    projets_agg = Projet.objects.aggregate(
-        total=Count("id"),
-        en_cours=Count("id", filter=Q(statut="en_cours")),
-    )
-
-    taches_agg = Tache.objects.filter(statut__in=("a_faire", "en_cours")).aggregate(
-        ouvertes=Count("id"),
-        retard=Count("id", filter=Q(date_echeance__lt=now.date())),
-    )
-
-    counts = {
-        "fermes": Ferme.objects.count(),
-        "projets": projets_agg["total"] or 0,
-        "projets_en_cours": projets_agg["en_cours"] or 0,
-        "messages": Message.objects.count(),
-        "investissements": Investissement.objects.count(),
-        "demandes_pending": demandes_aggr["pending"] or 0,
-        "taches_ouvertes": taches_agg["ouvertes"] or 0,
-        "taches_retard": taches_agg["retard"] or 0,
-    }
+    counts = dash.aggregate_platform_kpis(fermes_qs, projets_qs, now)
 
     active_users_logged = User.objects.filter(last_login__gte=month_start).count()
 
-    monthly = list(
-        Projet.objects.filter(date_lancement__gte=six_m_ago.date())
-        .annotate(month=TruncMonth("date_lancement"))
-        .values("month")
-        .annotate(total=Count("id"))
-        .order_by("month")
-    )
-    chart_labels = []
-    chart_values = []
-    for row in monthly:
-        m = row["month"]
-        if m is None:
-            continue
-        chart_labels.append(m.strftime("%b %Y"))
-        chart_values.append(row["total"])
+    chart_labels, chart_values = dash.monthly_new_projects(projets_qs, now)
+    chart_bundle = {"labels": chart_labels, "values": chart_values}
 
     warnings = []
     if counts["taches_retard"] > 0:
@@ -83,7 +40,7 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
                 "text": (
                     f"{counts['taches_retard']} tâche(s) en retard "
                     "(échéance dépassée, non terminées)."
-                )
+                ),
             },
         )
     if counts["demandes_pending"] > 0:
@@ -92,49 +49,45 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
                 "text": (
                     f"{counts['demandes_pending']} demande(s) d'accès ferme "
                     "en attente de traitement."
-                )
+                ),
             },
         )
 
-    chart_bundle = {"labels": chart_labels, "values": chart_values}
-
-    # ── Prévisions de rendement (PrevisionRecolte ← alimentée par baay.services.estimer_rendement_ia) ──
-    prev_agg = PrevisionRecolte.objects.aggregate(
-        avec_prev=Count("id"),
-        confiance_moy=Avg("indice_confiance"),
-        rend_min_moy=Avg("rendement_estime_min"),
-        rend_max_moy=Avg("rendement_estime_max"),
-    )
-    projets_avec_au_moins_une_prev = (
-        PrevisionRecolte.objects.values("projet_id").distinct().count()
-    )
-    projets_sans_prev = max(
-        0,
-        (projets_agg["total"] or 0) - projets_avec_au_moins_une_prev,
+    if is_global:
+        roles = set()
+    else:
+        roles = dash.effective_roles_for_profile(profile, fermes_qs)
+    layers = dash.layer_visible_flags(is_global, roles)
+    ouvrier_only = (
+        not is_global
+        and profile is not None
+        and fermes_qs.exists()
+        and len(roles) == 0
     )
 
-    # ── Investissements agrégés par projet (coût/ha × superficie + autres frais) ──
-    inv_line = ExpressionWrapper(
-        F("cout_par_hectare") * F("projet__superficie")
-        + Coalesce(
-            F("autres_frais"),
-            Value(Decimal("0"), output_field=ModelDecimalField(max_digits=12, decimal_places=4)),
-        ),
-        output_field=ModelDecimalField(max_digits=28, decimal_places=8),
-    )
-    invest_par_projet = list(
-        Investissement.objects.values("projet_id", "projet__nom")
-        .annotate(montant_total=Sum(inv_line), nb_lignes=Count("id"))
-        .order_by("-montant_total")[:16]
+    owner_data = dash.build_owner_payload(fermes_qs, projets_qs)
+    manager_data = dash.build_manager_payload(fermes_qs, projets_qs)
+    technicien_data = dash.build_technicien_payload(fermes_qs, projets_qs)
+    prev_block = dash.prevision_summary(projets_qs)
+    invest_par_projet = dash.invest_par_projet_table(projets_qs, limit=16)
+
+    apex_payload = dash.build_apex_payload(
+        layers,
+        owner_data,
+        manager_data,
+        technicien_data,
     )
 
     context.update(
         {
+            "dashboard_scope_label": scope["scope_label"],
+            "dashboard_layers": layers,
+            "dashboard_ouvrier_only": ouvrier_only,
             "dashboard_kpis": [
                 {
                     "label": "Fermes",
                     "value": counts["fermes"],
-                    "hint": "Exploitations enregistrées",
+                    "hint": scope["scope_label"],
                     "icon": "agriculture",
                 },
                 {
@@ -170,7 +123,7 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
                 {
                     "label": "Messages",
                     "value": counts["messages"],
-                    "hint": "Messagerie interne",
+                    "hint": "Messagerie (fermes du périmètre)",
                     "icon": "chat",
                 },
                 {
@@ -180,16 +133,11 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
                     "icon": "people",
                 },
             ],
-            "dashboard_prevision": {
-                "nb_prev": prev_agg["avec_prev"] or 0,
-                "confiance_moy": round(float(prev_agg["confiance_moy"] or 0), 1),
-                "rend_min_moy": round(float(prev_agg["rend_min_moy"] or 0), 2),
-                "rend_max_moy": round(float(prev_agg["rend_max_moy"] or 0), 2),
-                "projets_sans_prev": projets_sans_prev,
-            },
+            "dashboard_prevision": prev_block,
             "dashboard_invest_par_projet": invest_par_projet,
             "dashboard_chart_json": json.dumps(chart_bundle),
             "dashboard_warnings": warnings,
+            "dashboard_apex_json": dash.apex_payload_json(apex_payload),
         },
     )
 

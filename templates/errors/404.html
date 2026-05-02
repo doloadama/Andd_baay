@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Page introuvable | Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="La page demandée n'existe pas ou a été déplacée — Andd Baay." />
+{% endblock %}
+
+{% block content %}
+<style>
+    .err404-wrap {
+        min-height: min(72vh, 640px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px 48px;
+    }
+    .err404-card {
+        max-width: 520px;
+        width: 100%;
+        text-align: center;
+        padding: clamp(32px, 5vw, 48px) clamp(24px, 4vw, 40px);
+        border-radius: 24px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+    .err404-card::before {
+        content: '';
+        position: absolute;
+        inset: -40% -20% auto;
+        height: 120%;
+        background: radial-gradient(ellipse at 50% 0%, rgba(74, 222, 128, 0.18), transparent 55%);
+        pointer-events: none;
+    }
+    .err404-card > * { position: relative; z-index: 1; }
+    .err404-code {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(3.5rem, 12vw, 4.5rem);
+        line-height: 1;
+        letter-spacing: -0.04em;
+        background: linear-gradient(120deg, var(--accent), #22c55e 55%, var(--accent-hover));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 12px;
+    }
+    .err404-card h1 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.35rem;
+        color: var(--text-main);
+        margin: 0 0 12px;
+        letter-spacing: -0.02em;
+    }
+    .err404-card p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 0 0 28px;
+    }
+    .err404-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+    }
+</style>
+
+<div class="err404-wrap">
+    <div class="err404-card animate__animated animate__fadeInUp">
+        <div class="tw-flex tw-justify-center tw-mb-4">
+            {% include 'includes/brand_wordmark.html' with variant='nav' %}
+        </div>
+        <p class="err404-code" aria-hidden="true">404</p>
+        <h1>Page introuvable</h1>
+        <p>
+            Le lien est peut-être incorrect, ou la page a été déplacée.
+            Retournez à l’accueil ou ouvrez votre tableau de bord si vous êtes connecté.
+        </p>
+        <div class="err404-actions">
+            <a href="{% url 'home' %}" class="btn-baay btn-baay-primary tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5">
+                <i class="fas fa-home me-2"></i> Accueil
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn-baay btn-baay-outline tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5" data-pjax>
+                <i class="fas fa-chart-pie me-2"></i> Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}" class="btn-baay btn-baay-outline tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5">
+                <i class="fas fa-sign-in-alt me-2"></i> Connexion
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -447,6 +447,8 @@ UNFOLD = {
         },
     },
     "DASHBOARD_CALLBACK": "baay.admin_dashboard.dashboard_callback",
+    # Personnalise la page d’accueil admin (`admin/index.html`) : KPIs filtrés,
+    # ApexCharts et couches Propriétaire / Manager / Technicien (baay.dashboard_services).
     # Navigation : Unfold masque la sidebar sur mobile (< xl) et l’affiche en overlay
     # via `sidebarMobileOpen` (menu hamburger). Pas de clé supplémentaire requise.
     "SIDEBAR": {

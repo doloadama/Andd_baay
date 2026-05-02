@@ -12,3 +12,10 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    from baay.views import page_not_found_preview
+
+    urlpatterns.append(
+        path('__preview__/404/', page_not_found_preview, name='preview_404'),
+    )
+
+handler404 = 'baay.views.page_not_found_view'

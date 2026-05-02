@@ -19,8 +19,20 @@
                     <p class="text-font-subtle-light mt-0.5 text-sm dark:text-font-subtle-dark">
                         {% trans "Statistiques agrégées (mises à jour à chaque chargement)" %}
                     </p>
+                    {% if dashboard_scope_label %}
+                    <p class="mt-2 inline-flex items-center gap-2 rounded-lg border border-[#2D5A27]/25 bg-[#2D5A27]/8 px-3 py-1.5 text-xs font-medium text-[#2D5A27] dark:border-primary-700/40 dark:bg-primary-900/25 dark:text-primary-200">
+                        <span class="material-symbols-outlined text-base" aria-hidden="true">shield_lock</span>
+                        {{ dashboard_scope_label }}
+                    </p>
+                    {% endif %}
                 </div>
             </div>
+
+            {% if dashboard_ouvrier_only %}
+            <div class="border-l-4 border-[#8B5A2B] bg-[#8B5A2B]/10 px-4 py-3 text-sm text-base-800 dark:bg-[#8B5A2B]/15 dark:text-base-100" role="status">
+                {% trans "À ce jour, le tableau de bord graphique par rôle concerne les profils Propriétaire, Manager et Technicien. Votre rattachement est limité au rôle Ouvrier : les métriques ci-dessous sont filtrées, sans les couches chef de projet." %}
+            </div>
+            {% endif %}
 
             {% if dashboard_warnings %}
                 {% for w in dashboard_warnings %}
@@ -51,6 +63,8 @@
                 {% endfor %}
             </div>
         </section>
+
+        {% include "admin/partials/baay_apex_dashboard.html" %}
 
         {% if dashboard_prevision %}
         <section class="space-y-4" aria-label="{% trans 'Prévisions de rendement' %}">
@@ -149,6 +163,220 @@
 
 {% block footer %}
     {{ block.super }}
+    {% if dashboard_apex_json %}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.54.1"></script>
+    <script id="baay-apex-data" type="application/json">{{ dashboard_apex_json|safe }}</script>
+    <script>
+        (function () {
+            function apexLabelColor() {
+                return document.documentElement.classList.contains("dark") ? "#e2e8f0" : "#334155";
+            }
+            function bootBaayApex() {
+                var dataEl = document.getElementById("baay-apex-data");
+                if (!dataEl || typeof ApexCharts === "undefined") return;
+                var P = {};
+                try {
+                    P = JSON.parse(dataEl.textContent || "{}");
+                } catch (e) {
+                    console.warn("baay apex payload", e);
+                    return;
+                }
+                var T = P.theme || {};
+                var fc = apexLabelColor();
+                var colors = [T.forest || "#2D5A27", T.earth || "#8B5A2B", "#4a7c43", "#a67c52"];
+
+                var elRoi = document.querySelector("#baay-chart-roi");
+                if (elRoi && P.owner) {
+                    var roiRaw = P.owner.roi_pct_raw != null ? Number(P.owner.roi_pct_raw) : 0;
+                    var gaugeFill = Math.max(0, Math.min(100, (roiRaw + 50) / 2));
+                    new ApexCharts(elRoi, {
+                        chart: { type: "radialBar", height: 280, toolbar: { show: false }, fontFamily: "inherit" },
+                        colors: [colors[0]],
+                        series: [gaugeFill],
+                        labels: ["ROI"],
+                        plotOptions: {
+                            radialBar: {
+                                startAngle: -120,
+                                endAngle: 120,
+                                hollow: { size: "62%" },
+                                dataLabels: {
+                                    show: true,
+                                    name: { show: true, color: fc, fontSize: "13px", offsetY: -10 },
+                                    value: {
+                                        show: true,
+                                        color: fc,
+                                        fontSize: "1.35rem",
+                                        fontWeight: 600,
+                                        formatter: function () { return roiRaw + " %"; }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
+
+                var elDon = document.querySelector("#baay-chart-cultures");
+                if (elDon && P.owner && P.owner.cultures_donut) {
+                    var cd = P.owner.cultures_donut;
+                    new ApexCharts(elDon, {
+                        chart: { type: "donut", height: 300, fontFamily: "inherit", toolbar: { show: false } },
+                        labels: cd.labels || [],
+                        series: cd.series || [],
+                        colors: colors,
+                        legend: { position: "bottom", labels: { colors: fc } },
+                        dataLabels: { style: { colors: ["#fff"] } },
+                        plotOptions: { pie: { donut: { size: "65%" } } }
+                    }).render();
+                }
+
+                var elF = document.querySelector("#baay-chart-fermes");
+                if (elF && P.owner && P.owner.fermes_bar) {
+                    var fb = P.owner.fermes_bar;
+                    new ApexCharts(elF, {
+                        chart: { type: "bar", height: 320, toolbar: { show: false }, fontFamily: "inherit" },
+                        plotOptions: { bar: { horizontal: true, borderRadius: 6, barHeight: "55%" } },
+                        colors: [colors[1]],
+                        series: [{ name: "Montant", data: fb.data || [] }],
+                        xaxis: { categories: fb.categories || [], labels: { style: { colors: fc } } },
+                        yaxis: { labels: { style: { colors: fc } } },
+                        grid: { borderColor: "rgba(148,163,184,0.2)" }
+                    }).render();
+                }
+
+                var elC = document.querySelector("#baay-chart-cashflow");
+                if (elC && P.owner && P.owner.cashflow_area) {
+                    var cf = P.owner.cashflow_area;
+                    new ApexCharts(elC, {
+                        chart: { type: "area", height: 260, toolbar: { show: false }, fontFamily: "inherit", zoom: { enabled: false } },
+                        stroke: { curve: "smooth", width: 2 },
+                        fill: { type: "gradient", gradient: { shadeIntensity: 0.45, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 90] } },
+                        colors: [colors[0]],
+                        series: [{ name: "Invest.", data: cf.values || [] }],
+                        xaxis: { categories: cf.labels || [], labels: { style: { colors: fc } } },
+                        yaxis: { labels: { style: { colors: fc } } },
+                        grid: { borderColor: "rgba(148,163,184,0.2)" },
+                        dataLabels: { enabled: false }
+                    }).render();
+                }
+
+                var elTc = document.querySelector("#baay-chart-task-completion");
+                if (elTc && P.manager) {
+                    var pct = P.manager.task_completion_pct != null ? Number(P.manager.task_completion_pct) : 0;
+                    new ApexCharts(elTc, {
+                        chart: { type: "radialBar", height: 280, toolbar: { show: false }, fontFamily: "inherit" },
+                        colors: [colors[0]],
+                        series: [pct],
+                        labels: ["Complétion"],
+                        plotOptions: {
+                            radialBar: {
+                                hollow: { size: "68%" },
+                                dataLabels: {
+                                    name: { color: fc },
+                                    value: {
+                                        color: fc,
+                                        fontSize: "1.25rem",
+                                        formatter: function (v) { return v + " %"; }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
+
+                var elBp = document.querySelector("#baay-chart-budget-projects");
+                if (elBp && P.manager && P.manager.budget_donut) {
+                    var bd = P.manager.budget_donut;
+                    new ApexCharts(elBp, {
+                        chart: { type: "donut", height: 320, fontFamily: "inherit", toolbar: { show: false } },
+                        labels: bd.labels || [],
+                        series: bd.series || [],
+                        colors: colors,
+                        legend: { position: "right", labels: { colors: fc } }
+                    }).render();
+                }
+
+                var elW = document.querySelector("#baay-chart-workload");
+                if (elW && P.manager && P.manager.workload_radial) {
+                    var wr = P.manager.workload_radial;
+                    var labs = wr.labels || [];
+                    var ser = wr.series || [];
+                    if (labs.length && ser.length && ser.length === labs.length) {
+                        new ApexCharts(elW, {
+                            chart: { type: "radialBar", height: 380, fontFamily: "inherit", toolbar: { show: false } },
+                            plotOptions: {
+                                radialBar: {
+                                    hollow: { size: "30%" },
+                                    dataLabels: {
+                                        name: { show: true, color: fc },
+                                        value: { color: fc }
+                                    }
+                                }
+                            },
+                            colors: colors,
+                            labels: labs,
+                            series: ser
+                        }).render();
+                    } else {
+                        elW.innerHTML = "<p class=\"text-font-subtle-light text-sm\">Aucune tâche ouverte répartie.</p>";
+                    }
+                }
+
+                var elS = document.querySelector("#baay-chart-scatter-ml");
+                if (elS && P.technicien) {
+                    var pts = (P.technicien.scatter_ml || []).map(function (p) { return [p.x, p.y]; });
+                    if (pts.length) {
+                        new ApexCharts(elS, {
+                            chart: { type: "scatter", height: 340, fontFamily: "inherit", toolbar: { show: true }, zoom: { enabled: true } },
+                            colors: [colors[0]],
+                            grid: { borderColor: "rgba(148,163,184,0.25)" },
+                            xaxis: {
+                                title: { text: "Prévision ML (milieu fourchette, kg)", style: { color: fc } },
+                                tickAmount: 6,
+                                labels: { style: { colors: fc } }
+                            },
+                            yaxis: {
+                                title: { text: "Réel mesuré (kg)", style: { color: fc } },
+                                labels: { style: { colors: fc } }
+                            },
+                            series: [{ name: "Parcelles", data: pts }],
+                            markers: { size: 5 }
+                        }).render();
+                    } else {
+                        elS.innerHTML = "<p class=\"text-font-subtle-light text-sm\">Pas encore de points avec prévision et rendement final.</p>";
+                    }
+                }
+
+                var cdEl = document.getElementById("baay-tech-countdown");
+                var hintEl = document.getElementById("baay-tech-countdown-hint");
+                if (cdEl && P.technicien) {
+                    var d = P.technicien.countdown_days;
+                    if (d != null) {
+                        cdEl.textContent = String(d);
+                        if (hintEl) {
+                            hintEl.textContent = P.technicien.next_recolte
+                                ? "Date : " + P.technicien.next_recolte
+                                : "";
+                        }
+                    } else {
+                        cdEl.textContent = "—";
+                        if (hintEl) {
+                            hintEl.textContent = "Aucune date de récolte prévue future sur le périmètre.";
+                        }
+                    }
+                }
+                var alEl = document.getElementById("baay-tech-alerts");
+                if (alEl && P.technicien && P.technicien.critical_overdue_tasks != null) {
+                    alEl.textContent = String(P.technicien.critical_overdue_tasks);
+                }
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", bootBaayApex);
+            } else {
+                bootBaayApex();
+            }
+        })();
+    </script>
+    {% endif %}
     {% translate "Projets" as dashboard_chart_projets_label %}
     <script id="admin-dashboard-chart-data" type="application/json">{{ dashboard_chart_json|safe }}</script>
     <script>
