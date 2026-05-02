@@ -18,14 +18,14 @@ def role_dans_ferme(profile, ferme):
         return None
     if ferme.proprietaire_id == profile.id:
         return ROLE_PROPRIETAIRE
-    membre = ferme.membres.filter(utilisateur=profile).only('role').first()
+    membre = MembreFerme.objects.filter(ferme=ferme, utilisateur=profile).only('role').first()
     return membre.role if membre else None
 
 
 def membership_dans_ferme(profile, ferme):
     if profile is None or ferme is None:
         return None
-    return ferme.membres.filter(utilisateur=profile).first()
+    return MembreFerme.objects.filter(ferme=ferme, utilisateur=profile).first()
 
 
 def fermes_accessibles_qs(profile):
@@ -120,13 +120,29 @@ def peut_voir_investissements(profile, ferme):
     return role_dans_ferme(profile, ferme) in ROLES_GESTION_PROJET
 
 
+def peut_modifier_budget_ferme(profile, ferme):
+    """
+    Modifier le budget (lignes Investissement) : exiger une ligne MembreFerme
+    sur cette ferme avec rôle propriétaire ou manager (pas le seul fallback
+    Ferme.proprietaire sans adhésion explicite).
+    """
+    if profile is None or ferme is None:
+        return False
+    return MembreFerme.objects.filter(
+        ferme=ferme,
+        utilisateur=profile,
+        role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+    ).exists()
+
+
 def peut_modifier_investissement(profile, projet):
     """
-    Création / modification des lignes Investissement : même périmètre que la gestion de projet
-    (propriétaire de la ferme ou manager membre).
+    Création / modification des lignes Investissement : MembreFerme sur la ferme
+    du projet avec rôle propriétaire ou manager.
     """
-    return peut_modifier_projet(profile, projet)
-
+    if projet is None:
+        return False
+    return peut_modifier_budget_ferme(profile, projet.ferme)
 
 def peut_voir_investissements_any(profile):
     if profile is None:

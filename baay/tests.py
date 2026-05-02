@@ -588,6 +588,30 @@ class PermissionsRoleTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(Projet.objects.filter(id=self.projet.id).exists())
 
+    def test_budget_investissement_requiert_membre_manager_ou_proprietaire(self):
+        from baay.permissions import peut_modifier_investissement
+
+        self.assertTrue(peut_modifier_investissement(self.manager.profile, self.projet))
+        self.assertTrue(peut_modifier_investissement(self.owner.profile, self.projet))
+        self.assertFalse(peut_modifier_investissement(self.tech.profile, self.projet))
+        self.assertFalse(peut_modifier_investissement(self.ouvrier.profile, self.projet))
+
+    def test_proprietaire_sans_ligne_membreferme_ne_peut_pas_modifier_budget(self):
+        from baay.permissions import peut_modifier_investissement
+
+        owner_orphan = _create_user('owner_orphan', 'oo@test')
+        ferme_orphan = Ferme.objects.create(nom='F-Orphan', proprietaire=owner_orphan.profile)
+        MembreFerme.objects.filter(ferme=ferme_orphan, utilisateur=owner_orphan.profile).delete()
+        projet_orphan = Projet.objects.create(
+            nom='P-Orphan',
+            ferme=ferme_orphan,
+            utilisateur=owner_orphan.profile,
+            localite=self.localite,
+            superficie=1,
+            date_lancement=timezone.now().date(),
+        )
+        self.assertFalse(peut_modifier_investissement(owner_orphan.profile, projet_orphan))
+
     def test_permission_policy_role_resolution(self):
         self.assertEqual(role_dans_ferme(self.owner.profile, self.ferme), 'proprietaire')
         self.assertEqual(role_dans_ferme(self.manager.profile, self.ferme), 'manager')

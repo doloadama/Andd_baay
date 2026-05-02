@@ -85,7 +85,7 @@
             <a href="{% url 'modifier_projet' projet.id %}" class="projet-action-btn projet-action-btn--primary">
                 <i class="fas fa-edit" aria-hidden="true"></i><span>Modifier</span>
             </a>
-            {% if can_view_investissements %}
+            {% if can_modify_investissements %}
             <a href="{% url 'ajouter_investissement' projet.id %}" class="projet-action-btn projet-action-btn--accent">
                 <i class="fas fa-plus" aria-hidden="true"></i><span>Investissement</span>
             </a>
@@ -434,9 +434,13 @@
                             <div class="icon-circle mx-auto mb-3 text-muted"><i class="fas fa-wallet fs-2"></i></div>
                             <h5 class="text-muted">Aucun investissement</h5>
                             <p class="text-muted text-sm mb-4">Gérez vos coûts en liant des investissements à ce projet.</p>
+                            {% if can_modify_investissements %}
                             <a href="{% url 'ajouter_investissement' projet.id %}" class="btn-modern btn-outline-modern bg-surface shadow-sm">
                                 <i class="fas fa-plus text-accent"></i> Ajouter
                             </a>
+                            {% else %}
+                            <p class="text-muted text-sm mb-0">Seuls le propriétaire ou un manager (membre de la ferme) peuvent ajouter des investissements.</p>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>

@@ -774,7 +774,10 @@ def ajouter_investissement(request, projet_id):
     # Vérifier que le projet appartient à l'utilisateur connecté
     projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
     if not peut_modifier_investissement(request.user.profile, projet):
-        messages.error(request, "Vous n'avez pas le droit d'ajouter un investissement à ce projet.")
+        messages.error(
+            request,
+            "Seuls le propriétaire ou un manager enregistrés comme membres de la ferme peuvent modifier le budget (investissements).",
+        )
         return redirect('detail_projet', projet_id=projet.id)
 
     if request.method == 'POST':
@@ -861,6 +864,7 @@ def detail_projet(request, projet_id):
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'can_view_investissements': can_view_investissements,
+        'can_modify_investissements': peut_modifier_investissement(request.user.profile, projet),
         'investissements': investissements,
         'prediction': prediction,
         'projet_produits': projet_produits,
