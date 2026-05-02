@@ -20,7 +20,7 @@
                         {% trans "Statistiques agrégées (mises à jour à chaque chargement)" %}
                     </p>
                     {% if dashboard_scope_label %}
-                    <p class="mt-2 inline-flex items-center gap-2 rounded-lg border border-[#2D5A27]/25 bg-[#2D5A27]/8 px-3 py-1.5 text-xs font-medium text-[#2D5A27] dark:border-primary-700/40 dark:bg-primary-900/25 dark:text-primary-200">
+                    <p class="mt-2 inline-flex items-center gap-2 rounded-lg border border-primary-600/25 bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-800 dark:border-primary-500/35 dark:bg-primary-950/40 dark:text-primary-200">
                         <span class="material-symbols-outlined text-base" aria-hidden="true">shield_lock</span>
                         {{ dashboard_scope_label }}
                     </p>
@@ -29,7 +29,7 @@
             </div>
 
             {% if dashboard_ouvrier_only %}
-            <div class="border-l-4 border-[#8B5A2B] bg-[#8B5A2B]/10 px-4 py-3 text-sm text-base-800 dark:bg-[#8B5A2B]/15 dark:text-base-100" role="status">
+            <div class="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-base-800 dark:border-amber-500/60 dark:bg-amber-950/30 dark:text-base-100" role="status">
                 {% trans "À ce jour, le tableau de bord graphique par rôle concerne les profils Propriétaire, Manager et Technicien. Votre rattachement est limité au rôle Ouvrier : les métriques ci-dessous sont filtrées, sans les couches chef de projet." %}
             </div>
             {% endif %}
@@ -183,7 +183,7 @@
                 }
                 var T = P.theme || {};
                 var fc = apexLabelColor();
-                var colors = [T.forest || "#2D5A27", T.earth || "#8B5A2B", "#4a7c43", "#a67c52"];
+                var colors = [T.forest || "#1D9E75", T.earth || "#EF9F27", T.deep || "#085041", "#5DCAA5"];
 
                 var elRoi = document.querySelector("#baay-chart-roi");
                 if (elRoi && P.owner) {

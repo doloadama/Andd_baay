@@ -38,10 +38,11 @@ from baay.models import (
 )
 
 THEME = {
-    "forest": "#2D5A27",
-    "earth": "#8B5A2B",
-    "forestSoft": "rgba(45, 90, 39, 0.35)",
-    "earthSoft": "rgba(139, 90, 43, 0.35)",
+    "forest": "#1D9E75",
+    "earth": "#EF9F27",
+    "deep": "#085041",
+    "forestSoft": "rgba(29, 158, 117, 0.35)",
+    "earthSoft": "rgba(239, 159, 39, 0.35)",
 }
 
 
