@@ -1,6 +1,5 @@
 {% load static %}
-{# Desktop messagerie drawer included once in base.html. Hidden by default,
-   activated only on viewports >= 992px by messagerie-drawer.js. #}
+{% comment %}Desktop messagerie drawer (base.html). Hidden by default; >=992px via messagerie-drawer.js.{% endcomment %}
 <link rel="stylesheet" href="{% static 'css/messagerie-drawer.css' %}">
 <div id="messagerieDrawer" class="msg-drawer" aria-hidden="true" role="dialog" aria-labelledby="msgDrawerTitle" aria-modal="false">
     <div class="msg-drawer-backdrop" data-drawer-close="1" aria-hidden="true"></div>
