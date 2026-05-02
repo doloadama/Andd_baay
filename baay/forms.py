@@ -348,33 +348,48 @@ class ProjetProduitForm(forms.ModelForm):
 
 
 class RendementFinalForm(forms.Form):
-    """Form for inputting final harvest yields when project is finished"""
-    
+    """Formulaire de saisie des rendements finaux lors de la clôture du projet."""
+
     def __init__(self, *args, projet=None, **kwargs):
+        self._projet = projet
         super().__init__(*args, **kwargs)
         if projet:
             for pp in projet.projet_produits.all():
-                self.fields[f'rendement_{pp.id}'] = forms.DecimalField(
+                self.fields[f"rendement_{pp.id}"] = forms.DecimalField(
                     label=f"Rendement final - {pp.produit.nom}",
                     max_digits=10,
                     decimal_places=2,
                     required=False,
                     initial=pp.rendement_final,
-                    widget=forms.NumberInput(attrs={
-                        'class': 'form-control',
-                        'placeholder': 'Quantite recoltee en kg',
-                        'step': '0.01'
-                    })
+                    widget=forms.NumberInput(
+                        attrs={
+                            "class": "form-control",
+                            "placeholder": "Quantite recoltee en kg",
+                            "step": "0.01",
+                        }
+                    ),
                 )
-                self.fields[f'date_recolte_{pp.id}'] = forms.DateField(
+                self.fields[f"date_recolte_{pp.id}"] = forms.DateField(
                     label=f"Date de recolte - {pp.produit.nom}",
                     required=False,
                     initial=pp.date_recolte_effective,
-                    widget=forms.DateInput(attrs={
-                        'type': 'date',
-                        'class': 'form-control'
-                    })
+                    widget=forms.DateInput(
+                        attrs={
+                            "type": "date",
+                            "class": "form-control",
+                        }
+                    ),
                 )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        projet = self._projet
+        if projet is not None and not projet.projet_produits.exists():
+            raise forms.ValidationError(
+                "Ce projet n'a aucune culture associée : ajoutez d'abord des produits "
+                "depuis « Modifier le projet » avant de clôturer."
+            )
+        return cleaned_data
 
 class PlantDetailsForm(forms.Form):
     """Form for inputting plant images and age in project details"""

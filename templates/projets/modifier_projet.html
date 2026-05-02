@@ -205,56 +205,74 @@
                     <!-- Rendement Final Form -->
                     <div class="rendement-section">
                         <h5><i class="fas fa-trophy me-2"></i> Saisir les Rendements Finaux</h5>
-                        <p class="text-muted mb-4">Entrez la quantite recoltee pour chaque produit de ce projet.</p>
-                        
-                        <form method="post" class="modern-form">
+                        <p class="text-muted mb-4">Enregistrez les quantités récoltées par culture pour clôturer le projet (statut « Terminé »).</p>
+
+                        {% if rendement_form.non_field_errors %}
+                        <div class="alert alert-danger mb-3">
+                            {% for err in rendement_form.non_field_errors %}
+                            <div>{{ err }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'modifier_projet' projet.id %}?finish=1" class="modern-form">
                             {% csrf_token %}
                             <input type="hidden" name="save_rendement" value="1">
-                            
-                            {% for pp in projet.projet_produits.all %}
+
+                            {% for row in closure_rows %}
                             <div class="rendement-card">
-                                <h6><i class="fas fa-seedling me-2"></i> {{ pp.produit.nom }}</h6>
+                                <h6><i class="fas fa-seedling me-2"></i> {{ row.pp.produit.nom }}</h6>
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label-modern">Rendement Final (kg)</label>
+                                        <label class="form-label-modern" for="{{ row.r_field.id_for_label }}">Rendement Final (kg)</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-weight input-icon"></i>
-                                            <input type="number" name="rendement_{{ pp.id }}" 
-                                                   value="{{ pp.rendement_final|default:'' }}"
-                                                   class="form-control" 
-                                                   placeholder="Quantite recoltee en kg"
-                                                   step="0.01">
+                                            {{ row.r_field }}
                                         </div>
+                                        {% if row.r_field.errors %}
+                                        {% for err in row.r_field.errors %}
+                                        <div class="text-danger small mt-1">{{ err }}</div>
+                                        {% endfor %}
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label-modern">Date de Recolte</label>
+                                        <label class="form-label-modern" for="{{ row.d_field.id_for_label }}">Date de Recolte</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-calendar input-icon"></i>
-                                            <input type="date" name="date_recolte_{{ pp.id }}" 
-                                                   value="{{ pp.date_recolte_effective|date:'Y-m-d'|default:'' }}"
-                                                   class="form-control">
+                                            {{ row.d_field }}
                                         </div>
+                                        {% if row.d_field.errors %}
+                                        {% for err in row.d_field.errors %}
+                                        <div class="text-danger small mt-1">{{ err }}</div>
+                                        {% endfor %}
+                                        {% endif %}
                                     </div>
                                 </div>
-                                {% if pp.rendement_estime %}
+                                {% if row.pp.rendement_estime %}
                                 <small class="text-muted mt-2 d-block">
-                                    <i class="fas fa-chart-line me-1"></i> Rendement estime: {{ pp.rendement_estime|floatformat:0 }} kg
+                                    <i class="fas fa-chart-line me-1"></i> Rendement estime: {{ row.pp.rendement_estime|floatformat:0 }} kg
                                 </small>
                                 {% endif %}
                             </div>
+                            {% empty %}
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Aucune culture sur ce projet. Enregistrez d'abord des produits et des superficies dans le formulaire ci-dessous, puis revenez sur la clôture.
+                            </div>
                             {% endfor %}
-                            
-                            <div class="d-flex gap-3 mt-4">
+                            {% if closure_rows %}
+                            <div class="d-flex flex-wrap gap-3 mt-4">
                                 <button type="submit" class="btn-submit-modern">
-                                    <i class="fas fa-check-circle"></i> Enregistrer les Rendements
+                                    <i class="fas fa-check-circle"></i> Enregistrer et clôturer le projet
                                 </button>
-                                <a href="{% url 'detail_projet' projet.id %}" class="btn btn-outline-light px-4">
+                                <a href="{% url 'detail_projet' projet.id %}" class="btn btn-outline-light px-4" style="min-height:44px;align-self:center;">
                                     Annuler
                                 </a>
                             </div>
+                            {% endif %}
                         </form>
                     </div>
-                    
+
                     <hr class="border-secondary my-4">
                     {% endif %}
                     
@@ -389,7 +407,6 @@
                                                onclick="event.stopPropagation();">
                                     </div>
                                 </label>
-                                {% endwith %}
                                 {% endfor %}
                             </div>
                             {% if projet_form.errors.produits_selection %}

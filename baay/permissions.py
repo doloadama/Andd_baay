@@ -120,6 +120,14 @@ def peut_voir_investissements(profile, ferme):
     return role_dans_ferme(profile, ferme) in ROLES_GESTION_PROJET
 
 
+def peut_modifier_investissement(profile, projet):
+    """
+    Création / modification des lignes Investissement : même périmètre que la gestion de projet
+    (propriétaire de la ferme ou manager membre).
+    """
+    return peut_modifier_projet(profile, projet)
+
+
 def peut_voir_investissements_any(profile):
     if profile is None:
         return False

@@ -76,6 +76,7 @@ from baay.permissions import (
     peut_supprimer_projet,
     peut_supprimer_semis,
     peut_supprimer_tache,
+    peut_modifier_investissement,
     peut_voir_investissements,
     peut_voir_investissements_any,
     peut_voir_projet,
@@ -124,7 +125,18 @@ def home_view(request):
 
     if request.user.is_authenticated:
         try:
-            projets_user = projets_accessibles_qs(request.user.profile)
+            projets_user = projets_accessibles_qs(request.user.profile).select_related(
+                'ferme',
+                'ferme__proprietaire__user',
+                'ferme__localite',
+                'localite',
+                'culture',
+            ).prefetch_related(
+                Prefetch(
+                    'ferme__membres',
+                    queryset=MembreFerme.objects.select_related('utilisateur__user'),
+                ),
+            )
             projets_actifs = projets_user.filter(statut='en_cours').count()
             prochain_semis = projets_user.order_by('-date_lancement').first()
             context['projets_actifs'] = projets_actifs
@@ -558,95 +570,129 @@ def creer_projet(request):
 
 @login_required
 def modifier_projet(request, projet_id):
-    projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    projet = get_object_or_404(
+        Projet.objects.select_related("ferme").prefetch_related("projet_produits__produit"),
+        id=projet_id,
+    )
     if not peut_modifier_projet(request.user.profile, projet):
         messages.error(request, "Vous n'avez pas le droit de modifier ce projet.")
-        return redirect('detail_projet', projet_id=projet.id)
+        return redirect("detail_projet", projet_id=projet.id)
     rendement_form = None
     plant_details_form = None
-    
-    # If project is being finished, show the harvest yield form
-    show_rendement_form = request.GET.get('finish') == '1' or projet.statut == 'fini'
 
-    if request.method == 'POST':
-        projet_form = ProjetForm(request.POST, instance=projet, user=request.user)
+    # Mode clôture : ?finish=1, déjà terminé, ou soumission « save_rendement »
+    show_rendement_form = (
+        request.GET.get("finish") == "1"
+        or projet.statut == "fini"
+        or ("save_rendement" in request.POST)
+    )
 
-        # Handle rendement final form if present
-        if 'save_rendement' in request.POST:
+    if request.method == "POST":
+        if "save_rendement" in request.POST:
+            # Ne pas binder ProjetForm au POST partiel (évite un formulaire incohérent en cas d'erreur)
+            projet_form = ProjetForm(instance=projet, user=request.user)
+            plant_details_form = PlantDetailsForm(projet=projet)
             rendement_form = RendementFinalForm(request.POST, projet=projet)
             if rendement_form.is_valid():
                 for pp in projet.projet_produits.all():
-                    rendement_key = f'rendement_{pp.id}'
-                    date_key = f'date_recolte_{pp.id}'
+                    rendement_key = f"rendement_{pp.id}"
+                    date_key = f"date_recolte_{pp.id}"
                     if rendement_key in rendement_form.cleaned_data:
                         pp.rendement_final = rendement_form.cleaned_data[rendement_key]
                     if date_key in rendement_form.cleaned_data:
                         pp.date_recolte_effective = rendement_form.cleaned_data[date_key]
                     pp.save()
-                messages.success(request, "Les rendements finaux ont ete enregistres.")
-                return redirect('detail_projet', projet_id=projet.id)
-
-        elif projet_form.is_valid():
-            plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
-            if plant_details_form.is_valid():
-                for pp in projet.projet_produits.all():
-                    image_key = f'image_{pp.id}'
-                    age_key = f'age_plant_{pp.id}'
-
-                    if image_key in request.FILES:
-                        pp.image = request.FILES[image_key]
-                    elif image_key in plant_details_form.cleaned_data and plant_details_form.cleaned_data[image_key] is False:
-                        if pp.image:
-                            pp.image.delete()
-
-                    if age_key in plant_details_form.cleaned_data:
-                        pp.age_plant = plant_details_form.cleaned_data[age_key]
-
-                    pp.save()
-            else:
-                logger.error(f"Erreurs dans plant_details_form : {plant_details_form.errors}")
-                # Continue saving the main project even if plant details have errors,
-                # but log them so the admin knows.
-
-            projet = projet_form.save(commit=False)
-            projet.save()
-
-            # Update products with per-product allocated surface (mirrors creer_projet)
-            produits = projet_form.cleaned_data.get('produits_selection', [])
-            superficies_par_produit = projet_form.cleaned_data.get('superficies_par_produit') or {}
-            existing_produits = set(projet.projet_produits.values_list('produit_id', flat=True))
-            new_produits = set(p.id for p in produits)
-
-            # Remove products no longer selected
-            for pp in projet.projet_produits.filter(produit_id__in=existing_produits - new_produits):
-                pp.delete()
-
-            # Add new products and update existing ones with allocated surface
-            for produit in produits:
-                surf = superficies_par_produit.get(str(produit.id))
-                if produit.id not in existing_produits:
-                    ProjetProduit.objects.create(
-                        projet=projet,
-                        produit=produit,
-                        superficie_allouee=surf,
+                if projet.statut != "fini":
+                    projet.statut = "fini"
+                    projet.save(update_fields=["statut"])
+                    messages.success(
+                        request,
+                        "Les rendements finaux ont été enregistrés et le projet est clôturé.",
                     )
-                elif surf is not None:
-                    ProjetProduit.objects.filter(projet=projet, produit=produit).update(
-                        superficie_allouee=surf,
+                else:
+                    messages.success(
+                        request,
+                        "Les rendements finaux ont été mis à jour.",
                     )
+                return redirect("detail_projet", projet_id=projet.id)
+        else:
+            projet_form = ProjetForm(request.POST, instance=projet, user=request.user)
 
-            # Update backwards compatibility culture field
-            if produits:
-                projet.culture = produits[0]
+            if projet_form.is_valid():
+                plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
+                if plant_details_form.is_valid():
+                    for pp in projet.projet_produits.all():
+                        image_key = f"image_{pp.id}"
+                        age_key = f"age_plant_{pp.id}"
+
+                        if image_key in request.FILES:
+                            pp.image = request.FILES[image_key]
+                        elif (
+                            image_key in plant_details_form.cleaned_data
+                            and plant_details_form.cleaned_data[image_key] is False
+                        ):
+                            if pp.image:
+                                pp.image.delete()
+
+                        if age_key in plant_details_form.cleaned_data:
+                            pp.age_plant = plant_details_form.cleaned_data[age_key]
+
+                        pp.save()
+                else:
+                    logger.error(
+                        "Erreurs dans plant_details_form : %s",
+                        plant_details_form.errors,
+                    )
+                    # Continue saving the main project even if plant details have errors,
+                    # but log them so the admin knows.
+
+                projet = projet_form.save(commit=False)
                 projet.save()
 
-            messages.success(request, "Le projet a ete modifie avec succes.")
-            return redirect('detail_projet', projet_id=projet.id)
-        else:
-            # Form invalid — preserve plant_details_form with POST data so the
-            # template can re-render submitted values and field errors.
-            plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
-            logger.error(f"Erreurs dans projet_form : {projet_form.errors}")
+                # Update products with per-product allocated surface (mirrors creer_projet)
+                produits = projet_form.cleaned_data.get("produits_selection", [])
+                superficies_par_produit = (
+                    projet_form.cleaned_data.get("superficies_par_produit") or {}
+                )
+                existing_produits = set(
+                    projet.projet_produits.values_list("produit_id", flat=True)
+                )
+                new_produits = set(p.id for p in produits)
+
+                # Remove products no longer selected
+                for pp in projet.projet_produits.filter(
+                    produit_id__in=existing_produits - new_produits
+                ):
+                    pp.delete()
+
+                # Add new products and update existing ones with allocated surface
+                for produit in produits:
+                    surf = superficies_par_produit.get(str(produit.id))
+                    if produit.id not in existing_produits:
+                        ProjetProduit.objects.create(
+                            projet=projet,
+                            produit=produit,
+                            superficie_allouee=surf,
+                        )
+                    elif surf is not None:
+                        ProjetProduit.objects.filter(projet=projet, produit=produit).update(
+                            superficie_allouee=surf,
+                        )
+
+                # Update backwards compatibility culture field
+                if produits:
+                    projet.culture = produits[0]
+                    projet.save()
+
+                messages.success(request, "Le projet a ete modifie avec succes.")
+                return redirect("detail_projet", projet_id=projet.id)
+            else:
+                # Form invalid — preserve plant_details_form with POST data so the
+                # template can re-render submitted values and field errors.
+                plant_details_form = PlantDetailsForm(
+                    request.POST, request.FILES, projet=projet
+                )
+                logger.error("Erreurs dans projet_form : %s", projet_form.errors)
     else:
         projet_form = ProjetForm(instance=projet, user=request.user)
         plant_details_form = PlantDetailsForm(projet=projet)
@@ -662,10 +708,25 @@ def modifier_projet(request, projet_id):
                 'age_field': plant_details_form[f'age_plant_{pp.id}']
             })
 
+    closure_rows = []
+    if rendement_form is not None:
+        for pp in projet.projet_produits.all():
+            rk = f"rendement_{pp.id}"
+            dk = f"date_recolte_{pp.id}"
+            if rk in rendement_form.fields:
+                closure_rows.append(
+                    {
+                        "pp": pp,
+                        "r_field": rendement_form[rk],
+                        "d_field": rendement_form[dk],
+                    }
+                )
+
     return render(request, 'projets/modifier_projet.html', {
         'projet_form': projet_form,
         'projet': projet,
         'rendement_form': rendement_form,
+        'closure_rows': closure_rows,
         'show_rendement_form': show_rendement_form,
         'plant_details_form': plant_details_form,
         'plants_data': plants_data,
@@ -708,7 +769,7 @@ def supprimer_projets(request):
 def ajouter_investissement(request, projet_id):
     # Vérifier que le projet appartient à l'utilisateur connecté
     projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
-    if not peut_modifier_projet(request.user.profile, projet):
+    if not peut_modifier_investissement(request.user.profile, projet):
         messages.error(request, "Vous n'avez pas le droit d'ajouter un investissement à ce projet.")
         return redirect('detail_projet', projet_id=projet.id)
 
@@ -734,11 +795,18 @@ def detail_projet(request, projet_id):
     projet = get_object_or_404(
         Projet.objects.select_related(
             'ferme',
+            'ferme__proprietaire__user',
+            'ferme__localite',
+            'ferme__pays',
             'culture',
             'localite',
             'pays',
             'utilisateur__user',
         ).prefetch_related(
+            Prefetch(
+                'ferme__membres',
+                queryset=MembreFerme.objects.select_related('utilisateur__user'),
+            ),
             Prefetch(
                 'culture__photos',
                 queryset=PhotoProduitAgricole.objects.only('id', 'produit_id', 'image', 'description'),
@@ -799,8 +867,21 @@ def detail_projet(request, projet_id):
 def liste_projets(request):
     projets_list = (
         projets_accessibles_qs(request.user.profile)
-        .select_related('culture', 'localite', 'ferme')
-        .prefetch_related('projet_produits__produit')
+        .select_related(
+            'culture',
+            'localite',
+            'ferme',
+            'ferme__proprietaire__user',
+            'ferme__localite',
+            'ferme__pays',
+        )
+        .prefetch_related(
+            'projet_produits__produit',
+            Prefetch(
+                'ferme__membres',
+                queryset=MembreFerme.objects.select_related('utilisateur__user'),
+            ),
+        )
         .order_by('-date_lancement')
     )
     paginator = Paginator(projets_list, 10)  # Affichez 10 projets par page
@@ -839,6 +920,7 @@ def dashboard(request):
             Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
         )
         .distinct()
+        .select_related('proprietaire__user', 'localite', 'pays')
         .prefetch_related(
             Prefetch('membres', queryset=MembreFerme.objects.select_related('utilisateur__user'))
         )
@@ -869,8 +951,19 @@ def dashboard(request):
 
     # Projects queryset (optionally filtered by farm)
     projets_qs = projets_accessibles_qs(utilisateur).select_related(
-        'culture', 'localite', 'ferme'
-    ).prefetch_related('projet_produits__produit')
+        'culture',
+        'localite',
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+        'ferme__pays',
+    ).prefetch_related(
+        'projet_produits__produit',
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+    )
     if selected_ferme:
         projets_qs = projets_qs.filter(ferme=selected_ferme)
 
@@ -1047,7 +1140,19 @@ def collect_training_data():
         logger.warning("ML dependencies not available. Cannot collect training data.")
         return None
     
-    projets = Projet.objects.select_related('culture', 'localite', 'utilisateur').all()
+    projets = Projet.objects.select_related(
+        'culture',
+        'localite',
+        'utilisateur',
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+    ).prefetch_related(
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+    ).all()
     data = []
 
     for projet in projets:
@@ -1235,8 +1340,22 @@ def generer_prediction(request, projet_id):
         return redirect('detail_projet', projet_id=projet.id)
     from baay.services import estimer_rendement_ia
 
-    projet_produits = projet.projet_produits.all()
-    if not projet_produits:
+    projet_produits_list = list(
+        projet.projet_produits.select_related(
+            'produit',
+            'projet',
+            'projet__localite',
+            'projet__ferme',
+            'projet__ferme__proprietaire__user',
+            'projet__ferme__localite',
+        ).prefetch_related(
+            Prefetch(
+                'projet__ferme__membres',
+                queryset=MembreFerme.objects.select_related('utilisateur__user'),
+            ),
+        )
+    )
+    if not projet_produits_list:
         messages.warning(request, "Aucun produit associé à ce projet pour générer une prédiction.")
         return redirect('detail_projet', projet_id=projet.id)
 
@@ -1244,8 +1363,8 @@ def generer_prediction(request, projet_id):
     total_max = 0
     confiance_sum = 0
     latest_date_recolte = None
-    
-    for pp in projet_produits:
+
+    for pp in projet_produits_list:
         res = estimer_rendement_ia(pp)
         total_min += res['min']
         total_max += res['max']
@@ -1253,8 +1372,8 @@ def generer_prediction(request, projet_id):
         if res['date_recolte_prevue']:
             if not latest_date_recolte or res['date_recolte_prevue'] > latest_date_recolte:
                 latest_date_recolte = res['date_recolte_prevue']
-    
-    avg_confiance = confiance_sum / projet_produits.count()
+
+    avg_confiance = confiance_sum / len(projet_produits_list)
     
     prediction, created = PrevisionRecolte.objects.get_or_create(projet=projet)
     prediction.rendement_estime_min = total_min
@@ -1304,7 +1423,10 @@ def dashboard_stats_api(request):
             Q(proprietaire=utilisateur) | Q(membres__utilisateur=utilisateur)
         )
         .distinct()
-        .select_related('localite', 'pays')
+        .select_related('localite', 'pays', 'proprietaire__user')
+        .prefetch_related(
+            Prefetch('membres', queryset=MembreFerme.objects.select_related('utilisateur__user'))
+        )
         .annotate(
             membres_count_ann=Count('membres', distinct=True),
             projets_count_ann=Count('projets', distinct=True),
@@ -1326,7 +1448,18 @@ def dashboard_stats_api(request):
         except Ferme.DoesNotExist:
             pass
 
-    projets = projets_accessibles_qs(utilisateur).select_related('culture', 'localite', 'ferme')
+    projets = projets_accessibles_qs(utilisateur).select_related(
+        'culture',
+        'localite',
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+    ).prefetch_related(
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+    )
     if selected_ferme:
         projets = projets.filter(ferme=selected_ferme)
     
@@ -1507,7 +1640,19 @@ def dashboard_projets_api(request):
     page = int(request.GET.get('page', 1))
     per_page = int(request.GET.get('per_page', 10))
     
-    projets = projets_accessibles_qs(utilisateur).select_related('culture', 'localite')
+    projets = projets_accessibles_qs(utilisateur).select_related(
+        'culture',
+        'localite',
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+        'prevision',
+    ).prefetch_related(
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+    )
     
     if search:
         projets = projets.filter(nom__icontains=search)
@@ -2326,21 +2471,49 @@ def _notifier_creation_tache(tache, auteur_user):
 
 def _dashboard_manager(request, utilisateur, memberships):
     """Dashboard du manager : vue ferme(s) — projets, membres, tâches."""
-    # Sélection ferme via ?ferme=<id>, sinon première ferme où il est manager
-    fermes_managees = [m.ferme for m in memberships if m.role == 'manager']
-    if not fermes_managees:
-        fermes_managees = [m.ferme for m in memberships]
+    ordered_ids = []
+    seen = set()
+    for m in memberships:
+        if m.role == 'manager' and m.ferme_id not in seen:
+            ordered_ids.append(m.ferme_id)
+            seen.add(m.ferme_id)
+    if not ordered_ids:
+        for m in memberships:
+            if m.ferme_id not in seen:
+                ordered_ids.append(m.ferme_id)
+                seen.add(m.ferme_id)
+
+    fermes_qs = (
+        Ferme.objects.filter(id__in=ordered_ids)
+        .select_related('proprietaire__user', 'localite', 'pays')
+        .prefetch_related(
+            Prefetch('membres', queryset=MembreFerme.objects.select_related('utilisateur__user'))
+        )
+        .annotate(membres_n=Count('membres', distinct=True))
+    )
+    fermes_map = {f.id: f for f in fermes_qs}
+    fermes_managees = [fermes_map[i] for i in ordered_ids if i in fermes_map]
 
     selected_id = request.GET.get('ferme')
     selected = None
     if selected_id:
         selected = next((f for f in fermes_managees if str(f.id) == selected_id), None)
-    if selected is None:
+    if selected is None and fermes_managees:
         selected = fermes_managees[0]
 
     projets = Projet.objects.filter(ferme=selected).select_related(
-        'culture', 'localite'
-    ).prefetch_related('projet_produits__produit').order_by('-date_lancement')
+        'culture',
+        'localite',
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+    ).prefetch_related(
+        'projet_produits__produit',
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+    ).order_by('-date_lancement')
 
     projets_actifs = projets.filter(statut='en_cours').count()
     projets_finis = projets.filter(statut='fini').count()
@@ -2349,7 +2522,7 @@ def _dashboard_manager(request, utilisateur, memberships):
     superficie_active = projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0
     superficie_ferme = selected.superficie_totale or 0
     utilisation_pct = round((float(superficie_active) / float(superficie_ferme)) * 100, 1) if superficie_ferme else 0
-    nombre_membres = selected.membres.count() + 1
+    nombre_membres = (getattr(selected, 'membres_n', None) or 0) + 1
 
     # Tâches de cette ferme
     today_d = timezone.now().date()
@@ -2390,17 +2563,44 @@ def _dashboard_manager(request, utilisateur, memberships):
 
 def _dashboard_technicien(request, utilisateur, memberships):
     """Dashboard technicien : focus sur l'évolution des cultures et produits."""
-    fermes_user = [m.ferme for m in memberships]
+    ordered_ids = []
+    seen = set()
+    for m in memberships:
+        if m.ferme_id not in seen:
+            ordered_ids.append(m.ferme_id)
+            seen.add(m.ferme_id)
+
+    fermes_qs = (
+        Ferme.objects.filter(id__in=ordered_ids)
+        .select_related('proprietaire__user', 'localite', 'pays')
+        .prefetch_related(
+            Prefetch('membres', queryset=MembreFerme.objects.select_related('utilisateur__user'))
+        )
+    )
+    fermes_map = {f.id: f for f in fermes_qs}
+    fermes_user = [fermes_map[i] for i in ordered_ids if i in fermes_map]
+
     selected_id = request.GET.get('ferme')
     selected = None
     if selected_id:
         selected = next((f for f in fermes_user if str(f.id) == selected_id), None)
-    if selected is None:
+    if selected is None and fermes_user:
         selected = fermes_user[0]
 
     projets = Projet.objects.filter(ferme=selected).select_related(
-        'culture', 'localite'
-    ).prefetch_related('projet_produits__produit', 'prevision').order_by('-date_lancement')
+        'culture',
+        'localite',
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+    ).prefetch_related(
+        'projet_produits__produit',
+        'prevision',
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+    ).order_by('-date_lancement')
 
     today = timezone.now().date()
     projets_data = []
@@ -2451,7 +2651,16 @@ def _dashboard_ouvrier(request, utilisateur, memberships):
     """Dashboard ouvrier : uniquement ses tâches."""
     today_d = timezone.now().date()
     taches = Tache.objects.filter(assigne_a=utilisateur).select_related(
-        'ferme', 'projet', 'assigne_par__user'
+        'ferme',
+        'ferme__proprietaire__user',
+        'ferme__localite',
+        'projet',
+        'assigne_par__user',
+    ).prefetch_related(
+        Prefetch(
+            'ferme__membres',
+            queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
     ).order_by('statut', 'date_echeance', '-date_creation')
 
     a_faire = taches.filter(statut='a_faire')
@@ -2463,9 +2672,25 @@ def _dashboard_ouvrier(request, utilisateur, memberships):
         date_echeance__lt=today_d,
     ).count()
 
+    ordered_ids = []
+    seen = set()
+    for m in memberships:
+        if m.ferme_id not in seen:
+            ordered_ids.append(m.ferme_id)
+            seen.add(m.ferme_id)
+    fermes_qs = (
+        Ferme.objects.filter(id__in=ordered_ids)
+        .select_related('proprietaire__user', 'localite', 'pays')
+        .prefetch_related(
+            Prefetch('membres', queryset=MembreFerme.objects.select_related('utilisateur__user'))
+        )
+    )
+    fermes_map = {f.id: f for f in fermes_qs}
+    fermes_display = [fermes_map[i] for i in ordered_ids if i in fermes_map]
+
     return render(request, 'projets/dashboard_ouvrier.html', {
         'utilisateur': utilisateur,
-        'fermes': [m.ferme for m in memberships],
+        'fermes': fermes_display,
         'a_faire': a_faire,
         'en_cours': en_cours,
         'terminees': terminees,
@@ -2654,11 +2879,17 @@ def conversation_detail(request, conversation_id):
 
     conversation = get_object_or_404(
         Conversation.objects.prefetch_related(
-            'participants',
-            'messages__expediteur',
-            'messages__lu_par',
-            'messages__reactions',
-            'messages__reply_to__expediteur',
+            Prefetch(
+                'participants',
+                queryset=Profile.objects.select_related('user'),
+            ),
+            Prefetch(
+                'messages',
+                queryset=Message.objects.select_related(
+                    'expediteur__user',
+                    'reply_to__expediteur__user',
+                ).prefetch_related('lu_par', 'reactions').order_by('date_envoi', 'id'),
+            ),
         ),
         id=conversation_id,
         participants=profile,
@@ -2738,7 +2969,7 @@ def conversation_detail(request, conversation_id):
 
     return render(request, 'messagerie/conversation.html', {
         'conversation': conversation,
-        'messages_list': conversation.messages.all(),
+        'messages_list': list(conversation.messages.all()),
         'titre': titre,
         'autres': autres,
         'profile': profile,
@@ -3050,17 +3281,44 @@ def drawer_inbox_fragment(request):
     `_inbox_list.html` partial only (no base layout)."""
     profile = ensure_profile_for_user(request.user)
 
-    conversations = (
-        Conversation.objects.filter(participants=profile)
-        .prefetch_related('participants', 'messages__expediteur')
-        .order_by('-dernier_message')
+    unread_rows = (
+        Message.objects.filter(conversation__participants=profile)
+        .exclude(expediteur=profile)
+        .exclude(lu_par=profile)
+        .values('conversation_id')
+        .annotate(nb=Count('id'))
     )
+    unread_by_conv = {str(r['conversation_id']): r['nb'] for r in unread_rows}
+
+    last_msg_subquery = (
+        Message.objects.filter(conversation_id=OuterRef('pk'))
+        .order_by('-date_envoi')
+        .values('id')[:1]
+    )
+
+    conv_qs = (
+        Conversation.objects.filter(participants=profile)
+        .annotate(last_message_pk=Subquery(last_msg_subquery))
+        .order_by('-dernier_message')
+        .prefetch_related(
+            Prefetch('participants', queryset=Profile.objects.select_related('user'))
+        )
+    )
+
+    conversations = list(conv_qs)
+    conv_ids = [c.last_message_pk for c in conversations if c.last_message_pk]
+    last_by_id = {}
+    if conv_ids:
+        last_by_id = {
+            m.id: m
+            for m in Message.objects.filter(pk__in=conv_ids).select_related('expediteur__user')
+        }
 
     conv_data = []
     online_threshold = timezone.now() - timedelta(minutes=5)
     for conv in conversations:
-        dernier = conv.messages.last()
-        non_lus = conv.messages.exclude(lu_par=profile).exclude(expediteur=profile).count()
+        dernier = last_by_id.get(conv.last_message_pk) if conv.last_message_pk else None
+        non_lus = unread_by_conv.get(str(conv.id), 0)
         autres = [p for p in conv.participants.all() if p.id != profile.id]
         if conv.sujet:
             titre = conv.sujet
@@ -3097,11 +3355,17 @@ def drawer_conversation_fragment(request, conversation_id):
 
     conversation = get_object_or_404(
         Conversation.objects.prefetch_related(
-            'participants',
-            'messages__expediteur',
-            'messages__lu_par',
-            'messages__reactions',
-            'messages__reply_to__expediteur',
+            Prefetch(
+                'participants',
+                queryset=Profile.objects.select_related('user'),
+            ),
+            Prefetch(
+                'messages',
+                queryset=Message.objects.select_related(
+                    'expediteur__user',
+                    'reply_to__expediteur__user',
+                ).prefetch_related('lu_par', 'reactions').order_by('date_envoi', 'id'),
+            ),
         ),
         id=conversation_id,
         participants=profile,
@@ -3126,7 +3390,7 @@ def drawer_conversation_fragment(request, conversation_id):
 
     return render(request, 'messagerie/_conversation_view.html', {
         'conversation': conversation,
-        'messages_list': conversation.messages.all(),
+        'messages_list': list(conversation.messages.all()),
         'titre': titre,
         'autres': autres,
         'profile': profile,

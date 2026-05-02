@@ -7,16 +7,26 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
+from decimal import Decimal
 from typing import Any
 
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Q
-from django.db.models.functions import TruncMonth
+from django.db.models import Avg, Count, ExpressionWrapper, F, Q, Sum, Value
+from django.db.models import DecimalField as ModelDecimalField
+from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
 
 def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
-    from baay.models import DemandeAccesFerme, Ferme, Investissement, Message, Projet, Tache
+    from baay.models import (
+        DemandeAccesFerme,
+        Ferme,
+        Investissement,
+        Message,
+        PrevisionRecolte,
+        Projet,
+        Tache,
+    )
 
     User = get_user_model()
     now = timezone.now()
@@ -88,6 +98,33 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
 
     chart_bundle = {"labels": chart_labels, "values": chart_values}
 
+    # ── Prévisions de rendement (PrevisionRecolte ← alimentée par baay.services.estimer_rendement_ia) ──
+    prev_agg = PrevisionRecolte.objects.aggregate(
+        avec_prev=Count("id"),
+        confiance_moy=Avg("indice_confiance"),
+        rend_min_moy=Avg("rendement_estime_min"),
+        rend_max_moy=Avg("rendement_estime_max"),
+    )
+    projets_sans_prev = max(
+        0,
+        (projets_agg["total"] or 0) - (prev_agg["avec_prev"] or 0),
+    )
+
+    # ── Investissements agrégés par projet (coût/ha × superficie + autres frais) ──
+    inv_line = ExpressionWrapper(
+        F("cout_par_hectare") * F("projet__superficie")
+        + Coalesce(
+            F("autres_frais"),
+            Value(Decimal("0"), output_field=ModelDecimalField(max_digits=12, decimal_places=4)),
+        ),
+        output_field=ModelDecimalField(max_digits=28, decimal_places=8),
+    )
+    invest_par_projet = list(
+        Investissement.objects.values("projet_id", "projet__nom")
+        .annotate(montant_total=Sum(inv_line), nb_lignes=Count("id"))
+        .order_by("-montant_total")[:16]
+    )
+
     context.update(
         {
             "dashboard_kpis": [
@@ -140,6 +177,14 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
                     "icon": "people",
                 },
             ],
+            "dashboard_prevision": {
+                "nb_prev": prev_agg["avec_prev"] or 0,
+                "confiance_moy": round(float(prev_agg["confiance_moy"] or 0), 1),
+                "rend_min_moy": round(float(prev_agg["rend_min_moy"] or 0), 2),
+                "rend_max_moy": round(float(prev_agg["rend_max_moy"] or 0), 2),
+                "projets_sans_prev": projets_sans_prev,
+            },
+            "dashboard_invest_par_projet": invest_par_projet,
             "dashboard_chart_json": json.dumps(chart_bundle),
             "dashboard_warnings": warnings,
         },

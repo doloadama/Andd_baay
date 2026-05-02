@@ -1,6 +1,6 @@
 {% extends "admin/base.html" %}
 
-{% load i18n static unfold %}
+{% load i18n static unfold admin_charts %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
@@ -51,6 +51,75 @@
                 {% endfor %}
             </div>
         </section>
+
+        {% if dashboard_prevision %}
+        <section class="space-y-4" aria-label="{% trans 'Prévisions de rendement' %}">
+            <div>
+                <h3 class="text-font-important-light text-base font-semibold dark:text-font-important-dark">
+                    {% trans "Prévisions de rendement (Smart Engine)" %}
+                </h3>
+                <p class="text-font-subtle-light mt-0.5 text-xs dark:text-font-subtle-dark">
+                    {% trans "Indicateurs issus du modèle PrevisionRecolte (baay.services.estimer_rendement_ia)." %}
+                </p>
+            </div>
+            <div class="@md:grid-cols-2 @3xl:grid-cols-4 grid grid-cols-1 gap-3">
+                <div class="border-base-200 rounded-xl border bg-white p-4 dark:border-base-800 dark:bg-base-900">
+                    <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide dark:text-font-subtle-dark">{% trans "Projets avec prévision" %}</p>
+                    <p class="text-font-important-light mt-1 text-xl font-bold tabular-nums dark:text-font-important-dark">{{ dashboard_prevision.nb_prev }}</p>
+                </div>
+                <div class="border-base-200 rounded-xl border bg-white p-4 dark:border-base-800 dark:bg-base-900">
+                    <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide dark:text-font-subtle-dark">{% trans "Confiance moyenne %" %}</p>
+                    <p class="text-font-important-light mt-1 text-xl font-bold tabular-nums dark:text-font-important-dark">{{ dashboard_prevision.confiance_moy }}</p>
+                </div>
+                <div class="border-base-200 rounded-xl border bg-white p-4 dark:border-base-800 dark:bg-base-900">
+                    <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide dark:text-font-subtle-dark">{% trans "Rendement min moyen (unité projet)" %}</p>
+                    <p class="text-font-important-light mt-1 text-xl font-bold tabular-nums dark:text-font-important-dark">{{ dashboard_prevision.rend_min_moy }}</p>
+                </div>
+                <div class="border-base-200 rounded-xl border bg-white p-4 dark:border-base-800 dark:bg-base-900">
+                    <p class="text-font-subtle-light text-xs font-medium uppercase tracking-wide dark:text-font-subtle-dark">{% trans "Rendement max moyen" %}</p>
+                    <p class="text-font-important-light mt-1 text-xl font-bold tabular-nums dark:text-font-important-dark">{{ dashboard_prevision.rend_max_moy }}</p>
+                </div>
+            </div>
+            {% if dashboard_prevision.projets_sans_prev %}
+            <p class="text-font-subtle-light text-xs dark:text-font-subtle-dark" role="status">
+                {% blocktrans count counter=dashboard_prevision.projets_sans_prev %}{{ counter }} projet sans prévision enregistrée.{% plural %}{{ counter }} projets sans prévision enregistrée.{% endblocktrans %}
+            </p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if dashboard_invest_par_projet %}
+        <section class="space-y-3" aria-label="{% trans 'Investissements par projet' %}">
+            <h3 class="text-font-important-light text-base font-semibold dark:text-font-important-dark">
+                {% trans "Investissements cumulés par projet" %}
+            </h3>
+            <p class="text-font-subtle-light text-xs dark:text-font-subtle-dark">
+                {% trans "Montant = Σ (coût / ha × superficie du projet + autres frais) par ligne d'investissement." %}
+            </p>
+            <div class="border-base-200 overflow-x-auto rounded-xl border bg-white shadow-xs dark:border-base-800 dark:bg-base-900">
+                <table class="min-w-full divide-y divide-base-200 text-sm dark:divide-base-800">
+                    <thead class="bg-base-50 text-left text-xs font-semibold uppercase tracking-wide text-base-600 dark:bg-base-950 dark:text-base-300">
+                        <tr>
+                            <th class="px-4 py-3">{% trans "Projet" %}</th>
+                            <th class="px-4 py-3 text-right">{% trans "Montant total" %}</th>
+                            <th class="px-4 py-3 text-right">{% trans "Lignes" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-base-200 dark:divide-base-800">
+                        {% for row in dashboard_invest_par_projet %}
+                        <tr class="hover:bg-base-50/80 dark:hover:bg-base-800/40">
+                            <td class="px-4 py-3 font-medium text-font-important-light dark:text-font-important-dark">{{ row.projet__nom }}</td>
+                            <td class="px-4 py-3 text-right tabular-nums">{{ row.montant_total|floatformat:2 }}</td>
+                            <td class="px-4 py-3 text-right tabular-nums">{{ row.nb_lignes }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        {% admin_yield_compare_chart %}
 
         <section aria-label="{% trans 'Projets créés par mois' %}">
             <div class="border-base-200 rounded-xl border bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900 lg:p-6">
