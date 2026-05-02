@@ -4,9 +4,81 @@ from types import SimpleNamespace
 
 from django.contrib.auth.models import User
 
-from .models import HistoriqueRendement, PrevisionRecolte, Profile
+from decimal import Decimal
+
+from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
+from django.db.models.functions import Coalesce
+
+from .models import PrevisionRecolte, Profile, Projet
 
 logger = logging.getLogger(__name__)
+
+
+def _format_fcfa_montant(amount: Decimal) -> str:
+    if amount is None:
+        return "0"
+    try:
+        n = int(amount.quantize(Decimal("1")))
+    except Exception:
+        n = int(amount)
+    return f"{n:,}".replace(",", "\u202f")
+
+
+def check_budget_status(projet_id):
+    """
+    Compare la somme des investissements (coût/ha × superficie projet + autres frais)
+    au budget_alloue du projet (FCFA).
+
+    Retourne un dict avec clés : ok, applicable, over_budget, total_investi, budget,
+    depassement, depassement_display, projet_nom.
+    """
+    projet = (
+        Projet.objects.filter(pk=projet_id)
+        .only("id", "nom", "budget_alloue", "superficie")
+        .first()
+    )
+    if not projet:
+        return {"ok": False, "error": "projet_introuvable"}
+
+    budget = projet.budget_alloue
+    if budget is None:
+        return {
+            "ok": True,
+            "applicable": False,
+            "over_budget": False,
+            "projet_nom": projet.nom,
+            "total_investi": None,
+            "budget": None,
+            "depassement": None,
+        }
+
+    total_expr = ExpressionWrapper(
+        F("investissement_set__cout_par_hectare") * F("superficie")
+        + Coalesce(F("investissement_set__autres_frais"), Value(Decimal("0"))),
+        output_field=DecimalField(max_digits=24, decimal_places=2),
+    )
+    row = (
+        Projet.objects.filter(pk=projet_id)
+        .annotate(total_investi=Coalesce(Sum(total_expr), Value(Decimal("0"))))
+        .values("total_investi", "nom", "budget_alloue")
+        .first()
+    )
+
+    total = row["total_investi"] or Decimal("0")
+    budget_val = row["budget_alloue"] or Decimal("0")
+    over = total > budget_val
+    depassement = (total - budget_val) if over else Decimal("0")
+
+    return {
+        "ok": True,
+        "applicable": True,
+        "over_budget": over,
+        "total_investi": total,
+        "budget": budget_val,
+        "depassement": depassement,
+        "depassement_display": _format_fcfa_montant(depassement),
+        "projet_nom": row.get("nom") or projet.nom,
+    }
 
 def estimer_rendement_ia(projet_produit):
     """

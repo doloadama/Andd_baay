@@ -2717,6 +2717,44 @@
                                 </li>
                             </ul>
                         </li>
+                        {% if show_finance_nav %}
+                        <li class="nav-item tw-relative nav-finance-dropdown"
+                            x-data="{
+                                open: {% if finance_section_active %}true{% else %}false{% endif %}
+                            }"
+                            @click.outside="open = false"
+                            @keydown.escape.window="open = false">
+                            <button type="button"
+                                class="nav-link-modern nav-exploitation-trigger tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if finance_section_active %}active{% endif %}"
+                                id="nav-finance-trigger"
+                                :aria-expanded="open ? 'true' : 'false'"
+                                aria-haspopup="true"
+                                aria-controls="nav-finance-menu"
+                                @click.prevent="open = !open">
+                                <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
+                                <span>Finance</span>
+                                <i class="fas fa-chevron-down tw-text-[0.65rem] tw-opacity-75 tw-transition-transform tw-duration-200" :class="{'tw-rotate-180': open}" aria-hidden="true"></i>
+                            </button>
+                            <ul id="nav-finance-menu"
+                                class="nav-exploitation-panel list-unstyled"
+                                role="menu"
+                                x-show="open"
+                                x-cloak
+                                x-transition:enter="tw-transition-all tw-ease-out tw-duration-200"
+                                x-transition:enter-start="tw-opacity-0 tw--translate-y-2"
+                                x-transition:enter-end="tw-opacity-100 tw-translate-y-0"
+                                x-transition:leave="tw-transition-all tw-ease-in tw-duration-150"
+                                x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
+                                x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false">
+                                        <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Projets &amp; budgets
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'taches_liste' %}" data-pjax>
@@ -2971,12 +3009,12 @@
     {% endif %}
     {% if user.is_authenticated %}
     <div class="bottom-nav-wrap d-lg-none"
-         x-data="{ sheetOpen: false }"
-         @keydown.escape.window="sheetOpen = false">
+         x-data="{ sheetOpen: false, financeSheetOpen: false }"
+         @keydown.escape.window="sheetOpen = false; financeSheetOpen = false">
         <div class="bottom-sheet-backdrop"
-             x-show="sheetOpen"
+             x-show="sheetOpen || financeSheetOpen"
              x-transition.opacity.duration.200ms
-             @click="sheetOpen = false"
+             @click="sheetOpen = false; financeSheetOpen = false"
              x-cloak></div>
         <div class="bottom-sheet-panel"
              id="bottom-sheet-exploitation"
@@ -3015,6 +3053,33 @@
                 </li>
             </ul>
         </div>
+        {% if show_finance_nav %}
+        <div class="bottom-sheet-panel"
+             id="bottom-sheet-finance"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="bottom-sheet-finance-title"
+             x-show="financeSheetOpen"
+             x-cloak
+             x-transition:enter="tw-transition-all tw-duration-200 tw-ease-out"
+             x-transition:enter-start="tw-translate-y-full tw-opacity-95"
+             x-transition:enter-end="tw-translate-y-0 tw-opacity-100"
+             x-transition:leave="tw-transition-all tw-duration-150 tw-ease-in"
+             x-transition:leave-start="tw-translate-y-0"
+             x-transition:leave-end="tw-translate-y-full">
+            <div class="bottom-sheet-handle" aria-hidden="true"></div>
+            <h2 class="bottom-sheet-title" id="bottom-sheet-finance-title">Finance</h2>
+            <p class="bottom-sheet-sub text-muted small mb-2 px-1">Budgets, investissements et coûts</p>
+            <ul class="bottom-sheet-link-list list-unstyled mb-0" role="list">
+                <li>
+                    <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'liste_projets' %}is-active{% endif %}" @click="financeSheetOpen = false">
+                        <i class="fas fa-folder-open" aria-hidden="true"></i>
+                        <span>Projets &amp; budgets</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
         <nav class="bottom-nav" aria-label="Navigation mobile">
             <ul>
                 <li>
@@ -3023,11 +3088,25 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
+                {% if show_finance_nav %}
+                <li>
+                    <button type="button"
+                            class="bottom-nav-finance-btn {% if finance_section_active %}active{% endif %}"
+                            :class="financeSheetOpen ? 'bottom-nav-finance-btn--open' : ''"
+                            @click="sheetOpen = false; financeSheetOpen = !financeSheetOpen"
+                            :aria-expanded="financeSheetOpen ? 'true' : 'false'"
+                            aria-controls="bottom-sheet-finance"
+                            aria-label="Finance : budgets et investissements">
+                        <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
+                        <span>Finance</span>
+                    </button>
+                </li>
+                {% endif %}
                 <li>
                     <button type="button"
                             class="bottom-nav-exploitation-btn {% if exploitation_section_active %}active{% endif %}"
                             :class="sheetOpen ? 'bottom-nav-exploitation-btn--open' : ''"
-                            @click="sheetOpen = !sheetOpen"
+                            @click="financeSheetOpen = false; sheetOpen = !sheetOpen"
                             :aria-expanded="sheetOpen ? 'true' : 'false'"
                             aria-controls="bottom-sheet-exploitation"
                             aria-label="Exploitation : fermes, projets, semis">

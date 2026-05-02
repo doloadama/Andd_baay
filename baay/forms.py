@@ -175,7 +175,10 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'ferme', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'statut', 'type_irrigation', 'type_engrais']
+        fields = ['nom', 'ferme', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'budget_alloue', 'statut', 'type_irrigation', 'type_engrais']
+        labels = {
+            'budget_alloue': 'Budget prévisionnel (FCFA)',
+        }
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control'}),
             'ferme': forms.Select(attrs={'class': 'form-control'}),
@@ -185,6 +188,9 @@ class ProjetForm(forms.ModelForm):
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
+            'budget_alloue': forms.NumberInput(
+                attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Budget prévisionnel (FCFA)'}
+            ),
             'statut': forms.Select(attrs={'class': 'form-control'}),
             'type_irrigation': forms.Select(attrs={'class': 'form-control'}),
             'type_engrais': forms.Select(attrs={'class': 'form-control'}),

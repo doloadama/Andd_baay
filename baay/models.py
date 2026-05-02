@@ -252,6 +252,13 @@ class Projet(models.Model):
     superficie = models.DecimalField(max_digits=10, decimal_places=2)
     date_lancement = models.DateField()
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    budget_alloue = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Budget prévisionnel total du projet (FCFA). Utilisé pour les alertes de dépassement.",
+    )
     
     # Image de fond du projet
     image_fond = models.ImageField(upload_to='projets_fonds/', null=True, blank=True, help_text="Image de couverture du projet (optionnelle)")

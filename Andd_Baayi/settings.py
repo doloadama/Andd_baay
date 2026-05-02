@@ -100,6 +100,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'baay.middleware.current_request.CurrentRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -156,6 +157,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'baay.context_processors.exploitation_section',
+                'baay.context_processors.finance_section',
             ],
         },
     },
@@ -456,6 +458,30 @@ UNFOLD = {
         "show_search": True,
         "show_all_applications": True,
         "command_search": True,
+        "navigation": [
+            {
+                "title": "Gestion financière",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Investissements",
+                        "icon": "payments",
+                        "link": reverse_lazy("admin:baay_investissement_changelist"),
+                    },
+                    {
+                        "title": "Projets",
+                        "icon": "account_balance",
+                        "link": reverse_lazy("admin:baay_projet_changelist"),
+                    },
+                    {
+                        "title": "Produits agricoles (prix)",
+                        "icon": "inventory_2",
+                        "link": reverse_lazy("admin:baay_produitagricole_changelist"),
+                    },
+                ],
+            },
+        ],
     },
     "COMMAND": {
         "search_models": True,

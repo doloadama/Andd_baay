@@ -116,6 +116,19 @@ def roles_assignables_par(role):
     }.get(role, [])
 
 
+def peut_acceder_menu_finance(profile):
+    """
+    Menu « Finance » et alertes budgétaires côté site : uniquement membres
+    Propriétaire ou Manager (ligne MembreFerme).
+    """
+    if profile is None:
+        return False
+    return MembreFerme.objects.filter(
+        utilisateur=profile,
+        role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+    ).exists()
+
+
 def peut_voir_investissements(profile, ferme):
     return role_dans_ferme(profile, ferme) in ROLES_GESTION_PROJET
 

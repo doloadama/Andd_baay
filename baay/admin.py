@@ -107,7 +107,7 @@ class PhotoProduitAgricoleAdmin(ModelAdmin):
 class ProjetAdmin(DashboardChangelistMixin, ModelAdmin):
     list_before_template = "admin/baay/changelist_dashboard_note.html"
     baay_dashboard_slug = "projet"
-    list_display = ("nom", "ferme", "statut", "date_lancement")
+    list_display = ("nom", "ferme", "statut", "budget_alloue", "date_lancement")
     list_filter = [
         ("statut", ChoicesDropdownFilter),
         ("ferme", AutocompleteSelectFilter),

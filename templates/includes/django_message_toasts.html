@@ -57,10 +57,10 @@
         border-color: rgba(251, 191, 36, 0.45);
     }
 
-    .django-toast-host .django-toast--info {
-        background: rgba(15, 23, 42, 0.94);
-        color: #f1f5f9;
-        border-color: rgba(148, 163, 184, 0.35);
+    .django-toast-host .django-toast--budget-critical {
+        background: linear-gradient(135deg, rgba(194, 65, 12, 0.97) 0%, rgba(127, 29, 29, 0.97) 100%);
+        color: #fff7ed;
+        border-color: rgba(251, 191, 36, 0.55);
     }
 
     .django-toast-host .django-toast-dismiss {
@@ -95,7 +95,14 @@
     aria-atomic="false"
 >
     <template x-for="t in items" :key="t.id">
-        <div class="django-toast" role="status" :class="'django-toast--' + (t.kind || 'info')">
+        <div
+            class="django-toast"
+            role="status"
+            :class="[
+                'django-toast--' + (t.kind || 'info'),
+                t.critical ? 'django-toast--budget-critical' : ''
+            ]"
+        >
             <span class="django-toast-icon" aria-hidden="true">
                 <i class="fas" :class="{
                     'fa-check-circle': t.kind === 'success',

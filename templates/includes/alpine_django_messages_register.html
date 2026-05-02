@@ -10,9 +10,15 @@ document.addEventListener('alpine:init', function () {
                 if (t.indexOf('error') !== -1 || t.indexOf('danger') !== -1) kind = 'danger';
                 else if (t.indexOf('warning') !== -1) kind = 'warning';
                 else if (t.indexOf('success') !== -1) kind = 'success';
+                var critical = t.indexOf('budget-critical') !== -1;
                 var id = this.nextKey++;
-                this.items.push({ id: id, kind: kind, text: text });
-                var delay = kind === 'danger' ? 9000 : 5500;
+                this.items.push({ id: id, kind: kind, text: text, critical: critical });
+                var delay = 5500;
+                if (t.indexOf('budget-critical') !== -1) {
+                    delay = 45000;
+                } else if (kind === 'danger') {
+                    delay = 9000;
+                }
                 var self = this;
                 setTimeout(function () {
                     self.items = self.items.filter(function (x) {
