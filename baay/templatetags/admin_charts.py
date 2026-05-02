@@ -28,17 +28,16 @@ def admin_yield_compare_chart(max_points=18):
     """
     Prépare un jeu de données pour comparer, pour chaque ProjetProduit terminé
     (rendement_final renseigné), le rendement réel à la part proportionnelle
-    de la prévision IA du projet (PrevisionRecolte : moyenne min/max × part
-    de superficie allouée).
+    de la prévision IA enregistrée sur le ProjetProduit (PrevisionRecolte).
     """
     max_points = max(4, min(int(max_points), 40))
 
     base_qs = (
         ProjetProduit.objects.filter(
             rendement_final__gt=0,
-            projet__prevision__isnull=False,
+            prevision__isnull=False,
         )
-        .select_related("projet", "projet__prevision", "produit")
+        .select_related("projet", "prevision", "produit")
         .order_by("-projet__date_lancement", "produit__nom")
     )
 
@@ -65,7 +64,7 @@ def admin_yield_compare_chart(max_points=18):
 
     rows = []
     for pp in candidates:
-        prev = pp.projet.prevision
+        prev = pp.prevision
         if not prev:
             continue
         total_sup = total_superficie_by_projet.get(pp.projet_id) or 0.0
@@ -76,7 +75,7 @@ def admin_yield_compare_chart(max_points=18):
             n_pp = pp_count_by_projet.get(pp.projet_id) or 1
             pp_sup = total_sup / max(1, n_pp)
         share = min(1.0, max(0.0, pp_sup / total_sup)) if total_sup else 1.0
-        prev_mid = (prev.rendement_estime_min + prev.rendement_estime_max) / 2.0 * share
+        prev_mid = (prev.rendement_estime_min + prev.rendement_estime_max) / 2.0
         reel = _float_or(pp.rendement_final, 0.0)
         if reel <= 0:
             continue

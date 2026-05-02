@@ -1,0 +1,7 @@
+{% comment %}Réponse HTMX : un lot de lignes + sentinelle optionnelle.{% endcomment %}
+<div class="chat-older-page">
+{% include 'messagerie/_conversation_message_rows.html' with messages_list=older_messages profile=profile %}
+{% if chunk_has_more %}
+{% include 'messagerie/_chat_load_older_sentinel.html' with has_older_messages=True oldest_loaded_message_id=next_before_id conversation=conversation is_mini=is_mini %}
+{% endif %}
+</div>

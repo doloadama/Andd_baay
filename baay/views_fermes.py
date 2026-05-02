@@ -5,6 +5,7 @@ from .views import (
     detail_ferme,
     liste_fermes,
     modifier_ferme,
+    regenerer_code_acces_ferme,
     retirer_membre_ferme,
     supprimer_ferme,
     traiter_demande_acces_ferme,

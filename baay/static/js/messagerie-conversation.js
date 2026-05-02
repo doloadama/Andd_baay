@@ -88,6 +88,14 @@
             return String(iso).slice(0, 10);
         }
 
+        function lectureStatutClass(message) {
+            var ls = message.lecture_statut;
+            if (!ls && message.is_lu_par_tous) ls = "recu";
+            if (ls === "recu") return " read";
+            if (ls === "recu_partiel") return " delivered";
+            return "";
+        }
+
         function renderMessage(message) {
             var isOwn = String(message.sender_id) === currentProfileId;
             var messageId = String(message.message_id || message.id);
@@ -101,8 +109,12 @@
             if (!isOwn && message.sender_id) div.setAttribute("data-author-id", String(message.sender_id));
             if (day) div.setAttribute("data-day", day);
 
+            var readLabel = message.lecture_statut_label || "";
+            var safeLabel = escapeHtml(readLabel).replace(/"/g, "&quot;");
+            var titleAttr = readLabel ? ' title="' + safeLabel + '"' : "";
+            var ariaAttr = readLabel ? ' aria-label="' + safeLabel + '"' : "";
             var checkMark = isOwn
-                ? '<i class="fas fa-check-double checkmark-icon' + (message.is_lu_par_tous ? " read" : "") + '" id="check-' + messageId + '"></i>'
+                ? '<i class="fas fa-check-double checkmark-icon' + lectureStatutClass(message) + '" id="check-' + messageId + '"' + titleAttr + ariaAttr + "></i>"
                 : "";
             var senderHeader = isOwn
                 ? ""
@@ -126,7 +138,42 @@
             return div;
         }
 
+        function hydrateMessagesFromDom() {
+            var inner = box.querySelector(".chat-messages-inner") || box;
+            inner.querySelectorAll(".msg-row[data-message-id]").forEach(function (el) {
+                var id = el.getAttribute("data-message-id");
+                if (!id || messagesById.has(id)) return;
+                var isOwn = el.getAttribute("data-author") === "own";
+                var authorId = el.getAttribute("data-author-id");
+                var day = el.getAttribute("data-day") || "";
+                var textEl = el.querySelector(".msg-text");
+                var timeEl = el.querySelector(".msg-time");
+                var contenu = textEl ? textEl.innerText : "";
+                var dateEnvoi = timeEl ? timeEl.textContent.trim() : "";
+                var chk = el.querySelector(".checkmark-icon");
+                var lecture_statut = "envoye";
+                if (chk && chk.classList.contains("read")) lecture_statut = "recu";
+                else if (chk && chk.classList.contains("delivered")) lecture_statut = "recu_partiel";
+                var labelEl = chk && chk.getAttribute("aria-label");
+                var lecture_statut_label = labelEl || "";
+                var iso = day ? day + "T12:00:00" : "";
+                messagesById.set(id, {
+                    message_id: id,
+                    sender_id: isOwn ? currentProfileId : (authorId || ""),
+                    contenu: contenu,
+                    date_envoi: dateEnvoi,
+                    date_envoi_iso: iso,
+                    lecture_statut: lecture_statut,
+                    lecture_statut_label: lecture_statut_label,
+                    is_lu_par_tous: lecture_statut === "recu",
+                });
+                orderedIds.push(id);
+            });
+            sortOrderedIds();
+        }
+
         function rerenderMessages() {
+            hydrateMessagesFromDom();
             // Rebuild only the inner container so the date separators stay simple.
             var inner = box.querySelector(".chat-messages-inner") || box;
             inner.querySelectorAll(".msg-row, [data-message-id]").forEach(function (el) { el.remove(); });
@@ -175,21 +222,23 @@
         // data-message-id attribute (decoupled from any specific id="check-..."
         // format) and toggle the .read class so the styling stays consistent
         // with the server-rendered template and our CSS.
-        function markMessageAsRead(rawMessageId) {
+        function markMessageAsRead(rawMessageId, lectureStatut) {
             if (rawMessageId === undefined || rawMessageId === null) return;
             var msgId = String(rawMessageId);
-            // Update in-memory state so subsequent rerenders preserve the flag.
             var stored = messagesById.get(msgId);
-            if (stored) stored.is_lu_par_tous = true;
-            // CSS.escape is needed because UUIDs are safe but defensive coding
-            // protects against future id formats containing special chars.
+            var st = lectureStatut || "recu";
+            if (stored) {
+                stored.lecture_statut = st;
+                stored.is_lu_par_tous = st === "recu";
+            }
             var safeId = (window.CSS && typeof CSS.escape === "function") ? CSS.escape(msgId) : msgId.replace(/"/g, '\\"');
             var row = document.querySelector('[data-message-id="' + safeId + '"]');
             if (!row) return;
             var icons = row.querySelectorAll(".checkmark-icon");
             for (var i = 0; i < icons.length; i++) {
-                icons[i].classList.add("read");
-                icons[i].style.removeProperty("color");
+                icons[i].classList.remove("read", "delivered");
+                if (st === "recu") icons[i].classList.add("read");
+                else if (st === "recu_partiel") icons[i].classList.add("delivered");
             }
         }
 
@@ -239,7 +288,7 @@
                 } else if (data.type === "chat_stop_typing_v1") {
                     hideTyping();
                 } else if (data.type === "chat_read_receipt_v1") {
-                    markMessageAsRead(data.message_id);
+                    markMessageAsRead(data.message_id, data.lecture_statut);
                 } else if (data.type === "reaction_updated_v1") {
                     updateReactionPills(String(data.message_id), data.reactions || {});
                 }
@@ -271,11 +320,14 @@
         var textarea = form ? form.querySelector('textarea[name="contenu"]') : null;
         var submitHandler = null;
         var keydownHandler = null;
+        var formInflight = false;
         if (form && textarea) {
             submitHandler = function (e) {
                 e.preventDefault();
+                if (formInflight) return;
                 var contenu = textarea.value.trim();
                 if (!contenu) return;
+                formInflight = true;
                 var clientMessageId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random();
                 pendingByClientId.set(clientMessageId, Date.now());
                 var payload = new FormData(form);
@@ -299,6 +351,9 @@
                     })
                     .catch(function () {
                         pendingByClientId.delete(clientMessageId);
+                    })
+                    .finally(function () {
+                        formInflight = false;
                     });
             };
             keydownHandler = function () {

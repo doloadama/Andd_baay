@@ -4,6 +4,7 @@
 {% block title %}{{ titre }} — Messagerie{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/messagerie-conversation.css' %}">
 <style>
     .mobile-chat-card {
         height: calc(100vh - 60px) !important;
@@ -210,120 +211,11 @@
         </div>
 
         <!-- Messages -->
-        <div class="chat-messages flex-grow-1 p-3" id="chatBox" style="overflow-y: auto; background: var(--bg-main);">
-            {% for msg in messages_list %}
-                {% if msg.expediteur_id == profile.id %}
-                <!-- Message envoyé (droite) -->
-                <div class="d-flex justify-content-end mb-3">
-                    <div class="d-flex flex-column align-items-end" style="max-width: 75%;">
-                        <div class="msg-bubble-own rounded-4">
-                            {% if msg.reply_to %}
-                            <div class="mb-1 px-2 py-1 rounded-2" style="background: rgba(0,0,0,0.15); font-size: 0.78rem; opacity: 0.95;">
-                                <i class="fas fa-reply me-1"></i> {{ msg.reply_to.expediteur }}: {{ msg.reply_to.contenu|truncatechars:50 }}
-                            </div>
-                            {% endif %}
-                            {% if msg.piece_jointe %}
-                                {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
-                                <a href="{{ msg.piece_jointe.url }}" target="_blank">
-                                    <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;">
-                                </a>
-                                {% else %}
-                                <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: rgba(0,0,0,0.15); color: inherit;">
-                                    <i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
-                                </a>
-                                {% endif %}
-                            {% endif %}
-                            <div style="white-space: pre-wrap;">{{ msg.contenu|linebreaksbr }}</div>
-                            <div class="text-end mt-1" style="font-size: 0.68rem; opacity: 0.85;">
-                                {{ msg.date_envoi|date:"H:i" }}
-                                {% if msg.is_lu_par_tous %}
-                                <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}" style="color: #064e3b;"></i>
-                                {% else %}
-                                <i class="fas fa-check-double ms-1 checkmark-icon" id="check-{{ msg.id }}"></i>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <!-- Reactions -->
-                        {% if msg.reactions.all %}
-                        <div class="d-flex gap-1 mt-1 flex-wrap justify-content-end" style="font-size: 0.75rem;">
-                            {% regroup msg.reactions.all by emoji as reaction_groups %}
-                            {% for group in reaction_groups %}
-                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill" style="background: var(--card-bg-solid); border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.6;"
-                                    onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
-                                {{ group.grouper }} {{ group.list|length }}
-                            </button>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                        <div class="d-flex gap-2 mt-1">
-                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')">
-                                <i class="fas fa-reply"></i> Répondre
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <!-- Message reçu (gauche) -->
-                <div class="d-flex justify-content-start mb-3 gap-2">
-                    <div class="msg-avatar d-none d-md-flex mt-1">
-                        {{ msg.expediteur.user.first_name|make_list|first|default:msg.expediteur.user.username|make_list|first|upper }}
-                    </div>
-                    <div class="d-flex flex-column align-items-start" style="max-width: 75%;">
-                        <div class="msg-bubble-other rounded-4">
-                            <div class="fw-bold mb-1" style="font-size: 0.78rem; color: var(--accent-dark);">{{ msg.expediteur }}</div>
-                            {% if msg.reply_to %}
-                            <div class="mb-1 px-2 py-1 rounded-2" style="background: var(--bg-main); font-size: 0.78rem; color: var(--text-muted);">
-                                <i class="fas fa-reply me-1"></i> {{ msg.reply_to.expediteur }}: {{ msg.reply_to.contenu|truncatechars:50 }}
-                            </div>
-                            {% endif %}
-                            {% if msg.piece_jointe %}
-                                {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
-                                <a href="{{ msg.piece_jointe.url }}" target="_blank">
-                                    <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="rounded-3 mb-1" style="max-width: 220px; max-height: 160px; object-fit: cover; display: block;">
-                                </a>
-                                {% else %}
-                                <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-1 rounded-2 text-decoration-none" style="background: var(--bg-main); color: var(--text-main);">
-                                    <i class="fas fa-paperclip"></i> <span style="font-size: 0.78rem;">{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
-                                </a>
-                                {% endif %}
-                            {% endif %}
-                            <div style="white-space: pre-wrap;">{{ msg.contenu|linebreaksbr }}</div>
-                            <div class="mt-1" style="font-size: 0.68rem; color: var(--text-muted);">
-                                {{ msg.date_envoi|date:"H:i" }}
-                            </div>
-                        </div>
-                        <!-- Reactions -->
-                        {% if msg.reactions.all %}
-                        <div class="d-flex gap-1 mt-1 flex-wrap" style="font-size: 0.75rem;">
-                            {% regroup msg.reactions.all by emoji as reaction_groups %}
-                            {% for group in reaction_groups %}
-                            <button class="reaction-pill btn btn-sm px-2 py-0 rounded-pill" style="background: var(--card-bg-solid); border: 1px solid var(--border-glass); font-size: 0.75rem; line-height: 1.6;"
-                                    onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
-                                {{ group.grouper }} {{ group.list|length }}
-                            </button>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                        <div class="d-flex gap-2 mt-1">
-                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')">
-                                <i class="fas fa-reply"></i> Répondre
-                            </button>
-                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '👍')">👍</button>
-                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '❤️')">❤️</button>
-                            <button class="btn btn-sm p-0" style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;" onclick="toggleReaction('{{ msg.id }}', '😂')">😂</button>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            {% empty %}
-                <div class="d-flex flex-column align-items-center justify-content-center text-muted py-5 gap-3">
-                    <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-subtle), rgba(74,222,128,0.2)); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-comment-dots" style="font-size: 1.8rem; color: var(--accent-dark); opacity: 0.7;"></i>
-                    </div>
-                    <p class="mb-0" style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Aucun message pour le moment</p>
-                    <p class="small mb-0" style="color: var(--text-muted); opacity: 0.7;">Envoyez le premier message pour commencer la conversation.</p>
-                </div>
-            {% endfor %}
+        <div class="chat-messages flex-grow-1 chat-messages-bg p-3" id="chatBox" style="overflow-y: auto; background: var(--bg-main);">
+            <div class="chat-messages-inner">
+            {% include 'messagerie/_chat_load_older_sentinel.html' with has_older_messages=has_older_messages|default:False oldest_loaded_message_id=oldest_loaded_message_id conversation=conversation is_mini=is_mini|default:False %}
+            {% include 'messagerie/_conversation_message_rows.html' %}
+            </div>
         </div>
 
         <!-- Input -->
@@ -368,4 +260,10 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script src="{% static 'js/messagerie-conversation.js' %}"></script>
+{% include 'messagerie/_conversation_view_scripts.html' %}
 {% endblock %}

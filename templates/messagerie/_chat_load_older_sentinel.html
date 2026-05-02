@@ -1,0 +1,18 @@
+{% comment %}
+  HTMX infinite scroll (vers le haut). Contexte attendu :
+  - has_older_messages, oldest_loaded_message_id, conversation
+  - is_mini (optionnel) : ajoute &mini=1 à la requête
+{% endcomment %}
+{% if has_older_messages and oldest_loaded_message_id %}
+<div id="chat-load-older-sentinel"
+     class="chat-load-older-sentinel"
+     hx-get="{% url 'conversation_messages_older' conversation.id %}?before={{ oldest_loaded_message_id }}{% if is_mini %}&mini=1{% endif %}"
+     hx-trigger="intersect root:#chatBox threshold:0.06"
+     hx-swap="outerHTML"
+     hx-indicator="#chat-older-indicator">
+  <div id="chat-older-indicator" class="htmx-indicator chat-older-hint text-center py-2 small text-muted">
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Messages précédents…
+  </div>
+</div>
+{% endif %}

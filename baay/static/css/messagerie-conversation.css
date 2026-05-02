@@ -303,7 +303,19 @@
 .msg-meta-own { justify-content: flex-end; color: rgba(255, 255, 255, 0.85); }
 .msg-meta-other { justify-content: flex-start; color: var(--text-muted); }
 .msg-time { letter-spacing: 0.2px; }
+.chat-older-page {
+    display: contents;
+}
+
+.chat-older-hint.htmx-request .spinner-border {
+    opacity: 1;
+}
+.chat-older-hint:not(.htmx-request) .spinner-border {
+    opacity: 0.35;
+}
+
 .checkmark-icon { font-size: 0.74rem; opacity: 0.85; }
+.checkmark-icon.delivered { color: #86efac; opacity: 0.95; }
 .checkmark-icon.read { color: #bbf7d0; opacity: 1; }
 
 /* ---------- Reactions ---------- */

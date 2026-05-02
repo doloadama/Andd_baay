@@ -14,6 +14,7 @@ from baay.models import (
     ProduitAgricole,
     Projet,
     Message,
+    ParticipationConversation,
     Tache,
 )
 from baay.permissions import (
@@ -35,6 +36,31 @@ class FermeCodeAccesTests(TestCase):
         ferme = Ferme.objects.create(nom='F1', proprietaire=owner.profile)
         self.assertEqual(len(ferme.code_acces), 8)
         self.assertTrue(ferme.code_acces.isalnum())
+        self.assertTrue(
+            MembreFerme.objects.filter(
+                ferme=ferme, utilisateur=owner.profile, role='proprietaire'
+            ).exists()
+        )
+
+    def test_regenerer_code_proprietaire_change_code(self):
+        owner = _create_user('ownreg', 'ownreg@x.test')
+        self.client.login(username='ownreg', password='pass12345')
+        ferme = Ferme.objects.create(nom='Freg', proprietaire=owner.profile)
+        old = ferme.code_acces
+        url = reverse('regenerer_code_acces_ferme', args=[ferme.id])
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 302)
+        ferme.refresh_from_db()
+        self.assertNotEqual(ferme.code_acces, old)
+
+    def test_regenerer_code_non_proprietaire_404(self):
+        owner = _create_user('own2', 'o2@x.test')
+        other = _create_user('oth2', 'oth2@x.test')
+        ferme = Ferme.objects.create(nom='Fx', proprietaire=owner.profile)
+        self.client.login(username='oth2', password='pass12345')
+        url = reverse('regenerer_code_acces_ferme', args=[ferme.id])
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 404)
 
     def test_code_acces_unique(self):
         owner = _create_user('owner_u')
@@ -65,7 +91,12 @@ class AjouterMembreFermeTests(TestCase):
         resp = self.client.post(self.url, {'username': 'ghost', 'role': 'ouvrier'})
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "n'est pas inscrit")
-        self.assertFalse(MembreFerme.objects.filter(ferme=self.ferme).exists())
+        self.assertEqual(MembreFerme.objects.filter(ferme=self.ferme).count(), 1)
+        self.assertTrue(
+            MembreFerme.objects.filter(
+                ferme=self.ferme, utilisateur=self.owner.profile, role='proprietaire'
+            ).exists()
+        )
 
     def test_proprietaire_ne_peut_pas_s_ajouter(self):
         self.client.login(username='owner', password='pass12345')
@@ -622,3 +653,39 @@ class MessagerieReliabilityTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         msg.refresh_from_db()
         self.assertTrue(msg.lu_par.filter(id=self.receiver.profile.id).exists())
+
+    def test_participation_last_read_bumped_on_open(self):
+        Message.objects.create(conversation=self.conversation, expediteur=self.sender.profile, contenu='ping')
+        pc = ParticipationConversation.objects.get(
+            profile=self.receiver.profile,
+            conversation=self.conversation,
+        )
+        self.assertIsNone(pc.last_read_at)
+        self.client.login(username='msg_receiver', password='pass12345')
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        pc.refresh_from_db()
+        self.assertIsNotNone(pc.last_read_at)
+
+    def test_messages_older_endpoint_loads_previous_chunk(self):
+        from datetime import timedelta
+
+        base = timezone.now() - timedelta(hours=1)
+        ids_ordered = []
+        for i in range(55):
+            m = Message.objects.create(
+                conversation=self.conversation,
+                expediteur=self.sender.profile,
+                contenu=f'm-{i}',
+            )
+            Message.objects.filter(pk=m.pk).update(date_envoi=base + timedelta(seconds=i))
+            ids_ordered.append(m.id)
+        self.client.login(username='msg_sender', password='pass12345')
+        resp_page = self.client.get(self.url)
+        self.assertEqual(resp_page.status_code, 200)
+        oldest_shown = ids_ordered[55 - 50]
+        older_url = reverse('conversation_messages_older', args=[self.conversation.id])
+        resp = self.client.get(older_url, {'before': str(oldest_shown)})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'm-4')
+        self.assertNotContains(resp, 'm-6')

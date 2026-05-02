@@ -178,6 +178,7 @@ class PrevisionRecolteAdmin(ModelAdmin):
 
     list_display = (
         "projet",
+        "projet_produit",
         "rendement_fourchette",
         "indice_confiance",
         "date_recolte_prevue",
@@ -186,9 +187,9 @@ class PrevisionRecolteAdmin(ModelAdmin):
         ("projet", AutocompleteSelectFilter),
         ("date_prediction", RangeDateTimeFilter),
     ]
-    search_fields = ("projet__nom",)
+    search_fields = ("projet__nom", "projet_produit__produit__nom")
     ordering = ("-date_prediction",)
-    list_select_related = ("projet",)
+    list_select_related = ("projet", "projet_produit", "projet_produit__produit")
     list_filter_submit = True
 
 

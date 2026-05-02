@@ -1,0 +1,119 @@
+<script>
+    (function () {
+        var cfg = {
+            currentProfileId: "{{ profile.id }}",
+            conversationId: "{{ conversation.id }}",
+            csrfToken: "{{ csrf_token }}",
+            syncUrlTemplate: "{% url 'api_conversation_sync' conversation.id %}"
+        };
+        window.chatConfig = cfg;
+        window.setReplyTo = function (msgId, senderName, contentPreview) {
+            var input = document.getElementById("replyToInput");
+            var preview = document.getElementById("replyPreviewText");
+            var wrap = document.getElementById("replyPreview");
+            var ta = document.getElementById("msgTextarea");
+            if (input) input.value = msgId;
+            if (preview) preview.textContent = senderName + " : " + contentPreview;
+            if (wrap) wrap.classList.remove("d-none");
+            if (ta) ta.focus();
+        };
+        window.clearReply = function () {
+            var input = document.getElementById("replyToInput");
+            var wrap = document.getElementById("replyPreview");
+            if (input) input.value = "";
+            if (wrap) wrap.classList.add("d-none");
+        };
+        window.showFileName = function (input) {
+            var name = input.files[0] && input.files[0].name;
+            if (!name) return;
+            var t = document.getElementById("fileNameText");
+            var d = document.getElementById("fileNameDisplay");
+            if (t) t.textContent = name;
+            if (d) d.classList.remove("d-none");
+        };
+        window.clearFile = function () {
+            var i = document.getElementById("fileInput");
+            var d = document.getElementById("fileNameDisplay");
+            if (i) i.value = "";
+            if (d) d.classList.add("d-none");
+        };
+        window.toggleEmojiPicker = function () {
+            var p = document.getElementById("emojiPicker");
+            if (p) p.classList.toggle("d-none");
+        };
+        window.insertEmoji = function (emoji) {
+            var el = document.getElementById("msgTextarea");
+            if (!el) return;
+            el.value = (el.value || "") + emoji;
+            el.focus();
+        };
+        window.chatQuickSearch = function () {
+            var q = prompt("Rechercher dans les messages :");
+            if (!q) return;
+            var nodes = document.querySelectorAll('#chatBox [data-message-id]');
+            var query = q.toLowerCase();
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                var txt = (node.textContent || "").toLowerCase();
+                if (txt.indexOf(query) !== -1) {
+                    node.scrollIntoView({ behavior: "smooth", block: "center" });
+                    node.classList.add("chat-hit");
+                    setTimeout((function (n) { return function () { n.classList.remove("chat-hit"); }; })(node), 1200);
+                    break;
+                }
+            }
+        };
+        window.chatInfo = function (title, participantsCount) {
+            alert(title + "\nParticipants : " + (Number(participantsCount) + 1) + "\nMessagerie temps réel active.");
+        };
+
+        function regroupMessages() {
+            var rows = document.querySelectorAll('#chatBox .msg-row, #chatBox [data-message-id]');
+            var prevAuthor = null;
+            var prevAuthorId = null;
+            var prevDay = null;
+            rows.forEach(function (row) {
+                var author = row.getAttribute("data-author");
+                var authorId = row.getAttribute("data-author-id") || author;
+                var day = row.getAttribute("data-day") || "";
+                var same = author === prevAuthor && authorId === prevAuthorId && day === prevDay;
+                row.classList.toggle("msg-continued", same);
+                row.classList.toggle("msg-first-in-group", !same);
+                prevAuthor = author;
+                prevAuthorId = authorId;
+                prevDay = day;
+            });
+        }
+        window.regroupMessagerieMessages = regroupMessages;
+        regroupMessages();
+        setTimeout(regroupMessages, 0);
+
+        var chatScrollRestore = { h: 0, top: 0, active: false };
+        document.body.addEventListener("htmx:beforeRequest", function (e) {
+            var elt = e.detail && e.detail.elt;
+            var box = document.getElementById("chatBox");
+            if (elt && elt.id === "chat-load-older-sentinel" && box) {
+                chatScrollRestore.h = box.scrollHeight;
+                chatScrollRestore.top = box.scrollTop;
+                chatScrollRestore.active = true;
+            }
+        });
+        document.body.addEventListener("htmx:afterSwap", function () {
+            if (!chatScrollRestore.active) {
+                regroupMessages();
+                return;
+            }
+            var box = document.getElementById("chatBox");
+            if (box) {
+                var delta = box.scrollHeight - chatScrollRestore.h;
+                box.scrollTop = chatScrollRestore.top + delta;
+            }
+            chatScrollRestore.active = false;
+            regroupMessages();
+        });
+
+        if (typeof window.initMessagerieConversation === "function") {
+            window.initMessagerieConversation(cfg);
+        }
+    })();
+</script>

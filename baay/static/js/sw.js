@@ -3,8 +3,19 @@
  * Strategy: stale-while-revalidate for static assets,
  *            network-first for HTML pages.
  */
-const CACHE_NAME = 'andd-baay-v1';
-const STATIC_ASSETS = [
+const CACHE_NAME = 'andd-baay-v2';
+
+/** Toujours mis en cache (page hors ligne + PWA). */
+const PRECACHE_CRITICAL = [
+  '/offline/',
+  '/static/manifest.json',
+  '/static/icons/icon-192x192.png',
+  '/static/icons/icon-512x512.png',
+  '/static/images/logo.jpg',
+];
+
+/** Ressources utiles ; l’échec d’un seul fichier ne bloque pas le reste. */
+const PRECACHE_OPTIONAL = [
   '/static/css/base.css',
   '/static/css/dashboard.css',
   '/static/css/projects.css',
@@ -16,11 +27,6 @@ const STATIC_ASSETS = [
   '/static/js/gps-button.js',
   '/static/js/image-compress.js',
   '/static/js/sw-update.js',
-  '/static/manifest.json',
-  '/static/images/logo.jpg',
-  '/static/icons/icon-192x192.png',
-  '/static/icons/icon-512x512.png',
-  '/offline/',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
@@ -29,13 +35,24 @@ const STATIC_ASSETS = [
 
 const OFFLINE_PAGE = '/offline/';
 
+async function cacheOne(cache, url) {
+  try {
+    await cache.add(url);
+  } catch (e) {
+    console.warn('[sw] precache skip', url, e && e.message);
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch(() => {
-        // Some external assets may fail; don't block install
-      });
-    }).then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      for (const url of PRECACHE_CRITICAL) {
+        await cacheOne(cache, url);
+      }
+      await Promise.all(PRECACHE_OPTIONAL.map((url) => cacheOne(cache, url)));
+      await self.skipWaiting();
+    })()
   );
 });
 
@@ -53,7 +70,6 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and external origins (unless it's a known CDN asset)
   if (request.method !== 'GET') return;
 
   const isSameOrigin = url.origin === self.location.origin;
@@ -65,7 +81,6 @@ self.addEventListener('fetch', (event) => {
     url.host.includes('fonts.googleapis.com') ||
     url.host.includes('fonts.gstatic.com');
 
-  // 1. Static assets: stale-while-revalidate
   if (isStaticAsset) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
@@ -80,7 +95,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. HTML pages (same-origin, not API): network-first with offline fallback
   if (isSameOrigin && request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
       fetch(request)
@@ -91,23 +105,19 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() =>
-          caches.match(request).then((cached) => {
-            if (cached) return cached;
-            return caches.match(OFFLINE_PAGE);
-          })
-        )
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          return caches.match(OFFLINE_PAGE);
+        })
     );
     return;
   }
 
-  // 3. Everything else: cache-first, fallback to network
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(request).catch(() => {
-        // Silently fail for non-critical requests
-      });
+      return fetch(request).catch(() => new Response('', { status: 503, statusText: 'Service Unavailable' }));
     })
   );
 });

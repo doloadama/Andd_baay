@@ -1,7 +1,7 @@
-import random
 import logging
 from datetime import timedelta
-from datetime import date
+from types import SimpleNamespace
+
 from django.contrib.auth.models import User
 
 from .models import HistoriqueRendement, PrevisionRecolte, Profile
@@ -101,6 +101,33 @@ def estimer_rendement_ia(projet_produit):
     }
 
 
+def get_prevision_affichee_projet(projet):
+    """
+    Vue agrégée des prévisions d'un projet (une ligne par ProjetProduit possible).
+    Retourne un seul PrevisionRecolte si une seule entrée, sinon un SimpleNamespace
+    avec les mêmes attributs pour les gabarits.
+    """
+    if projet is None or not projet.pk:
+        return None
+    rows = list(projet.previsions.order_by("-date_prediction"))
+    if not rows:
+        return None
+    if len(rows) == 1:
+        return rows[0]
+    total_min = sum(r.rendement_estime_min for r in rows)
+    total_max = sum(r.rendement_estime_max for r in rows)
+    confs = [r.indice_confiance for r in rows if r.indice_confiance is not None]
+    avg_c = sum(confs) / len(confs) if confs else None
+    dates = [r.date_recolte_prevue for r in rows if r.date_recolte_prevue]
+    d_prev = max(dates) if dates else None
+    return SimpleNamespace(
+        rendement_estime_min=total_min,
+        rendement_estime_max=total_max,
+        indice_confiance=avg_c,
+        date_recolte_prevue=d_prev,
+    )
+
+
 def ensure_profile_for_user(user: User) -> Profile:
     """Return a profile for a user, creating it if missing."""
     profile, _ = Profile.objects.get_or_create(user=user)
@@ -109,14 +136,18 @@ def ensure_profile_for_user(user: User) -> Profile:
 
 def update_prediction_for_projet_produit(projet_produit):
     """
-    Refresh the project's prediction from a ProjetProduit change.
-    Centralized here so signals/views share the same orchestration path.
+    Met à jour ou crée la PrevisionRecolte liée à ce semis (ProjetProduit).
+    Une entrée par ligne produit ; le projet est dénormalisé pour requêtes agrégées.
     """
     resultats = estimer_rendement_ia(projet_produit)
-    prediction, _ = PrevisionRecolte.objects.get_or_create(projet=projet_produit.projet)
-    prediction.rendement_estime_min = resultats['min']
-    prediction.rendement_estime_max = resultats['max']
-    prediction.indice_confiance = resultats['confiance']
-    prediction.date_recolte_prevue = resultats['date_recolte_prevue']
-    prediction.save()
+    prediction, _ = PrevisionRecolte.objects.update_or_create(
+        projet_produit=projet_produit,
+        defaults={
+            "projet": projet_produit.projet,
+            "rendement_estime_min": resultats["min"],
+            "rendement_estime_max": resultats["max"],
+            "indice_confiance": resultats["confiance"],
+            "date_recolte_prevue": resultats["date_recolte_prevue"],
+        },
+    )
     return prediction

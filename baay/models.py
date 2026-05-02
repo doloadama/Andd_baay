@@ -1,12 +1,12 @@
 from django.contrib.auth.models import AbstractUser, User
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.timezone import now
 import uuid
 import secrets
 import string
-from django.utils.timezone import now
 
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -40,17 +40,32 @@ class Ferme(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.code_acces:
-            alphabet = string.ascii_uppercase + string.digits
-            while True:
-                code = ''.join(secrets.choice(alphabet) for _ in range(8))
-                if not Ferme.objects.filter(code_acces=code).exists():
-                    self.code_acces = code
-                    break
+            self.code_acces = self.generate_unique_code_acces(
+                exclude_pk=self.pk if self.pk else None
+            )
         super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_unique_code_acces(cls, exclude_pk=None):
+        """Génère un code alphanumérique unique (8 caractères)."""
+        alphabet = string.ascii_uppercase + string.digits
+        while True:
+            code = "".join(secrets.choice(alphabet) for _ in range(8))
+            qs = cls.objects.filter(code_acces=code)
+            if exclude_pk:
+                qs = qs.exclude(pk=exclude_pk)
+            if not qs.exists():
+                return code
+
+    def regenerate_code_acces(self):
+        """Nouveau code d'accès (invalide l'ancien). À n'utiliser que pour le propriétaire."""
+        self.code_acces = self.generate_unique_code_acces(exclude_pk=self.pk)
+        self.save(update_fields=["code_acces", "date_modification"])
 
 
 class MembreFerme(models.Model):
     ROLE_CHOICES = [
+        ('proprietaire', 'Propriétaire'),
         ('manager', 'Manager'),
         ('technicien', 'Technicien'),
         ('ouvrier', 'Ouvrier'),
@@ -95,6 +110,19 @@ class DemandeAccesFerme(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur.user.username} demande l'accès à {self.ferme.nom}"
+
+    def clean(self):
+        super().clean()
+        if not self.ferme_id or not self.utilisateur_id:
+            return
+        if self.ferme.proprietaire_id == self.utilisateur_id:
+            raise ValidationError(
+                {"utilisateur": "Le propriétaire d'une ferme ne peut pas envoyer de demande d'accès pour celle-ci."}
+            )
+        if MembreFerme.objects.filter(ferme_id=self.ferme_id, utilisateur_id=self.utilisateur_id).exists():
+            raise ValidationError(
+                {"utilisateur": "Vous êtes déjà membre de cette ferme ; une demande d'accès est inutile."}
+            )
 
 
 class ProduitAgricole(models.Model):
@@ -306,12 +334,19 @@ class Investissement(models.Model):
         return f"Investissement {self.id} pour le projet {self.projet.nom}"
 
 class PrevisionRecolte(models.Model):
-    projet = models.OneToOneField(Projet, on_delete=models.CASCADE, related_name='prevision')
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='previsions')
+    projet_produit = models.OneToOneField(
+        ProjetProduit,
+        on_delete=models.CASCADE,
+        related_name='prevision',
+        null=True,
+        blank=True,
+    )
     rendement_estime_min = models.FloatField(default=0)
     rendement_estime_max = models.FloatField(default=0)
     indice_confiance = models.FloatField(null=True, blank=True, help_text="Indice de confiance du modèle IA (pourcentage)")
     date_recolte_prevue = models.DateField(null=True, blank=True)
-    date_prediction = models.DateTimeField(auto_now_add=True)
+    date_prediction = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Prévision pour {self.projet.nom} ({self.indice_confiance or 0}%)"
@@ -368,6 +403,22 @@ class ParticipationConversation(models.Model):
         return f"{self.profile} <-> {self.conversation_id}"
 
 
+def bump_participation_last_read(conversation_id, profile_id, watermark):
+    """Met à jour `ParticipationConversation.last_read_at` (point de lecture conversation)."""
+    if watermark is None:
+        watermark = timezone.now()
+    row = ParticipationConversation.objects.filter(
+        conversation_id=conversation_id,
+        profile_id=profile_id,
+    ).first()
+    if row is None:
+        return
+    cur = row.last_read_at
+    if cur is None or watermark > cur:
+        row.last_read_at = watermark
+        row.save(update_fields=['last_read_at'])
+
+
 class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
@@ -401,6 +452,39 @@ class Message(models.Model):
         participants_count = self.conversation.participants.exclude(id=self.expediteur_id).count()
         lu_count = self.lu_par.exclude(id=self.expediteur_id).count()
         return lu_count >= participants_count
+
+    @property
+    def lecture_statut(self):
+        """État lecture côté expéditeur : envoye | recu_partiel | recu (Participation.last_read_at + lu_par)."""
+        expediteur_id = self.expediteur_id
+        recipients = [
+            p for p in self.conversation.participations.all()
+            if p.profile_id != expediteur_id
+        ]
+        if not recipients:
+            return 'recu'
+        lu_ids = set(self.lu_par.exclude(id=expediteur_id).values_list('pk', flat=True))
+        read_flags = []
+        for p in recipients:
+            ts = p.last_read_at
+            par_lu = ts is not None and ts >= self.date_envoi
+            if not par_lu:
+                par_lu = p.profile_id in lu_ids
+            read_flags.append(par_lu)
+        if all(read_flags):
+            return 'recu'
+        if any(read_flags):
+            return 'recu_partiel'
+        return 'envoye'
+
+    @property
+    def lecture_statut_label(self):
+        st = self.lecture_statut
+        if st == 'recu':
+            return 'Reçu'
+        if st == 'recu_partiel':
+            return 'Reçu (partiel)'
+        return 'Envoyé'
 
 
 class MessageReaction(models.Model):

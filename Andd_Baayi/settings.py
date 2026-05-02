@@ -28,6 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_VERCEL = os.getenv("VERCEL") == "1"
 VERCEL_URL = os.getenv("VERCEL_URL", "").strip()  # e.g. "my-app.vercel.app" (no scheme)
 
+# Trusted Web Activity / Digital Asset Links (Play Store)
+# https://developer.android.com/training/app-links/add-applinks#web-assoc
+# Renseignez ANDROID_ASSETLINKS_SHA256 une fois la clé de signature obtenue (empreintes séparées par des virgules).
+ANDROID_PACKAGE_NAME = os.getenv("ANDROID_PACKAGE_NAME", "").strip()
+ANDROID_ASSETLINKS_SHA256 = os.getenv("ANDROID_ASSETLINKS_SHA256", "").strip()
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

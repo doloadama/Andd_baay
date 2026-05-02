@@ -41,11 +41,13 @@ def build_message_event_v1(message):
         "piece_jointe_url": message.piece_jointe.url if message.piece_jointe else None,
         "piece_jointe_name": os.path.basename(message.piece_jointe.name) if message.piece_jointe else None,
         "is_lu_par_tous": bool(message.is_lu_par_tous()),
+        "lecture_statut": message.lecture_statut,
+        "lecture_statut_label": message.lecture_statut_label,
     }
 
 
-def build_read_receipt_event_v1(message_id, reader_profile_id, conversation_id):
-    return {
+def build_read_receipt_event_v1(message_id, reader_profile_id, conversation_id, lecture_statut=None):
+    payload = {
         "type": "chat_read_receipt_v1",
         "event_version": "v1",
         "event_id": f"receipt:{message_id}:{reader_profile_id}",
@@ -53,6 +55,9 @@ def build_read_receipt_event_v1(message_id, reader_profile_id, conversation_id):
         "reader_id": str(reader_profile_id),
         "conversation_id": str(conversation_id),
     }
+    if lecture_statut:
+        payload["lecture_statut"] = lecture_statut
+    return payload
 
 
 def build_reaction_updated_event_v1(message_id, conversation_id, reactions):

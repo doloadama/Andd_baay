@@ -19,11 +19,13 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.urls import reverse, reverse_lazy
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 from django.db.models import (
     Q,
     Sum,
@@ -65,6 +67,8 @@ from baay.models import (
     Conversation,
     Message,
     MessageReaction,
+    ParticipationConversation,
+    bump_participation_last_read,
 )
 from baay.permissions import (
     fermes_accessibles_qs,
@@ -86,7 +90,7 @@ from baay.permissions import (
     role_dans_ferme,
     roles_assignables_par,
 )
-from baay.services import ensure_profile_for_user
+from baay.services import ensure_profile_for_user, get_prevision_affichee_projet, update_prediction_for_projet_produit
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -826,8 +830,8 @@ def detail_projet(request, projet_id):
         else Investissement.objects.none()
     )
 
-    # Recuperer la prediction de rendement (s'il y en a une)
-    prediction = PrevisionRecolte.objects.filter(projet=projet).first()
+    # Prévision(s) liée(s) aux ProjetProduit — affichage agrégé
+    prediction = get_prevision_affichee_projet(projet)
 
     # Recuperer les produits du projet
     projet_produits = projet.projet_produits.select_related('produit').all()
@@ -1338,7 +1342,6 @@ def generer_prediction(request, projet_id):
     if not peut_modifier_projet(request.user.profile, projet):
         messages.error(request, "Vous n'avez pas le droit de générer une prédiction pour ce projet.")
         return redirect('detail_projet', projet_id=projet.id)
-    from baay.services import estimer_rendement_ia
 
     projet_produits_list = list(
         projet.projet_produits.select_related(
@@ -1359,30 +1362,17 @@ def generer_prediction(request, projet_id):
         messages.warning(request, "Aucun produit associé à ce projet pour générer une prédiction.")
         return redirect('detail_projet', projet_id=projet.id)
 
-    total_min = 0
-    total_max = 0
-    confiance_sum = 0
-    latest_date_recolte = None
-
     for pp in projet_produits_list:
-        res = estimer_rendement_ia(pp)
-        total_min += res['min']
-        total_max += res['max']
-        confiance_sum += res['confiance']
-        if res['date_recolte_prevue']:
-            if not latest_date_recolte or res['date_recolte_prevue'] > latest_date_recolte:
-                latest_date_recolte = res['date_recolte_prevue']
+        update_prediction_for_projet_produit(pp)
 
-    avg_confiance = confiance_sum / len(projet_produits_list)
-    
-    prediction, created = PrevisionRecolte.objects.get_or_create(projet=projet)
-    prediction.rendement_estime_min = total_min
-    prediction.rendement_estime_max = total_max
-    prediction.indice_confiance = avg_confiance
-    prediction.date_recolte_prevue = latest_date_recolte
-    prediction.save()
+    previsions = list(PrevisionRecolte.objects.filter(projet=projet))
+    if not previsions:
+        messages.warning(request, "Aucune prévision n'a pu être enregistrée.")
+        return redirect('detail_projet', projet_id=projet.id)
 
-    # Mettre à jour le rendement estimé global du projet (moyenne pour compatibilité)
+    total_min = sum(p.rendement_estime_min for p in previsions)
+    total_max = sum(p.rendement_estime_max for p in previsions)
+
     projet.rendement_estime = (total_min + total_max) / 2
     projet.save(update_fields=['rendement_estime'])
 
@@ -1646,12 +1636,12 @@ def dashboard_projets_api(request):
         'ferme',
         'ferme__proprietaire__user',
         'ferme__localite',
-        'prevision',
     ).prefetch_related(
         Prefetch(
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
         ),
+        'previsions',
     )
     
     if search:
@@ -1673,13 +1663,8 @@ def dashboard_projets_api(request):
     
     projets_data = []
     for p in projets_page:
-        # Get prediction if exists
-        prediction = None
-        try:
-            if hasattr(p, 'prevision'):
-                prediction = p.prevision.rendement_estime_min
-        except (AttributeError, PrevisionRecolte.DoesNotExist):
-            logger.debug(f"No prediction found for project {p.id}")
+        prevision = get_prevision_affichee_projet(p)
+        prediction = prevision.rendement_estime_min if prevision else None
         
         projets_data.append({
             'id': str(p.id),
@@ -2065,6 +2050,19 @@ def detail_ferme(request, ferme_id):
 
 
 @login_required
+@require_POST
+def regenerer_code_acces_ferme(request, ferme_id):
+    """Régénère le code d'accès (propriétaire uniquement), en cas de fuite de l'ancien code."""
+    ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
+    ferme.regenerate_code_acces()
+    messages.success(
+        request,
+        "Un nouveau code d'accès a été généré. L'ancien code ne permet plus de nouvelles demandes.",
+    )
+    return redirect('detail_ferme', ferme_id=ferme.id)
+
+
+@login_required
 def modifier_ferme(request, ferme_id):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     if request.method == 'POST':
@@ -2143,6 +2141,9 @@ def ajouter_membre_ferme(request, ferme_id):
 def retirer_membre_ferme(request, ferme_id, membre_id):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     membre = get_object_or_404(MembreFerme, id=membre_id, ferme=ferme)
+    if membre.utilisateur_id == ferme.proprietaire_id:
+        messages.error(request, "Le propriétaire ne peut pas être retiré de la ferme.")
+        return redirect('detail_ferme', ferme_id=ferme.id)
     if request.method == 'POST':
         username = membre.utilisateur.user.username
         membre.delete()
@@ -2182,11 +2183,21 @@ def demander_acces_ferme(request):
                 messages.error(request, "Vous avez atteint la limite de demandes d'accès (5 par 24h). Réessayez plus tard.")
                 return redirect('demander_acces_ferme')
             ferme = form.cleaned_data['code']
-            demande = DemandeAccesFerme.objects.create(
+            ferme.refresh_from_db()
+            demande = DemandeAccesFerme(
                 ferme=ferme,
                 utilisateur=profile,
                 code=ferme.code_acces,
             )
+            try:
+                demande.full_clean()
+            except ValidationError as exc:
+                messages.error(
+                    request,
+                    next(iter(exc.messages), "Impossible d'enregistrer cette demande."),
+                )
+                return redirect('demander_acces_ferme')
+            demande.save()
             proprietaire_email = ferme.proprietaire.user.email
             if proprietaire_email:
                 _send_mail_safe(
@@ -2213,6 +2224,15 @@ def traiter_demande_acces_ferme(request, ferme_id, demande_id, action):
     demandeur_email = demande.utilisateur.user.email
     demandeur_username = demande.utilisateur.user.username
     if action == 'approuver':
+        if ferme.membres.filter(utilisateur=demande.utilisateur).exists():
+            demande.statut = 'refusee'
+            demande.date_traitement = timezone.now()
+            demande.save()
+            messages.warning(
+                request,
+                "Cet utilisateur est déjà membre de cette ferme ; la demande a été clôturée.",
+            )
+            return redirect('detail_ferme', ferme_id=ferme.id)
         valid_roles = {'manager', 'technicien', 'ouvrier'}
         role = request.POST.get('role', 'ouvrier')
         if role not in valid_roles:
@@ -2595,7 +2615,7 @@ def _dashboard_technicien(request, utilisateur, memberships):
         'ferme__localite',
     ).prefetch_related(
         'projet_produits__produit',
-        'prevision',
+        'previsions',
         Prefetch(
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
@@ -2608,7 +2628,7 @@ def _dashboard_technicien(request, utilisateur, memberships):
         jours_ecoules = (today - p.date_lancement).days if p.date_lancement else 0
         cycle = getattr(p.culture, 'duree_cycle_jours', None) or 120
         progression = max(0, min(100, round((jours_ecoules / cycle) * 100))) if cycle else 0
-        prevision = getattr(p, 'prevision', None)
+        prevision = get_prevision_affichee_projet(p)
         projets_data.append({
             'projet': p,
             'jours_ecoules': jours_ecoules,
@@ -2722,6 +2742,58 @@ def _notifier_tache_terminee(tache, executant_user):
 # ──────────────────────────────────────────────────────────────────────────────
 # Messagerie (Messaging)
 # ──────────────────────────────────────────────────────────────────────────────
+
+MESSAGERIE_MESSAGES_INITIAL = 50
+MESSAGERIE_MESSAGES_PAGE = 40
+
+
+def _messagerie_conversation_tail(conversation, limit):
+    part_pref = Prefetch(
+        'conversation__participations',
+        ParticipationConversation.objects.select_related('profile'),
+    )
+    msg_base = (
+        Message.objects.filter(conversation=conversation)
+        .select_related('expediteur__user', 'reply_to__expediteur__user', 'conversation')
+        .prefetch_related('lu_par', 'reactions', part_pref)
+    )
+    total = msg_base.count()
+    tail = list(msg_base.order_by('-date_envoi', '-id')[:limit])
+    tail.reverse()
+    has_older = total > len(tail) if tail else False
+    oldest_id = tail[0].id if tail else None
+    return tail, has_older, oldest_id
+
+
+def _messagerie_mark_incoming_read(conversation, profile):
+    messages_non_lus = list(
+        Message.objects.filter(conversation=conversation)
+        .exclude(lu_par=profile)
+        .exclude(expediteur=profile)
+    )
+    if not messages_non_lus:
+        return
+    channel_layer = get_channel_layer()
+    group_name = f"conversation_{str(conversation.id)}"
+    max_dt = max(m.date_envoi for m in messages_non_lus)
+    for msg in messages_non_lus:
+        msg.lu_par.add(profile)
+    bump_participation_last_read(conversation.id, profile.id, max_dt)
+    part_pref = Prefetch(
+        'conversation__participations',
+        ParticipationConversation.objects.select_related('profile'),
+    )
+    for msg in messages_non_lus:
+        st = Message.objects.select_related('conversation').prefetch_related(
+            'lu_par', part_pref,
+        ).get(pk=msg.pk).lecture_statut
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            build_read_receipt_event_v1(
+                msg.id, profile.id, conversation.id, lecture_statut=st
+            ),
+        )
+        _send_inbox_update(channel_layer, conversation, msg)
 
 
 def _membres_ferme_communs(profile):
@@ -2884,11 +2956,8 @@ def conversation_detail(request, conversation_id):
                 queryset=Profile.objects.select_related('user'),
             ),
             Prefetch(
-                'messages',
-                queryset=Message.objects.select_related(
-                    'expediteur__user',
-                    'reply_to__expediteur__user',
-                ).prefetch_related('lu_par', 'reactions').order_by('date_envoi', 'id'),
+                'participations',
+                ParticipationConversation.objects.select_related('profile'),
             ),
         ),
         id=conversation_id,
@@ -2910,7 +2979,7 @@ def conversation_detail(request, conversation_id):
             reply_to = None
             if reply_to_id:
                 try:
-                    reply_to = conversation.messages.get(id=reply_to_id)
+                    reply_to = Message.objects.get(conversation=conversation, id=reply_to_id)
                 except Message.DoesNotExist:
                     pass
             msg = None
@@ -2922,15 +2991,25 @@ def conversation_detail(request, conversation_id):
                     client_message_id=client_message_id,
                 ).first()
             if msg is None:
-                msg = Message.objects.create(
-                    conversation=conversation,
-                    expediteur=profile,
-                    contenu=contenu,
-                    piece_jointe=piece_jointe,
-                    reply_to=reply_to,
-                    client_message_id=client_message_id,
-                )
-                created = True
+                try:
+                    msg = Message.objects.create(
+                        conversation=conversation,
+                        expediteur=profile,
+                        contenu=contenu,
+                        piece_jointe=piece_jointe,
+                        reply_to=reply_to,
+                        client_message_id=client_message_id,
+                    )
+                    created = True
+                except IntegrityError:
+                    msg = Message.objects.filter(
+                        conversation=conversation,
+                        expediteur=profile,
+                        client_message_id=client_message_id,
+                    ).first()
+                    created = False
+                    if msg is None:
+                        raise
             msg.lu_par.add(profile)
             if created:
                 conversation.dernier_message = msg.date_envoi
@@ -2939,43 +3018,107 @@ def conversation_detail(request, conversation_id):
             # Broadcast via WebSocket
             channel_layer = get_channel_layer()
             group_name = f"conversation_{str(conversation.id)}"
-            event_data = build_message_event_v1(msg)
+            event_data = build_message_event_v1(
+                Message.objects.select_related('conversation').prefetch_related(
+                    'lu_par',
+                    Prefetch(
+                        'conversation__participations',
+                        ParticipationConversation.objects.select_related('profile'),
+                    ),
+                ).get(pk=msg.pk)
+            )
             if created:
                 async_to_sync(channel_layer.group_send)(group_name, event_data)
                 _send_inbox_update(channel_layer, conversation, msg)
-            
+
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('accept') == 'application/json':
                 return JsonResponse(event_data)
-                
+
             return redirect('conversation_detail', conversation_id=conversation.id)
 
-    # Marquer comme lus les messages entrants
-    messages_non_lus = list(conversation.messages.exclude(lu_par=profile).exclude(expediteur=profile))
-    if messages_non_lus:
-        channel_layer = get_channel_layer()
-        group_name = f"conversation_{str(conversation.id)}"
-        for msg in messages_non_lus:
-            msg.lu_par.add(profile)
-            async_to_sync(channel_layer.group_send)(
-                group_name,
-                build_read_receipt_event_v1(msg.id, profile.id, conversation.id),
-            )
-            _send_inbox_update(channel_layer, conversation, msg)
+    _messagerie_mark_incoming_read(conversation, profile)
+
+    messages_list, has_older_messages, oldest_loaded_message_id = (
+        _messagerie_conversation_tail(conversation, MESSAGERIE_MESSAGES_INITIAL)
+    )
 
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
 
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
+    is_mini = request.GET.get('mini') == 'true'
 
     return render(request, 'messagerie/conversation.html', {
         'conversation': conversation,
-        'messages_list': list(conversation.messages.all()),
+        'messages_list': messages_list,
         'titre': titre,
         'autres': autres,
         'profile': profile,
         'base_template': base_template,
-        'is_mini': request.GET.get('mini') == 'true',
+        'is_mini': is_mini,
+        'has_older_messages': has_older_messages,
+        'oldest_loaded_message_id': oldest_loaded_message_id,
     })
+
+
+@login_required
+@require_GET
+def conversation_messages_older(request, conversation_id):
+    """Fragment HTMX : charge un lot de messages plus anciens (scroll vers le haut)."""
+    profile = ensure_profile_for_user(request.user)
+    conversation = get_object_or_404(
+        Conversation.objects.filter(participants=profile),
+        id=conversation_id,
+    )
+    before_raw = request.GET.get('before', '').strip()
+    if not before_raw:
+        return HttpResponse('')
+    anchor = Message.objects.filter(id=before_raw, conversation=conversation).first()
+    if anchor is None:
+        return HttpResponse('')
+    try:
+        limit = int(request.GET.get('limit', str(MESSAGERIE_MESSAGES_PAGE)))
+    except ValueError:
+        limit = MESSAGERIE_MESSAGES_PAGE
+    limit = max(1, min(limit, 80))
+
+    part_pref = Prefetch(
+        'conversation__participations',
+        ParticipationConversation.objects.select_related('profile'),
+    )
+    older_qs = (
+        Message.objects.filter(conversation=conversation)
+        .filter(
+            Q(date_envoi__lt=anchor.date_envoi)
+            | (Q(date_envoi=anchor.date_envoi) & Q(pk__lt=anchor.pk))
+        )
+        .select_related('expediteur__user', 'reply_to__expediteur__user', 'conversation')
+        .prefetch_related('lu_par', 'reactions', part_pref)
+        .order_by('-date_envoi', '-id')[:limit]
+    )
+    older_messages = list(reversed(list(older_qs)))
+    if not older_messages:
+        return HttpResponse('')
+
+    first = older_messages[0]
+    chunk_has_more = Message.objects.filter(conversation=conversation).filter(
+        Q(date_envoi__lt=first.date_envoi)
+        | (Q(date_envoi=first.date_envoi) & Q(pk__lt=first.pk))
+    ).exists()
+
+    is_mini = request.GET.get('mini') == '1'
+    return render(
+        request,
+        'messagerie/_messages_older_batch.html',
+        {
+            'conversation': conversation,
+            'profile': profile,
+            'older_messages': older_messages,
+            'chunk_has_more': chunk_has_more,
+            'next_before_id': first.id,
+            'is_mini': is_mini,
+        },
+    )
 
 
 @login_required
@@ -2992,7 +3135,15 @@ def api_conversation_sync(request, conversation_id):
         id=conversation_id,
     )
     since_raw = request.GET.get('since', '').strip()
-    messages_qs = conversation.messages.select_related('expediteur__user', 'reply_to__expediteur__user').prefetch_related('lu_par')
+    part_pref = Prefetch(
+        'conversation__participations',
+        ParticipationConversation.objects.select_related('profile'),
+    )
+    messages_qs = (
+        Message.objects.filter(conversation=conversation)
+        .select_related('expediteur__user', 'reply_to__expediteur__user', 'conversation')
+        .prefetch_related('lu_par', part_pref)
+    )
     if since_raw:
         try:
             since_dt = datetime.fromisoformat(since_raw.replace("Z", "+00:00"))
@@ -3360,40 +3511,31 @@ def drawer_conversation_fragment(request, conversation_id):
                 queryset=Profile.objects.select_related('user'),
             ),
             Prefetch(
-                'messages',
-                queryset=Message.objects.select_related(
-                    'expediteur__user',
-                    'reply_to__expediteur__user',
-                ).prefetch_related('lu_par', 'reactions').order_by('date_envoi', 'id'),
+                'participations',
+                ParticipationConversation.objects.select_related('profile'),
             ),
         ),
         id=conversation_id,
         participants=profile,
     )
 
-    messages_non_lus = list(
-        conversation.messages.exclude(lu_par=profile).exclude(expediteur=profile)
+    _messagerie_mark_incoming_read(conversation, profile)
+
+    messages_list, has_older_messages, oldest_loaded_message_id = (
+        _messagerie_conversation_tail(conversation, MESSAGERIE_MESSAGES_INITIAL)
     )
-    if messages_non_lus:
-        channel_layer = get_channel_layer()
-        group_name = f"conversation_{str(conversation.id)}"
-        for msg in messages_non_lus:
-            msg.lu_par.add(profile)
-            async_to_sync(channel_layer.group_send)(
-                group_name,
-                build_read_receipt_event_v1(msg.id, profile.id, conversation.id),
-            )
-            _send_inbox_update(channel_layer, conversation, msg)
 
     autres = [p for p in conversation.participants.all() if p.id != profile.id]
     titre = conversation.sujet or (autres[0].user.username if autres else 'Conversation')
 
     return render(request, 'messagerie/_conversation_view.html', {
         'conversation': conversation,
-        'messages_list': list(conversation.messages.all()),
+        'messages_list': messages_list,
         'titre': titre,
         'autres': autres,
         'profile': profile,
         'is_mini': False,
         'drawer': True,
+        'has_older_messages': has_older_messages,
+        'oldest_loaded_message_id': oldest_loaded_message_id,
     })

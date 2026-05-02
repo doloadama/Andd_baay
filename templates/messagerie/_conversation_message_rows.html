@@ -1,0 +1,145 @@
+{% load static %}
+{% now "Y-m-d" as today_str %}
+{% for msg in messages_list %}
+    {% ifchanged msg.date_envoi|date:"Y-m-d" %}
+    <div class="msg-date-sep">
+        <span class="msg-date-pill">
+            {% if msg.date_envoi|date:"Y-m-d" == today_str %}
+                Aujourd'hui
+            {% else %}
+                {{ msg.date_envoi|date:"l d F Y"|capfirst }}
+            {% endif %}
+        </span>
+    </div>
+    {% endifchanged %}
+
+    {% if msg.expediteur_id == profile.id %}
+    <div class="msg-row msg-row-own"
+         data-message-id="{{ msg.id }}"
+         data-author="own"
+         data-day="{{ msg.date_envoi|date:'Y-m-d' }}">
+        <div class="msg-stack">
+            <div class="msg-bubble msg-bubble-own">
+                {% if msg.reply_to %}
+                <div class="msg-reply-quote msg-reply-quote-own">
+                    <i class="fas fa-reply"></i>
+                    <span class="text-truncate">{{ msg.reply_to.expediteur }} : {{ msg.reply_to.contenu|truncatechars:60 }}</span>
+                </div>
+                {% endif %}
+                {% if msg.piece_jointe %}
+                    {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
+                    <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-img-link">
+                        <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="msg-attach-img">
+                    </a>
+                    {% else %}
+                    <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-file msg-attach-file-own">
+                        <i class="fas fa-paperclip"></i>
+                        <span>{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
+                {% if msg.contenu %}<div class="msg-text">{{ msg.contenu|linebreaksbr }}</div>{% endif %}
+                <div class="msg-meta msg-meta-own">
+                    <span class="msg-time">{{ msg.date_envoi|date:"H:i" }}</span>
+                    <i class="fas fa-check-double checkmark-icon{% if msg.lecture_statut == 'recu' %} read{% elif msg.lecture_statut == 'recu_partiel' %} delivered{% endif %}"
+                       id="check-{{ msg.id }}"
+                       title="{{ msg.lecture_statut_label }}"
+                       aria-label="{{ msg.lecture_statut_label }}"></i>
+                </div>
+            </div>
+            {% if msg.reactions.all %}
+            <div class="msg-reactions msg-reactions-own">
+                {% regroup msg.reactions.all by emoji as reaction_groups %}
+                {% for group in reaction_groups %}
+                <button class="reaction-pill"
+                        data-reaction-pill="1"
+                        data-message-id="{{ msg.id }}"
+                        data-emoji="{{ group.grouper }}"
+                        onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
+                    <span>{{ group.grouper }}</span>
+                    <span class="reaction-count">{{ group.list|length }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="msg-actions msg-actions-own">
+                <button class="msg-action-btn" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')" title="Répondre">
+                    <i class="fas fa-reply"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="msg-row msg-row-other"
+         data-message-id="{{ msg.id }}"
+         data-author="other"
+         data-author-id="{{ msg.expediteur_id }}"
+         data-day="{{ msg.date_envoi|date:'Y-m-d' }}">
+        <div class="msg-avatar-col">
+            {% ifchanged msg.expediteur_id msg.date_envoi|date:"Y-m-d" %}
+            <div class="msg-avatar">{{ msg.expediteur.user.first_name|make_list|first|default:msg.expediteur.user.username|make_list|first|upper }}</div>
+            {% endifchanged %}
+        </div>
+        <div class="msg-stack">
+            {% ifchanged msg.expediteur_id msg.date_envoi|date:"Y-m-d" %}
+            <div class="msg-sender-name">{{ msg.expediteur }}</div>
+            {% endifchanged %}
+            <div class="msg-bubble msg-bubble-other">
+                {% if msg.reply_to %}
+                <div class="msg-reply-quote msg-reply-quote-other">
+                    <i class="fas fa-reply"></i>
+                    <span class="text-truncate">{{ msg.reply_to.expediteur }} : {{ msg.reply_to.contenu|truncatechars:60 }}</span>
+                </div>
+                {% endif %}
+                {% if msg.piece_jointe %}
+                    {% if msg.piece_jointe.url|slice:"-4:" == '.jpg' or msg.piece_jointe.url|slice:"-4:" == '.png' or msg.piece_jointe.url|slice:"-5:" == '.jpeg' or msg.piece_jointe.url|slice:"-4:" == '.gif' or msg.piece_jointe.url|slice:"-4:" == '.webp' %}
+                    <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-img-link">
+                        <img src="{{ msg.piece_jointe.url }}" alt="Pièce jointe" class="msg-attach-img">
+                    </a>
+                    {% else %}
+                    <a href="{{ msg.piece_jointe.url }}" target="_blank" class="msg-attach-file msg-attach-file-other">
+                        <i class="fas fa-paperclip"></i>
+                        <span>{{ msg.piece_jointe.name|cut:"messages/"|cut:"2025/"|cut:"2026/"|cut:"01/"|cut:"02/"|cut:"03/"|cut:"04/"|cut:"05/"|cut:"06/"|cut:"07/"|cut:"08/"|cut:"09/"|cut:"10/"|cut:"11/"|cut:"12/" }}</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
+                {% if msg.contenu %}<div class="msg-text">{{ msg.contenu|linebreaksbr }}</div>{% endif %}
+                <div class="msg-meta msg-meta-other">
+                    <span class="msg-time">{{ msg.date_envoi|date:"H:i" }}</span>
+                </div>
+            </div>
+            {% if msg.reactions.all %}
+            <div class="msg-reactions msg-reactions-other">
+                {% regroup msg.reactions.all by emoji as reaction_groups %}
+                {% for group in reaction_groups %}
+                <button class="reaction-pill"
+                        data-reaction-pill="1"
+                        data-message-id="{{ msg.id }}"
+                        data-emoji="{{ group.grouper }}"
+                        onclick="toggleReaction('{{ msg.id }}', '{{ group.grouper }}')">
+                    <span>{{ group.grouper }}</span>
+                    <span class="reaction-count">{{ group.list|length }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="msg-actions msg-actions-other">
+                <button class="msg-action-btn" onclick="setReplyTo('{{ msg.id }}', '{{ msg.expediteur|escapejs }}', '{{ msg.contenu|truncatechars:40|escapejs }}')" title="Répondre">
+                    <i class="fas fa-reply"></i>
+                </button>
+                <button class="msg-action-btn" onclick="toggleReaction('{{ msg.id }}', '👍')" title="Réagir 👍">👍</button>
+                <button class="msg-action-btn" onclick="toggleReaction('{{ msg.id }}', '❤️')" title="Réagir ❤️">❤️</button>
+                <button class="msg-action-btn" onclick="toggleReaction('{{ msg.id }}', '😂')" title="Réagir 😂">😂</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% empty %}
+    <div class="chat-empty">
+        <div class="chat-empty-icon">
+            <i class="fas fa-comment-dots"></i>
+        </div>
+        <p class="chat-empty-title">Aucun message pour le moment</p>
+        <p class="chat-empty-sub">Envoyez le premier message pour commencer la conversation.</p>
+    </div>
+{% endfor %}

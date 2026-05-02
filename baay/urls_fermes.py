@@ -7,6 +7,7 @@ from .views_fermes import (
     detail_ferme,
     liste_fermes,
     modifier_ferme,
+    regenerer_code_acces_ferme,
     retirer_membre_ferme,
     supprimer_ferme,
     traiter_demande_acces_ferme,
@@ -15,6 +16,7 @@ from .views_fermes import (
 urlpatterns = [
     path("fermes/", liste_fermes, name="liste_fermes"),
     path("fermes/creer/", creer_ferme, name="creer_ferme"),
+    path("fermes/<uuid:ferme_id>/code-acces/regenerer/", regenerer_code_acces_ferme, name="regenerer_code_acces_ferme"),
     path("fermes/<uuid:ferme_id>/", detail_ferme, name="detail_ferme"),
     path("fermes/<uuid:ferme_id>/modifier/", modifier_ferme, name="modifier_ferme"),
     path("fermes/<uuid:ferme_id>/supprimer/", supprimer_ferme, name="supprimer_ferme"),

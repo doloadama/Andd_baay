@@ -105,9 +105,12 @@ def dashboard_callback(request, context: dict[str, Any]) -> dict[str, Any]:
         rend_min_moy=Avg("rendement_estime_min"),
         rend_max_moy=Avg("rendement_estime_max"),
     )
+    projets_avec_au_moins_une_prev = (
+        PrevisionRecolte.objects.values("projet_id").distinct().count()
+    )
     projets_sans_prev = max(
         0,
-        (projets_agg["total"] or 0) - (prev_agg["avec_prev"] or 0),
+        (projets_agg["total"] or 0) - projets_avec_au_moins_une_prev,
     )
 
     # ── Investissements agrégés par projet (coût/ha × superficie + autres frais) ──
