@@ -1,6 +1,7 @@
 from django.urls import include, path
 
 urlpatterns = [
+    path("", include("baay.urls_finance")),
     path("", include("baay.urls_core")),
     path("", include("baay.urls_auth")),
     path("", include("baay.urls_projets")),

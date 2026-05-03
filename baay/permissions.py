@@ -133,6 +133,47 @@ def peut_voir_investissements(profile, ferme):
     return role_dans_ferme(profile, ferme) in ROLES_GESTION_PROJET
 
 
+def projets_avec_vue_depenses_qs(profile):
+    """Projets pour lesquels l'utilisateur peut consulter les investissements."""
+    if profile is None:
+        return Projet.objects.none()
+    from django.db.models import Exists, OuterRef
+    from .models import MembreFerme
+
+    mem_ok = MembreFerme.objects.filter(
+        ferme_id=OuterRef("pk"),
+        utilisateur=profile,
+        role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+    )
+    ferme_ids_prop = Ferme.objects.filter(proprietaire=profile).values_list(
+        "pk", flat=True
+    )
+    ferme_ids_mem = (
+        Ferme.objects.filter(Exists(mem_ok)).values_list("pk", flat=True)
+    )
+    return (
+        Projet.objects.filter(Q(ferme_id__in=ferme_ids_prop) | Q(ferme_id__in=ferme_ids_mem))
+        .select_related("ferme")
+        .distinct()
+        .order_by("nom")
+    )
+
+
+def projets_modifiables_depenses_qs(profile):
+    """Projets où l'utilisateur peut saisir des dépenses (Membre Propriétaire / Manager)."""
+    if profile is None:
+        return Projet.objects.none()
+    return (
+        Projet.objects.filter(
+            ferme__membres__utilisateur=profile,
+            ferme__membres__role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+        )
+        .select_related("ferme")
+        .distinct()
+        .order_by("nom")
+    )
+
+
 def peut_modifier_budget_ferme(profile, ferme):
     """
     Modifier le budget (lignes Investissement) : exiger une ligne MembreFerme

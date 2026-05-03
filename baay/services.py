@@ -9,7 +9,7 @@ from decimal import Decimal
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce
 
-from .models import PrevisionRecolte, Profile, Projet
+from .models import Investissement, PrevisionRecolte, Profile, Projet, ProjetProduit
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +24,31 @@ def _format_fcfa_montant(amount: Decimal) -> str:
     return f"{n:,}".replace(",", "\u202f")
 
 
+def investissement_montant_expr():
+    """Expression ORM : coût/ha × ha (culture ou projet) + autres frais."""
+    return ExpressionWrapper(
+        F("cout_par_hectare")
+        * Coalesce(
+            F("projet_produit__superficie_allouee"),
+            F("projet__superficie"),
+        )
+        + Coalesce(F("autres_frais"), Value(Decimal("0"))),
+        output_field=DecimalField(max_digits=24, decimal_places=2),
+    )
+
+
+def total_investissements_projet(projet_id):
+    agg = (
+        Investissement.objects.filter(projet_id=projet_id)
+        .aggregate(t=Coalesce(Sum(investissement_montant_expr()), Value(Decimal("0"))))
+    )
+    return agg["t"] or Decimal("0")
+
+
 def check_budget_status(projet_id):
     """
-    Compare la somme des investissements (coût/ha × superficie projet + autres frais)
+    Compare la somme des investissements (montant par ligne : ha culture ou projet)
     au budget_alloue du projet (FCFA).
-
-    Retourne un dict avec clés : ok, applicable, over_budget, total_investi, budget,
-    depassement, depassement_display, projet_nom.
     """
     projet = (
         Projet.objects.filter(pk=projet_id)
@@ -52,20 +70,9 @@ def check_budget_status(projet_id):
             "depassement": None,
         }
 
-    total_expr = ExpressionWrapper(
-        F("investissement_set__cout_par_hectare") * F("superficie")
-        + Coalesce(F("investissement_set__autres_frais"), Value(Decimal("0"))),
-        output_field=DecimalField(max_digits=24, decimal_places=2),
-    )
-    row = (
-        Projet.objects.filter(pk=projet_id)
-        .annotate(total_investi=Coalesce(Sum(total_expr), Value(Decimal("0"))))
-        .values("total_investi", "nom", "budget_alloue")
-        .first()
-    )
+    total = total_investissements_projet(projet_id)
 
-    total = row["total_investi"] or Decimal("0")
-    budget_val = row["budget_alloue"] or Decimal("0")
+    budget_val = budget or Decimal("0")
     over = total > budget_val
     depassement = (total - budget_val) if over else Decimal("0")
 
@@ -77,7 +84,48 @@ def check_budget_status(projet_id):
         "budget": budget_val,
         "depassement": depassement,
         "depassement_display": _format_fcfa_montant(depassement),
-        "projet_nom": row.get("nom") or projet.nom,
+        "projet_nom": projet.nom,
+    }
+
+
+def check_projet_produit_budget_status(projet_produit_id):
+    """Budget optionnel par culture (ProjetProduit.budget_alloue)."""
+    pp = (
+        ProjetProduit.objects.filter(pk=projet_produit_id)
+        .select_related("projet", "produit")
+        .only("id", "budget_alloue", "projet__nom", "produit__nom")
+        .first()
+    )
+    if not pp:
+        return {"ok": False, "applicable": False}
+    if pp.budget_alloue is None:
+        return {
+            "ok": True,
+            "applicable": False,
+            "over_budget": False,
+            "produit_nom": pp.produit.nom if pp.produit_id else "",
+            "projet_nom": pp.projet.nom,
+        }
+
+    total = (
+        Investissement.objects.filter(projet_produit_id=projet_produit_id).aggregate(
+            t=Coalesce(Sum(investissement_montant_expr()), Value(Decimal("0")))
+        )["t"]
+        or Decimal("0")
+    )
+    budget_val = pp.budget_alloue or Decimal("0")
+    over = total > budget_val
+    depassement = (total - budget_val) if over else Decimal("0")
+    label = f"{pp.produit.nom} — {pp.projet.nom}"
+    return {
+        "ok": True,
+        "applicable": True,
+        "over_budget": over,
+        "total_investi": total,
+        "budget": budget_val,
+        "depassement": depassement,
+        "depassement_display": _format_fcfa_montant(depassement),
+        "projet_line_label": label,
     }
 
 def estimer_rendement_ia(projet_produit):

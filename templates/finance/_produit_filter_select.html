@@ -1,0 +1,10 @@
+<div class="tw-mb-0">
+    <label class="form-label small text-muted mb-1" for="id_produit_scope"><i class="fas fa-seedling me-1 text-accent"></i>Périmètre culture</label>
+    <select name="produit_scope" id="id_produit_scope" class="form-control">
+        <option value="all"{% if produit_scope == "all" %} selected{% endif %}>Toutes les lignes</option>
+        <option value="general"{% if produit_scope == "general" %} selected{% endif %}>Général au projet</option>
+        {% for pp in projet_produits %}
+            <option value="{{ pp.pk }}"{% if produit_scope == pp.pk|stringformat:"s" %} selected{% endif %}>{{ pp.produit.nom }}</option>
+        {% endfor %}
+    </select>
+</div>

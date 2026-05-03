@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+
 {% block title %}Ajouter un Investissement | Andd Baay{% endblock %}
 
 {% block content %}
@@ -537,24 +540,61 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="row g-4">
+                                <div class="col-12 col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="id_projet_produit" class="form-label-modern">
+                                            Culture concernée
+                                            <span class="form-label-hint">Optionnel — laissez vide pour une dépense générale au projet</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-leaf input-icon"></i>
+                                            {{ investissement_form.projet_produit }}
+                                        </div>
+                                        {% if investissement_form.projet_produit.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.projet_produit.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="input-modern-group">
+                                        <label for="id_autres_frais" class="form-label-modern">
+                                            Autres frais (FCFA)
+                                            <span class="form-label-hint">Montant fixe en plus du coût × surface</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-receipt input-icon"></i>
+                                            {{ investissement_form.autres_frais }}
+                                        </div>
+                                        {% if investissement_form.autres_frais.errors %}
+                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.autres_frais.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Investment Calculator -->
                         <div class="investment-calculator">
                             <div class="calc-header">
                                 <i class="fas fa-calculator"></i>
-                                <h5>Estimation du cout total</h5>
+                                <h5>Estimation du coût total de la ligne</h5>
                             </div>
                             <div class="calc-row">
-                                <span class="calc-label">Superficie du projet</span>
-                                <span class="calc-value" id="calcSuperficie">{{ projet.superficie }} ha</span>
+                                <span class="calc-label">Surface de référence</span>
+                                <span class="calc-value" id="calcSuperficie">—</span>
                             </div>
                             <div class="calc-row">
-                                <span class="calc-label">Cout par hectare</span>
+                                <span class="calc-label">Coût par hectare</span>
                                 <span class="calc-value" id="calcCoutHa">0 FCFA</span>
                             </div>
                             <div class="calc-row">
-                                <span class="calc-label">Cout total estime</span>
+                                <span class="calc-label">Autres frais</span>
+                                <span class="calc-value" id="calcAutres">0 FCFA</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Total estimé (× ha + autres)</span>
                                 <span class="calc-value" id="calcTotal">0 FCFA</span>
                             </div>
                         </div>
@@ -580,28 +620,53 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const coutInput = document.getElementById('id_cout_par_hectare');
-    const superficie = {{ projet.superficie|default:0 }};
-    
+    const ppSelect = document.getElementById('id_projet_produit');
+    const autresInput = document.getElementById('id_autres_frais');
+    const superficieProjet = parseFloat({{ projet.superficie|default:0|unlocalize }}) || 0;
+    const superficieParCulture = {
+        {% for pp in projet.projet_produits.all %}
+        "{{ pp.pk }}": {% if pp.superficie_allouee %}{{ pp.superficie_allouee|unlocalize }}{% else %}null{% endif %},
+        {% endfor %}
+    };
+
+    function hectaresPourLigne() {
+        if (!ppSelect || !ppSelect.value) return superficieProjet;
+        var s = superficieParCulture[ppSelect.value];
+        if (s != null && !isNaN(parseFloat(s))) return parseFloat(s);
+        return superficieProjet;
+    }
+
     function updateCalculation() {
-        const coutHa = parseFloat(coutInput.value) || 0;
-        const total = coutHa * superficie;
-        
-        document.getElementById('calcCoutHa').textContent = 
+        const coutHa = parseFloat(coutInput && coutInput.value) || 0;
+        const ha = hectaresPourLigne();
+        const autres = autresInput ? parseFloat(autresInput.value) || 0 : 0;
+        const total = coutHa * ha + autres;
+        const supEl = document.getElementById('calcSuperficie');
+        if (supEl) {
+            supEl.textContent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(ha) + ' ha';
+        }
+        document.getElementById('calcCoutHa').textContent =
             new Intl.NumberFormat('fr-FR').format(coutHa) + ' FCFA';
-        document.getElementById('calcTotal').textContent = 
+        document.getElementById('calcAutres').textContent =
+            new Intl.NumberFormat('fr-FR').format(autres) + ' FCFA';
+        document.getElementById('calcTotal').textContent =
             new Intl.NumberFormat('fr-FR').format(total) + ' FCFA';
-        
-        // Animate the total
+
         const totalEl = document.getElementById('calcTotal');
         totalEl.style.transform = 'scale(1.05)';
         setTimeout(() => totalEl.style.transform = 'scale(1)', 200);
     }
-    
+
     if (coutInput) {
         coutInput.addEventListener('input', updateCalculation);
-        // Initialize
-        updateCalculation();
     }
+    if (autresInput) {
+        autresInput.addEventListener('input', updateCalculation);
+    }
+    if (ppSelect) {
+        ppSelect.addEventListener('change', updateCalculation);
+    }
+    updateCalculation();
     
     // Form submission
     const form = document.getElementById('investmentForm');

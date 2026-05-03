@@ -1,21 +1,29 @@
 import logging
 
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User
-from baay.models import Ferme, Investissement, MembreFerme, Projet, ProjetProduit
+
 from baay.middleware.current_request import get_current_request
+from baay.models import Ferme, Investissement, MembreFerme, Projet, ProjetProduit
 from baay.permissions import peut_acceder_menu_finance, peut_modifier_budget_ferme
-from baay.services import ensure_profile_for_user, update_prediction_for_projet_produit, check_budget_status
+from baay.services import (
+    check_budget_status,
+    check_projet_produit_budget_status,
+    ensure_profile_for_user,
+    update_prediction_for_projet_produit,
+)
 
 logger = logging.getLogger(__name__)
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Create a Profile instance whenever a new User is created."""
     if created:
         ensure_profile_for_user(instance)
+
 
 @receiver(post_save, sender=Ferme)
 def creer_membre_proprietaire_apres_ferme(sender, instance, created, **kwargs):
@@ -34,21 +42,20 @@ def save_user_profile(sender, instance, created, **kwargs):
     """Save existing profile on user updates without redundant create/fetch."""
     if created:
         return
-    if hasattr(instance, 'profile'):
+    if hasattr(instance, "profile"):
         instance.profile.save()
+
 
 @receiver(post_save, sender=Projet)
 def creer_prediction_rendement_projet(sender, instance, created, **kwargs):
     """Fallback if needed for legacy logic."""
     pass
 
+
 @receiver(post_save, sender=Investissement)
 def alerte_depassement_budget_investissement(sender, instance, **kwargs):
-    """Avertissement utilisateur si le cumul investissements dépasse budget_alloue."""
+    """Budget projet ou culture dépassé → toast rouge (messages.error) si requête autorisée."""
     if kwargs.get("raw"):
-        return
-    status = check_budget_status(instance.projet_id)
-    if not status.get("ok") or not status.get("applicable") or not status.get("over_budget"):
         return
 
     request = get_current_request()
@@ -63,11 +70,22 @@ def alerte_depassement_budget_investissement(sender, instance, **kwargs):
     if not peut_modifier_budget_ferme(profile, instance.projet.ferme):
         return
 
-    msg = (
-        f"Attention : Le budget du projet « {status['projet_nom']} » est dépassé de "
-        f"{status['depassement_display']} FCFA."
-    )
-    messages.warning(request, msg, extra_tags="budget-critical")
+    st = check_budget_status(instance.projet_id)
+    if st.get("applicable") and st.get("over_budget"):
+        msg = (
+            f"Attention : Le budget du projet « {st['projet_nom']} » est dépassé de "
+            f"{st['depassement_display']} FCFA."
+        )
+        messages.error(request, msg, extra_tags="budget-critical")
+
+    if instance.projet_produit_id:
+        stp = check_projet_produit_budget_status(instance.projet_produit_id)
+        if stp.get("applicable") and stp.get("over_budget"):
+            msg = (
+                f"Attention : Le budget de la culture « {stp['projet_line_label']} » est dépassé de "
+                f"{stp['depassement_display']} FCFA."
+            )
+            messages.error(request, msg, extra_tags="budget-critical")
 
 
 @receiver(post_save, sender=ProjetProduit)
@@ -80,4 +98,3 @@ def update_prediction_rendement(sender, instance, created, update_fields=None, *
         if not trigger.intersection(update_fields):
             return
     update_prediction_for_projet_produit(instance)
-

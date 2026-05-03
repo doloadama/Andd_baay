@@ -308,6 +308,13 @@ class ProjetProduit(models.Model):
     rendement_final = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Rendement final obtenu en kg")
     date_recolte_effective = models.DateField(null=True, blank=True, help_text="Date de recolte effective")
     notes = models.TextField(blank=True, null=True, help_text="Notes et observations")
+    budget_alloue = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Budget optionnel alloué à cette culture (FCFA), pour alertes par produit.",
+    )
     
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
@@ -333,13 +340,31 @@ class ProjetProduit(models.Model):
 class Investissement(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
+    projet_produit = models.ForeignKey(
+        "ProjetProduit",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="investissements",
+        help_text="Si vide : dépense générale au niveau projet. Sinon : affectée à cette culture.",
+    )
     description = models.TextField(null=True, blank=False)
     cout_par_hectare = models.DecimalField(max_digits=10, decimal_places=2)
     autres_frais = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     date_investissement = models.DateField(default=now)
 
+    def superficie_reference(self):
+        """Hectares utilisés pour le calcul du montant (culture si renseignée, sinon projet)."""
+        if self.projet_produit_id and self.projet_produit.superficie_allouee:
+            return self.projet_produit.superficie_allouee
+        return self.projet.superficie
+
     def calculer_investissement_total(self):
-        return self.cout_par_hectare * self.projet.superficie + self.autres_frais
+        from decimal import Decimal
+
+        autres = self.autres_frais or Decimal("0")
+        ha = self.superficie_reference()
+        return self.cout_par_hectare * ha + autres
 
     def __str__(self):
         return f"Investissement {self.id} pour le projet {self.projet.nom}"

@@ -102,7 +102,15 @@ from baay.permissions import (
     role_dans_ferme,
     roles_assignables_par,
 )
-from baay.services import ensure_profile_for_user, get_prevision_affichee_projet, update_prediction_for_projet_produit
+from baay.services import (
+    check_budget_status,
+    check_projet_produit_budget_status,
+    ensure_profile_for_user,
+    get_prevision_affichee_projet,
+    investissement_montant_expr,
+    total_investissements_projet,
+    update_prediction_for_projet_produit,
+)
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -885,15 +893,25 @@ def ajouter_investissement(request, projet_id):
         return redirect('detail_projet', projet_id=projet.id)
 
     if request.method == 'POST':
-        investissement_form = InvestissementForm(request.POST)
+        investissement_form = InvestissementForm(request.POST, projet=projet)
         if investissement_form.is_valid():
             investissement = investissement_form.save(commit=False)
             investissement.projet = projet  # Associer l'investissement au projet
             investissement.save()
-            messages.success(request, "Investissement enregistré.")
+            st = check_budget_status(projet.id)
+            stp = (
+                check_projet_produit_budget_status(investissement.projet_produit_id)
+                if investissement.projet_produit_id
+                else {}
+            )
+            over = (st.get("applicable") and st.get("over_budget")) or (
+                stp.get("applicable") and stp.get("over_budget")
+            )
+            if not over:
+                messages.success(request, "Investissement enregistré.")
             return redirect('detail_projet', projet_id=projet.id)
     else:
-        investissement_form = InvestissementForm()
+        investissement_form = InvestissementForm(projet=projet)
 
     return render(request, 'projets/ajouter_investissement.html', {
         'projet': projet,
@@ -932,7 +950,9 @@ def detail_projet(request, projet_id):
     # Recuperer les investissements associes au projet (si autorise)
     can_view_investissements = peut_voir_investissements(request.user.profile, projet.ferme)
     investissements = (
-        projet.investissement_set.select_related('projet').all()
+        projet.investissement_set.select_related(
+            "projet", "projet_produit", "projet_produit__produit"
+        ).all()
         if can_view_investissements
         else Investissement.objects.none()
     )
@@ -1113,16 +1133,9 @@ def dashboard(request):
     rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
     can_view_investissements = peut_voir_investissements_any(utilisateur)
     if can_view_investissements:
-        investissement_expr = ExpressionWrapper(
-            F('cout_par_hectare') * F('projet__superficie')
-            + Coalesce(
-                F('autres_frais'),
-                Value(Decimal('0'), output_field=ModelDecimalField(max_digits=12, decimal_places=4)),
-            ),
-            output_field=ModelDecimalField(max_digits=28, decimal_places=8),
-        )
+        investissement_expr = investissement_montant_expr()
         inv_agg = Investissement.objects.filter(projet__in=projets_qs).aggregate(
-            total=Sum(investissement_expr)
+            total=Coalesce(Sum(investissement_expr), Value(Decimal('0')))
         )
         investissement_total = inv_agg['total'] or 0
     else:
@@ -1283,7 +1296,7 @@ def collect_training_data():
     data = []
 
     for projet in projets:
-        investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
+        investissement_total = float(total_investissements_projet(projet.id))
         data.append({
             'superficie': float(projet.superficie or 0),
             'prix_par_kg': float(projet.culture.prix_par_kg or 0),
@@ -1425,7 +1438,7 @@ def predire_rendement(projet):
     if model is None:
         return fallback_rendement
 
-    investissement_total = projet.investissement_set.aggregate(Sum('cout_par_hectare'))['cout_par_hectare__sum'] or 0
+    investissement_total = float(total_investissements_projet(projet.id))
 
     try:
         data = {
@@ -1593,16 +1606,9 @@ def dashboard_stats_api(request):
     # Get investissements total (cout_par_hectare * superficie + autres_frais)
     can_view_investissements = peut_voir_investissements_any(utilisateur)
     if can_view_investissements:
-        investissement_expr = ExpressionWrapper(
-            F('cout_par_hectare') * F('projet__superficie')
-            + Coalesce(
-                F('autres_frais'),
-                Value(Decimal('0'), output_field=ModelDecimalField(max_digits=12, decimal_places=4)),
-            ),
-            output_field=ModelDecimalField(max_digits=28, decimal_places=8),
-        )
+        investissement_expr = investissement_montant_expr()
         inv_agg = Investissement.objects.filter(projet__in=projets).aggregate(
-            total=Sum(investissement_expr)
+            total=Coalesce(Sum(investissement_expr), Value(Decimal('0')))
         )
         investissement_total = inv_agg['total'] or Decimal('0')
     else:

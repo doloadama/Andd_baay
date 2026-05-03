@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 {% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
 {% block extra_head %}
@@ -383,19 +384,27 @@
                     <h5 class="mb-0"><i class="fas fa-coins text-accent me-2" aria-hidden="true"></i> Investissements</h5>
                 </div>
                 <div class="glass-card-body">
-                    {% if projet.investissement_set.all %}
-                        <p class="projet-section-intro">Coûts par poste et visualisation du poids du coût / ha.</p>
+                    {% if investissements %}
+                        <p class="projet-section-intro">Coûts par poste : montant total par ligne (coût/ha × surface de référence + autres frais).</p>
                         <div class="invest-cards-mobile d-lg-none" role="list" aria-label="Liste des investissements">
-                            {% for inv in projet.investissement_set.all %}
+                            {% for inv in investissements %}
                             <article class="invest-card-mobile" role="listitem">
                                 <div class="invest-card-mobile__title">{{ inv.description }}</div>
+                                <div class="invest-card-mobile__row">
+                                    <span class="invest-card-mobile__label">Culture</span>
+                                    <span class="invest-card-mobile__value">{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}Général{% endif %}</span>
+                                </div>
                                 <div class="invest-card-mobile__row">
                                     <span class="invest-card-mobile__label">Coût / ha</span>
                                     <span class="invest-card-mobile__value">{{ inv.cout_par_hectare }}&nbsp;FCFA</span>
                                 </div>
                                 <div class="invest-card-mobile__row">
                                     <span class="invest-card-mobile__label">Autres frais</span>
-                                    <span class="invest-card-mobile__value">{{ inv.autres_frais }}&nbsp;FCFA</span>
+                                    <span class="invest-card-mobile__value">{{ inv.autres_frais|default:0 }}&nbsp;FCFA</span>
+                                </div>
+                                <div class="invest-card-mobile__row">
+                                    <span class="invest-card-mobile__label">Montant total</span>
+                                    <span class="invest-card-mobile__value fw-bold">{{ inv.calculer_investissement_total|floatformat:0 }}&nbsp;FCFA</span>
                                 </div>
                             </article>
                             {% endfor %}
@@ -407,17 +416,21 @@
                                         <thead>
                                             <tr>
                                                 <th>Description</th>
+                                                <th>Culture</th>
                                                 <th class="text-end">Coût/ha</th>
                                                 <th class="text-end">Autres</th>
+                                                <th class="text-end">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for inv in projet.investissement_set.all %}
-                                                <tr>
-                                                    <td>{{ inv.description }}</td>
-                                                    <td class="text-end fw-bold">{{ inv.cout_par_hectare }} <span class="text-muted text-sm">FCFA</span></td>
-                                                    <td class="text-end fw-bold">{{ inv.autres_frais }} <span class="text-muted text-sm">FCFA</span></td>
-                                                </tr>
+                                            {% for inv in investissements %}
+                                            <tr>
+                                                <td>{{ inv.description }}</td>
+                                                <td>{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}<span class="text-muted">Général</span>{% endif %}</td>
+                                                <td class="text-end fw-bold">{{ inv.cout_par_hectare }} <span class="text-muted text-sm">FCFA</span></td>
+                                                <td class="text-end fw-bold">{{ inv.autres_frais|default:0 }} <span class="text-muted text-sm">FCFA</span></td>
+                                                <td class="text-end fw-bold">{{ inv.calculer_investissement_total|floatformat:0 }} <span class="text-muted text-sm">FCFA</span></td>
+                                            </tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -478,8 +491,8 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         {% if can_view_investissements %}
-        var investmentLabels = [{% for inv in projet.investissement_set.all %}"{{ inv.description|escapejs }}",{% endfor %}];
-        var investmentData = [{% for inv in projet.investissement_set.all %}{{ inv.cout_par_hectare|default:0 }},{% endfor %}];
+        var investmentLabels = [{% for inv in investissements %}"{{ inv.description|escapejs }}",{% endfor %}];
+        var investmentData = [{% for inv in investissements %}{{ inv.calculer_investissement_total|unlocalize }},{% endfor %}];
         {% else %}
         var investmentLabels = [];
         var investmentData = [];
@@ -502,7 +515,7 @@
                 data: {
                     labels: investmentLabels,
                     datasets: [{
-                        label: 'Coût/ha (FCFA)',
+                        label: 'Montant ligne (FCFA)',
                         data: investmentData,
                         backgroundColor: gradient1,
                         borderColor: '#a3e635',

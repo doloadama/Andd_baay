@@ -2747,6 +2747,12 @@
                                 x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
                                 x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
                                 <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'finance_hub' %}active{% endif %}" href="{% url 'finance_hub' %}" data-pjax @click="open = false">
+                                        <i class="fas fa-wallet" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Hub Finance
+                                    </a>
+                                </li>
+                                <li role="none">
                                     <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false">
                                         <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
                                         Projets &amp; budgets
@@ -3071,6 +3077,12 @@
             <h2 class="bottom-sheet-title" id="bottom-sheet-finance-title">Finance</h2>
             <p class="bottom-sheet-sub text-muted small mb-2 px-1">Budgets, investissements et coûts</p>
             <ul class="bottom-sheet-link-list list-unstyled mb-0" role="list">
+                <li>
+                    <a href="{% url 'finance_hub' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'finance_hub' %}is-active{% endif %}" @click="financeSheetOpen = false">
+                        <i class="fas fa-wallet" aria-hidden="true"></i>
+                        <span>Hub Finance</span>
+                    </a>
+                </li>
                 <li>
                     <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'liste_projets' %}is-active{% endif %}" @click="financeSheetOpen = false">
                         <i class="fas fa-folder-open" aria-hidden="true"></i>

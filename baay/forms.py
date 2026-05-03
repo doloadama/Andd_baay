@@ -140,23 +140,116 @@ class ProfileUpdateForm(forms.ModelForm):
 class InvestissementForm(forms.ModelForm):
     class Meta:
         model = Investissement
-        fields = ['description', 'cout_par_hectare', 'date_investissement']
+        fields = [
+            "description",
+            "cout_par_hectare",
+            "autres_frais",
+            "date_investissement",
+            "projet_produit",
+        ]
         widgets = {
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'cout_par_hectare': forms.NumberInput(attrs={'class': 'form-control'}),
-            'date_investissement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            "description": forms.Textarea(attrs={"class": "form-control"}),
+            "cout_par_hectare": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "autres_frais": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "min": "0"}
+            ),
+            "date_investissement": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "projet_produit": forms.Select(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, projet=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.projet = projet
+        self.fields["projet_produit"].required = False
+        self.fields["autres_frais"].required = False
         if projet:
-            self.projet = projet
+            self.fields["projet_produit"].queryset = (
+                projet.projet_produits.select_related("produit").order_by("produit__nom")
+            )
+            self.fields["projet_produit"].label_from_instance = lambda p: p.produit.nom
+        else:
+            self.fields["projet_produit"].queryset = ProjetProduit.objects.none()
 
     def clean_cout_par_hectare(self):
-        cout_par_hectare = self.cleaned_data.get('cout_par_hectare')
+        cout_par_hectare = self.cleaned_data.get("cout_par_hectare")
         if cout_par_hectare is not None and cout_par_hectare <= 0:
             raise forms.ValidationError("Le coût par hectare doit être positif.")
         return cout_par_hectare
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pp = cleaned_data.get("projet_produit")
+        if self.projet and pp and pp.projet_id != self.projet.id:
+            raise forms.ValidationError(
+                {"projet_produit": "Cette culture n'appartient pas au projet."}
+            )
+        return cleaned_data
+
+
+class FinanceDepenseForm(forms.ModelForm):
+    """Saisie d'une dépense depuis le hub Finance (choix du projet)."""
+
+    class Meta:
+        model = Investissement
+        fields = [
+            "projet",
+            "projet_produit",
+            "description",
+            "cout_par_hectare",
+            "autres_frais",
+            "date_investissement",
+        ]
+        widgets = {
+            "projet": forms.Select(attrs={"class": "form-control"}),
+            "projet_produit": forms.Select(attrs={"class": "form-control", "id": "id_projet_produit"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "cout_par_hectare": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "autres_frais": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "min": "0"}
+            ),
+            "date_investissement": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        from django.urls import reverse
+
+        from baay.permissions import projets_modifiables_depenses_qs
+
+        if user and user.is_authenticated:
+            self.fields["projet"].queryset = projets_modifiables_depenses_qs(user.profile).order_by(
+                "nom"
+            )
+        self.fields["projet_produit"].required = False
+        self.fields["projet_produit"].queryset = ProjetProduit.objects.none()
+        self.fields["autres_frais"].required = False
+        self.fields["projet"].widget.attrs.setdefault("id", "id_finance_depense_projet")
+        self.fields["projet"].widget.attrs.update(
+            {
+                "hx-get": reverse("finance_produits_form_partial"),
+                "hx-target": "#finance-depense-produit-wrap",
+                "hx-swap": "innerHTML",
+                "hx-trigger": "change",
+            }
+        )
+
+    def clean_cout_par_hectare(self):
+        cout = self.cleaned_data.get("cout_par_hectare")
+        if cout is not None and cout <= 0:
+            raise forms.ValidationError("Le coût par hectare doit être positif.")
+        return cout
+
+    def clean(self):
+        cleaned_data = super().clean()
+        projet = cleaned_data.get("projet")
+        pp = cleaned_data.get("projet_produit")
+        if projet and pp and pp.projet_id != projet.id:
+            raise forms.ValidationError(
+                {"projet_produit": "La culture ne correspond pas au projet sélectionné."}
+            )
+        return cleaned_data
+
 
 class ProjetForm(forms.ModelForm):
     statut = forms.ChoiceField(

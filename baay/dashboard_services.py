@@ -27,6 +27,7 @@ from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
 from baay import permissions as perm
+from baay.services import investissement_montant_expr
 from baay.models import (
     Ferme,
     Investissement,
@@ -121,17 +122,6 @@ def layer_visible_flags(is_global: bool, roles: set[str]) -> dict[str, bool]:
     }
 
 
-def _inv_line_expr():
-    return ExpressionWrapper(
-        F("cout_par_hectare") * F("projet__superficie")
-        + Coalesce(
-            F("autres_frais"),
-            Value(Decimal("0"), output_field=DecimalField(max_digits=12, decimal_places=4)),
-        ),
-        output_field=DecimalField(max_digits=28, decimal_places=8),
-    )
-
-
 def aggregate_platform_kpis(fermes_qs, projets_qs, now) -> dict[str, int]:
     """Compteurs pour les cartes KPI (filtrés par périmètre ferme / projet)."""
     from baay.models import DemandeAccesFerme, Message
@@ -172,7 +162,7 @@ def aggregate_platform_kpis(fermes_qs, projets_qs, now) -> dict[str, int]:
 
 def build_owner_payload(fermes_qs, projets_qs) -> dict[str, Any]:
     """Propriétaire : ROI, cultures, perf inter-fermes, cash-flow."""
-    inv_line = _inv_line_expr()
+    inv_line = investissement_montant_expr()
     inv_total_row = Investissement.objects.filter(projet__in=projets_qs).aggregate(
         total=Sum(inv_line)
     )
@@ -254,7 +244,7 @@ def build_owner_payload(fermes_qs, projets_qs) -> dict[str, Any]:
 
 def build_manager_payload(fermes_qs, projets_qs) -> dict[str, Any]:
     """Manager : complétion tâches, budget (répartition), charge par membre."""
-    inv_line = _inv_line_expr()
+    inv_line = investissement_montant_expr()
     taches = Tache.objects.filter(ferme__in=fermes_qs).exclude(statut="annulee")
     t_agg = taches.aggregate(
         total=Count("id"),
@@ -369,7 +359,7 @@ def prevision_summary(projets_qs) -> dict[str, Any]:
 
 
 def invest_par_projet_table(projets_qs, limit: int = 16) -> list[dict[str, Any]]:
-    inv_line = _inv_line_expr()
+    inv_line = investissement_montant_expr()
     return list(
         Investissement.objects.filter(projet__in=projets_qs)
         .values("projet_id", "projet__nom")

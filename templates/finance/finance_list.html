@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Hub Finance | Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Vue centralisée des dépenses et investissements agricoles par projet et par culture." />
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/finance.css' %}">
+
+<section class="projects-shell tw-max-w-6xl tw-mx-auto tw-px-3 sm:tw-px-4 tw-py-6 lg:tw-py-10">
+    <!-- Hero -->
+    <header class="finance-hero mb-4 mb-lg-5">
+        <div class="finance-hero__copy">
+            <span class="finance-kicker">Finance</span>
+            <h1 class="finance-title">Hub Finance</h1>
+            <p class="finance-subtitle">
+                Toutes les dépenses auxquelles vous avez accès, filtrables par projet, culture et période.
+            </p>
+        </div>
+        <div class="finance-hero__stats" id="finance-stats-bar"
+            hx-get="{% url 'finance_stats_partial' %}"
+            hx-include="#finance-filters-form"
+            hx-trigger="change from:#finance-filters-form, input delay:350ms from:#filt-annee"
+            hx-swap="innerHTML"
+        >
+            {% include "finance/_stats_bar.html" %}
+        </div>
+    </header>
+
+    <!-- Filtres -->
+    <div class="finance-filters-shell mb-4 mb-lg-5">
+        <div class="finance-filters-header">
+            <i class="fas fa-filter text-accent" aria-hidden="true"></i>
+            <h2>Filtres</h2>
+        </div>
+        <div class="finance-filters-body">
+            <form id="finance-filters-form" method="get" action="{% url 'finance_hub' %}" class="row g-3 align-items-end">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label small text-muted mb-1" for="filt-projet">Projet</label>
+                    <select
+                        name="projet"
+                        id="filt-projet"
+                        class="form-control"
+                        hx-get="{% url 'finance_produits_filter_partial' %}"
+                        hx-target="#filter-produit-wrap"
+                        hx-swap="innerHTML"
+                        hx-trigger="change"
+                    >
+                        <option value="">— Tous les projets —</option>
+                        {% for p in filter_projets %}
+                            <option value="{{ p.pk }}"{% if filter_projet_id == p.pk|stringformat:"s" %} selected{% endif %}>{{ p.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4" id="filter-produit-wrap">
+                    {% include "finance/_produit_filter_select.html" with projet_produits=produits_for_filter produit_scope=filter_produit_scope %}
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small text-muted mb-1" for="filt-mois">Mois</label>
+                    <select name="mois" id="filt-mois" class="form-control">
+                        <option value="">—</option>
+                        {% for m in month_choices %}
+                            <option value="{{ m }}"{% if filter_mois == m|stringformat:"s" %} selected{% endif %}>{{ m|stringformat:"02d" }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small text-muted mb-1" for="filt-annee">Année</label>
+                    <input type="number" name="annee" id="filt-annee" class="form-control" min="2000" max="2100" step="1" placeholder="Ex. 2026" value="{{ filter_annee }}">
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn-modern btn-accent"><i class="fas fa-sync-alt me-1"></i>Mettre à jour la liste</button>
+                    {% if filter_projet_id or filter_mois or filter_annee or filter_produit_scope != 'all' %}
+                        <a href="{% url 'finance_hub' %}" class="btn-modern btn-outline-modern"><i class="fas fa-undo me-1"></i>Réinitialiser</a>
+                    {% endif %}
+                </div>
+            </form>
+            <p class="finance-filters-note"><i class="fas fa-info-circle me-1"></i>Le total en tête de page se met à jour immédiatement quand vous changez un filtre ; cliquez sur le bouton pour rafraîchir le tableau et la pagination.</p>
+        </div>
+    </div>
+
+    <!-- Dépenses -->
+    <div class="row g-4 tw-mb-8">
+        <div class="col-12">
+            <div class="finance-table-shell">
+                <div class="finance-filters-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h2><i class="fas fa-list-ul text-accent me-2" aria-hidden="true"></i> Dépenses</h2>
+                    {% if filter_projet_id %}
+                        <span class="finance-badge"><i class="fas fa-filter me-1"></i> Filtré</span>
+                    {% endif %}
+                </div>
+                {% if depenses %}
+                    <!-- Mobile cards -->
+                    <div class="d-md-none p-3" role="list" aria-label="Dépenses (cartes)">
+                        {% for d in depenses %}
+                            <article class="finance-mobile-card mb-3" role="listitem">
+                                <div class="finance-mobile-card__top">
+                                    <div class="finance-mobile-card__title">{{ d.description|default:"—" }}</div>
+                                    <div class="finance-mobile-card__amount">{{ d.calculer_investissement_total|floatformat:0 }} <span class="small" style="font-weight:500;color:var(--text-muted)">FCFA</span></div>
+                                </div>
+                                <div class="finance-mobile-card__rows">
+                                    <div class="finance-mobile-card__row">
+                                        <span class="finance-mobile-card__label">Date</span>
+                                        <span class="finance-mobile-card__value">{{ d.date_investissement|date:"d/m/Y" }}</span>
+                                    </div>
+                                    <div class="finance-mobile-card__row">
+                                        <span class="finance-mobile-card__label">Projet</span>
+                                        <span class="finance-mobile-card__value">{{ d.projet.nom }}</span>
+                                    </div>
+                                    <div class="finance-mobile-card__row">
+                                        <span class="finance-mobile-card__label">Produit</span>
+                                        <span class="finance-mobile-card__value finance-mobile-card__value--muted">{% if d.projet_produit %}{{ d.projet_produit.produit.nom }}{% else %}Général{% endif %}</span>
+                                    </div>
+                                    <div class="finance-mobile-card__row">
+                                        <span class="finance-mobile-card__label">Montant</span>
+                                        <span class="finance-mobile-card__value" style="color:var(--accent-dark);font-weight:700;font-variant-numeric:tabular-nums;">{{ d.calculer_investissement_total|floatformat:0 }} FCFA</span>
+                                    </div>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                    <!-- Desktop table -->
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="w-100 mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Libellé</th>
+                                    <th>Projet</th>
+                                    <th>Produit</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in depenses %}
+                                    <tr>
+                                        <td class="text-nowrap">{{ d.date_investissement|date:"d/m/Y" }}</td>
+                                        <td>{{ d.description|default:"—"|truncatechars:80 }}</td>
+                                        <td>{{ d.projet.nom }}</td>
+                                        <td>{% if d.projet_produit %}{{ d.projet_produit.produit.nom }}{% else %}<span class="text-muted">Général</span>{% endif %}</td>
+                                        <td class="text-end text-nowrap">
+                                            <span class="finance-amount">{{ d.calculer_investissement_total|floatformat:0 }}</span>
+                                            <span class="text-muted small">FCFA</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="finance-empty">
+                        <div class="finance-empty-icon"><i class="fas fa-search-dollar"></i></div>
+                        <p class="finance-empty-title">Aucune dépense trouvée</p>
+                        <p class="finance-empty-text">Aucune dépense ne correspond à ces filtres. Essayez de modifier les critères ou enregistrez une nouvelle dépense ci-dessous.</p>
+                    </div>
+                {% endif %}
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="finance-pagination">
+                        <span class="text-muted small">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                        <nav aria-label="Pagination dépenses">
+                            <ul class="pagination pagination-sm mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filter_qs %}&{{ filter_qs }}{% endif %}">Préc.</a></li>
+                                {% endif %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filter_qs %}&{{ filter_qs }}{% endif %}">Suiv.</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="col-12">
+            <div class="finance-form-shell">
+                <div class="finance-form-header">
+                    <i class="fas fa-plus-circle text-accent" aria-hidden="true"></i>
+                    <h2>Nouvelle dépense</h2>
+                </div>
+                <div class="finance-form-body">
+                    <form method="post" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                        {% csrf_token %}
+                        {% if form_depense.non_field_errors %}
+                            <div class="alert alert-danger">{{ form_depense.non_field_errors }}</div>
+                        {% endif %}
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="{{ form_depense.projet.id_for_label }}">Projet</label>
+                                {{ form_depense.projet }}
+                                {% if form_depense.projet.errors %}<div class="text-danger small mt-1">{{ form_depense.projet.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div id="finance-depense-produit-wrap">
+                                    <label class="form-label" for="{{ form_depense.projet_produit.id_for_label }}">Culture <span class="text-muted fw-normal">(optionnel)</span></label>
+                                    {{ form_depense.projet_produit }}
+                                    {% if form_depense.projet_produit.errors %}<div class="text-danger small mt-1">{{ form_depense.projet_produit.errors.0 }}</div>{% endif %}
+                                    <p class="form-text">Choisissez d’abord un projet ; la liste des cultures se met à jour automatiquement.</p>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="{{ form_depense.description.id_for_label }}">Description</label>
+                                {{ form_depense.description }}
+                                {% if form_depense.description.errors %}<div class="text-danger small mt-1">{{ form_depense.description.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="{{ form_depense.cout_par_hectare.id_for_label }}">Coût / ha</label>
+                                {{ form_depense.cout_par_hectare }}
+                                {% if form_depense.cout_par_hectare.errors %}<div class="text-danger small mt-1">{{ form_depense.cout_par_hectare.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="{{ form_depense.autres_frais.id_for_label }}">Autres frais</label>
+                                {{ form_depense.autres_frais }}
+                                {% if form_depense.autres_frais.errors %}<div class="text-danger small mt-1">{{ form_depense.autres_frais.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="{{ form_depense.date_investissement.id_for_label }}">Date</label>
+                                {{ form_depense.date_investissement }}
+                                {% if form_depense.date_investissement.errors %}<div class="text-danger small mt-1">{{ form_depense.date_investissement.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn-modern btn-accent"><i class="fas fa-save me-1"></i>Enregistrer la dépense</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

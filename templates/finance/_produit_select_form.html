@@ -1,0 +1,10 @@
+<div class="mb-3">
+    <label class="form-label" for="id_projet_produit"><i class="fas fa-seedling me-1 text-accent"></i>Culture <span class="text-muted fw-normal">(optionnel)</span></label>
+    <select name="projet_produit" id="id_projet_produit" class="form-control">
+        <option value="">— Général au projet —</option>
+        {% for pp in projet_produits %}
+            <option value="{{ pp.pk }}">{{ pp.produit.nom }}</option>
+        {% endfor %}
+    </select>
+    <p class="form-text">Sans culture : dépense au niveau de tout le projet.</p>
+</div>

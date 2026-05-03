@@ -1,0 +1,20 @@
+<div class="finance-stats-shell">
+    <div class="finance-stat-card">
+        <div class="finance-stat-icon finance-stat-icon--gold">
+            <i class="fas fa-coins"></i>
+        </div>
+        <div>
+            <span class="finance-stat-label">Total filtré</span>
+            <span class="finance-stat-value">{{ total_filtre|floatformat:0 }} <span class="finance-stat-value--muted">FCFA</span></span>
+        </div>
+    </div>
+    <div class="finance-stat-card">
+        <div class="finance-stat-icon finance-stat-icon--blue">
+            <i class="fas fa-list-ol"></i>
+        </div>
+        <div>
+            <span class="finance-stat-label">Lignes</span>
+            <span class="finance-stat-value finance-stat-value--muted">{{ count_filtre }} <span class="finance-stat-value--muted">dépense{{ count_filtre|pluralize:"s" }}</span></span>
+        </div>
+    </div>
+</div>

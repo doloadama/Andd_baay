@@ -20,8 +20,10 @@ def finance_section(request):
     rm = getattr(request, "resolver_match", None)
     u = (rm.url_name or "") if rm else ""
     active = show and bool(u) and (
-        "investissement" in u
-        or "finance" in u
+        u == "finance_hub"
+        or u == "ajouter_investissement"
+        or ("finance_" in u)
+        or ("investissement" in u)
     )
 
     return {
