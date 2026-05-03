@@ -244,12 +244,22 @@ button, input, select, textarea { font-family: inherit; }
 .btn-accent {
     background: linear-gradient(135deg, var(--accent), var(--accent-dark));
     color: #022c22 !important;
-    box-shadow: 0 4px 14px rgba(163, 230, 53, 0.3);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 32%, transparent);
 }
 .btn-accent:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(163, 230, 53, 0.4);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 42%, transparent);
     color: #022c22 !important;
+}
+
+.dark-mode .btn-accent {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: var(--text-inverse) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-deep) 48%, transparent);
+}
+.dark-mode .btn-accent:hover {
+    color: var(--text-inverse) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--brand-deep) 58%, transparent);
 }
 
 .btn-outline-modern {

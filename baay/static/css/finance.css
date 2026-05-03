@@ -105,14 +105,20 @@
 .finance-stat-icon {
     width: 42px;
     height: 42px;
-    border-radius: 12px;
+    border-radius: 14px;
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     flex-shrink: 0;
     background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
     color: var(--brand-light);
+}
+
+.finance-stat-icon i {
+    line-height: 1;
+    font-weight: 900;
 }
 
 .finance-stat-icon--gold {
@@ -253,16 +259,84 @@
     border-bottom: none;
 }
 
+/* Empêche le tableau de se tasser sur les écrans entre 768 et ~1024 px */
+.finance-table-shell table {
+    min-width: 720px;
+}
+
+.finance-amount-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.finance-amount-wrap--compact {
+    justify-content: flex-start;
+}
+
 .finance-amount {
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: var(--accent-dark, var(--brand-deep));
     font-family: var(--font-display, system-ui);
     font-size: 1rem;
+    line-height: 1.2;
+}
+
+/* Même famille chromatique que le montant (évite « deux verts » number vs devise) */
+.finance-amount__suffix {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--accent-dark, var(--brand-deep));
+    opacity: 0.88;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+}
+
+.finance-mobile-card__amount.finance-amount-wrap .finance-amount {
+    font-size: 1.05rem;
+}
+
+.finance-mobile-card__amount.finance-amount-wrap .finance-amount__suffix {
+    font-size: 0.78rem;
+    font-weight: 700;
 }
 
 .finance-amount--negative {
     color: var(--danger, #ef4444);
+}
+
+.finance-amount--negative + .finance-amount__suffix {
+    color: var(--danger, #ef4444);
+    opacity: 1;
+}
+
+/* Boutons primaires du hub : priorité sur tout reset tiers */
+.finance-hub-page .btn-modern.btn-accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #022c22 !important;
+    border: none;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 32%, transparent);
+}
+
+.finance-hub-page .btn-modern.btn-accent:hover {
+    color: #022c22 !important;
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 42%, transparent);
+}
+
+.dark-mode .finance-hub-page .btn-modern.btn-accent {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: var(--text-inverse) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-deep) 48%, transparent);
+}
+
+.dark-mode .finance-hub-page .btn-modern.btn-accent:hover {
+    color: var(--text-inverse) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--brand-deep) 58%, transparent);
 }
 
 .finance-badge {
@@ -329,11 +403,6 @@
 }
 
 .finance-mobile-card__amount {
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: var(--accent-dark, var(--brand-deep));
-    font-family: var(--font-display, system-ui);
-    font-size: 1.05rem;
     white-space: nowrap;
     flex-shrink: 0;
 }
@@ -386,7 +455,7 @@
     background: linear-gradient(
         135deg,
         color-mix(in srgb, var(--brand-primary) 10%, transparent) 0%,
-        color-mix(in srgb, var(--brand-accent) 8%, transparent) 100%
+        color-mix(in srgb, var(--brand-deep) 8%, transparent) 100%
     );
 }
 
@@ -408,11 +477,18 @@
     margin-bottom: 6px;
 }
 
+.finance-hub-page .finance-filters-shell .form-control,
+.finance-hub-page .finance-filters-shell select {
+    border-radius: 12px;
+    border: 1.5px solid color-mix(in srgb, var(--brand-deep) 16%, transparent);
+    background: var(--bg-main, #f8fafc);
+}
+
 .finance-form-body .form-control,
 .finance-form-body select,
 .finance-form-body textarea {
     border-radius: 12px;
-    border: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    border: 1.5px solid color-mix(in srgb, var(--brand-deep) 16%, transparent);
     background: var(--bg-main, #f8fafc);
     padding: 11px 14px;
     font-size: 0.94rem;
@@ -432,6 +508,68 @@
     font-size: 0.78rem;
     color: var(--text-muted);
     margin-top: 4px;
+}
+
+/* ========== HUB FINANCE — dark mode & labels ========== */
+.dark-mode .finance-hub-page .finance-filters-header {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--brand-primary) 14%, transparent) 0%,
+        color-mix(in srgb, var(--brand-deep) 22%, transparent) 100%
+    );
+}
+
+.dark-mode .finance-hub-page .finance-form-header {
+    background: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+.dark-mode .finance-hub-page .finance-filters-shell .form-control,
+.dark-mode .finance-hub-page .finance-filters-shell select,
+.dark-mode .finance-hub-page .finance-form-body .form-control,
+.dark-mode .finance-hub-page .finance-form-body select,
+.dark-mode .finance-hub-page .finance-form-body textarea {
+    background: var(--card-bg-solid);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+.dark-mode .finance-hub-page .finance-filters-shell select option,
+.dark-mode .finance-hub-page .finance-form-body select option {
+    background-color: var(--card-bg-solid);
+    color: var(--text-main);
+}
+
+.dark-mode .finance-hub-page .finance-form-body .form-control:focus,
+.dark-mode .finance-hub-page .finance-form-body select:focus,
+.dark-mode .finance-hub-page .finance-form-body textarea:focus,
+.dark-mode .finance-hub-page .finance-filters-shell .form-control:focus,
+.dark-mode .finance-hub-page .finance-filters-shell select:focus {
+    background: var(--card-bg-solid);
+    color: var(--text-main);
+}
+
+.finance-scope-label__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 100%;
+}
+
+.finance-scope-label__text {
+    line-height: 1.25;
+}
+
+@media (max-width: 767.98px) {
+    /* Au-dessus de la bottom-nav si la bulle messagerie est rendue visible sur mobile */
+    body:has(.finance-hub-page) .chat-bubble-container {
+        bottom: 96px !important;
+        right: 14px !important;
+    }
+
+    .finance-hub-page.projects-shell {
+        padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 /* ========== PAGINATION ========== */
@@ -538,6 +676,7 @@
     .finance-stat-icon {
         width: 36px;
         height: 36px;
+        border-radius: 14px;
         font-size: 0.95rem;
     }
     .finance-filters-body,

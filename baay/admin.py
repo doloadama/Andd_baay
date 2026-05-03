@@ -139,6 +139,8 @@ class InvestissementAdmin(DashboardChangelistMixin, ModelAdmin):
     baay_dashboard_slug = "investissement"
     list_display = (
         "projet",
+        "libelle",
+        "categorie",
         "projet_produit",
         "cout_par_hectare",
         "autres_frais",
@@ -148,7 +150,7 @@ class InvestissementAdmin(DashboardChangelistMixin, ModelAdmin):
         ("date_investissement", RangeDateFilter),
         ("projet", AutocompleteSelectFilter),
     ]
-    search_fields = ("projet__nom", "description", "projet_produit__produit__nom")
+    search_fields = ("projet__nom", "libelle", "description", "projet_produit__produit__nom")
     ordering = ("-date_investissement",)
     list_select_related = ("projet", "projet__ferme", "projet_produit", "projet_produit__produit")
     list_filter_submit = True

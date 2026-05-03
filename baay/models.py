@@ -338,6 +338,16 @@ class ProjetProduit(models.Model):
 
 
 class Investissement(models.Model):
+    CATEGORIE_GENERAL = "general"
+    CATEGORIE_CHOICES = [
+        (CATEGORIE_GENERAL, "Général"),
+        ("intrant", "Intrant"),
+        ("main_oeuvre", "Main d'œuvre"),
+        ("transport", "Transport"),
+        ("irrigation", "Irrigation"),
+        ("materiel", "Matériel"),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
     projet_produit = models.ForeignKey(
@@ -348,7 +358,18 @@ class Investissement(models.Model):
         related_name="investissements",
         help_text="Si vide : dépense générale au niveau projet. Sinon : affectée à cette culture.",
     )
-    description = models.TextField(null=True, blank=False)
+    libelle = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Titre court affiché dans les listes (ex. achat engrais).",
+    )
+    categorie = models.CharField(
+        max_length=32,
+        choices=CATEGORIE_CHOICES,
+        default=CATEGORIE_GENERAL,
+    )
+    description = models.TextField(null=True, blank=True)
     cout_par_hectare = models.DecimalField(max_digits=10, decimal_places=2)
     autres_frais = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     date_investissement = models.DateField(default=now)
@@ -365,6 +386,15 @@ class Investissement(models.Model):
         autres = self.autres_frais or Decimal("0")
         ha = self.superficie_reference()
         return self.cout_par_hectare * ha + autres
+
+    def libelle_affichage(self):
+        """Libellé tableau / cartes : champ libelle ou extrait de description."""
+        if self.libelle and self.libelle.strip():
+            return self.libelle.strip()
+        text = (self.description or "").strip()
+        if text:
+            return text.split("\n")[0][:255]
+        return "—"
 
     def __str__(self):
         return f"Investissement {self.id} pour le projet {self.projet.nom}"

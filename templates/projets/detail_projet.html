@@ -389,7 +389,7 @@
                         <div class="invest-cards-mobile d-lg-none" role="list" aria-label="Liste des investissements">
                             {% for inv in investissements %}
                             <article class="invest-card-mobile" role="listitem">
-                                <div class="invest-card-mobile__title">{{ inv.description }}</div>
+                                <div class="invest-card-mobile__title">{{ inv.libelle_affichage }}</div>
                                 <div class="invest-card-mobile__row">
                                     <span class="invest-card-mobile__label">Culture</span>
                                     <span class="invest-card-mobile__value">{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}Général{% endif %}</span>
@@ -425,7 +425,7 @@
                                         <tbody>
                                             {% for inv in investissements %}
                                             <tr>
-                                                <td>{{ inv.description }}</td>
+                                                <td>{{ inv.libelle_affichage }}</td>
                                                 <td>{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}<span class="text-muted">Général</span>{% endif %}</td>
                                                 <td class="text-end fw-bold">{{ inv.cout_par_hectare }} <span class="text-muted text-sm">FCFA</span></td>
                                                 <td class="text-end fw-bold">{{ inv.autres_frais|default:0 }} <span class="text-muted text-sm">FCFA</span></td>
@@ -491,7 +491,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         {% if can_view_investissements %}
-        var investmentLabels = [{% for inv in investissements %}"{{ inv.description|escapejs }}",{% endfor %}];
+        var investmentLabels = [{% for inv in investissements %}"{{ inv.libelle_affichage|escapejs }}",{% endfor %}];
         var investmentData = [{% for inv in investissements %}{{ inv.calculer_investissement_total|unlocalize }},{% endfor %}];
         {% else %}
         var investmentLabels = [];

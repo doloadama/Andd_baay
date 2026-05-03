@@ -31,7 +31,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- Bootstrap & Icons -->
@@ -53,6 +53,8 @@
         :root {
             --brand-primary: #1D9E75;
             --brand-deep: #085041;
+            --brand-night: #04342C;
+            --brand-pale: #9FE1CB;
             --brand-light: #5DCAA5;
             --brand-bg: #E1F5EE;
             --brand-accent: #EF9F27;
@@ -430,6 +432,10 @@
             gap: 8px;
         }
 
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
         .text-success-modern {
             color: var(--success) !important;
         }
@@ -652,29 +658,82 @@
             color: var(--accent-hover);
         }
 
-        /* ===== NAVBAR ===== */
+        /* ===== NAVBAR (premium glass — léger, cohérent hero) ===== */
         .navbar-wrapper {
             position: sticky;
             top: 0;
             z-index: 1000;
-            padding: 12px 16px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
+            padding: 8px 12px 10px;
+            background: transparent;
+            border-bottom: none;
+            transition: padding 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .navbar-wrapper.navbar-is-scrolled {
+            padding-top: 6px;
+            padding-bottom: 8px;
         }
 
         .navbar-floating {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            --navbar-glass-bg: rgba(255, 255, 255, 0.75);
+            --navbar-glass-border: rgba(255, 255, 255, 0.55);
+            --navbar-glass-shadow: 0 8px 32px rgba(4, 52, 44, 0.06),
+                0 2px 12px rgba(4, 52, 44, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            background: var(--navbar-glass-bg);
+            backdrop-filter: blur(14px) saturate(1.25);
+            -webkit-backdrop-filter: blur(14px) saturate(1.25);
+            border: 1px solid rgba(255, 255, 255, 0.52);
+            box-shadow: var(--navbar-glass-shadow);
             border-radius: var(--radius-pill);
-            padding: 8px 12px 8px 20px;
-            box-shadow: var(--shadow-md);
+            padding: 6px 10px 6px 14px;
             max-width: 1200px;
             margin: 0 auto;
-            transition: all var(--transition);
+            transition:
+                padding 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.28s ease,
+                border-color 0.28s ease,
+                backdrop-filter 0.28s ease,
+                -webkit-backdrop-filter 0.28s ease;
+        }
+
+        .dark-mode .navbar-floating {
+            --navbar-glass-bg: rgba(18, 28, 25, 0.76);
+            --navbar-glass-border: rgba(159, 225, 203, 0.11);
+            --navbar-glass-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.38),
+                0 4px 14px rgba(0, 0, 0, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-color: var(--navbar-glass-border);
+            box-shadow: var(--navbar-glass-shadow);
+        }
+
+        .navbar-wrapper.navbar-is-scrolled .navbar-floating {
+            padding: 4px 10px 4px 12px;
+            backdrop-filter: blur(18px) saturate(1.35);
+            -webkit-backdrop-filter: blur(18px) saturate(1.35);
+            box-shadow:
+                0 14px 44px rgba(4, 52, 44, 0.09),
+                0 4px 16px rgba(4, 52, 44, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .dark-mode .navbar-wrapper.navbar-is-scrolled .navbar-floating {
+            box-shadow:
+                0 18px 52px rgba(0, 0, 0, 0.48),
+                0 6px 18px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .navbar-nav-premium.navbar-nav {
+            gap: 0.15rem;
+        }
+
+        @media (min-width: 992px) {
+            .navbar-nav-premium.navbar-nav {
+                gap: 0.05rem;
+            }
         }
 
         .navbar-brand {
@@ -686,41 +745,102 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: transform var(--transition-fast);
+            transition:
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.22s ease;
         }
 
         .navbar-brand:hover {
-            opacity: 0.8;
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        /* Logo wordmark — charte Andd Baay (Plus Jakarta Sans, feuille + circuits) */
+        .brand-wordmark-mark-bg {
+            fill: var(--brand-bg);
+        }
+
+        .dark-mode .brand-wordmark-mark-bg {
+            fill: var(--brand-night);
         }
 
         .brand-wordmark-svg {
             display: block;
-            height: 34px;
+            height: 40px;
             width: auto;
-            max-width: min(200px, 52vw);
+            max-width: min(248px, 62vw);
+        }
+
+        .navbar-brand .brand-wordmark-svg--nav {
+            height: 43px;
+            max-width: min(258px, 64vw);
+        }
+
+        .navbar-brand .brand-wordmark-svg .brand-wordmark-text {
+            font-size: 17.5px;
+        }
+
+        .navbar-brand .brand-wordmark-svg .brand-wordmark-tagline {
+            font-size: 9px;
+            opacity: 0.92;
         }
 
         .brand-wordmark-svg--footer {
-            height: 28px;
-            max-width: min(180px, 70vw);
+            height: 34px;
+            max-width: min(220px, 74vw);
         }
 
         .brand-wordmark-svg--auth {
-            height: 42px;
-            max-width: 220px;
+            height: 48px;
+            max-width: 264px;
             margin: 0 auto 20px auto;
         }
 
         .brand-wordmark-svg .brand-wordmark-text {
-            font-family: var(--font-display);
-            font-weight: 800;
-            font-size: 17px;
-            letter-spacing: -0.02em;
+            font-family: 'Plus Jakarta Sans', var(--font-display), system-ui, sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.04em;
             fill: currentColor;
         }
 
+        .brand-wordmark-svg .brand-wordmark-tagline {
+            font-family: 'Plus Jakarta Sans', var(--font-display), system-ui, sans-serif;
+            font-weight: 400;
+            font-size: 9.75px;
+            letter-spacing: 0.05em;
+            fill: var(--brand-primary);
+        }
+
         .navbar-brand .brand-wordmark-svg {
-            color: var(--text-main);
+            color: var(--brand-night);
+        }
+
+        .navbar-brand .brand-wordmark-svg .brand-wordmark-tagline {
+            fill: var(--brand-primary);
+        }
+
+        .dark-mode .navbar-brand .brand-wordmark-svg {
+            color: #ffffff;
+        }
+
+        .dark-mode .navbar-brand .brand-wordmark-svg .brand-wordmark-tagline {
+            fill: var(--brand-pale);
+        }
+
+        @media (max-width: 991.98px) {
+            .brand-wordmark-svg--nav {
+                height: 34px;
+                max-width: min(196px, 58vw);
+            }
+
+            .navbar-brand .brand-wordmark-svg--nav {
+                height: 36px;
+            }
+
+            .brand-wordmark-svg--nav .brand-wordmark-tagline {
+                display: none;
+            }
         }
 
         .footer-wordmark-link {
@@ -737,31 +857,190 @@
             fill: currentColor;
         }
 
-        /* Nav Links */
+        .footer-wordmark-link .brand-wordmark-tagline {
+            fill: var(--brand-primary);
+        }
+
+        .dark-mode .footer-wordmark-link .brand-wordmark-tagline {
+            fill: var(--brand-pale);
+        }
+
+        /* Nav Links — tons doux, hover émeraude, actif pill */
         .nav-link-modern {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.82rem;
-            padding: 7px 12px;
+            color: color-mix(in srgb, var(--text-muted) 88%, var(--brand-deep));
+            font-weight: 500;
+            font-size: 0.8125rem;
+            padding: 6px 10px;
             border-radius: var(--radius-pill);
-            transition: all var(--transition-fast);
+            transition:
+                color 0.22s ease,
+                background 0.22s ease,
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.22s ease;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .nav-link-modern:hover {
-            color: var(--text-main);
-            background: var(--bg-secondary);
+            color: var(--brand-primary);
+            background: rgba(29, 158, 117, 0.09);
+            transform: translateY(-1px);
         }
 
         .nav-link-modern.active {
-            color: var(--text-inverse);
-            background: var(--accent);
+            color: var(--brand-primary);
+            font-weight: 600;
+            background: rgba(29, 158, 117, 0.13);
+            box-shadow: inset 0 0 0 1px rgba(29, 158, 117, 0.14);
+        }
+
+        .nav-link-modern:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+            color: var(--brand-primary);
+            background: rgba(29, 158, 117, 0.09);
+        }
+
+        .dark-mode .nav-link-modern:focus-visible {
+            box-shadow: 0 0 0 3px rgba(159, 225, 203, 0.35);
+        }
+
+        .dark-mode .nav-link-modern {
+            color: color-mix(in srgb, var(--text-muted) 92%, white);
         }
 
         .dark-mode .nav-link-modern:hover {
-            background: var(--border-color);
+            color: var(--brand-light);
+            background: rgba(29, 158, 117, 0.14);
+        }
+
+        .dark-mode .nav-link-modern.active {
+            color: var(--brand-pale);
+            background: rgba(29, 158, 117, 0.18);
+            box-shadow: inset 0 0 0 1px rgba(159, 225, 203, 0.18);
+        }
+
+        .nav-link-modern > i {
+            opacity: 0.88;
+            transition: opacity 0.22s ease;
+        }
+
+        .nav-link-modern:hover > i,
+        .nav-link-modern.active > i {
+            opacity: 1;
+        }
+
+        /* CTA « Nouveau » — proportions fines, ombre douce */
+        .navbar-floating .navbar-cta-new.btn-baay-primary {
+            padding: 0.42rem 0.92rem !important;
+            font-size: 0.78rem !important;
+            font-weight: 600 !important;
+            border-radius: 999px !important;
+            box-shadow: 0 2px 10px rgba(29, 158, 117, 0.16) !important;
+            gap: 6px !important;
+            transition:
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.22s ease,
+                filter 0.22s ease !important;
+        }
+
+        .navbar-floating .navbar-cta-new.btn-baay-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 16px rgba(29, 158, 117, 0.22) !important;
+            filter: brightness(1.02);
+        }
+
+        @media (hover: none) and (pointer: coarse), (max-width: 991.98px) {
+            .navbar-floating .navbar-cta-new.btn-baay-primary {
+                min-height: 44px;
+                align-items: center;
+            }
+
+            #themeToggleMobile.theme-toggle {
+                width: 36px;
+                height: 36px;
+                font-size: 0.78rem;
+            }
+        }
+
+        /* Landing — Connexion / Inscription dans la barre */
+        .navbar-floating .btn-nav-primary {
+            box-shadow: 0 2px 10px rgba(29, 158, 117, 0.14);
+            padding: 6px 14px !important;
+            font-weight: 600 !important;
+            font-size: 0.78rem !important;
+            transition:
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.22s ease;
+        }
+
+        .navbar-floating .btn-nav-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(29, 158, 117, 0.2);
+            opacity: 1;
+        }
+
+        .navbar-floating .btn-nav-outline {
+            padding: 6px 14px !important;
+            font-size: 0.78rem !important;
+            font-weight: 600 !important;
+            transition:
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.22s ease,
+                border-color 0.22s ease,
+                background 0.22s ease;
+        }
+
+        .navbar-floating .btn-nav-outline:hover {
+            transform: translateY(-1px);
+            color: var(--brand-primary) !important;
+            border-color: rgba(29, 158, 117, 0.28);
+            background: rgba(29, 158, 117, 0.06);
+        }
+
+        /* Séparateur discret — CTA vs contrôles */
+        .nav-navbar-divider {
+            list-style: none;
+            align-self: stretch;
+            display: none;
+            align-items: center;
+            padding: 0;
+            margin: 0 8px;
+        }
+
+        @media (min-width: 992px) {
+            .nav-navbar-divider {
+                display: flex;
+            }
+        }
+
+        .nav-navbar-divider::before {
+            content: "";
+            width: 1px;
+            height: 22px;
+            border-radius: 1px;
+            background: rgba(4, 52, 44, 0.09);
+        }
+
+        .dark-mode .nav-navbar-divider::before {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Contrôles droite — spacing harmonisé */
+        @media (min-width: 992px) {
+            .navbar-nav-premium > .nav-item:has(.nav-notification) {
+                margin-left: 2px;
+            }
+
+            .navbar-nav-premium > .nav-item:has(.user-avatar) {
+                margin-left: 4px;
+                margin-right: 2px;
+            }
+
+            .navbar-nav-premium > .nav-item:has(#themeToggle) {
+                margin-left: 4px;
+            }
         }
 
         /* Exploitation — menu parent (desktop) */
@@ -872,67 +1151,128 @@
             color: var(--danger) !important;
         }
 
+        .btn-nav:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+        }
+
         /* User Avatar */
         .user-avatar {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 4px 12px 4px 4px;
-            background: var(--bg-secondary);
+            padding: 3px 11px 3px 3px;
+            background: rgba(255, 255, 255, 0.38);
             border-radius: var(--radius-pill);
-            border: 1px solid var(--border-color);
-            transition: all var(--transition-fast);
+            border: 1px solid rgba(4, 52, 44, 0.07);
+            transition:
+                background 0.22s ease,
+                border-color 0.22s ease,
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .user-avatar:hover {
-            border-color: var(--text-muted);
+            border-color: rgba(29, 158, 117, 0.22);
         }
 
         .user-avatar.dropdown-toggle:hover {
-            background: var(--bg-tertiary);
+            background: rgba(29, 158, 117, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .user-avatar.dropdown-toggle:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+            background: rgba(29, 158, 117, 0.08);
+        }
+
+        .dark-mode .user-avatar.dropdown-toggle:focus-visible {
+            box-shadow: 0 0 0 3px rgba(159, 225, 203, 0.35);
+        }
+
+        .dark-mode .user-avatar {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(159, 225, 203, 0.11);
+        }
+
+        .dark-mode .user-avatar.dropdown-toggle:hover {
+            background: rgba(29, 158, 117, 0.12);
         }
 
         .user-avatar-icon {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: var(--text-inverse);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.76rem;
         }
 
         .user-avatar-name {
             font-family: var(--font-display);
             font-weight: 600;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
+            color: color-mix(in srgb, var(--text-main) 94%, var(--brand-deep));
+        }
+
+        .dark-mode .user-avatar-name {
             color: var(--text-main);
         }
 
-        /* Theme Toggle */
+        /* Theme Toggle — discret, même famille que les icônes nav */
         .theme-toggle {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.42);
+            border: 1px solid rgba(4, 52, 44, 0.08);
+            color: color-mix(in srgb, var(--text-muted) 90%, var(--brand-deep));
+            font-size: 0.72rem;
             cursor: pointer;
-            transition: all var(--transition);
+            transition:
+                background 0.22s ease,
+                color 0.22s ease,
+                border-color 0.22s ease,
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
 
         .theme-toggle:hover {
-            background: var(--bg-secondary);
-            color: var(--text-main);
-            border-color: var(--text-muted);
+            background: rgba(29, 158, 117, 0.1);
+            color: var(--brand-primary);
+            border-color: rgba(29, 158, 117, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+            background: rgba(29, 158, 117, 0.1);
+            color: var(--brand-primary);
+            border-color: rgba(29, 158, 117, 0.2);
+        }
+
+        .dark-mode .theme-toggle:focus-visible {
+            box-shadow: 0 0 0 3px rgba(159, 225, 203, 0.35);
+        }
+
+        .dark-mode .theme-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(159, 225, 203, 0.12);
+            color: rgba(200, 220, 212, 0.75);
+        }
+
+        .dark-mode .theme-toggle:hover {
+            background: rgba(29, 158, 117, 0.15);
+            color: var(--brand-pale);
+            border-color: rgba(159, 225, 203, 0.22);
         }
 
         .theme-toggle .icon-sun,
@@ -964,24 +1304,53 @@
         /* Notification Bell */
         .nav-notification {
             position: relative;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            transition: all var(--transition-fast);
+            color: color-mix(in srgb, var(--text-muted) 88%, var(--brand-deep));
+            font-size: 0.84rem;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(4, 52, 44, 0.07);
+            transition:
+                background 0.22s ease,
+                color 0.22s ease,
+                border-color 0.22s ease,
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
         }
 
         .nav-notification:hover {
-            background: var(--bg-secondary);
-            color: var(--text-main);
-            border-color: var(--text-muted);
+            background: rgba(29, 158, 117, 0.1);
+            color: var(--brand-primary);
+            border-color: rgba(29, 158, 117, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .nav-notification:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+            background: rgba(29, 158, 117, 0.1);
+            color: var(--brand-primary);
+            border-color: rgba(29, 158, 117, 0.18);
+        }
+
+        .dark-mode .nav-notification:focus-visible {
+            box-shadow: 0 0 0 3px rgba(159, 225, 203, 0.35);
+        }
+
+        .dark-mode .nav-notification {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(159, 225, 203, 0.1);
+            color: rgba(200, 220, 212, 0.78);
+        }
+
+        .dark-mode .nav-notification:hover {
+            background: rgba(29, 158, 117, 0.14);
+            color: var(--brand-light);
+            border-color: rgba(159, 225, 203, 0.18);
         }
 
         .nav-notification-badge {
@@ -1074,6 +1443,13 @@
             color: var(--text-main);
         }
 
+        .nav-notif-tab:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+            background: rgba(29, 158, 117, 0.08);
+            color: var(--text-main);
+        }
+
         .nav-notif-tab.active {
             background: var(--accent-subtle);
             color: var(--accent-dark);
@@ -1106,6 +1482,12 @@
         }
 
         .nav-notif-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .nav-notif-item:focus-visible {
+            outline: none;
+            box-shadow: inset 0 0 0 2px rgba(29, 158, 117, 0.35);
             background: var(--bg-secondary);
         }
 
@@ -1256,6 +1638,16 @@
 
         .navbar-toggler-modern:hover {
             background: var(--bg-secondary);
+        }
+
+        .navbar-toggler-modern:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.35);
+            background: var(--bg-secondary);
+        }
+
+        .dark-mode .navbar-toggler-modern:focus-visible {
+            box-shadow: 0 0 0 3px rgba(159, 225, 203, 0.35);
         }
 
         /* ===== MODERN BUTTONS ===== */
@@ -2063,15 +2455,30 @@
         @media (max-width: 991px) {
             .navbar-floating {
                 border-radius: var(--radius-card);
-                padding: 12px 16px;
+                padding: 6px 10px;
+                background: rgba(255, 255, 255, 0.82);
+                backdrop-filter: blur(14px) saturate(1.2);
+                -webkit-backdrop-filter: blur(14px) saturate(1.2);
+            }
+
+            .dark-mode .navbar-floating {
+                background: rgba(18, 28, 25, 0.88);
             }
 
             .navbar-collapse {
-                background: var(--card-bg-solid);
-                border-radius: 12px;
-                padding: 16px;
-                margin-top: 12px;
-                border: 1px solid var(--border-color);
+                background: rgba(255, 255, 255, 0.94);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-radius: 14px;
+                padding: 14px;
+                margin-top: 10px;
+                border: 1px solid rgba(4, 52, 44, 0.08);
+                box-shadow: 0 12px 36px rgba(4, 52, 44, 0.08);
+            }
+
+            .dark-mode .navbar-collapse {
+                background: rgba(18, 28, 25, 0.94);
+                border-color: rgba(159, 225, 203, 0.1);
             }
 
             .btn-nav {
@@ -2553,6 +2960,36 @@
                 font-size: 0.82rem;
             }
         }
+
+        /* Respect user preference for reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            .nav-link-modern,
+            .nav-notification,
+            .theme-toggle,
+            .user-avatar,
+            .navbar-toggler-modern,
+            .btn-nav,
+            .nav-notif-tab,
+            .nav-notif-item,
+            .btn-modern,
+            .nav-exploitation-trigger {
+                transition: none !important;
+                transform: none !important;
+            }
+
+            .theme-toggle .icon-sun,
+            .theme-toggle .icon-moon {
+                transition: none !important;
+            }
+
+            .voice-orb {
+                animation: none !important;
+            }
+
+            .voice-wave-bar {
+                animation: none !important;
+            }
+        }
     </style>
 
     <!-- Extra head block for child templates -->
@@ -2604,11 +3041,11 @@
             <div class="tour-header" id="tourHeader">
                 <div class="tour-header-top">
                     <div class="tour-icon" id="tourIcon">
-                        <i id="tourIconEl" class="fas fa-seedling"></i>
+                        <i id="tourIconEl" class="fas fa-seedling" aria-hidden="true"></i>
                     </div>
                     <div class="tour-header-text">
                         <div class="tour-step-badge">
-                            <i class="fas fa-map-signs"></i>
+                            <i class="fas fa-map-signs" aria-hidden="true"></i>
                             <span id="tourStepLabel">Étape 1 sur 5</span>
                         </div>
                         <h2 class="tour-title" id="tourTitle">Bienvenue sur Andd Baay 🌱</h2>
@@ -2632,7 +3069,7 @@
                 <div class="tour-actions">
                     <button class="tour-skip" id="tourSkip">Passer le guide</button>
                     <button class="tour-next" id="tourNext">
-                        Suivant <i class="fas fa-arrow-right"></i>
+                        Suivant <i class="fas fa-arrow-right" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -2642,7 +3079,7 @@
 
     <!-- Navbar -->
     <header class="navbar-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-floating animate__animated animate__fadeInDown">
+        <nav class="navbar navbar-expand-lg navbar-floating animate__animated animate__fadeInDown" aria-label="Navigation principale">
             <div class="container-fluid">
                 <a class="navbar-brand tw-inline-flex tw-items-center tw-touch-manipulation tw-rounded-xl tw-px-1" href="{% url 'home' %}" aria-label="Andd Baay — Accueil">
                     {% include 'includes/brand_wordmark.html' with variant='nav' %}
@@ -2650,23 +3087,23 @@
 
                 <div class="d-flex align-items-center gap-2 d-lg-none">
                     <button id="themeToggleMobile" type="button" class="theme-toggle" aria-label="Changer de thème">
-                        <i class="fas fa-moon icon-moon"></i>
-                        <i class="fas fa-sun icon-sun"></i>
+                        <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
+                        <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
                     </button>
                     <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
-                        aria-label="Toggle navigation">
-                        <i class="fas fa-bars"></i>
+                        aria-label="Afficher la navigation">
+                        <i class="fas fa-bars" aria-hidden="true"></i>
                     </button>
                 </div>
 
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 gap-2 mt-3 mt-lg-0">
+                    <ul class="navbar-nav navbar-nav-premium ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0">
                         {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                                href="{% url 'dashboard' %}" data-pjax>
-                                <i class="fas fa-chart-pie"></i> Dashboard
+                                href="{% url 'dashboard' %}" data-pjax{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
+                                <i class="fas fa-chart-pie" aria-hidden="true"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item tw-relative nav-exploitation-dropdown"
@@ -2698,19 +3135,19 @@
                                 x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
                                 x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
                                 <li role="none">
-                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_fermes' %}" data-pjax @click="open = false">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_fermes' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                                         <i class="fas fa-warehouse" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
                                         Mes fermes
                                     </a>
                                 </li>
                                 <li role="none">
-                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                                         <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
                                         Projets en cours
                                     </a>
                                 </li>
                                 <li role="none">
-                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_semis' %}" data-pjax @click="open = false">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_semis' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                                         <i class="fas fa-seedling" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
                                         Suivi des semis
                                     </a>
@@ -2747,13 +3184,13 @@
                                 x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
                                 x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
                                 <li role="none">
-                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'finance_hub' %}active{% endif %}" href="{% url 'finance_hub' %}" data-pjax @click="open = false">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'finance_hub' %}active{% endif %}" href="{% url 'finance_hub' %}" data-pjax @click="open = false"{% if request.resolver_match.url_name == 'finance_hub' %} aria-current="page"{% endif %}>
                                         <i class="fas fa-wallet" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
                                         Hub Finance
                                     </a>
                                 </li>
                                 <li role="none">
-                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false"{% if request.resolver_match.url_name == 'liste_projets' %} aria-current="page"{% endif %}>
                                         <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
                                         Projets &amp; budgets
                                     </a>
@@ -2763,25 +3200,26 @@
                         {% endif %}
                         <li class="nav-item">
                             <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
-                                href="{% url 'taches_liste' %}" data-pjax>
-                                <i class="fas fa-list-check"></i> Tâches
+                                href="{% url 'taches_liste' %}" data-pjax{% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
+                                <i class="fas fa-list-check" aria-hidden="true"></i> Tâches
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'messagerie_inbox' %}" data-pjax
-                                data-drawer-toggle="messagerie">
-                                <i class="fas fa-envelope"></i> Messagerie
+                                data-drawer-toggle="messagerie"{% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
+                                <i class="fas fa-envelope" aria-hidden="true"></i> Messagerie
                             </a>
                         </li>
-                        <li class="nav-item me-lg-2">
-                            <a class="btn-baay btn-baay-primary py-2 px-3 tw-min-h-[44px] tw-inline-flex tw-items-center tw-touch-manipulation" href="{% url 'creer_projet' %}">
-                                <i class="fas fa-plus"></i> Nouveau
+                        <li class="nav-item me-lg-1">
+                            <a class="btn-baay btn-baay-primary navbar-cta-new py-2 px-3 tw-inline-flex tw-items-center tw-touch-manipulation" href="{% url 'creer_projet' %}">
+                                <i class="fas fa-plus" aria-hidden="true"></i> Nouveau
                             </a>
                         </li>
+                        <li class="nav-item nav-navbar-divider" aria-hidden="true"></li>
                         <li class="nav-item dropdown">
-                            <a class="nav-notification dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications" id="notifBellToggle">
-                                <i class="fas fa-bell"></i>
+                            <a class="nav-notification dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications" aria-label="Notifications" id="notifBellToggle">
+                                <i class="fas fa-bell" aria-hidden="true"></i>
                                 <span id="navUnreadBadge" class="nav-notification-badge"></span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end nav-notif-dropdown-menu" aria-labelledby="notifBellToggle">
@@ -2790,22 +3228,22 @@
                                     <button type="button" class="nav-notif-clear" id="notifClearAll" title="Tout marquer comme lu">Tout effacer</button>
                                 </div>
                                 <div class="nav-notif-tabs" role="tablist">
-                                    <button type="button" class="nav-notif-tab active" data-notif-tab="messages" role="tab" aria-selected="true">
-                                        <i class="fas fa-comment-dots me-1"></i> Messages
+                                    <button type="button" class="nav-notif-tab active" data-notif-tab="messages" role="tab" aria-selected="true" aria-controls="notifList">
+                                        <i class="fas fa-comment-dots me-1" aria-hidden="true"></i> Messages
                                     </button>
-                                    <button type="button" class="nav-notif-tab" data-notif-tab="systeme" role="tab" aria-selected="false">
-                                        <i class="fas fa-bell me-1"></i> Système
+                                    <button type="button" class="nav-notif-tab" data-notif-tab="systeme" role="tab" aria-selected="false" aria-controls="notifListSysteme">
+                                        <i class="fas fa-bell me-1" aria-hidden="true"></i> Système
                                     </button>
                                 </div>
                                 <div class="nav-notif-list" id="notifList" data-notif-panel="messages" role="tabpanel">
                                     <div class="nav-notif-empty" id="notifEmpty">
-                                        <i class="fas fa-bell-slash"></i>
+                                        <i class="fas fa-bell-slash" aria-hidden="true"></i>
                                         Aucune notification
                                     </div>
                                 </div>
                                 <div class="nav-notif-list" id="notifListSysteme" data-notif-panel="systeme" role="tabpanel" hidden>
                                     <div class="nav-notif-empty">
-                                        <i class="fas fa-info-circle"></i>
+                                        <i class="fas fa-info-circle" aria-hidden="true"></i>
                                         Pas de notification système pour l'instant.
                                     </div>
                                 </div>
@@ -2817,23 +3255,23 @@
                                     {{ user.first_name|make_list|first|default:user.username|make_list|first|upper }}
                                 </div>
                                 <span class="user-avatar-name">{{ user.first_name|default:user.username }}</span>
-                                <i class="fas fa-chevron-down ms-1" style="font-size:0.65rem;color:var(--text-muted);"></i>
+                                <i class="fas fa-chevron-down ms-1" style="font-size:0.65rem;color:var(--text-muted);" aria-hidden="true"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end nav-user-dropdown-menu">
                                 <li>
                                     <a class="dropdown-item" href="{% url 'profil' %}">
-                                        <i class="fas fa-user me-2 text-muted"></i> Mon Profil
+                                        <i class="fas fa-user me-2 text-muted" aria-hidden="true"></i> Mon Profil
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="#" onclick="document.getElementById('openGuideBtn').click(); return false;">
-                                        <i class="fas fa-question-circle me-2 text-muted"></i> Guide utilisateur
+                                        <i class="fas fa-question-circle me-2 text-muted" aria-hidden="true"></i> Guide utilisateur
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger logout-link" href="{% url 'logout' %}" data-logout-url="{% url 'logout' %}">
-                                        <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+                                        <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i> Déconnexion
                                     </a>
                                 </li>
                             </ul>
@@ -2871,8 +3309,8 @@
                         {% endif %}
                         <li class="nav-item d-none d-lg-block">
                             <button id="themeToggle" type="button" class="theme-toggle" aria-label="Changer de thème">
-                                <i class="fas fa-moon icon-moon"></i>
-                                <i class="fas fa-sun icon-sun"></i>
+                                <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
+                                <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
                             </button>
                         </li>
                     </ul>
@@ -2888,7 +3326,7 @@
                 <div class="modal-header">
                     <div class="d-flex align-items-center gap-3">
                         <span class="logout-confirm-icon">
-                            <i class="fas fa-sign-out-alt"></i>
+                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                         </span>
                         <div>
                             <h5 class="modal-title fw-bold mb-1" id="logoutConfirmTitle">Confirmer la déconnexion</h5>
@@ -2903,7 +3341,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn-baay btn-baay-outline" data-bs-dismiss="modal">Annuler</button>
                     <a class="btn-baay btn-baay-primary" id="confirmLogoutBtn" href="{% url 'logout' %}">
-                        <i class="fas fa-check"></i> Oui, me déconnecter
+                        <i class="fas fa-check" aria-hidden="true"></i> Oui, me déconnecter
                     </a>
                 </div>
             </div>
@@ -2940,9 +3378,9 @@
                     <p class="mb-0 tw-mt-2 tw-text-xs" style="color: var(--text-muted);">© {% now "Y" %} Andd Baay</p>
                 </div>
                 <div class="social-links tw-flex tw-flex-wrap tw-items-center tw-justify-center tw-gap-2 md:tw-justify-end">
-                    <a href="#" aria-label="Twitter" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="LinkedIn" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" aria-label="Instagram" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="LinkedIn" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="Instagram" class="tw-inline-flex tw-h-11 tw-w-11 tw-items-center tw-justify-center tw-touch-manipulation tw-rounded-full"><i class="fab fa-instagram" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
@@ -2960,7 +3398,7 @@
     <!-- Voice Assistant Floating Mic -->
     {% if user.is_authenticated %}
     <button type="button" class="voice-mic-btn d-none d-lg-flex" id="voiceMicBtn" aria-label="Assistant vocal" title="Assistant vocal">
-        <i class="fas fa-microphone" id="voiceMicIcon"></i>
+        <i class="fas fa-microphone" id="voiceMicIcon" aria-hidden="true"></i>
     </button>
 
     <!-- Voice Assistant Modal -->
@@ -2969,7 +3407,7 @@
             <div class="voice-modal-orb-wrapper">
                 <div class="voice-modal-orb-ring" id="voiceModalOrbRing"></div>
                 <div class="voice-modal-orb" id="voiceModalOrb">
-                    <i class="fas fa-microphone" id="voiceModalIcon"></i>
+                    <i class="fas fa-microphone" id="voiceModalIcon" aria-hidden="true"></i>
                 </div>
                 <div class="voice-wave-bars" id="voiceWaveBars">
                     <div class="voice-wave-bar"></div>
@@ -2982,7 +3420,7 @@
             <div class="voice-modal-text" id="voiceModalText">Parlez maintenant...</div>
             <div class="voice-modal-sub" id="voiceModalSub">Appuyez sur le micro ou maintenez <kbd>Espace</kbd></div>
             <div class="voice-modal-hint">
-                <kbd><i class="fas fa-microphone"></i></kbd> Messagerie &nbsp;·&nbsp; <kbd><i class="fas fa-home"></i></kbd> Dashboard &nbsp;·&nbsp; <kbd><i class="fas fa-folder"></i></kbd> Projets
+                <kbd><i class="fas fa-microphone" aria-hidden="true"></i></kbd> Messagerie &nbsp;·&nbsp; <kbd><i class="fas fa-home" aria-hidden="true"></i></kbd> Dashboard &nbsp;·&nbsp; <kbd><i class="fas fa-folder" aria-hidden="true"></i></kbd> Projets
             </div>
             <div class="voice-modal-close-hint" id="voiceModalCloseHint">Appuyez sur <kbd>Échap</kbd> ou cliquez ailleurs pour fermer</div>
         </div>
@@ -2991,6 +3429,21 @@
 
     <!-- FIX #4: Removed stray \n characters from script tags -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            var navWrap = document.querySelector('.navbar-wrapper');
+            if (!navWrap || !('classList' in navWrap)) {
+                return;
+            }
+            var threshold = 28;
+            function updateNavScroll() {
+                var y = window.scrollY || document.documentElement.scrollTop;
+                navWrap.classList.toggle('navbar-is-scrolled', y > threshold);
+            }
+            updateNavScroll();
+            window.addEventListener('scroll', updateNavScroll, { passive: true });
+        })();
+    </script>
     <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/tour.js' %}"></script>
     <script src="{% static 'js/pjax.js' %}"></script>
@@ -3040,19 +3493,19 @@
             <p class="bottom-sheet-sub text-muted small mb-2 px-1">Fermes, projets et semis</p>
             <ul class="bottom-sheet-link-list list-unstyled mb-0" role="list">
                 <li>
-                    <a href="{% url 'liste_fermes' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false">
+                    <a href="{% url 'liste_fermes' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false"{% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                         <i class="fas fa-warehouse" aria-hidden="true"></i>
                         <span>Mes fermes</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false">
+                    <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false"{% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                         <i class="fas fa-folder-open" aria-hidden="true"></i>
                         <span>Projets en cours</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'liste_semis' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false">
+                    <a href="{% url 'liste_semis' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}is-active{% endif %}" @click="sheetOpen = false"{% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                         <i class="fas fa-seedling" aria-hidden="true"></i>
                         <span>Suivi des semis</span>
                     </a>
@@ -3078,13 +3531,13 @@
             <p class="bottom-sheet-sub text-muted small mb-2 px-1">Budgets, investissements et coûts</p>
             <ul class="bottom-sheet-link-list list-unstyled mb-0" role="list">
                 <li>
-                    <a href="{% url 'finance_hub' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'finance_hub' %}is-active{% endif %}" @click="financeSheetOpen = false">
+                    <a href="{% url 'finance_hub' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'finance_hub' %}is-active{% endif %}" @click="financeSheetOpen = false"{% if request.resolver_match.url_name == 'finance_hub' %} aria-current="page"{% endif %}>
                         <i class="fas fa-wallet" aria-hidden="true"></i>
                         <span>Hub Finance</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'liste_projets' %}is-active{% endif %}" @click="financeSheetOpen = false">
+                    <a href="{% url 'liste_projets' %}" data-pjax class="bottom-sheet-link {% if request.resolver_match.url_name == 'liste_projets' %}is-active{% endif %}" @click="financeSheetOpen = false"{% if request.resolver_match.url_name == 'liste_projets' %} aria-current="page"{% endif %}>
                         <i class="fas fa-folder-open" aria-hidden="true"></i>
                         <span>Projets &amp; budgets</span>
                     </a>
@@ -3095,7 +3548,7 @@
         <nav class="bottom-nav" aria-label="Navigation mobile">
             <ul>
                 <li>
-                    <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
+                    <a href="{% url 'dashboard' %}" data-pjax class="{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard"{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
                         <i class="fas fa-chart-pie" aria-hidden="true"></i>
                         <span>Dashboard</span>
                     </a>
@@ -3132,14 +3585,14 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie">
+                    <a href="{% url 'messagerie_inbox' %}" data-pjax class="bottom-nav-messagerie {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}" aria-label="Messagerie"{% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                         <i class="fas fa-envelope" aria-hidden="true"></i>
                         <span>Message</span>
                         <span id="bottomNavMessagerieBadge" class="bottom-nav-badge" aria-live="polite" aria-atomic="true"></span>
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'profil' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil">
+                    <a href="{% url 'profil' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil"{% if request.resolver_match and request.resolver_match.url_name == 'profil' %} aria-current="page"{% endif %}>
                         <i class="fas fa-user" aria-hidden="true"></i>
                         <span>Profil</span>
                     </a>
@@ -3192,7 +3645,8 @@
 
         function updateBadge(count) {
             const floatingBadge = document.getElementById('floatingNotifBadge');
-            
+            const bellToggle = document.getElementById('notifBellToggle');
+
             if (count > 0) {
                 const displayCount = count > 9 ? '9+' : count;
                 if (badge) {
@@ -3203,9 +3657,15 @@
                     floatingBadge.textContent = displayCount;
                     floatingBadge.classList.add('show');
                 }
+                if (bellToggle) {
+                    bellToggle.setAttribute('aria-label', count > 9 ? 'Notifications, plus de 9 non lues' : 'Notifications, ' + count + ' non lue' + (count > 1 ? 's' : ''));
+                }
             } else {
                 if (badge) badge.style.display = 'none';
                 if (floatingBadge) floatingBadge.classList.remove('show');
+                if (bellToggle) {
+                    bellToggle.setAttribute('aria-label', 'Notifications, aucune non lue');
+                }
             }
         }
 
@@ -3242,7 +3702,7 @@
                         '<div class="nav-notif-meta"><i class="far fa-clock"></i> ' + escapeHtml(n.date) + '</div>' +
                     '</div>';
                 item.addEventListener('click', function() {
-                    if (badge) badge.style.display = 'none';
+                    updateBadge(0);
                 });
                 notifList.appendChild(item);
             });

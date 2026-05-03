@@ -1,11 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 40" fill="none" role="img" aria-labelledby="wmTitle">
-  <title id="wmTitle">Andd Baay</title>
-  <!-- Fichier statique : typo system-ui (utilisable en &lt;img&gt;, emails, exports) -->
-  <g transform="translate(0,4) scale(0.5)">
-    <rect width="64" height="64" rx="14" fill="#22c55e"/>
-    <path fill="#14532d" d="M32 10c-8 19-16 23-16 34a16 16 0 1 0 32 0c0-11-8-15-16-34z"/>
-    <path fill="#f0fdf4" fill-opacity=".92" d="M32 21c-4 10-8 15-8 21a8 8 0 1 0 16 0c0-6-4-11-8-21z"/>
-    <path stroke="#bbf7d0" stroke-width="1.2" stroke-linecap="round" d="M32 24v14M26 30h12" opacity=".55"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 226 46" fill="none" role="img" aria-labelledby="wmTitle">
+  <title id="wmTitle">Andd Baay — Intelligence agricole</title>
+  <g transform="translate(0,3) scale(0.5)">
+    <rect width="64" height="64" rx="14" fill="#E1F5EE"/>
+    <path fill="#9FE1CB" d="M32 9C23 11 15 18 14 27c-1 9 4 17 18 21 14-4 19-12 18-21C49 18 41 11 32 9z"/>
+    <path fill="none" stroke="#04342C" stroke-width="1.85" stroke-linecap="square" stroke-linejoin="miter"
+          d="M32 41V27m0 0h-11v10m11-10h13V17"/>
+    <path fill="none" stroke="#1D9E75" stroke-width="1.65" stroke-linecap="square" stroke-linejoin="miter"
+          d="M26 21h13v9h-9"/>
+    <circle cx="32" cy="41" r="2.5" fill="#04342C"/>
+    <circle cx="32" cy="27" r="2.5" fill="#04342C"/>
+    <circle cx="21" cy="37" r="2.5" fill="#04342C"/>
+    <circle cx="45" cy="17" r="2.5" fill="#04342C"/>
+    <circle cx="26" cy="21" r="2.35" fill="#04342C"/>
+    <circle cx="39" cy="30" r="2.35" fill="#04342C"/>
   </g>
-  <text x="38" y="26.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="17px" letter-spacing="-0.02em" fill="#0F172A">Andd Baay</text>
+  <text x="40" y="23" font-family="'Plus Jakarta Sans',system-ui,sans-serif" font-weight="700"
+        font-size="16px" letter-spacing="-0.04em" fill="#04342C">Andd Baay</text>
+  <text x="40" y="37" font-family="'Plus Jakarta Sans',system-ui,sans-serif" font-weight="400"
+        font-size="9.75px" letter-spacing="0.05em" fill="#1D9E75">Intelligence agricole</text>
 </svg>

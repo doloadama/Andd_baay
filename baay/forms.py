@@ -141,6 +141,8 @@ class InvestissementForm(forms.ModelForm):
     class Meta:
         model = Investissement
         fields = [
+            "libelle",
+            "categorie",
             "description",
             "cout_par_hectare",
             "autres_frais",
@@ -148,6 +150,8 @@ class InvestissementForm(forms.ModelForm):
             "projet_produit",
         ]
         widgets = {
+            "libelle": forms.TextInput(attrs={"class": "form-control", "placeholder": "Libellé de la dépense"}),
+            "categorie": forms.Select(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control"}),
             "cout_par_hectare": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "autres_frais": forms.NumberInput(
@@ -160,8 +164,11 @@ class InvestissementForm(forms.ModelForm):
     def __init__(self, *args, projet=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.projet = projet
+        self.fields["libelle"].required = False
+        self.fields["description"].required = False
         self.fields["projet_produit"].required = False
         self.fields["autres_frais"].required = False
+        self.fields["categorie"].initial = Investissement.CATEGORIE_GENERAL
         if projet:
             self.fields["projet_produit"].queryset = (
                 projet.projet_produits.select_related("produit").order_by("produit__nom")
@@ -179,6 +186,14 @@ class InvestissementForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         pp = cleaned_data.get("projet_produit")
+        libelle = (cleaned_data.get("libelle") or "").strip()
+        description = (cleaned_data.get("description") or "").strip()
+        if not libelle and description:
+            cleaned_data["libelle"] = description.split("\n")[0][:255]
+        elif not libelle and not description:
+            raise forms.ValidationError(
+                {"description": "Indiquez un libellé ou une description."}
+            )
         if self.projet and pp and pp.projet_id != self.projet.id:
             raise forms.ValidationError(
                 {"projet_produit": "Cette culture n'appartient pas au projet."}
@@ -194,20 +209,42 @@ class FinanceDepenseForm(forms.ModelForm):
         fields = [
             "projet",
             "projet_produit",
+            "libelle",
+            "categorie",
             "description",
             "cout_par_hectare",
             "autres_frais",
             "date_investissement",
         ]
         widgets = {
-            "projet": forms.Select(attrs={"class": "form-control"}),
-            "projet_produit": forms.Select(attrs={"class": "form-control", "id": "id_projet_produit"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-            "cout_par_hectare": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
-            "autres_frais": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.01", "min": "0"}
+            "projet": forms.Select(attrs={"class": "fh-field"}),
+            "projet_produit": forms.Select(attrs={"class": "fh-field", "id": "id_projet_produit"}),
+            "libelle": forms.TextInput(
+                attrs={
+                    "class": "fh-field",
+                    "id": "fLibelle",
+                    "placeholder": "Ex. Achat d'engrais, irrigation…",
+                    "autocomplete": "off",
+                }
             ),
-            "date_investissement": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "categorie": forms.Select(attrs={"class": "fh-field", "id": "fCategorie"}),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "fh-field",
+                    "id": "fDescription",
+                    "rows": 4,
+                    "placeholder": "Détails complémentaires…",
+                }
+            ),
+            "cout_par_hectare": forms.NumberInput(
+                attrs={"class": "fh-field", "id": "fCoutHa", "step": "0.01", "min": "0"}
+            ),
+            "autres_frais": forms.NumberInput(
+                attrs={"class": "fh-field", "id": "fFraisAutres", "step": "0.01", "min": "0"}
+            ),
+            "date_investissement": forms.DateInput(
+                attrs={"type": "date", "class": "fh-field", "id": "fDateInv"}
+            ),
         }
 
     def __init__(self, *args, user=None, **kwargs):
@@ -221,8 +258,23 @@ class FinanceDepenseForm(forms.ModelForm):
             self.fields["projet"].queryset = projets_modifiables_depenses_qs(user.profile).order_by(
                 "nom"
             )
+        self.fields["projet"].empty_label = "Choisir un projet…"
         self.fields["projet_produit"].required = False
-        self.fields["projet_produit"].queryset = ProjetProduit.objects.none()
+        projet_pk = None
+        if self.data.get("projet"):
+            projet_pk = self.data.get("projet")
+        elif getattr(self.instance, "pk", None) and getattr(self.instance, "projet_id", None):
+            projet_pk = self.instance.projet_id
+        if projet_pk:
+            self.fields["projet_produit"].queryset = (
+                ProjetProduit.objects.filter(projet_id=projet_pk)
+                .select_related("produit")
+                .order_by("produit__nom")
+            )
+        else:
+            self.fields["projet_produit"].queryset = ProjetProduit.objects.none()
+        self.fields["description"].required = False
+        self.fields["libelle"].required = True
         self.fields["autres_frais"].required = False
         self.fields["projet"].widget.attrs.setdefault("id", "id_finance_depense_projet")
         self.fields["projet"].widget.attrs.update(
@@ -233,6 +285,11 @@ class FinanceDepenseForm(forms.ModelForm):
                 "hx-trigger": "change",
             }
         )
+        self.fields["libelle"].label = "Libellé"
+        self.fields["date_investissement"].label = "Date"
+        self.fields["projet_produit"].label = "Culture"
+        self.fields["cout_par_hectare"].label = "Coût / ha (FCFA)"
+        self.fields["autres_frais"].label = "Autres frais (FCFA)"
 
     def clean_cout_par_hectare(self):
         cout = self.cleaned_data.get("cout_par_hectare")

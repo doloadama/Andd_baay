@@ -1,5 +1,6 @@
 """Hub Finance : liste des dépenses, filtres et saisie."""
 
+import json
 from decimal import Decimal
 
 from django.contrib import messages
@@ -107,6 +108,34 @@ def _querystring_without_page(request):
     return q.urlencode()
 
 
+MONTH_OPTIONS_FR = [
+    (1, "Janvier"),
+    (2, "Février"),
+    (3, "Mars"),
+    (4, "Avril"),
+    (5, "Mai"),
+    (6, "Juin"),
+    (7, "Juillet"),
+    (8, "Août"),
+    (9, "Septembre"),
+    (10, "Octobre"),
+    (11, "Novembre"),
+    (12, "Décembre"),
+]
+
+
+def _finance_hub_extra_context(request):
+    profile = request.user.profile
+    pairs = list(projets_modifiables_depenses_qs(profile).values_list("pk", "superficie"))
+    surfaces = {str(pk): float(sup or 0) for pk, sup in pairs}
+    modify_ids = {pk for pk, _ in pairs}
+    return {
+        "projet_superficies_json": json.dumps(surfaces),
+        "finance_modify_project_ids": modify_ids,
+        "month_options": MONTH_OPTIONS_FR,
+    }
+
+
 @method_decorator(login_required, name="dispatch")
 class FinanceHubView(View):
     template_name = "finance/finance_list.html"
@@ -141,7 +170,8 @@ class FinanceHubView(View):
             "total_filtre": _total_montant(qs),
             "count_filtre": qs.count(),
             "filter_qs": _querystring_without_page(request),
-            "month_choices": list(range(1, 13)),
+            "culture_partial_produits": [],
+            **_finance_hub_extra_context(request),
         }
         return render(request, self.template_name, context)
 
@@ -171,7 +201,8 @@ class FinanceHubView(View):
                     "total_filtre": _total_montant(qs),
                     "count_filtre": qs.count(),
                     "filter_qs": _querystring_without_page(request),
-                    "month_choices": list(range(1, 13)),
+                    "culture_partial_produits": _projet_produits_options(request.POST.get("projet")),
+                    **_finance_hub_extra_context(request),
                 },
                 status=400,
             )
@@ -283,3 +314,48 @@ class FinanceProduitFilterPartialView(View):
                 "produit_scope": request.GET.get("produit_scope") or "all",
             },
         )
+
+
+@method_decorator(login_required, name="dispatch")
+class FinanceInvestissementDuplicateView(View):
+    """Duplique une ligne de dépense (même projet)."""
+
+    def post(self, request, pk, *args, **kwargs):
+        resp = _deny_if_no_finance_access(request)
+        if resp:
+            return resp
+        inv = get_object_or_404(Investissement, pk=pk)
+        if not _depense_queryset_for_user(request).filter(pk=inv.pk).exists():
+            return HttpResponseForbidden()
+        if not peut_modifier_investissement(request.user.profile, inv.projet):
+            return HttpResponseForbidden()
+        Investissement.objects.create(
+            projet=inv.projet,
+            projet_produit=inv.projet_produit,
+            libelle=inv.libelle,
+            categorie=inv.categorie,
+            description=inv.description,
+            cout_par_hectare=inv.cout_par_hectare,
+            autres_frais=inv.autres_frais or Decimal("0"),
+            date_investissement=inv.date_investissement,
+        )
+        messages.success(request, "Ligne dupliquée.")
+        return _redirect_finance_hub_preserving_query(request)
+
+
+@method_decorator(login_required, name="dispatch")
+class FinanceInvestissementDeleteView(View):
+    """Supprime une dépense."""
+
+    def post(self, request, pk, *args, **kwargs):
+        resp = _deny_if_no_finance_access(request)
+        if resp:
+            return resp
+        inv = get_object_or_404(Investissement, pk=pk)
+        if not _depense_queryset_for_user(request).filter(pk=inv.pk).exists():
+            return HttpResponseForbidden()
+        if not peut_modifier_investissement(request.user.profile, inv.projet):
+            return HttpResponseForbidden()
+        inv.delete()
+        messages.success(request, "Dépense supprimée.")
+        return _redirect_finance_hub_preserving_query(request)
