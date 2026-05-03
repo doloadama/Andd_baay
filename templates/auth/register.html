@@ -117,14 +117,22 @@
     .password-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
     .password-label-row .form-label { margin-bottom: 0; }
 
-    .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--text-muted); font-size: 0.82rem; }
-    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
-    .divider:not(:empty)::before { margin-right: .6em; }
-    .divider:not(:empty)::after { margin-left: .6em; }
-
-    .btn-google { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius-input); color: #374151; font-weight: 600; font-size: 0.875rem; transition: all 0.3s; text-decoration: none; }
-    .btn-google:hover { background: #f9fafb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: #374151; }
-    .dark-mode .btn-google { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; }
+    .auth-google-hint {
+        margin: 0 0 18px;
+        padding: 12px 14px;
+        border-radius: var(--radius-input);
+        font-size: 0.85rem;
+        line-height: 1.45;
+        color: var(--text-main);
+        background: rgba(163, 230, 53, 0.08);
+        border: 1px solid rgba(163, 230, 53, 0.25);
+    }
+    .auth-google-hint a { font-weight: 600; color: var(--accent); text-decoration: none; }
+    .auth-google-hint a:hover { text-decoration: underline; }
+    .dark-mode .auth-google-hint {
+        background: rgba(163, 230, 53, 0.06);
+        border-color: rgba(163, 230, 53, 0.2);
+    }
 
     .auth-footer { text-align: center; margin-top: 24px; font-size: 0.95rem; color: var(--text-muted); }
     .auth-footer a { font-weight: 600; color: var(--accent); }
@@ -169,8 +177,7 @@
             min-height: 48px;
         }
 
-        .btn-submit,
-        .btn-google {
+        .btn-submit {
             min-height: 48px;
             padding-top: 14px;
             padding-bottom: 14px;
@@ -261,19 +268,14 @@
             {% endif %}
 
             {% get_providers as socialaccount_providers %}
-            {% if socialaccount_providers %}
-            <a href="{% provider_login_url 'google' %}" class="btn-google">
-                <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                </svg>
-                Continuer avec Google
-            </a>
-
-            <div class="divider">ou créez un compte manuellement</div>
+            {% for provider in socialaccount_providers %}
+            {% if provider.id == 'google' %}
+            <p class="auth-google-hint" role="note">
+                Vous pouvez <strong>vous connecter directement avec Google</strong> depuis la
+                <a href="{% url 'login' %}">page de connexion</a>. Ici, créez un compte avec e-mail et mot de passe.
+            </p>
             {% endif %}
+            {% endfor %}
 
             <form method="post" class="form-modern needs-validation" id="registerForm" novalidate>
                 {% csrf_token %}
