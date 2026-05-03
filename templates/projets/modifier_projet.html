@@ -196,8 +196,17 @@
                 <div class="card-body p-4 p-md-5">
                     {% if projet_form.errors %}
                     <div class="alert alert-danger mb-4">
-                        <strong>Erreur :</strong> Veuillez corriger les erreurs ci-dessous.
-                        {{ projet_form.non_field_errors }}
+                        <strong>Erreur :</strong> Veuillez corriger les points ci-dessous.
+                        <ul class="mb-0 mt-2 ps-3">
+                            {% for field in projet_form %}
+                                {% for err in field.errors %}
+                                    <li><strong>{{ field.label }} :</strong> {{ err }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for err in projet_form.non_field_errors %}
+                                <li>{{ err }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                     {% endif %}
                     
@@ -477,7 +486,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="date_fin" class="form-label-modern">Date de fin prévue</label>
+                                <label for="date_fin" class="form-label-modern">Date de fin prévue / clôture</label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-calendar-check input-icon"></i>
                                     {{ projet_form.date_fin }}
@@ -485,7 +494,23 @@
                                 {% if projet_form.date_fin.errors %}
                                 <div class="text-danger small mt-1">{{ projet_form.date_fin.errors }}</div>
                                 {% endif %}
+                                <p class="text-muted small mt-1 mb-0">Avec la date de lancement, sert au calcul automatique du taux d'avancement.</p>
                             </div>
+                            {% if projet_form.taux_avancement_personnalise %}
+                            <div class="col-md-6">
+                                <label for="{{ projet_form.taux_avancement_personnalise.id_for_label }}" class="form-label-modern">{{ projet_form.taux_avancement_personnalise.label }}</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-percentage input-icon"></i>
+                                    {{ projet_form.taux_avancement_personnalise }}
+                                </div>
+                                {% if projet_form.taux_avancement_personnalise.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.taux_avancement_personnalise.errors }}</div>
+                                {% endif %}
+                                {% if projet_form.taux_avancement_personnalise.help_text %}
+                                <p class="text-muted small mt-1 mb-0">{{ projet_form.taux_avancement_personnalise.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="d-flex gap-3 mt-5">
@@ -556,8 +581,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!isNaN(v) && v > 0) total += v;
             }
         });
-        if (totalDisplay) totalDisplay.value = total.toFixed(2);
-        if (hiddenSuperficie && total > 0) hiddenSuperficie.value = total.toFixed(2);
+        if (totalDisplay) totalDisplay.value = total > 0 ? total.toFixed(2) : '';
+        if (hiddenSuperficie) {
+            hiddenSuperficie.value = total > 0 ? total.toFixed(2) : '';
+        }
     }
 
     function applyItemStyle(item, checked) {

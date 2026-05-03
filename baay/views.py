@@ -717,7 +717,7 @@ def modifier_projet(request, projet_id):
             return redirect("detail_projet", projet_id=projet.id)
         if "save_rendement" in request.POST:
             # Ne pas binder ProjetForm au POST partiel (évite un formulaire incohérent en cas d'erreur)
-            projet_form = ProjetForm(instance=projet, user=request.user)
+            projet_form = ProjetForm(instance=projet, user=request.user, for_edit=True)
             plant_details_form = PlantDetailsForm(projet=projet)
             rendement_form = RendementFinalForm(request.POST, projet=projet)
             if rendement_form.is_valid():
@@ -744,7 +744,7 @@ def modifier_projet(request, projet_id):
                     )
                 return redirect("detail_projet", projet_id=projet.id)
         else:
-            projet_form = ProjetForm(request.POST, instance=projet, user=request.user)
+            projet_form = ProjetForm(request.POST, instance=projet, user=request.user, for_edit=True)
 
             if projet_form.is_valid():
                 plant_details_form = PlantDetailsForm(request.POST, request.FILES, projet=projet)
@@ -787,11 +787,16 @@ def modifier_projet(request, projet_id):
                 )
                 new_produits = set(p.id for p in produits)
 
-                # Remove products no longer selected
-                for pp in projet.projet_produits.filter(
-                    produit_id__in=existing_produits - new_produits
-                ):
-                    pp.delete()
+                # Retirer les cultures décochées. Ne pas itérer le queryset tout en appelant
+                # delete() sur chaque ligne : avec PostgreSQL / psycopg 3 cela invalide le
+                # curseur serveur (_django_curs_* does not exist).
+                to_drop_ids = list(
+                    projet.projet_produits.filter(
+                        produit_id__in=existing_produits - new_produits
+                    ).values_list("pk", flat=True)
+                )
+                if to_drop_ids:
+                    ProjetProduit.objects.filter(pk__in=to_drop_ids).delete()
 
                 # Add new products and update existing ones with allocated surface
                 for produit in produits:
@@ -822,7 +827,7 @@ def modifier_projet(request, projet_id):
                 )
                 logger.error("Erreurs dans projet_form : %s", projet_form.errors)
     else:
-        projet_form = ProjetForm(instance=projet, user=request.user)
+        projet_form = ProjetForm(instance=projet, user=request.user, for_edit=True)
         plant_details_form = PlantDetailsForm(projet=projet)
         if saisie_rendements_possible:
             rendement_form = RendementFinalForm(projet=projet)

@@ -1,8 +1,7 @@
 from django.contrib.auth.models import AbstractUser, User
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.timezone import now
 from decimal import Decimal
@@ -274,7 +273,19 @@ class Projet(models.Model):
     localite = models.ForeignKey(Localite, on_delete=models.CASCADE)
     superficie = models.DecimalField(max_digits=10, decimal_places=2)
     date_lancement = models.DateField()
-    date_fin = models.DateField(null=True, blank=True, help_text="Date de fin prévue/réelle du projet")
+    date_fin = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date de fin prévue ou de clôture opérationnelle du projet (avec la date de "
+        "lancement, sert au calcul du taux d'avancement par défaut).",
+    )
+    taux_avancement_personnalise = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Remplace le calcul automatique (dates début / fin). Réservé au manager de la "
+        "ferme et aux administrateurs.",
+    )
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     budget_alloue = models.DecimalField(
         max_digits=14,
@@ -287,9 +298,19 @@ class Projet(models.Model):
     # Image de fond du projet
     image_fond = models.ImageField(upload_to='projets_fonds/', null=True, blank=True, help_text="Image de couverture du projet (optionnelle)")
     
-    # Pratiques Agronomiques
-    type_irrigation = models.CharField(max_length=50, choices=TypeIrrigation.choices, default=TypeIrrigation.AUCUNE)
-    type_engrais = models.CharField(max_length=50, choices=TypeEngrais.choices, default=TypeEngrais.AUCUN)
+    # Pratiques Agronomiques (optionnel côté saisie ; défauts si non renseigné)
+    type_irrigation = models.CharField(
+        max_length=50,
+        choices=TypeIrrigation.choices,
+        default=TypeIrrigation.AUCUNE,
+        blank=True,
+    )
+    type_engrais = models.CharField(
+        max_length=50,
+        choices=TypeEngrais.choices,
+        default=TypeEngrais.AUCUN,
+        blank=True,
+    )
     
     # Multiple products relation
     produits = models.ManyToManyField(ProduitAgricole, through='ProjetProduit', related_name='projets_multi')
@@ -365,64 +386,57 @@ class Projet(models.Model):
         total = self.projet_produits.aggregate(total=models.Sum('rendement_final'))['total']
         return total or 0
 
-    def _avancement_breakdown(self) -> dict:
+    def _taux_avancement_temporel(self) -> float:
         """
-        Tâches : part des tâches non annulées en statut « terminée » (0-100 %).
-        Temps : avancement entre date_lancement et date_fin (ou référence 365 j. si pas de fin).
-        Combine les deux (50/50) si au moins une tâche existe ; sinon uniquement le volet temps.
+        Avancement 0–100 % à partir de la date de début et de la date de fin (clôture prévue/réelle).
+        Sans date_fin : progression provisoire sur une fenêtre de 365 jours après le lancement.
         """
         today = timezone.localdate()
         if self.statut in ("fini", self.STATUT_CLOTURE):
-            return {
-                "combined": 100,
-                "tasks_pct": 100.0,
-                "time_pct": 100.0,
-                "has_tasks": True,
-            }
-
-        agg = self.taches.exclude(statut="annulee").aggregate(
-            total=Count("id"),
-            done=Count("id", filter=Q(statut="terminee")),
-        )
-        total_t = agg["total"] or 0
-        done_t = agg["done"] or 0
-        if total_t:
-            tasks_pct = (done_t / total_t) * 100.0
-            has_tasks = True
-        else:
-            tasks_pct = 0.0
-            has_tasks = False
-
+            return 100.0
         start = self.date_lancement
         if not start:
-            time_pct = 0.0
-        else:
-            end_plan = self.date_fin
-            if end_plan and end_plan > start:
-                denom_days = (end_plan - start).days or 1
-                if today >= end_plan:
-                    time_pct = 100.0
-                else:
-                    elapsed = (min(today, end_plan) - start).days
-                    time_pct = max(0.0, min(100.0, (elapsed / denom_days) * 100.0))
-            else:
-                elapsed = (today - start).days
-                time_pct = max(0.0, min(100.0, (elapsed / 365.0) * 100.0))
+            return 0.0
+        end = self.date_fin
+        if end and end > start:
+            denom_days = (end - start).days or 1
+            if today >= end:
+                return 100.0
+            elapsed = (min(today, end) - start).days
+            return max(0.0, min(100.0, (elapsed / denom_days) * 100.0))
+        elapsed = (today - start).days
+        return max(0.0, min(100.0, (elapsed / 365.0) * 100.0))
 
-        if has_tasks:
-            combined_f = 0.5 * tasks_pct + 0.5 * time_pct
-        else:
-            combined_f = time_pct
-
+    def _taux_avancement_calcule(self) -> int:
+        """Taux issu uniquement du calendrier (avant toute valeur personnalisée)."""
+        t = self._taux_avancement_temporel()
         if self.statut == "en_pause":
-            combined_f = min(combined_f, 75.0)
+            t = min(t, 75.0)
+        return int(max(0, min(100, round(t))))
 
-        combined = int(max(0, min(100, round(combined_f))))
+    def _avancement_breakdown(self) -> dict:
+        time_pct = self._taux_avancement_temporel()
+        if self.statut == "en_pause":
+            time_pct = min(time_pct, 75.0)
+
+        manual = self.taux_avancement_personnalise
+        if manual is not None:
+            combined = int(max(0, min(100, manual)))
+            return {
+                "combined": combined,
+                "tasks_pct": None,
+                "time_pct": round(time_pct, 1),
+                "has_tasks": False,
+                "is_manual": True,
+            }
+
+        combined = int(max(0, min(100, round(time_pct))))
         return {
             "combined": combined,
-            "tasks_pct": round(tasks_pct, 1) if has_tasks else None,
+            "tasks_pct": None,
             "time_pct": round(time_pct, 1),
-            "has_tasks": has_tasks,
+            "has_tasks": False,
+            "is_manual": False,
         }
 
     @property
@@ -433,11 +447,16 @@ class Projet(models.Model):
     def avancement_pour_api(self) -> dict:
         """Sous-scores de progression pour les composants UI (anneaux, barres)."""
         d = self._avancement_breakdown()
-        return {
+        calc = self._taux_avancement_calcule()
+        out = {
             "taux_avancement": d["combined"],
             "progress_tasks_pct": d["tasks_pct"],
             "progress_time_pct": d["time_pct"],
+            "taux_avancement_source": "personnalise" if d.get("is_manual") else "calcule",
         }
+        if d.get("is_manual"):
+            out["taux_avancement_calcule"] = calc
+        return out
 
 
 class ProjetProduit(models.Model):

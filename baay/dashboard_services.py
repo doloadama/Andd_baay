@@ -8,8 +8,9 @@ KPIs financiers par projet (cohérents avec `baay.services.calculer_kpis_financi
   Bénéfice net = Total recettes − (Total dépenses + Total investissements matériels).
   ROI (%) = (Bénéfice net / Total coûts) × 100 lorsque Total coûts > 0.
 
-Progression projet (`Projet.taux_avancement`, `avancement_pour_api`) : combinaison du
-ratio de tâches terminées et de l'avancement temporel (lancement → fin prévue).
+Progression projet (`Projet.taux_avancement`) : par défaut, ratio temporel entre
+`date_lancement` et `date_fin` (clôture prévue/réelle) ; une valeur
+``taux_avancement_personnalise`` peut la remplacer (managers / admin).
 """
 
 from __future__ import annotations
@@ -247,7 +248,8 @@ def mobile_project_kpis_payload(
     """
     Dictionnaire pour le dashboard mobile : progression + KPIs financiers optionnels.
 
-    Clés progression : ``taux_avancement``, ``progress_tasks_pct``, ``progress_time_pct``.
+    Clés progression : ``taux_avancement``, ``progress_time_pct``, ``taux_avancement_source``
+    (``calcule`` | ``personnalise``), et si personnalisé ``taux_avancement_calcule``.
     Clés financières (null si ``include_financial`` est False) : recettes, dépenses,
     investissements, coûts totaux, bénéfice net, ROI %.
     """

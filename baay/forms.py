@@ -477,9 +477,25 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'ferme', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'date_fin', 'rendement_estime', 'budget_alloue', 'statut', 'type_irrigation', 'type_engrais']
+        fields = [
+            'nom',
+            'ferme',
+            'image_fond',
+            'pays',
+            'localite',
+            'superficie',
+            'date_lancement',
+            'date_fin',
+            'taux_avancement_personnalise',
+            'rendement_estime',
+            'budget_alloue',
+            'statut',
+            'type_irrigation',
+            'type_engrais',
+        ]
         labels = {
             'budget_alloue': 'Budget prévisionnel (FCFA)',
+            'taux_avancement_personnalise': "Taux d'avancement personnalisé (%)",
         }
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'fh-field', 'placeholder': 'Ex. Rizière Nord 2024'}),
@@ -490,6 +506,15 @@ class ProjetForm(forms.ModelForm):
             'superficie': forms.NumberInput(attrs={'class': 'fh-field', 'step': '0.01', 'min': '0'}),
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'fh-field'}),
             'date_fin': forms.DateInput(attrs={'type': 'date', 'class': 'fh-field'}),
+            'taux_avancement_personnalise': forms.NumberInput(
+                attrs={
+                    'class': 'fh-field',
+                    'min': 0,
+                    'max': 100,
+                    'step': 1,
+                    'placeholder': 'Auto (selon les dates)',
+                }
+            ),
             'rendement_estime': forms.NumberInput(attrs={'class': 'fh-field', 'step': '0.01', 'min': '0'}),
             'budget_alloue': forms.NumberInput(
                 attrs={'class': 'fh-field', 'step': '0.01', 'min': '0', 'placeholder': 'Optionnel (FCFA)'}
@@ -499,15 +524,23 @@ class ProjetForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        from_ferme = kwargs.pop('from_ferme', None)
+        user = kwargs.pop("user", None)
+        from_ferme = kwargs.pop("from_ferme", None)
+        for_edit = kwargs.pop("for_edit", False)
         super().__init__(*args, **kwargs)
+        if for_edit:
+            self.fields.pop("type_irrigation", None)
+            self.fields.pop("type_engrais", None)
+        else:
+            if "type_irrigation" in self.fields:
+                self.fields["type_irrigation"].required = False
+            if "type_engrais" in self.fields:
+                self.fields["type_engrais"].required = False
         # La superficie globale peut etre calculee automatiquement a partir des
         # superficies par produit (mode "per-product"). On la rend optionnelle
         # ici et la validation finale se fait dans clean().
-        if 'superficie' in self.fields:
-            self.fields['superficie'].required = False
-        # Afficher les noms des pays et localites dans le formulaire
+        if "superficie" in self.fields:
+            self.fields["superficie"].required = False
         if 'pays' in self.fields:
             self.fields['pays'].queryset = Pays.objects.all().order_by('nom')
             self.fields['pays'].label_from_instance = lambda obj: obj.nom
@@ -532,9 +565,29 @@ class ProjetForm(forms.ModelForm):
             if from_ferme.localite:
                 self.fields['localite'].widget = forms.HiddenInput()
         
-        # Pre-select products if editing existing project
+        # Pré-sélection produits si édition
         if self.instance and self.instance.pk:
-            self.fields['produits_selection'].initial = self.instance.projet_produits.values_list('produit_id', flat=True)
+            self.fields['produits_selection'].initial = self.instance.projet_produits.values_list(
+                'produit_id', flat=True
+            )
+
+        from baay.permissions import peut_personnaliser_taux_avancement_projet
+
+        can_set_av = (
+            user
+            and user.is_authenticated
+            and self.instance
+            and getattr(self.instance, "pk", None)
+            and peut_personnaliser_taux_avancement_projet(user.profile, self.instance)
+        )
+        if not can_set_av:
+            self.fields.pop('taux_avancement_personnalise', None)
+        else:
+            self.fields['taux_avancement_personnalise'].required = False
+            self.fields['taux_avancement_personnalise'].help_text = (
+                "Laisser vide pour calculer automatiquement à partir des dates de lancement et de fin. "
+                "Réservé au manager de la ferme ou à l'administrateur."
+            )
 
     def clean_superficie(self):
         superficie = self.cleaned_data.get('superficie')

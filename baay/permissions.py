@@ -175,6 +175,21 @@ def projets_modifiables_depenses_qs(profile):
     )
 
 
+def peut_personnaliser_taux_avancement_projet(profile, projet) -> bool:
+    """
+    Personnaliser le % d'avancement du projet : manager (MembreFerme) de la ferme,
+    utilisateur staff / superuser (admin Django).
+    """
+    if profile is None or projet is None:
+        return False
+    user = getattr(profile, "user", None)
+    if user is not None and user.is_superuser:
+        return True
+    if user is not None and user.is_staff:
+        return True
+    return role_dans_ferme(profile, projet.ferme) == ROLE_MANAGER
+
+
 def peut_modifier_budget_ferme(profile, ferme):
     """
     Modifier le budget (lignes Investissement) : exiger une ligne MembreFerme
