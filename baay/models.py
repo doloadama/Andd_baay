@@ -305,7 +305,12 @@ class Projet(models.Model):
             raise ValidationError({"date_lancement": "La date de début est obligatoire."})
         if date_fin:
             if date_fin <= date_lancement:
-                raise ValidationError({"date_fin": "La date de fin doit être postérieure à la date de début."})
+                raise ValidationError(
+                    {
+                        "date_fin": "La date de fin doit être strictement postérieure à la date de début du projet "
+                        "(date de lancement)."
+                    }
+                )
             if self.statut != 'fini' and date_fin < timezone.localdate():
                 raise ValidationError({"date_fin": "La date de fin ne peut pas être dans le passé pour un projet actif."})
             # Durée raisonnable ≤ 2 ans
@@ -417,22 +422,73 @@ class ProjetProduit(models.Model):
 
     def clean(self):
         super().clean()
-        # Semis après début de projet
-        if self.date_semis and self.projet and self.projet.date_lancement:
-            if self.date_semis < self.projet.date_lancement:
-                raise ValidationError({"date_semis": "La date de semis ne peut pas être antérieure au début du projet."})
-            if self.projet.date_fin and self.date_semis > self.projet.date_fin:
-                raise ValidationError({"date_semis": "La date de semis ne peut pas être postérieure à la fin du projet."})
-        # Récolte prévue après semis
-        if self.date_recolte_prevue and self.date_semis:
-            if self.date_recolte_prevue <= self.date_semis:
-                raise ValidationError({"date_recolte_prevue": "La date de récolte prévue doit être postérieure au semis."})
-        if self.date_recolte_effective and self.date_semis:
-            if self.date_recolte_effective < self.date_semis:
-                raise ValidationError({"date_recolte_effective": "La date de récolte effective ne peut pas être antérieure au semis."})
-        if self.date_recolte_prevue and self.projet and self.projet.date_fin:
-            if self.date_recolte_prevue > self.projet.date_fin:
-                raise ValidationError({"date_recolte_prevue": "La récolte prévue ne peut pas dépasser la date de fin du projet."})
+        from django.utils.dateparse import parse_date
+
+        def _d(value):
+            if value is None:
+                return None
+            return parse_date(value) if isinstance(value, str) else value
+
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).first()
+
+        date_semis = _d(self.date_semis)
+        date_recolte_prevue = _d(self.date_recolte_prevue)
+        date_recolte_effective = _d(self.date_recolte_effective)
+
+        if projet:
+            debut = _d(projet.date_lancement)
+            fin = _d(projet.date_fin)
+            if date_semis and debut:
+                if date_semis < debut:
+                    raise ValidationError(
+                        {
+                            "date_semis": "La date de semis doit être postérieure ou égale à la date de début du projet "
+                            "(date de lancement), et comprise dans la plage du projet."
+                        }
+                    )
+                if fin and date_semis > fin:
+                    raise ValidationError(
+                        {
+                            "date_semis": "La date de semis doit être antérieure ou égale à la date de fin du projet, "
+                            "et comprise entre la date de début et la date de fin du projet."
+                        }
+                    )
+            elif date_semis and not debut:
+                raise ValidationError(
+                    {"date_semis": "Le projet parent doit avoir une date de lancement pour valider la date de semis."}
+                )
+
+        if date_recolte_prevue:
+            if not date_semis:
+                raise ValidationError(
+                    {
+                        "date_recolte_prevue": "Renseignez d'abord la date de semis pour pouvoir indiquer une prévision de récolte."
+                    }
+                )
+            if date_recolte_prevue <= date_semis:
+                raise ValidationError(
+                    {
+                        "date_recolte_prevue": "La date de prévision de récolte doit être strictement postérieure à la date de semis."
+                    }
+                )
+
+        if date_recolte_effective and date_semis:
+            if date_recolte_effective < date_semis:
+                raise ValidationError(
+                    {
+                        "date_recolte_effective": "La date de récolte effective ne peut pas être antérieure à la date de semis."
+                    }
+                )
+        if date_recolte_prevue and projet:
+            fin = _d(projet.date_fin)
+            if fin and date_recolte_prevue > fin:
+                raise ValidationError(
+                    {
+                        "date_recolte_prevue": "La prévision de récolte ne peut pas être postérieure à la date de fin du projet."
+                    }
+                )
 
     def save(self, *args, **kwargs):
         self.full_clean()

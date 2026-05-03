@@ -297,7 +297,11 @@
         }
 
         body {
-            background: var(--bg-main);
+            background:
+                radial-gradient(circle at 12% 18%, rgba(29, 158, 117, 0.16), transparent 28%),
+                radial-gradient(circle at 88% 12%, rgba(239, 159, 39, 0.13), transparent 26%),
+                radial-gradient(circle at 78% 84%, rgba(93, 202, 165, 0.14), transparent 30%),
+                linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 52%, var(--bg-tertiary) 100%);
             color: var(--text-main);
             font-family: var(--font-main);
             min-height: 100vh;
@@ -313,20 +317,43 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40L40 0H20L0 20M40 40V20L20 40" fill="%23ffffff" fill-opacity="0.015" fill-rule="evenodd" /></svg>');
+            background-image:
+                url('data:image/svg+xml,<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M0 72h144M72 0v144" stroke="%23085041" stroke-opacity=".08" stroke-width="1"/><path d="M36 0l36 36 36-36M36 144l36-36 36 36M0 36l36 36L0 108M144 36l-36 36 36 36" stroke="%231D9E75" stroke-opacity=".12" stroke-width="2"/><path d="M72 36l36 36-36 36-36-36z" stroke="%23EF9F27" stroke-opacity=".14" stroke-width="2"/><path d="M72 52l20 20-20 20-20-20z" fill="%239FE1CB" fill-opacity=".055"/><circle cx="72" cy="72" r="5" fill="%231D9E75" fill-opacity=".16"/><path d="M18 18h18v18H18zM108 18h18v18h-18zM18 108h18v18H18zM108 108h18v18h-18z" stroke="%23D98A1C" stroke-opacity=".12" stroke-width="2"/></g></svg>'),
+                linear-gradient(45deg, rgba(8, 80, 65, 0.035) 25%, transparent 25%, transparent 75%, rgba(8, 80, 65, 0.035) 75%),
+                linear-gradient(-45deg, rgba(239, 159, 39, 0.03) 25%, transparent 25%, transparent 75%, rgba(239, 159, 39, 0.03) 75%);
+            background-size: 144px 144px, 72px 72px, 72px 72px;
+            background-position: center top, 0 0, 36px 36px;
             pointer-events: none;
             z-index: -1;
-            opacity: 0.5;
+            opacity: 0.72;
+        }
+
+        .background-container {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background:
+                linear-gradient(120deg, rgba(29, 158, 117, 0.08), transparent 34%),
+                linear-gradient(300deg, rgba(239, 159, 39, 0.08), transparent 32%);
         }
 
         .dark-mode .african-pattern-overlay {
-            opacity: 1;
+            opacity: 0.58;
             filter: invert(0);
         }
 
         .light-mode .african-pattern-overlay {
-            filter: invert(1);
-            opacity: 0.3;
+            filter: none;
+            opacity: 0.72;
+        }
+
+        .dark-mode .background-container {
+            background:
+                radial-gradient(circle at 18% 20%, rgba(93, 202, 165, 0.13), transparent 30%),
+                radial-gradient(circle at 85% 10%, rgba(239, 159, 39, 0.1), transparent 24%),
+                radial-gradient(circle at 78% 88%, rgba(29, 158, 117, 0.09), transparent 28%),
+                linear-gradient(145deg, #0a0f0e 0%, #101a17 52%, #121c19 100%);
         }
 
         .glass-card {
