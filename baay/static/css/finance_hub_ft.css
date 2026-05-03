@@ -20,6 +20,10 @@ body:has(.finance-ft-root) .voice-mic-btn {
     --amber-400: #ef9f27;
     --amber-50: #faeeda;
 
+    /* High-contrast Saharan palette for critical indicators */
+    --sahara-success: #146C43; /* deep green, readable in high glare */
+    --sahara-warning: #B45309; /* deep amber-brown, high contrast */
+
     --fh-page-bg: #f9fafb;
     --fh-surface: #ffffff;
     --fh-surface2: #f3f4f6;
@@ -158,7 +162,7 @@ html.dark-mode .finance-ft-root {
 
 .finance-ft-metric__ico--amber {
     background: rgba(239, 159, 39, 0.2);
-    color: var(--amber-400);
+    color: var(--sahara-warning);
 }
 
 .finance-ft-metric__ico--mint {
@@ -456,13 +460,20 @@ html.dark-mode .finance-ft-root {
     font-family: 'DM Mono', monospace;
     font-weight: 500;
     font-size: 14px;
-    color: var(--green-500);
+    color: var(--sahara-success);
 }
 
 .finance-ft-amount-suffix {
     font-size: 11px;
     color: var(--fh-text3);
     margin-left: 4px;
+}
+
+.finance-ft-amount-cost {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--sahara-warning);
 }
 
 .finance-ft-actions {
@@ -544,7 +555,7 @@ html.dark-mode .finance-ft-root {
 }
 
 .finance-ft-total-preview--positive {
-    color: var(--green-500);
+    color: var(--sahara-success);
 }
 
 .finance-ft-total-preview span.finance-ft-fcfa {

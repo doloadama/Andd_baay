@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from baay.models import Localite, ProduitAgricole, HistoriqueRendement, ParametresCulture
+from baay.models import Localite, ProduitAgricole, HistoriqueRendement
 import random
 from decimal import Decimal
 
@@ -14,7 +14,11 @@ class Command(BaseCommand):
             defaults={
                 'saison': 'Hivernage', 
                 'prix_par_kg': 500,
-                'rendement_moyen': 1100
+                'rendement_moyen': 1100,
+                # Saharan specifics
+                'rendement_potentiel_max': 1800,
+                'besoin_eau_mm': 550,
+                'cycle_culture_jours': 110,
             }
         )
         riz, _ = ProduitAgricole.objects.get_or_create(
@@ -22,28 +26,45 @@ class Command(BaseCommand):
             defaults={
                 'saison': 'Contre-saison', 
                 'prix_par_kg': 350,
-                'rendement_moyen': 4500
+                'rendement_moyen': 4500,
+                'rendement_potentiel_max': 6500,
+                'besoin_eau_mm': 900,
+                'cycle_culture_jours': 120,
             }
         )
 
-        # Ajout des ParametresCulture
-        ParametresCulture.objects.update_or_create(
-            produit=arachide,
-            defaults={'besoin_eau_mm': 550, 'cycle_croissance_jours': 110, 'temperature_min': 20, 'temperature_max': 35}
+        # Ajout de quelques produits résistants à la chaleur (exemples)
+        mil, _ = ProduitAgricole.objects.get_or_create(
+            nom="Mil",
+            defaults={
+                'saison': 'Hivernage',
+                'prix_par_kg': 250,
+                'rendement_moyen': 1200,
+                'rendement_potentiel_max': 2000,
+                'besoin_eau_mm': 400,
+                'cycle_culture_jours': 95,
+            }
         )
-        ParametresCulture.objects.update_or_create(
-            produit=riz,
-            defaults={'besoin_eau_mm': 900, 'cycle_croissance_jours': 120, 'temperature_min': 22, 'temperature_max': 38}
+        sorgho, _ = ProduitAgricole.objects.get_or_create(
+            nom="Sorgho",
+            defaults={
+                'saison': 'Hivernage',
+                'prix_par_kg': 220,
+                'rendement_moyen': 1400,
+                'rendement_potentiel_max': 2300,
+                'besoin_eau_mm': 450,
+                'cycle_culture_jours': 105,
+            }
         )
 
         self.stdout.write('Création de localités modèles...')
         diourbel, _ = Localite.objects.get_or_create(
             nom="Diourbel",
-            defaults={'type_sol': 'Dior'}
+            defaults={'type_sol': 'Dior', 'latitude': 14.655 + random.uniform(-0.05,0.05), 'longitude': -16.234 + random.uniform(-0.05,0.05)}
         )
         richard_toll, _ = Localite.objects.get_or_create(
             nom="Richard Toll",
-            defaults={'type_sol': 'Deck'}
+            defaults={'type_sol': 'Deck', 'latitude': 16.462 + random.uniform(-0.05,0.05), 'longitude': -15.694 + random.uniform(-0.05,0.05)}
         )
 
         self.stdout.write('Génération de l\'historique de rendements (5 dernières années)...')

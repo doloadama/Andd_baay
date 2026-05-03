@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
+from django.db import transaction
 from django.db.models.functions import Coalesce
 
 from .models import Investissement, PrevisionRecolte, Profile, Projet, ProjetProduit
@@ -271,3 +272,31 @@ def update_prediction_for_projet_produit(projet_produit):
         },
     )
     return prediction
+
+
+def compute_previsions_for_projet(projet_id: str) -> dict:
+    """Service: compute PrevisionRecolte for each ProjetProduit of a projet and
+    update the denormalized Projet.rendement_estime field. Returns summary dict.
+    """
+    with transaction.atomic():
+        projet = Projet.objects.select_related("ferme").get(pk=projet_id)
+        pps = list(
+            ProjetProduit.objects.filter(projet=projet).select_related(
+                "produit", "projet", "projet__localite"
+            )
+        )
+        for pp in pps:
+            update_prediction_for_projet_produit(pp)
+
+        prevs = list(PrevisionRecolte.objects.filter(projet=projet))
+        total_min = sum(p.rendement_estime_min for p in prevs) if prevs else 0
+        total_max = sum(p.rendement_estime_max for p in prevs) if prevs else 0
+        projet.rendement_estime = (total_min + total_max) / 2 if prevs else None
+        projet.save(update_fields=["rendement_estime"])  
+
+    return {
+        "projet": projet,
+        "total_min": total_min,
+        "total_max": total_max,
+        "count_pp": len(pps),
+    }

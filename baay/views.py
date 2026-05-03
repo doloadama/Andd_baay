@@ -1474,45 +1474,20 @@ def predire_rendement(projet):
         
 @login_required
 def generer_prediction(request, projet_id):
+    from .tasks import generate_previsions_for_projet_task
+
     projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
     if not peut_modifier_projet(request.user.profile, projet):
         messages.error(request, "Vous n'avez pas le droit de générer une prédiction pour ce projet.")
         return redirect('detail_projet', projet_id=projet.id)
 
-    projet_produits_list = list(
-        projet.projet_produits.select_related(
-            'produit',
-            'projet',
-            'projet__localite',
-            'projet__ferme',
-            'projet__ferme__proprietaire__user',
-            'projet__ferme__localite',
-        ).prefetch_related(
-            Prefetch(
-                'projet__ferme__membres',
-                queryset=MembreFerme.objects.select_related('utilisateur__user'),
-            ),
-        )
+    # Déclenche la tâche Celery asynchrone pour les prévisions. Une notification
+    # temps réel sera envoyée via Channels à la fin du calcul.
+    generate_previsions_for_projet_task.delay(str(projet.id))
+    messages.success(
+        request,
+        "Génération des prévisions lancée. Vous recevrez une notification lorsqu'elle sera prête.",
     )
-    if not projet_produits_list:
-        messages.warning(request, "Aucun produit associé à ce projet pour générer une prédiction.")
-        return redirect('detail_projet', projet_id=projet.id)
-
-    for pp in projet_produits_list:
-        update_prediction_for_projet_produit(pp)
-
-    previsions = list(PrevisionRecolte.objects.filter(projet=projet))
-    if not previsions:
-        messages.warning(request, "Aucune prévision n'a pu être enregistrée.")
-        return redirect('detail_projet', projet_id=projet.id)
-
-    total_min = sum(p.rendement_estime_min for p in previsions)
-    total_max = sum(p.rendement_estime_max for p in previsions)
-
-    projet.rendement_estime = (total_min + total_max) / 2
-    projet.save(update_fields=['rendement_estime'])
-
-    messages.success(request, "La prédiction a été générée avec succès (Smart Engine).")
     return redirect('detail_projet', projet_id=projet.id)
 
 def evaluer_modele(model, X_test, y_test):

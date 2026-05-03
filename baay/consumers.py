@@ -177,6 +177,12 @@ class InboxConsumer(AsyncWebsocketConsumer):
     async def unread_count_v1(self, event):
         await self.send(text_data=json.dumps(event))
 
+    async def task_update_v1(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def milestone_update_v1(self, event):
+        await self.send(text_data=json.dumps(event))
+
     @database_sync_to_async
     def _get_profile_id(self, user_id):
         from .models import Profile

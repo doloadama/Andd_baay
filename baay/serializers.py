@@ -11,7 +11,7 @@ class ProjetSerializer(serializers.ModelSerializer):
 class FermeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ferme
-        fields = ['id', 'nom', 'description', 'code_acces', 'date_creation']
+        fields = ['id', 'nom', 'description', 'code_acces', 'date_creation', 'latitude', 'longitude']
 
 
 class ConversationSerializer(serializers.ModelSerializer):

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+from datetime import timedelta
 
 from django.templatetags.static import static
 from django.urls import reverse_lazy
@@ -87,6 +88,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'channels',
+    'axes',
 ]
 
 SITE_ID = 1
@@ -100,6 +102,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'axes.middleware.AxesMiddleware',
     'baay.middleware.current_request.CurrentRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -184,6 +187,24 @@ if _redis_url:
         }
     }
 
+# Celery — background tasks (use Redis if available)
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
+CELERY_TASK_ALWAYS_EAGER = os.getenv('CELERY_TASK_ALWAYS_EAGER', 'False').lower() in ('1', 'true', 'yes')
+CELERY_TASK_TIME_LIMIT = int(os.getenv('CELERY_TASK_TIME_LIMIT', '900'))
+CELERY_TASK_SOFT_TIME_LIMIT = int(os.getenv('CELERY_TASK_SOFT_TIME_LIMIT', '600'))
+
+# Django-Axes — brute force protection
+AXES_ENABLED = os.getenv('AXES_ENABLED', 'True').lower() in ('1', 'true', 'yes')
+AXES_FAILURE_LIMIT = int(os.getenv('AXES_FAILURE_LIMIT', '5'))
+AXES_COOLOFF_TIME = timedelta(minutes=int(os.getenv('AXES_COOLOFF_MINUTES', '15')))
+AXES_LOCKOUT_PARAMETERS = {
+    'username': True,
+    'ip_address': True,
+    'user_agent': True,
+}
+AXES_ONLY_ADMIN_SITE = os.getenv('AXES_ONLY_ADMIN_SITE', 'False').lower() in ('1', 'true', 'yes')
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -248,6 +269,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication backends for allauth
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]

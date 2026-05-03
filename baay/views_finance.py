@@ -222,6 +222,12 @@ class FinanceHubView(View):
 
         inv = form_depense.save(commit=False)
         inv.save()
+        # Async recompute budget status and push milestone if relevant
+        try:
+            from baay.tasks import recompute_investment_budget_status_task
+            recompute_investment_budget_status_task.delay(str(inv.projet_id))
+        except Exception:
+            pass
 
         over = False
         st = check_budget_status(inv.projet_id)
