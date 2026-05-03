@@ -94,12 +94,23 @@ def build_unread_count_event_v1(non_lus_total):
 
 
 def build_recruitment_status_event_v1(demande, statut):
+    ferme = getattr(demande, "ferme", None)
+    utilisateur = getattr(demande, "utilisateur", None)
+    user = getattr(utilisateur, "user", None) if utilisateur is not None else None
+    milestone = (
+        "recruitment_approved" if statut == "approuvee" else
+        "recruitment_refused" if statut == "refusee" else
+        "recruitment_updated"
+    )
     return {
-        "type": "recruitment_status_v1",
+        "type": "milestone_update_v1",
         "event_version": "v1",
-        "event_id": f"recruitment:{demande.id}:{statut}",
-        "demande_id": str(demande.id),
-        "ferme_id": str(demande.ferme_id),
-        "ferme_nom": demande.ferme.nom,
+        "event_id": f"recruitment:{getattr(demande, 'id', '0')}",
+        "milestone": milestone,
         "statut": statut,
+        "demande_id": str(getattr(demande, "id", "")),
+        "ferme_id": str(getattr(ferme, "id", "")) if ferme is not None else None,
+        "ferme_nom": getattr(ferme, "nom", None) if ferme is not None else None,
+        "user_id": str(getattr(utilisateur, "id", "")) if utilisateur is not None else None,
+        "username": getattr(user, "username", None) if user is not None else None,
     }

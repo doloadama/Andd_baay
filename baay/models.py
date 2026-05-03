@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import now
+from decimal import Decimal
 import uuid
 import secrets
 import string
@@ -326,6 +327,46 @@ class Projet(models.Model):
         total = self.projet_produits.aggregate(total=models.Sum('rendement_final'))['total']
         return total or 0
 
+    @property
+    def taux_avancement(self):
+        """Progression 0-100 prete pour les jauges du dashboard mobile."""
+        if self.statut == 'fini':
+            return 100
+
+        taches = list(self.taches.exclude(statut='annulee').values_list('statut', flat=True))
+        if taches:
+            score_taches = sum(
+                100 if statut == 'terminee' else 50 if statut == 'en_cours' else 0
+                for statut in taches
+            ) / len(taches)
+        else:
+            score_taches = 0
+
+        lignes_culture = list(
+            self.projet_produits.values('date_semis', 'date_recolte_prevue', 'date_recolte_effective')
+        )
+        if lignes_culture:
+            etapes_scores = []
+            for ligne in lignes_culture:
+                score = 0
+                if ligne['date_semis']:
+                    score += 35
+                if ligne['date_semis'] and not ligne['date_recolte_effective']:
+                    score += 25
+                if ligne['date_recolte_prevue']:
+                    score += 15
+                if ligne['date_recolte_effective']:
+                    score = 100
+                etapes_scores.append(score)
+            score_etapes = sum(etapes_scores) / len(etapes_scores)
+        else:
+            score_etapes = 0
+
+        progression = (score_taches * Decimal("0.45")) + (Decimal(str(score_etapes)) * Decimal("0.55"))
+        if self.statut == 'en_pause':
+            progression = min(progression, Decimal("75"))
+        return int(max(0, min(100, round(progression))))
+
 
 class ProjetProduit(models.Model):
     """Model to link products to projects with sowing and harvest data"""
@@ -435,6 +476,8 @@ class Investissement(models.Model):
     cout_par_hectare = models.DecimalField(max_digits=10, decimal_places=2)
     autres_frais = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     date_investissement = models.DateField(default=now)
+    verrouille = models.BooleanField(default=False, help_text="Bloque la modification apres cloture du projet.")
+    date_verrouillage = models.DateTimeField(null=True, blank=True)
 
     def superficie_reference(self):
         """Hectares utilisés pour le calcul du montant (culture si renseignée, sinon projet)."""
@@ -460,6 +503,88 @@ class Investissement(models.Model):
 
     def __str__(self):
         return f"Investissement {self.id} pour le projet {self.projet.nom}"
+
+    def clean(self):
+        super().clean()
+        if not self.pk:
+            return
+        ancien = Investissement.objects.filter(pk=self.pk).first()
+        if not ancien or not ancien.verrouille:
+            return
+        champs_financiers = (
+            "projet_id",
+            "projet_produit_id",
+            "libelle",
+            "categorie",
+            "description",
+            "cout_par_hectare",
+            "autres_frais",
+            "date_investissement",
+        )
+        if any(getattr(ancien, champ) != getattr(self, champ) for champ in champs_financiers):
+            raise ValidationError("Cette depense est verrouillee car le projet est cloture.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.verrouille:
+            raise ValidationError("Cette depense est verrouillee car le projet est cloture.")
+        return super().delete(*args, **kwargs)
+
+
+class Recette(models.Model):
+    UNITE_KG = "kg"
+    UNITE_TONNE = "tonne"
+    UNITE_SAC = "sac"
+    UNITE_CHOICES = [
+        (UNITE_KG, "Kg"),
+        (UNITE_TONNE, "Tonne"),
+        (UNITE_SAC, "Sac"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='recettes')
+    projet_produit = models.ForeignKey(
+        ProjetProduit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recettes',
+        help_text="Culture vendue lorsque la recette est liee a une ligne de projet.",
+    )
+    produit_vendu = models.CharField(max_length=150, blank=True)
+    quantite_vendue = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    unite = models.CharField(max_length=16, choices=UNITE_CHOICES, default=UNITE_KG)
+    prix_unitaire = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])
+    montant_total = models.DecimalField(max_digits=18, decimal_places=2, editable=False)
+    date_encaissement = models.DateField(default=now)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_encaissement', '-date_creation']
+        indexes = [
+            models.Index(fields=['projet', 'date_encaissement']),
+            models.Index(fields=['projet_produit']),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.projet_produit_id and self.projet_id and self.projet_produit.projet_id != self.projet_id:
+            raise ValidationError({"projet_produit": "Cette culture n'appartient pas au projet selectionne."})
+        if not self.produit_vendu and self.projet_produit_id:
+            self.produit_vendu = self.projet_produit.produit.nom
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        self.montant_total = (self.quantite_vendue or Decimal("0")) * (self.prix_unitaire or Decimal("0"))
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        produit = self.produit_vendu or (self.projet_produit.produit.nom if self.projet_produit_id else "Produit")
+        return f"Recette {produit} - {self.montant_total} FCFA"
 
 class PrevisionRecolte(models.Model):
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='previsions')
@@ -740,6 +865,4 @@ class Tache(models.Model):
 
     def peut_changer_statut(self, profile):
         return self.assigne_a_id == profile.id or self.peut_etre_modifiee_par(profile)
-
-
 

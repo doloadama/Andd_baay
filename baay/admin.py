@@ -28,6 +28,7 @@ from .models import (
     Profile,
     Projet,
     ProjetProduit,
+    Recette,
     Tache,
 )
 
@@ -144,6 +145,7 @@ class InvestissementAdmin(DashboardChangelistMixin, ModelAdmin):
         "projet_produit",
         "cout_par_hectare",
         "autres_frais",
+        "verrouille",
         "date_investissement",
     )
     list_filter = [
@@ -153,6 +155,30 @@ class InvestissementAdmin(DashboardChangelistMixin, ModelAdmin):
     search_fields = ("projet__nom", "libelle", "description", "projet_produit__produit__nom")
     ordering = ("-date_investissement",)
     list_select_related = ("projet", "projet__ferme", "projet_produit", "projet_produit__produit")
+    list_filter_submit = True
+
+
+@admin.register(Recette)
+class RecetteAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_before_template = "admin/baay/changelist_dashboard_note.html"
+    baay_dashboard_slug = "recette"
+    readonly_fields = ("montant_total", "date_creation", "date_modification")
+    list_display = (
+        "projet",
+        "produit_vendu",
+        "quantite_vendue",
+        "unite",
+        "prix_unitaire",
+        "montant_total",
+        "date_encaissement",
+    )
+    list_filter = [
+        ("projet", AutocompleteSelectFilter),
+        ("date_encaissement", RangeDateFilter),
+    ]
+    search_fields = ("projet__nom", "produit_vendu", "projet_produit__produit__nom")
+    ordering = ("-date_encaissement",)
+    list_select_related = ("projet", "projet_produit", "projet_produit__produit")
     list_filter_submit = True
 
 

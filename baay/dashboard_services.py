@@ -27,7 +27,7 @@ from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 
 from baay import permissions as perm
-from baay.services import investissement_montant_expr
+from baay.services import calculer_kpis_financiers_projet, investissement_montant_expr
 from baay.models import (
     Ferme,
     Investissement,
@@ -35,6 +35,7 @@ from baay.models import (
     Projet,
     ProjetProduit,
     Profile,
+    Recette,
     Tache,
 )
 
@@ -168,18 +169,9 @@ def build_owner_payload(fermes_qs, projets_qs) -> dict[str, Any]:
     )
     total_inv = _fdec(inv_total_row["total"])
 
-    rev_expr = ExpressionWrapper(
-        Coalesce(
-            F("rendement_final"),
-            Value(Decimal("0"), output_field=DecimalField(max_digits=14, decimal_places=4)),
-        )
-        * Coalesce(
-            F("produit__prix_par_kg"),
-            Value(Decimal("0"), output_field=DecimalField(max_digits=12, decimal_places=4)),
-        ),
-        output_field=DecimalField(max_digits=24, decimal_places=8),
+    rev_row = Recette.objects.filter(projet__in=projets_qs).aggregate(
+        rev=Coalesce(Sum("montant_total"), Value(Decimal("0")))
     )
-    rev_row = ProjetProduit.objects.filter(projet__in=projets_qs).aggregate(rev=Sum(rev_expr))
     total_rev = _fdec(rev_row["rev"])
 
     if total_inv > 0:
@@ -240,6 +232,41 @@ def build_owner_payload(fermes_qs, projets_qs) -> dict[str, Any]:
         "fermes_bar": {"categories": ferme_cats, "data": ferme_inv},
         "cashflow_area": {"labels": cash_labels, "values": cash_values},
     }
+
+
+def financial_kpis_by_project(projets_qs, limit: int = 20) -> list[dict[str, Any]]:
+    """KPIs financiers post-cloture par projet pour dashboards et comparatifs."""
+    rows: list[dict[str, Any]] = []
+    for projet in projets_qs.order_by("-date_lancement")[:limit]:
+        kpis = calculer_kpis_financiers_projet(projet.id)
+        rows.append(
+            {
+                "projet_id": str(projet.id),
+                "projet_nom": projet.nom,
+                "statut": projet.statut,
+                "taux_avancement": projet.taux_avancement,
+                "total_recettes": _fdec(kpis["total_recettes"]),
+                "total_depenses": _fdec(kpis["total_depenses"]),
+                "total_investissements": _fdec(kpis["total_investissements"]),
+                "total_couts": _fdec(kpis["total_couts"]),
+                "benefice_net": _fdec(kpis["benefice_net"]),
+                "roi_pct": None if kpis["roi_pct"] is None else round(_fdec(kpis["roi_pct"]), 2),
+                "cout_revient_unite": (
+                    None
+                    if kpis["cout_revient_unite"] is None
+                    else round(_fdec(kpis["cout_revient_unite"]), 2)
+                ),
+                "quantite_recoltee": _fdec(kpis["quantite_recoltee"]),
+                "recettes_prevues": _fdec(kpis["recettes_prevues"]),
+                "ecart_previsionnel": _fdec(kpis["ecart_previsionnel"]),
+                "ecart_previsionnel_pct": (
+                    None
+                    if kpis["ecart_previsionnel_pct"] is None
+                    else round(_fdec(kpis["ecart_previsionnel_pct"]), 2)
+                ),
+            }
+        )
+    return rows
 
 
 def build_manager_payload(fermes_qs, projets_qs) -> dict[str, Any]:
@@ -426,6 +453,10 @@ def changelist_dashboard_hint(request, slug: str) -> dict[str, Any]:
         "investissement": {
             "title": "Budget & investissements",
             "body": "Graphiques cash-flow et répartition sur l’accueil admin.",
+        },
+        "recette": {
+            "title": "Recettes & rentabilite",
+            "body": "Suivi post-cloture : chiffre d'affaires reel, benefice net et ROI.",
         },
         "tache": {
             "title": "Tâches",

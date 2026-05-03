@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 
 from decimal import Decimal
 
-from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
+from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum, Value
 from django.db import transaction
 from django.db.models.functions import Coalesce
 from asgiref.sync import async_to_sync
@@ -27,6 +27,7 @@ from .models import (
     Projet,
     ProjetProduit,
     DemandeAccesFerme,
+    Recette,
 )
 from .messaging_contract import build_recruitment_status_event_v1
 
@@ -62,6 +63,111 @@ def total_investissements_projet(projet_id):
         .aggregate(t=Coalesce(Sum(investissement_montant_expr()), Value(Decimal("0"))))
     )
     return agg["t"] or Decimal("0")
+
+
+def total_recettes_projet(projet_id):
+    agg = Recette.objects.filter(projet_id=projet_id).aggregate(
+        t=Coalesce(Sum("montant_total"), Value(Decimal("0")))
+    )
+    return agg["t"] or Decimal("0")
+
+
+def _safe_decimal(value) -> Decimal:
+    if value is None:
+        return Decimal("0")
+    if isinstance(value, Decimal):
+        return value
+    return Decimal(str(value))
+
+
+def _quantite_recoltee_projet(projet_id) -> Decimal:
+    agg = ProjetProduit.objects.filter(projet_id=projet_id).aggregate(
+        q=Coalesce(Sum("rendement_final"), Value(Decimal("0")))
+    )
+    return agg["q"] or Decimal("0")
+
+
+def _prediction_revenue_proxy(projet_id) -> Decimal:
+    total = Decimal("0")
+    rows = (
+        PrevisionRecolte.objects.filter(projet_id=projet_id)
+        .select_related("projet_produit__produit")
+    )
+    for prev in rows:
+        predicted_qty = (
+            _safe_decimal(prev.rendement_estime_min)
+            + _safe_decimal(prev.rendement_estime_max)
+        ) / Decimal("2")
+        produit = prev.projet_produit.produit if prev.projet_produit_id else None
+        prix = produit.prix_par_kg if produit and produit.prix_par_kg is not None else Decimal("0")
+        total += predicted_qty * prix
+    return total
+
+
+def calculer_kpis_financiers_projet(projet_id) -> dict:
+    """KPIs financiers reels d'un projet, utilisables par dashboard/services/API."""
+    inv_expr = investissement_montant_expr()
+    couts = Investissement.objects.filter(projet_id=projet_id).aggregate(
+        total_couts=Coalesce(Sum(inv_expr), Value(Decimal("0"))),
+        total_investissements=Coalesce(
+            Sum(inv_expr, filter=Q(categorie="materiel")),
+            Value(Decimal("0")),
+        ),
+        total_depenses=Coalesce(
+            Sum(inv_expr, filter=~Q(categorie="materiel")),
+            Value(Decimal("0")),
+        ),
+    )
+    total_recettes = total_recettes_projet(projet_id)
+    total_couts = couts["total_couts"] or Decimal("0")
+    total_depenses = couts["total_depenses"] or Decimal("0")
+    total_investissements = couts["total_investissements"] or Decimal("0")
+    benefice_net = total_recettes - total_couts
+    roi = (benefice_net / total_couts * Decimal("100")) if total_couts else None
+    quantite_recoltee = _quantite_recoltee_projet(projet_id)
+    # Spécification: coût de revient par unité = Total Dépenses / Quantité Récoltée (exclut investissements matériels)
+    cout_revient_unite = (total_depenses / quantite_recoltee) if quantite_recoltee else None
+    recettes_prevues = _prediction_revenue_proxy(projet_id)
+    ecart_previsionnel = total_recettes - recettes_prevues
+    ecart_previsionnel_pct = (
+        ecart_previsionnel / recettes_prevues * Decimal("100")
+        if recettes_prevues
+        else None
+    )
+
+    return {
+        "projet_id": str(projet_id),
+        "total_recettes": total_recettes,
+        "total_depenses": total_depenses,
+        "total_investissements": total_investissements,
+        "total_couts": total_couts,
+        "benefice_net": benefice_net,
+        "roi_pct": roi,
+        "quantite_recoltee": quantite_recoltee,
+        "cout_revient_unite": cout_revient_unite,
+        "recettes_prevues": recettes_prevues,
+        "ecart_previsionnel": ecart_previsionnel,
+        "ecart_previsionnel_pct": ecart_previsionnel_pct,
+    }
+
+
+def cloturer_projet(projet_id) -> dict:
+    """Cloture un projet, verrouille ses depenses et calcule la rentabilite finale."""
+    with transaction.atomic():
+        projet = Projet.objects.select_for_update().get(pk=projet_id)
+        if projet.statut != "fini":
+            projet.statut = "fini"
+        if not projet.date_fin:
+            from django.utils import timezone as _tz
+            projet.date_fin = _tz.localdate()
+        projet.save(update_fields=["statut", "date_fin"])
+        from django.utils import timezone as _tz
+        Investissement.objects.filter(projet=projet, verrouille=False).update(
+            verrouille=True,
+            date_verrouillage=_tz.now(),
+        )
+        kpis = calculer_kpis_financiers_projet(projet.id)
+    return {"projet": projet, "kpis": kpis}
 
 
 def check_budget_status(projet_id):

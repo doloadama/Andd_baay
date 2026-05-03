@@ -1,0 +1,34 @@
+{
+  "countries": [
+    {
+      "name": "Sénégal",
+      "iso": "SN",
+      "regions": ["Dakar", "Thiès", "Diourbel", "Saint-Louis", "Kaolack", "Tambacounda", "Ziguinchor", "Kolda", "Fatick", "Kaffrine", "Kédougou", "Matam", "Sédhiou"]
+    },
+    {
+      "name": "Mali",
+      "iso": "ML",
+      "regions": ["Bamako", "Kayes", "Koulikoro", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Gao", "Kidal", "Taoudénit", "Ménaka"]
+    },
+    {
+      "name": "Côte d'Ivoire",
+      "iso": "CI",
+      "regions": ["Abidjan", "Yamoussoukro", "Haut-Sassandra", "Savanes", "Vallée du Bandama", "Montagnes", "Bas-Sassandra", "Zanzan"]
+    },
+    {
+      "name": "Maroc",
+      "iso": "MA",
+      "regions": ["Tanger-Tétouan-Al Hoceïma", "Oriental", "Fès-Meknès", "Rabat-Salé-Kénitra", "Béni Mellal-Khénifra", "Casablanca-Settat", "Marrakech-Safi", "Drâa-Tafilalet", "Souss-Massa", "Guelmim-Oued Noun", "Laâyoune-Sakia El Hamra", "Dakhla-Oued Ed-Dahab"]
+    },
+    {
+      "name": "Nigeria",
+      "iso": "NG",
+      "regions": ["Lagos", "Kano", "Abuja FCT", "Kaduna", "Oyo", "Rivers", "Katsina", "Anambra", "Ogun", "Borno"]
+    },
+    {
+      "name": "Ghana",
+      "iso": "GH",
+      "regions": ["Greater Accra", "Ashanti", "Northern", "Western", "Eastern", "Central", "Volta", "Upper East", "Upper West", "Bono East"]
+    }
+  ]
+}
