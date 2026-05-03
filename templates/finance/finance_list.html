@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Hub Finance | Andd Baay{% endblock %}
+{% block title %}Hub Finance — dépenses et recettes | Andd Baay{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Vue centralisée des dépenses et investissements agricoles par projet et par culture." />
+<meta name="description" content="Vue centralisée des dépenses, des recettes et des investissements agricoles par projet et par culture." />
 {% endblock %}
 
 {% block extra_head %}
@@ -36,7 +36,7 @@
             </div>
             <h1>Hub Finance</h1>
             <p class="finance-ft-hero__sub">
-                Toutes vos dépenses, filtrables par projet, culture et période. Total mis à jour en temps réel.
+                Dépenses et recettes, filtrables par projet, culture et période. Totaux mis à jour en temps réel.
             </p>
         </div>
         <div id="finance-stats-bar"
@@ -99,7 +99,7 @@
                     {% endif %}
                     <div class="finance-ft-info">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v6M12 8h.01" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
-                        <span>Le total en haut se met à jour à chaque changement de filtre.</span>
+                        <span>Les totaux dépenses et recettes se mettent à jour à chaque changement de filtre.</span>
                     </div>
                 </div>
             </form>
@@ -207,13 +207,113 @@
         {% endif %}
     </section>
 
-    <!-- Nouvelle dépense -->
-    <section class="finance-ft-card" aria-labelledby="finance-form-heading">
-        <div class="finance-ft-card__head">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
-            <h2 id="finance-form-heading" class="finance-ft-card__title">Nouvelle dépense</h2>
+    <!-- Recettes -->
+    <section class="finance-ft-card" aria-labelledby="finance-recettes-heading">
+        <div class="finance-ft-card__head finance-ft-card__head--split">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M12 3v18M17 8l-5-5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <h2 id="finance-recettes-heading" class="finance-ft-card__title">Recettes (ventes)</h2>
+            </div>
+            <span class="finance-ft-pill finance-ft-pill--muted">{{ count_recettes_filtre }} ligne{{ count_recettes_filtre|pluralize }}</span>
         </div>
-        <div class="finance-ft-card__body">
+        {% if recettes %}
+            <div class="finance-ft-table-wrap d-none d-md-block">
+                <table class="finance-ft-table">
+                    <caption class="visually-hidden">Liste des recettes filtrées</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Produit</th>
+                            <th scope="col">Projet</th>
+                            <th scope="col" class="text-end">Quantité</th>
+                            <th scope="col" class="text-end">Prix unit.</th>
+                            <th scope="col" class="text-end">Montant</th>
+                            <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recettes %}
+                            <tr>
+                                <td class="fh-date">{{ r.date_vente|date:"d/m/Y" }}</td>
+                                <td class="fh-libelle">{% if r.produit %}{{ r.produit|truncatechars:56 }}{% elif r.projet_produit_id %}{{ r.projet_produit.produit.nom|truncatechars:56 }}{% else %}—{% endif %}</td>
+                                <td>
+                                    <span class="finance-ft-projet-cell">
+                                        <span class="finance-ft-projet-dot" aria-hidden="true"></span>
+                                        {{ r.projet.nom }}
+                                    </span>
+                                </td>
+                                <td class="text-end"><span class="finance-ft-mono">{{ r.quantite|floatformat:2 }}</span> {{ r.get_unite_display }}</td>
+                                <td class="text-end"><span class="finance-ft-mono">{{ r.prix_unitaire|floatformat:0 }}</span> <span class="finance-ft-amount-suffix">FCFA</span></td>
+                                <td class="text-end">
+                                    <span class="finance-ft-mono finance-ft-amount-main">{{ r.montant_total|floatformat:0 }}</span>
+                                    <span class="finance-ft-amount-suffix">FCFA</span>
+                                </td>
+                                <td class="finance-ft-actions">
+                                    {% if r.projet_id in finance_modify_project_ids %}
+                                        <div class="finance-ft-actions__inner">
+                                            <a href="{% url 'detail_projet' r.projet_id %}#investissements" class="finance-ft-btn finance-ft-btn--icon" title="Voir le projet" aria-label="Voir le projet">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 21v-4l12-12 4 4L8 21H4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                            </a>
+                                            <form method="post" action="{% url 'finance_delete_recette' r.pk %}" style="display:inline;" onsubmit="return confirm('Supprimer cette recette ?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="finance-ft-btn finance-ft-btn--icon finance-ft-btn--danger" title="Supprimer" aria-label="Supprimer">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M9 7l1-3h4l1 3M8 7h8v13a1 1 0 01-1 1H9a1 1 0 01-1-1V7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-md-none p-3">
+                {% for r in recettes %}
+                    <article class="finance-ft-card" style="margin-bottom:12px;padding:14px;">
+                        <div style="font-weight:600;margin-bottom:6px;">{% if r.produit %}{{ r.produit|truncatechars:52 }}{% elif r.projet_produit_id %}{{ r.projet_produit.produit.nom|truncatechars:52 }}{% else %}Recette{% endif %}</div>
+                        <div class="fh-date" style="font-size:12px;color:var(--fh-text3);">{{ r.date_vente|date:"d/m/Y" }}</div>
+                        <div class="finance-ft-dep-mobile-meta">
+                            <span class="finance-ft-dep-mobile-proj">{{ r.projet.nom }}</span>
+                            <span class="finance-ft-dep-mobile-sep" aria-hidden="true">·</span>
+                            <span class="finance-ft-pill finance-ft-pill--compact finance-ft-pill--muted">{{ r.quantite|floatformat:2 }} {{ r.get_unite_display }}</span>
+                        </div>
+                        <div style="margin-top:10px;font-family:'DM Mono',monospace;font-weight:500;color:var(--green-500);">{{ r.montant_total|floatformat:0 }} <span style="font-size:11px;color:var(--fh-text3);">FCFA</span></div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="finance-ft-empty">
+                <p style="margin:0;font-weight:600;color:var(--fh-text2);">Aucune recette trouvée</p>
+                <p style="margin:8px 0 0;font-size:13px;">Modifiez les filtres ou enregistrez une vente ci-dessous.</p>
+            </div>
+        {% endif %}
+        {% if page_obj_recettes.paginator.num_pages > 1 %}
+            <div class="finance-ft-pagination">
+                <span>Page {{ page_obj_recettes.number }} / {{ page_obj_recettes.paginator.num_pages }}</span>
+                <nav aria-label="Pagination recettes">
+                    {% if page_obj_recettes.has_previous %}
+                        <a href="?page_r={{ page_obj_recettes.previous_page_number }}{% if filter_qs %}&{{ filter_qs }}{% endif %}">Précédent</a>
+                    {% endif %}
+                    {% if page_obj_recettes.has_next %}
+                        <a href="?page_r={{ page_obj_recettes.next_page_number }}{% if filter_qs %}&{{ filter_qs }}{% endif %}" style="margin-left:12px;">Suivant</a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Nouvelle dépense -->
+    <details class="finance-ft-card finance-ft-details"{% if form_depense.errors %} open{% endif %} aria-labelledby="finance-form-heading">
+        <summary class="finance-ft-card__head finance-ft-details__summary">
+            <span class="finance-ft-details__summary-main">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                <h2 id="finance-form-heading" class="finance-ft-card__title">Nouvelle dépense</h2>
+            </span>
+            <span class="finance-ft-details__hint"><span class="finance-ft-details__hint-expanded">Réduire</span><span class="finance-ft-details__hint-collapsed">Déplier</span></span>
+            <svg class="finance-ft-details__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="finance-ft-card__body finance-ft-details__body">
             <form id="finance-depense-form" method="post" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                 {% csrf_token %}
                 {% if form_depense.non_field_errors %}
@@ -226,7 +326,7 @@
                         {% if form_depense.projet.errors %}<div class="text-danger small mt-1">{{ form_depense.projet.errors.0 }}</div>{% endif %}
                     </div>
                     <div id="finance-depense-produit-wrap">
-                        {% include "finance/_produit_select_form.html" with projet_produits=culture_partial_produits %}
+                        {% include "finance/_produit_select_form.html" with projet_produits=culture_partial_produits field_name="projet_produit" select_id="id_projet_produit" selected_projet_produit=selected_depense_projet_produit %}
                     </div>
 
                     <div>
@@ -284,7 +384,83 @@
                 </div>
             </form>
         </div>
-    </section>
+    </details>
+
+    <!-- Nouvelle recette -->
+    <details class="finance-ft-card finance-ft-details"{% if form_recette.errors %} open{% endif %} aria-labelledby="finance-recette-form-heading">
+        <summary class="finance-ft-card__head finance-ft-details__summary">
+            <span class="finance-ft-details__summary-main">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                <h2 id="finance-recette-form-heading" class="finance-ft-card__title">Nouvelle recette</h2>
+            </span>
+            <span class="finance-ft-details__hint"><span class="finance-ft-details__hint-expanded">Réduire</span><span class="finance-ft-details__hint-collapsed">Déplier</span></span>
+            <svg class="finance-ft-details__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="finance-ft-card__body finance-ft-details__body">
+            <form id="finance-recette-form" method="post" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                {% csrf_token %}
+                <input type="hidden" name="submit_recette" value="1">
+                {% if form_recette.non_field_errors %}
+                    <div class="alert alert-danger mb-3">{{ form_recette.non_field_errors }}</div>
+                {% endif %}
+                <div class="finance-ft-form-grid">
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form_recette.projet.id_for_label }}">Projet</label>
+                        {{ form_recette.projet }}
+                        {% if form_recette.projet.errors %}<div class="text-danger small mt-1">{{ form_recette.projet.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div id="finance-recette-produit-wrap">
+                        {% include "finance/_produit_select_form.html" with projet_produits=culture_partial_produits_recette field_name="recette-projet_produit" select_id=form_recette.projet_produit.id_for_label selected_projet_produit=selected_recette_projet_produit %}
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form_recette.produit.id_for_label }}">{{ form_recette.produit.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel si culture)</span></label>
+                        {{ form_recette.produit }}
+                        {% if form_recette.produit.errors %}<div class="text-danger small mt-1">{{ form_recette.produit.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form_recette.quantite.id_for_label }}">{{ form_recette.quantite.label }}</label>
+                        {{ form_recette.quantite }}
+                        {% if form_recette.quantite.errors %}<div class="text-danger small mt-1">{{ form_recette.quantite.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form_recette.unite.id_for_label }}">{{ form_recette.unite.label }}</label>
+                        {{ form_recette.unite }}
+                        {% if form_recette.unite.errors %}<div class="text-danger small mt-1">{{ form_recette.unite.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form_recette.prix_unitaire.id_for_label }}">{{ form_recette.prix_unitaire.label }}</label>
+                        {{ form_recette.prix_unitaire }}
+                        {% if form_recette.prix_unitaire.errors %}<div class="text-danger small mt-1">{{ form_recette.prix_unitaire.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form_recette.date_vente.id_for_label }}">{{ form_recette.date_vente.label }}</label>
+                        {{ form_recette.date_vente }}
+                        {% if form_recette.date_vente.errors %}<div class="text-danger small mt-1">{{ form_recette.date_vente.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="finance-ft-span2 finance-ft-total-box">
+                        <div>
+                            <div class="finance-ft-total-box__lbl">Montant total</div>
+                            <div class="finance-ft-total-box__hint">Quantité × prix unitaire (calculé à l’enregistrement)</div>
+                        </div>
+                        <div id="recetteMontantPreview" class="finance-ft-total-preview">
+                            <span id="recetteMontantPreviewNum">0</span><span class="finance-ft-fcfa">FCFA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="finance-ft-form-actions">
+                    <button type="submit" class="finance-ft-btn finance-ft-btn--dark">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 12l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Enregistrer la recette
+                    </button>
+                    <button type="reset" class="finance-ft-btn finance-ft-btn--ghost">Réinitialiser</button>
+                </div>
+            </form>
+        </div>
+    </details>
 </div>
 
 <script>
@@ -327,15 +503,40 @@
         });
         document.body.addEventListener('htmx:afterSwap', function (ev) {
             if (ev.target && ev.target.id === 'finance-depense-produit-wrap') calcTotal();
+            if (ev.target && ev.target.id === 'finance-recette-produit-wrap') calcRecetteMontant();
         });
+    }
+    function calcRecetteMontant() {
+        var qEl = document.getElementById('fRecQty');
+        var pEl = document.getElementById('fRecPrix');
+        var q = parseFloat(qEl && qEl.value ? qEl.value.replace(',', '.') : '0') || 0;
+        var p = parseFloat(pEl && pEl.value ? pEl.value.replace(',', '.') : '0') || 0;
+        var total = Math.round(q * p);
+        var wrap = document.getElementById('recetteMontantPreview');
+        var numEl = document.getElementById('recetteMontantPreviewNum');
+        if (!wrap || !numEl) return;
+        numEl.textContent = new Intl.NumberFormat('fr-FR').format(total);
+        wrap.classList.toggle('finance-ft-total-preview--positive', total > 0);
+    }
+    function bindRecette() {
+        var qEl = document.getElementById('fRecQty');
+        var pEl = document.getElementById('fRecPrix');
+        if (qEl) qEl.addEventListener('input', calcRecetteMontant);
+        if (pEl) pEl.addEventListener('input', calcRecetteMontant);
     }
     document.addEventListener('DOMContentLoaded', function () {
         bind();
+        bindRecette();
         var d = document.getElementById('fDateInv');
         if (d && !d.value) {
             d.value = new Date().toISOString().split('T')[0];
         }
+        var dv = document.getElementById('fDateVente');
+        if (dv && !dv.value) {
+            dv.value = new Date().toISOString().split('T')[0];
+        }
         calcTotal();
+        calcRecetteMontant();
     });
 })();
 </script>

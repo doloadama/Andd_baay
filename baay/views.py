@@ -82,6 +82,7 @@ from baay.models import (
     ParticipationConversation,
     bump_participation_last_read,
 )
+from baay import dashboard_services
 from baay.permissions import (
     fermes_accessibles_qs,
     peut_changer_statut_tache,
@@ -699,14 +700,21 @@ def modifier_projet(request, projet_id):
     rendement_form = None
     plant_details_form = None
 
-    # Mode clôture : ?finish=1, déjà terminé, ou soumission « save_rendement »
+    # Saisie rendements : ?finish=1, projet Fini ou Clôturé (lecture seule si clôturé), ou POST rendement
     show_rendement_form = (
         request.GET.get("finish") == "1"
-        or projet.statut == "fini"
+        or projet.statut in Projet.statuts_fin_activite()
         or ("save_rendement" in request.POST)
     )
+    saisie_rendements_possible = show_rendement_form and projet.statut != Projet.STATUT_CLOTURE
 
     if request.method == "POST":
+        if projet.statut == Projet.STATUT_CLOTURE:
+            messages.error(
+                request,
+                "Ce projet est clôturé comptablement : les fiches projet ne peuvent plus être modifiées ici.",
+            )
+            return redirect("detail_projet", projet_id=projet.id)
         if "save_rendement" in request.POST:
             # Ne pas binder ProjetForm au POST partiel (évite un formulaire incohérent en cas d'erreur)
             projet_form = ProjetForm(instance=projet, user=request.user)
@@ -726,7 +734,8 @@ def modifier_projet(request, projet_id):
                     projet.save(update_fields=["statut"])
                     messages.success(
                         request,
-                        "Les rendements finaux ont été enregistrés et le projet est clôturé.",
+                        "Les rendements finaux ont été enregistrés ; le projet est passé au statut « Fini ». "
+                        "La clôture comptable (blocage des écritures) se fait ensuite via les outils Finance.",
                     )
                 else:
                     messages.success(
@@ -815,7 +824,7 @@ def modifier_projet(request, projet_id):
     else:
         projet_form = ProjetForm(instance=projet, user=request.user)
         plant_details_form = PlantDetailsForm(projet=projet)
-        if show_rendement_form:
+        if saisie_rendements_possible:
             rendement_form = RendementFinalForm(projet=projet)
 
     plants_data = []
@@ -1152,7 +1161,7 @@ def dashboard(request):
 
     projets_en_cours = projets_qs.filter(statut='en_cours').count()
     projets_en_pause = projets_qs.filter(statut='en_pause').count()
-    projets_finis = projets_qs.filter(statut='fini').count()
+    projets_finis = projets_qs.filter(statut__in=("fini", Projet.STATUT_CLOTURE)).count()
     total_count = projets_qs.count()
     completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
 
@@ -1603,7 +1612,7 @@ def dashboard_stats_api(request):
     
     projets_en_cours = projets.filter(statut='en_cours').count()
     projets_en_pause = projets.filter(statut='en_pause').count()
-    projets_finis = projets.filter(statut='fini').count()
+    projets_finis = projets.filter(statut__in=("fini", Projet.STATUT_CLOTURE)).count()
     total_count = projets.count()
     completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
 
@@ -1679,7 +1688,7 @@ def dashboard_stats_api(request):
     # Projects list for DOM update
     projets_list = []
     for p in projets:
-        projets_list.append({
+        row = {
             'id': str(p.id),
             'nom': p.nom,
             'statut': p.statut,
@@ -1689,7 +1698,13 @@ def dashboard_stats_api(request):
             'rendement_estime': float(p.rendement_estime) if p.rendement_estime else 0,
             'date_lancement': p.date_lancement.strftime('%Y-%m-%d') if p.date_lancement else '',
             'ferme_nom': p.ferme.nom if p.ferme else '',
-        })
+        }
+        row.update(
+            dashboard_services.mobile_project_kpis_payload(
+                p, include_financial=can_view_investissements
+            )
+        )
+        projets_list.append(row)
 
     data = {
         'superficie_totale': decimal_to_float(superficie_totale),
@@ -1775,11 +1790,12 @@ def dashboard_projets_api(request):
     projets_page = projets[start:end]
     
     projets_data = []
+    can_fin_kpis = peut_voir_investissements_any(utilisateur)
     for p in projets_page:
         prevision = get_prevision_affichee_projet(p)
         prediction = prevision.rendement_estime_min if prevision else None
         
-        projets_data.append({
+        item = {
             'id': str(p.id),
             'nom': p.nom,
             'statut': p.statut,
@@ -1789,7 +1805,13 @@ def dashboard_projets_api(request):
             'rendement_estime': float(p.rendement_estime) if p.rendement_estime else 0,
             'prediction': prediction,
             'date_lancement': p.date_lancement.strftime('%Y-%m-%d') if p.date_lancement else None,
-        })
+        }
+        item.update(
+            dashboard_services.mobile_project_kpis_payload(
+                p, include_financial=can_fin_kpis
+            )
+        )
+        projets_data.append(item)
     
     return JsonResponse({
         'projets': projets_data,
@@ -1819,6 +1841,7 @@ def dashboard_filters_api(request):
         {'value': 'en_cours', 'label': 'En cours'},
         {'value': 'en_pause', 'label': 'En pause'},
         {'value': 'fini', 'label': 'Fini'},
+        {'value': Projet.STATUT_CLOTURE, 'label': 'Clôturé'},
     ]
     
     return JsonResponse({
@@ -1837,7 +1860,7 @@ def update_projet_statut_api(request, projet_id):
         data = json.loads(request.body)
         nouveau_statut = data.get('statut')
         
-        if nouveau_statut not in ['en_cours', 'en_pause', 'fini']:
+        if nouveau_statut not in ['en_cours', 'en_pause', 'fini', Projet.STATUT_CLOTURE]:
             return JsonResponse({'error': 'Invalid status'}, status=400)
         
         projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
@@ -1845,12 +1868,15 @@ def update_projet_statut_api(request, projet_id):
             return JsonResponse({'error': 'Accès refusé.'}, status=403)
         projet.statut = nouveau_statut
         projet.save(update_fields=['statut'])
-        
+
         return JsonResponse({
             'success': True,
             'projet_id': str(projet.id),
             'nouveau_statut': nouveau_statut
         })
+    except ValidationError as exc:
+        err_msg = "; ".join(exc.messages) if getattr(exc, "messages", None) else str(exc)
+        return JsonResponse({"success": False, "error": err_msg}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
     except Projet.DoesNotExist:
@@ -1989,7 +2015,9 @@ def liste_semis(request):
         'total': projet_produits.count(),
         'en_cours': projet_produits.filter(projet__statut='en_cours').count(),
         'en_pause': projet_produits.filter(projet__statut='en_pause').count(),
-        'finis': projet_produits.filter(projet__statut='fini').count(),
+        'finis': projet_produits.filter(
+            projet__statut__in=("fini", Projet.STATUT_CLOTURE)
+        ).count(),
     }
     
     context = {
@@ -2623,7 +2651,7 @@ def _dashboard_manager(request, utilisateur, memberships):
     ).order_by('-date_lancement')
 
     projets_actifs = projets.filter(statut='en_cours').count()
-    projets_finis = projets.filter(statut='fini').count()
+    projets_finis = projets.filter(statut__in=("fini", Projet.STATUT_CLOTURE)).count()
     projets_pause = projets.filter(statut='en_pause').count()
     superficie_totale = projets.aggregate(s=Sum('superficie'))['s'] or 0
     superficie_active = projets.filter(statut='en_cours').aggregate(s=Sum('superficie'))['s'] or 0

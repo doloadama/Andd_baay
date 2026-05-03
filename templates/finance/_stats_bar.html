@@ -8,7 +8,7 @@
             </svg>
         </div>
         <div>
-            <span class="finance-ft-metric__lbl">Total filtré</span>
+            <span class="finance-ft-metric__lbl">Dépenses (filtré)</span>
             <span class="finance-ft-metric__val">{{ total_filtre|floatformat:0 }} <span class="finance-ft-metric__suffix">FCFA</span></span>
         </div>
     </div>
@@ -19,8 +19,30 @@
             </svg>
         </div>
         <div>
-            <span class="finance-ft-metric__lbl">Lignes</span>
-            <span class="finance-ft-metric__val">{{ count_filtre }} <span class="finance-ft-metric__suffix">dépense{{ count_filtre|pluralize:"s" }}</span></span>
+            <span class="finance-ft-metric__lbl">Lignes dépenses</span>
+            <span class="finance-ft-metric__val">{{ count_filtre }} <span class="finance-ft-metric__suffix">ligne{{ count_filtre|pluralize }}</span></span>
+        </div>
+    </div>
+    <div class="finance-ft-metric">
+        <div class="finance-ft-metric__ico finance-ft-metric__ico--amber" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3v18M17 8l-5-5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div>
+            <span class="finance-ft-metric__lbl">Recettes (filtré)</span>
+            <span class="finance-ft-metric__val">{{ total_recettes_filtre|floatformat:0 }} <span class="finance-ft-metric__suffix">FCFA</span></span>
+        </div>
+    </div>
+    <div class="finance-ft-metric">
+        <div class="finance-ft-metric__ico finance-ft-metric__ico--mint" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 19h16M7 15l3 3 4-6 3 3 3-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div>
+            <span class="finance-ft-metric__lbl">Lignes recettes</span>
+            <span class="finance-ft-metric__val">{{ count_recettes_filtre }} <span class="finance-ft-metric__suffix">ligne{{ count_recettes_filtre|pluralize }}</span></span>
         </div>
     </div>
 </div>

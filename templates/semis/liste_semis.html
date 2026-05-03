@@ -307,7 +307,8 @@
         <option value="">Tous les statuts</option>
         <option value="en_cours" {% if current_statut == 'en_cours' %}selected{% endif %}>En cours</option>
         <option value="en_pause" {% if current_statut == 'en_pause' %}selected{% endif %}>En pause</option>
-        <option value="fini" {% if current_statut == 'fini' %}selected{% endif %}>Termine</option>
+        <option value="fini" {% if current_statut == 'fini' %}selected{% endif %}>Fini</option>
+        <option value="cloture" {% if current_statut == 'cloture' %}selected{% endif %}>Clôturé</option>
     </select>
 
     <select name="culture" class="filter-select" onchange="this.form.submit()">

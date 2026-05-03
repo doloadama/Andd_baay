@@ -16,6 +16,7 @@ from baay.dashboard_services import DashboardChangelistMixin
 from .models import (
     Conversation,
     DemandeAccesFerme,
+    Depense,
     Ferme,
     Investissement,
     Localite,
@@ -158,6 +159,19 @@ class InvestissementAdmin(DashboardChangelistMixin, ModelAdmin):
     list_filter_submit = True
 
 
+@admin.register(Depense)
+class DepenseAdmin(DashboardChangelistMixin, ModelAdmin):
+    list_display = ("projet", "libelle", "montant", "date_depense")
+    list_filter = [
+        ("projet", AutocompleteSelectFilter),
+        ("date_depense", RangeDateFilter),
+    ]
+    search_fields = ("libelle", "description", "projet__nom")
+    ordering = ("-date_depense",)
+    list_select_related = ("projet", "projet__ferme")
+    list_filter_submit = True
+
+
 @admin.register(Recette)
 class RecetteAdmin(DashboardChangelistMixin, ModelAdmin):
     list_before_template = "admin/baay/changelist_dashboard_note.html"
@@ -165,19 +179,19 @@ class RecetteAdmin(DashboardChangelistMixin, ModelAdmin):
     readonly_fields = ("montant_total", "date_creation", "date_modification")
     list_display = (
         "projet",
-        "produit_vendu",
-        "quantite_vendue",
+        "produit",
+        "quantite",
         "unite",
         "prix_unitaire",
         "montant_total",
-        "date_encaissement",
+        "date_vente",
     )
     list_filter = [
         ("projet", AutocompleteSelectFilter),
-        ("date_encaissement", RangeDateFilter),
+        ("date_vente", RangeDateFilter),
     ]
-    search_fields = ("projet__nom", "produit_vendu", "projet_produit__produit__nom")
-    ordering = ("-date_encaissement",)
+    search_fields = ("projet__nom", "produit", "projet_produit__produit__nom")
+    ordering = ("-date_vente",)
     list_select_related = ("projet", "projet_produit", "projet_produit__produit")
     list_filter_submit = True
 

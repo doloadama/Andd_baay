@@ -168,6 +168,7 @@ def projets_modifiables_depenses_qs(profile):
             ferme__membres__utilisateur=profile,
             ferme__membres__role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
         )
+        .exclude(statut=Projet.STATUT_CLOTURE)
         .select_related("ferme")
         .distinct()
         .order_by("nom")

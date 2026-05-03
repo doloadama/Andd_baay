@@ -140,12 +140,13 @@ html.dark-mode .finance-ft-root {
 }
 
 .finance-ft-metrics {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
     position: relative;
     z-index: 1;
-    min-width: 260px;
+    min-width: 280px;
+    max-width: 420px;
 }
 
 .finance-ft-metric {
@@ -236,6 +237,69 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 
 .finance-ft-card__body {
     padding: 18px 20px;
+}
+
+/* Formulaires hub : repli / dépli (details/summary) */
+.finance-ft-details__summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.finance-ft-details__summary::-webkit-details-marker,
+.finance-ft-details__summary::marker {
+    display: none;
+}
+
+.finance-ft-details__summary-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.finance-ft-details__hint {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fh-text3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.finance-ft-details__hint-expanded {
+    display: none;
+}
+
+.finance-ft-details[open] .finance-ft-details__hint-expanded {
+    display: inline;
+}
+
+.finance-ft-details[open] .finance-ft-details__hint-collapsed {
+    display: none;
+}
+
+.finance-ft-details:not([open]) .finance-ft-details__hint-collapsed {
+    display: inline;
+}
+
+.finance-ft-details__chev {
+    flex-shrink: 0;
+    color: var(--fh-text3);
+    transition: transform 0.2s ease;
+}
+
+.finance-ft-details[open] .finance-ft-details__chev {
+    transform: rotate(180deg);
+}
+
+.finance-ft-details:not([open]) > .finance-ft-details__summary {
+    border-bottom: none;
 }
 
 .finance-ft-card__footer {
@@ -1098,6 +1162,16 @@ html.dark-mode .finance-ft-pagination a {
     .finance-ft-hero__sub {
         font-size: 0.86rem;
         line-height: 1.5;
+    }
+
+    .finance-ft-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .finance-ft-metrics {
+        grid-template-columns: 1fr;
+        max-width: none;
+        width: 100%;
     }
 
     .finance-ft-form-shell,

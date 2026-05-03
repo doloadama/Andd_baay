@@ -63,7 +63,7 @@
                     <button type="button" class="filter-chip is-active" data-filter="all">Tous</button>
                     <button type="button" class="filter-chip" data-filter="en_cours">En cours</button>
                     <button type="button" class="filter-chip" data-filter="en_pause">En pause</button>
-                    <button type="button" class="filter-chip" data-filter="fini">Termines</button>
+                    <button type="button" class="filter-chip" data-filter="fini">Terminés</button>
                 </div>
 
                 <div class="view-toggle" aria-label="Changer de vue">
@@ -136,11 +136,11 @@
                                             {% endfor %}
                                         </div>
                                         <div class="progress-track">
-                                            <div class="progress-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                                            <div class="progress-bar" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
                                         </div>
                                         <div class="project-inline-meta">
                                             <span>Progression</span>
-                                            <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                                            <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
                                         </div>
                                     </div>
                                 </td>
@@ -151,7 +151,7 @@
                                         data-status-trigger
                                         data-id="{{ projet.id }}"
                                         data-status="{{ projet.statut }}">
-                                        {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% else %}Termine{% endif %}
+                                        {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
                                     </button>
                                 </td>
                                 <td>{{ projet.superficie }} ha</td>
@@ -223,7 +223,7 @@
                                     </div>
                                 </div>
                                 <span class="status-badge status-{{ projet.statut }}">
-                                    {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% else %}Termine{% endif %}
+                                    {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
                                 </span>
                             </div>
 
@@ -240,11 +240,11 @@
 
                             <div class="project-card-progress">
                                 <div class="progress-track">
-                                    <div class="progress-bar" style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                                    <div class="progress-bar" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
                                 </div>
                                 <div class="project-inline-meta">
                                     <span>Progression</span>
-                                    <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                                    <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
                                 </div>
                             </div>
                         </button>
@@ -300,7 +300,8 @@
     <div class="status-menu" id="statusMenu">
         <button type="button" class="status-menu-item" data-status-value="en_cours">En cours</button>
         <button type="button" class="status-menu-item" data-status-value="en_pause">En pause</button>
-        <button type="button" class="status-menu-item" data-status-value="fini">Termine</button>
+        <button type="button" class="status-menu-item" data-status-value="fini">Fini</button>
+        <button type="button" class="status-menu-item" data-status-value="cloture">Clôturé (comptable)</button>
     </div>
 
     <div class="modal-overlay" id="quickViewModal">

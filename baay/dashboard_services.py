@@ -3,6 +3,13 @@ Agrégations pour le tableau de bord admin Unfold (périmètre ferme / rôle).
 
 Les requêtes utilisent des QuerySet filtrés selon `fermes_accessibles_qs` /
 `projets_accessibles_qs`, sauf pour le superutilisateur (vue plateforme).
+
+KPIs financiers par projet (cohérents avec `baay.services.calculer_kpis_financiers_projet`) :
+  Bénéfice net = Total recettes − (Total dépenses + Total investissements matériels).
+  ROI (%) = (Bénéfice net / Total coûts) × 100 lorsque Total coûts > 0.
+
+Progression projet (`Projet.taux_avancement`, `avancement_pour_api`) : combinaison du
+ratio de tâches terminées et de l'avancement temporel (lancement → fin prévue).
 """
 
 from __future__ import annotations
@@ -234,17 +241,58 @@ def build_owner_payload(fermes_qs, projets_qs) -> dict[str, Any]:
     }
 
 
+def mobile_project_kpis_payload(
+    projet: Projet, *, include_financial: bool = True
+) -> dict[str, Any]:
+    """
+    Dictionnaire pour le dashboard mobile : progression + KPIs financiers optionnels.
+
+    Clés progression : ``taux_avancement``, ``progress_tasks_pct``, ``progress_time_pct``.
+    Clés financières (null si ``include_financial`` est False) : recettes, dépenses,
+    investissements, coûts totaux, bénéfice net, ROI %.
+    """
+    out: dict[str, Any] = {**projet.avancement_pour_api()}
+    if not include_financial:
+        out.update(
+            {
+                "total_recettes": None,
+                "total_depenses": None,
+                "total_investissements": None,
+                "total_couts": None,
+                "benefice_net": None,
+                "roi_pct": None,
+            }
+        )
+        return out
+    k = calculer_kpis_financiers_projet(projet.id)
+    roi = k["roi_pct"]
+    out.update(
+        {
+            "total_recettes": _fdec(k["total_recettes"]),
+            "total_depenses": _fdec(k["total_depenses"]),
+            "total_investissements": _fdec(k["total_investissements"]),
+            "total_couts": _fdec(k["total_couts"]),
+            "benefice_net": _fdec(k["benefice_net"]),
+            "roi_pct": None if roi is None else round(_fdec(roi), 2),
+        }
+    )
+    return out
+
+
 def financial_kpis_by_project(projets_qs, limit: int = 20) -> list[dict[str, Any]]:
     """KPIs financiers post-cloture par projet pour dashboards et comparatifs."""
     rows: list[dict[str, Any]] = []
     for projet in projets_qs.order_by("-date_lancement")[:limit]:
         kpis = calculer_kpis_financiers_projet(projet.id)
+        prog = projet.avancement_pour_api()
         rows.append(
             {
                 "projet_id": str(projet.id),
                 "projet_nom": projet.nom,
                 "statut": projet.statut,
-                "taux_avancement": projet.taux_avancement,
+                "taux_avancement": prog["taux_avancement"],
+                "progress_tasks_pct": prog["progress_tasks_pct"],
+                "progress_time_pct": prog["progress_time_pct"],
                 "total_recettes": _fdec(kpis["total_recettes"]),
                 "total_depenses": _fdec(kpis["total_depenses"]),
                 "total_investissements": _fdec(kpis["total_investissements"]),

@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.timezone import now
 from decimal import Decimal
@@ -232,10 +233,21 @@ class HistoriqueRendement(models.Model):
 
 
 class Projet(models.Model):
+    """
+    Statuts projet :
+    - en_cours / en_pause : activité en cours.
+    - fini : travaux ou récolte terminés ; saisie de recettes / investissements / dépenses encore possible.
+
+    - cloture : clôture comptable (via cloturer_projet ou passage manuel depuis « Fini » uniquement).
+      Aucun mouvement financier ni modification de recette/dépense/investissement.
+    """
+    STATUT_CLOTURE = "cloture"
+
     STATUT_CHOICES = [
         ('en_cours', 'En cours'),
         ('en_pause', 'En pause'),
         ('fini', 'Fini'),
+        (STATUT_CLOTURE, 'Clôturé'),
     ]
 
     class TypeIrrigation(models.TextChoices):
@@ -292,7 +304,12 @@ class Projet(models.Model):
         elif self.culture:
             return f"Projet {self.nom} - {self.culture.nom} by {self.utilisateur.user.username}"
         return f"Projet {self.nom} by {self.utilisateur.user.username}"
-    
+
+    @classmethod
+    def statuts_fin_activite(cls):
+        """Fini (opérationnel) ou Clôturé (comptable) : plus d'activité terrain habituelle."""
+        return ('fini', cls.STATUT_CLOTURE)
+
     def clean(self):
         super().clean()
         from datetime import timedelta as _td
@@ -311,7 +328,7 @@ class Projet(models.Model):
                         "(date de lancement)."
                     }
                 )
-            if self.statut != 'fini' and date_fin < timezone.localdate():
+            if self.statut not in ('fini', self.STATUT_CLOTURE) and date_fin < timezone.localdate():
                 raise ValidationError({"date_fin": "La date de fin ne peut pas être dans le passé pour un projet actif."})
             # Durée raisonnable ≤ 2 ans
             if (date_fin - date_lancement).days > 730:
@@ -321,6 +338,22 @@ class Projet(models.Model):
             today = timezone.localdate()
             if date_lancement > (today + _td(days=730)):
                 raise ValidationError({"date_lancement": "La date de début ne peut pas dépasser 2 ans dans le futur."})
+
+        if self.statut == self.STATUT_CLOTURE and not self.pk:
+            raise ValidationError(
+                {"statut": "Un projet ne peut pas être créé directement à l'état « Clôturé »."}
+            )
+        if self.pk:
+            precedent = Projet.objects.filter(pk=self.pk).only("statut").first()
+            if precedent is not None and self.statut == self.STATUT_CLOTURE:
+                if precedent.statut != self.STATUT_CLOTURE and precedent.statut != "fini":
+                    raise ValidationError(
+                        {
+                            "statut": "Le statut « Clôturé » n'est possible qu'après « Fini » "
+                            "(fin des travaux). Ensuite, utilisez la clôture comptable côté finance "
+                            "ou passez le statut manuellement depuis « Fini »."
+                        }
+                    )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -332,45 +365,79 @@ class Projet(models.Model):
         total = self.projet_produits.aggregate(total=models.Sum('rendement_final'))['total']
         return total or 0
 
-    @property
-    def taux_avancement(self):
-        """Progression 0-100 prete pour les jauges du dashboard mobile."""
-        if self.statut == 'fini':
-            return 100
+    def _avancement_breakdown(self) -> dict:
+        """
+        Tâches : part des tâches non annulées en statut « terminée » (0-100 %).
+        Temps : avancement entre date_lancement et date_fin (ou référence 365 j. si pas de fin).
+        Combine les deux (50/50) si au moins une tâche existe ; sinon uniquement le volet temps.
+        """
+        today = timezone.localdate()
+        if self.statut in ("fini", self.STATUT_CLOTURE):
+            return {
+                "combined": 100,
+                "tasks_pct": 100.0,
+                "time_pct": 100.0,
+                "has_tasks": True,
+            }
 
-        taches = list(self.taches.exclude(statut='annulee').values_list('statut', flat=True))
-        if taches:
-            score_taches = sum(
-                100 if statut == 'terminee' else 50 if statut == 'en_cours' else 0
-                for statut in taches
-            ) / len(taches)
-        else:
-            score_taches = 0
-
-        lignes_culture = list(
-            self.projet_produits.values('date_semis', 'date_recolte_prevue', 'date_recolte_effective')
+        agg = self.taches.exclude(statut="annulee").aggregate(
+            total=Count("id"),
+            done=Count("id", filter=Q(statut="terminee")),
         )
-        if lignes_culture:
-            etapes_scores = []
-            for ligne in lignes_culture:
-                score = 0
-                if ligne['date_semis']:
-                    score += 35
-                if ligne['date_semis'] and not ligne['date_recolte_effective']:
-                    score += 25
-                if ligne['date_recolte_prevue']:
-                    score += 15
-                if ligne['date_recolte_effective']:
-                    score = 100
-                etapes_scores.append(score)
-            score_etapes = sum(etapes_scores) / len(etapes_scores)
+        total_t = agg["total"] or 0
+        done_t = agg["done"] or 0
+        if total_t:
+            tasks_pct = (done_t / total_t) * 100.0
+            has_tasks = True
         else:
-            score_etapes = 0
+            tasks_pct = 0.0
+            has_tasks = False
 
-        progression = (score_taches * Decimal("0.45")) + (Decimal(str(score_etapes)) * Decimal("0.55"))
-        if self.statut == 'en_pause':
-            progression = min(progression, Decimal("75"))
-        return int(max(0, min(100, round(progression))))
+        start = self.date_lancement
+        if not start:
+            time_pct = 0.0
+        else:
+            end_plan = self.date_fin
+            if end_plan and end_plan > start:
+                denom_days = (end_plan - start).days or 1
+                if today >= end_plan:
+                    time_pct = 100.0
+                else:
+                    elapsed = (min(today, end_plan) - start).days
+                    time_pct = max(0.0, min(100.0, (elapsed / denom_days) * 100.0))
+            else:
+                elapsed = (today - start).days
+                time_pct = max(0.0, min(100.0, (elapsed / 365.0) * 100.0))
+
+        if has_tasks:
+            combined_f = 0.5 * tasks_pct + 0.5 * time_pct
+        else:
+            combined_f = time_pct
+
+        if self.statut == "en_pause":
+            combined_f = min(combined_f, 75.0)
+
+        combined = int(max(0, min(100, round(combined_f))))
+        return {
+            "combined": combined,
+            "tasks_pct": round(tasks_pct, 1) if has_tasks else None,
+            "time_pct": round(time_pct, 1),
+            "has_tasks": has_tasks,
+        }
+
+    @property
+    def taux_avancement(self) -> int:
+        """Progression 0-100 pour les jauges (dashboard mobile, API)."""
+        return self._avancement_breakdown()["combined"]
+
+    def avancement_pour_api(self) -> dict:
+        """Sous-scores de progression pour les composants UI (anneaux, barres)."""
+        d = self._avancement_breakdown()
+        return {
+            "taux_avancement": d["combined"],
+            "progress_tasks_pct": d["tasks_pct"],
+            "progress_time_pct": d["time_pct"],
+        }
 
 
 class ProjetProduit(models.Model):
@@ -562,6 +629,13 @@ class Investissement(models.Model):
 
     def clean(self):
         super().clean()
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        if projet and projet.statut == Projet.STATUT_CLOTURE:
+            raise ValidationError(
+                "Impossible d'ajouter ou de modifier un investissement : le projet est clôturé."
+            )
         if not self.pk:
             return
         ancien = Investissement.objects.filter(pk=self.pk).first()
@@ -578,15 +652,73 @@ class Investissement(models.Model):
             "date_investissement",
         )
         if any(getattr(ancien, champ) != getattr(self, champ) for champ in champs_financiers):
-            raise ValidationError("Cette depense est verrouillee car le projet est cloture.")
+            raise ValidationError(
+                "Cet investissement est verrouillé : la ligne ne peut plus être modifiée."
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        if projet and projet.statut == Projet.STATUT_CLOTURE:
+            raise ValidationError(
+                "Impossible de supprimer cet investissement : le projet est clôturé."
+            )
         if self.verrouille:
-            raise ValidationError("Cette depense est verrouillee car le projet est cloture.")
+            raise ValidationError(
+                "Impossible de supprimer cet investissement : la ligne est verrouillée."
+            )
+        return super().delete(*args, **kwargs)
+
+
+class Depense(models.Model):
+    """Dépense simple liée à un projet (saisie directe, distincte des lignes Investissement)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name="depenses")
+    libelle = models.CharField(max_length=255)
+    montant = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    date_depense = models.DateField(default=now)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-date_depense", "-pk"]
+        verbose_name = "Dépense"
+        verbose_name_plural = "Dépenses"
+
+    def __str__(self):
+        return f"{self.libelle} — {self.projet.nom}"
+
+    def clean(self):
+        super().clean()
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        if projet and projet.statut == Projet.STATUT_CLOTURE:
+            raise ValidationError(
+                "Impossible d'ajouter ou de modifier une dépense : le projet est clôturé."
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        if projet and projet.statut == Projet.STATUT_CLOTURE:
+            raise ValidationError(
+                "Impossible de supprimer cette dépense : le projet est clôturé."
+            )
         return super().delete(*args, **kwargs)
 
 
@@ -610,19 +742,19 @@ class Recette(models.Model):
         related_name='recettes',
         help_text="Culture vendue lorsque la recette est liee a une ligne de projet.",
     )
-    produit_vendu = models.CharField(max_length=150, blank=True)
-    quantite_vendue = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    produit = models.CharField(max_length=150, blank=True)
+    quantite = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
     unite = models.CharField(max_length=16, choices=UNITE_CHOICES, default=UNITE_KG)
     prix_unitaire = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])
     montant_total = models.DecimalField(max_digits=18, decimal_places=2, editable=False)
-    date_encaissement = models.DateField(default=now)
+    date_vente = models.DateField(default=now)
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-date_encaissement', '-date_creation']
+        ordering = ['-date_vente', '-date_creation']
         indexes = [
-            models.Index(fields=['projet', 'date_encaissement']),
+            models.Index(fields=['projet', 'date_vente']),
             models.Index(fields=['projet_produit']),
         ]
 
@@ -630,17 +762,35 @@ class Recette(models.Model):
         super().clean()
         if self.projet_produit_id and self.projet_id and self.projet_produit.projet_id != self.projet_id:
             raise ValidationError({"projet_produit": "Cette culture n'appartient pas au projet selectionne."})
-        if not self.produit_vendu and self.projet_produit_id:
-            self.produit_vendu = self.projet_produit.produit.nom
+        if not self.produit and self.projet_produit_id:
+            self.produit = self.projet_produit.produit.nom
+
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        if projet and projet.statut == Projet.STATUT_CLOTURE:
+            raise ValidationError(
+                "Impossible d'ajouter ou de modifier une recette : le projet est clôturé."
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        self.montant_total = (self.quantite_vendue or Decimal("0")) * (self.prix_unitaire or Decimal("0"))
+        self.montant_total = (self.quantite or Decimal("0")) * (self.prix_unitaire or Decimal("0"))
         super().save(*args, **kwargs)
 
     def __str__(self):
-        produit = self.produit_vendu or (self.projet_produit.produit.nom if self.projet_produit_id else "Produit")
+        produit = self.produit or (self.projet_produit.produit.nom if self.projet_produit_id else "Produit")
         return f"Recette {produit} - {self.montant_total} FCFA"
+
+    def delete(self, *args, **kwargs):
+        projet = self.projet
+        if projet is None and self.projet_id:
+            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        if projet and projet.statut == Projet.STATUT_CLOTURE:
+            raise ValidationError(
+                "Impossible de supprimer cette recette : le projet est clôturé."
+            )
+        return super().delete(*args, **kwargs)
 
 class PrevisionRecolte(models.Model):
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='previsions')

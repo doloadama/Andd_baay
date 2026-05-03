@@ -456,7 +456,14 @@ function filterProjects() {
 
 function projectMatches(dataset, query, filter) {
     const matchesSearch = !query || `${dataset.name} ${dataset.culture} ${dataset.products}`.includes(query);
-    const matchesFilter = filter === 'all' || dataset.status === filter;
+    let matchesFilter;
+    if (filter === 'all') {
+        matchesFilter = true;
+    } else if (filter === 'fini') {
+        matchesFilter = dataset.status === 'fini' || dataset.status === 'cloture';
+    } else {
+        matchesFilter = dataset.status === filter;
+    }
     return matchesSearch && matchesFilter;
 }
 
@@ -579,8 +586,17 @@ function openQuickView(projectId) {
 
     const row = document.querySelector(`#projectsTable tr[data-id="${projectId}"]`);
     const culture = row?.querySelector('.project-culture')?.textContent?.trim() || project.culture || 'N/A';
-    const statusLabel = project.status === 'en_cours' ? 'En cours' : project.status === 'en_pause' ? 'En pause' : 'Termine';
-    const progress = project.status === 'fini' ? '100%' : project.status === 'en_pause' ? '50%' : '75%';
+    const progress = project.status === 'fini' || project.status === 'cloture' ? '100%' : project.status === 'en_pause' ? '50%' : '75%';
+    const statusLabel =
+        project.status === 'en_cours'
+            ? 'En cours'
+            : project.status === 'en_pause'
+              ? 'En pause'
+              : project.status === 'cloture'
+                ? 'Clôturé'
+                : project.status === 'fini'
+                  ? 'Fini'
+                  : '—';
 
     setText('quickViewTitle', row?.querySelector('.project-name-cell')?.textContent?.trim() || project.name);
     document.getElementById('quickViewEdit').href = project.editUrl;
@@ -627,7 +643,7 @@ function updateStatus(projectId, newStatus) {
         .then((response) => response.json())
         .then((data) => {
             if (!data.success) {
-                showToast('Impossible de mettre a jour le statut.', 'error');
+                showToast(data.error || 'Impossible de mettre a jour le statut.', 'error');
                 return;
             }
 
@@ -643,8 +659,17 @@ function updateStatus(projectId, newStatus) {
 }
 
 function updateStatusInDom(projectId, status) {
-    const label = status === 'en_cours' ? 'En cours' : status === 'en_pause' ? 'En pause' : 'Termine';
-    const progress = status === 'fini' ? '100%' : status === 'en_pause' ? '50%' : '75%';
+    const label =
+        status === 'en_cours'
+            ? 'En cours'
+            : status === 'en_pause'
+              ? 'En pause'
+              : status === 'cloture'
+                ? 'Clôturé'
+                : status === 'fini'
+                  ? 'Fini'
+                  : '—';
+    const progress = status === 'fini' || status === 'cloture' ? '100%' : status === 'en_pause' ? '50%' : '75%';
 
     document.querySelectorAll(`[data-id="${projectId}"] .status-badge`).forEach((badge) => {
         badge.className = `status-badge status-${status}`;

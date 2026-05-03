@@ -6,6 +6,7 @@ from baay.views_finance import (
     FinanceInvestissementDuplicateView,
     FinanceProduitFilterPartialView,
     FinanceProduitSelectPartialView,
+    FinanceRecetteDeleteView,
     FinanceStatsPartialView,
 )
 
@@ -31,5 +32,10 @@ urlpatterns = [
         "finance/investissement/<uuid:pk>/supprimer/",
         FinanceInvestissementDeleteView.as_view(),
         name="finance_delete_investissement",
+    ),
+    path(
+        "finance/recette/<uuid:pk>/supprimer/",
+        FinanceRecetteDeleteView.as_view(),
+        name="finance_delete_recette",
     ),
 ]

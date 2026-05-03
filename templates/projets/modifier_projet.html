@@ -185,7 +185,7 @@
                 <div class="card-header-modern">
                     <h4>
                         <i class="fas fa-edit text-accent me-2"></i>
-                        {% if show_rendement_form %}
+                        {% if show_rendement_form and projet.statut != 'cloture' %}
                             Terminer le Projet & Saisir la Recolte
                         {% else %}
                             Modifier le projet : {{ projet.nom }}
@@ -205,7 +205,7 @@
                     <!-- Rendement Final Form -->
                     <div class="rendement-section">
                         <h5><i class="fas fa-trophy me-2"></i> Saisir les Rendements Finaux</h5>
-                        <p class="text-muted mb-4">Enregistrez les quantités récoltées par culture pour clôturer le projet (statut « Terminé »).</p>
+                        <p class="text-muted mb-4">Enregistrez les quantités récoltées par culture pour passer le projet au statut <strong>« Fini »</strong> (fin opérationnelle). La <strong>clôture comptable</strong> (blocage des écritures) est une étape séparée, depuis le hub Finance.</p>
 
                         {% if rendement_form.non_field_errors %}
                         <div class="alert alert-danger mb-3">
@@ -263,7 +263,7 @@
                             {% if closure_rows %}
                             <div class="d-flex flex-wrap gap-3 mt-4">
                                 <button type="submit" class="btn-submit-modern">
-                                    <i class="fas fa-check-circle"></i> Enregistrer et clôturer le projet
+                                    <i class="fas fa-check-circle"></i> Enregistrer et passer en « Fini »
                                 </button>
                                 <a href="{% url 'detail_projet' projet.id %}" class="btn btn-outline-light px-4" style="min-height:44px;align-self:center;">
                                     Annuler

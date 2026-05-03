@@ -1,17 +1,17 @@
 <div>
-    <label class="finance-ft-field-label" for="id_projet_produit">
+    <label class="finance-ft-field-label" for="{{ select_id|default:'id_projet_produit' }}">
         Culture <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span>
     </label>
         {% if projet_produits %}
-        <select name="projet_produit" id="id_projet_produit" class="fh-field">
-            <option value="" {% if not request.POST.projet_produit %}selected{% endif %}>— Général au projet —</option>
+        <select name="{{ field_name|default:'projet_produit' }}" id="{{ select_id|default:'id_projet_produit' }}" class="fh-field">
+            <option value="">— Général au projet —</option>
             {% for pp in projet_produits %}
-                <option value="{{ pp.pk }}"{% if request.POST.projet_produit == pp.pk|stringformat:"s" %} selected{% endif %}>{{ pp.produit.nom }}</option>
+                <option value="{{ pp.pk }}"{% if selected_projet_produit == pp.pk|stringformat:"s" %} selected{% endif %}>{{ pp.produit.nom }}</option>
             {% endfor %}
         </select>
-        <p class="finance-ft-help">Sans culture : dépense affectée à tout le projet.</p>
+        <p class="finance-ft-help">Sans culture : ligne affectée à tout le projet.</p>
     {% else %}
-        <select name="projet_produit" id="id_projet_produit" class="fh-field" disabled aria-disabled="true">
+        <select name="{{ field_name|default:'projet_produit' }}" id="{{ select_id|default:'id_projet_produit' }}" class="fh-field" disabled aria-disabled="true">
             <option value="">Choisissez d'abord un projet</option>
         </select>
         <p class="finance-ft-help">Sélectionnez un projet pour voir ses cultures.</p>

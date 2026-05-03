@@ -2,7 +2,20 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 import json
-from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profile, ProjetProduit, Pays, Ferme, MembreFerme, DemandeAccesFerme, Tache
+from baay.models import (
+    Projet,
+    ProduitAgricole,
+    Investissement,
+    Localite,
+    Profile,
+    ProjetProduit,
+    Pays,
+    Ferme,
+    MembreFerme,
+    DemandeAccesFerme,
+    Tache,
+    Recette,
+)
 from baay.permissions import role_dans_ferme, roles_assignables_par
 
 
@@ -309,6 +322,7 @@ class FinanceDepenseForm(forms.ModelForm):
         self.fields["projet"].widget.attrs.update(
             {
                 "hx-get": reverse("finance_produits_form_partial"),
+                "hx-include": "this",
                 "hx-target": "#finance-depense-produit-wrap",
                 "hx-swap": "innerHTML",
                 "hx-trigger": "change",
@@ -326,6 +340,114 @@ class FinanceDepenseForm(forms.ModelForm):
         if cout is not None and cout <= 0:
             raise forms.ValidationError("Le coût par hectare doit être positif.")
         return cout
+
+    def clean(self):
+        cleaned_data = super().clean()
+        projet = cleaned_data.get("projet")
+        pp = cleaned_data.get("projet_produit")
+        if projet and pp and pp.projet_id != projet.id:
+            raise forms.ValidationError(
+                {"projet_produit": "La culture ne correspond pas au projet sélectionné."}
+            )
+        return cleaned_data
+
+
+class FinanceRecetteForm(forms.ModelForm):
+    """Saisie d'une recette (vente) depuis le hub Finance."""
+
+    class Meta:
+        model = Recette
+        fields = [
+            "projet",
+            "projet_produit",
+            "produit",
+            "quantite",
+            "unite",
+            "prix_unitaire",
+            "date_vente",
+        ]
+        widgets = {
+            "projet": forms.Select(attrs={"class": "fh-field"}),
+            "projet_produit": forms.Select(attrs={"class": "fh-field"}),
+            "produit": forms.TextInput(
+                attrs={
+                    "class": "fh-field",
+                    "placeholder": "Ex. riz paddy (auto si culture choisie)",
+                    "autocomplete": "off",
+                }
+            ),
+            "quantite": forms.NumberInput(
+                attrs={
+                    "class": "fh-field",
+                    "id": "fRecQty",
+                    "step": "0.01",
+                    "min": "0.01",
+                }
+            ),
+            "unite": forms.Select(attrs={"class": "fh-field"}),
+            "prix_unitaire": forms.NumberInput(
+                attrs={
+                    "class": "fh-field",
+                    "id": "fRecPrix",
+                    "step": "0.01",
+                    "min": "0",
+                }
+            ),
+            "date_vente": forms.DateInput(
+                attrs={"type": "date", "class": "fh-field", "id": "fDateVente"}
+            ),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        kwargs.setdefault("prefix", "recette")
+        self.user = user
+        super().__init__(*args, **kwargs)
+        from django.urls import reverse
+
+        from baay.permissions import projets_modifiables_depenses_qs
+
+        if user and user.is_authenticated:
+            self.fields["projet"].queryset = projets_modifiables_depenses_qs(user.profile).order_by(
+                "nom"
+            )
+        self.fields["projet"].empty_label = "Choisir un projet…"
+        self.fields["projet_produit"].required = False
+        self.fields["produit"].required = False
+        projet_key = f"{self.prefix}-projet" if self.prefix else "projet"
+        projet_pk = None
+        if self.data.get(projet_key):
+            projet_pk = self.data.get(projet_key)
+        elif getattr(self.instance, "pk", None) and getattr(self.instance, "projet_id", None):
+            projet_pk = self.instance.projet_id
+        if projet_pk:
+            self.fields["projet_produit"].queryset = (
+                ProjetProduit.objects.filter(projet_id=projet_pk)
+                .select_related("produit")
+                .order_by("produit__nom")
+            )
+        else:
+            self.fields["projet_produit"].queryset = ProjetProduit.objects.none()
+
+        pp_name = f"{self.prefix}-projet_produit" if self.prefix else "projet_produit"
+        self.fields["projet_produit"].widget.attrs["id"] = f"id_{pp_name}"
+        self.fields["projet"].widget.attrs["id"] = f"id_{self.prefix}-projet"
+
+        self.fields["projet"].widget.attrs.update(
+            {
+                "hx-get": reverse("finance_produits_form_partial") + "?form=recette",
+                "hx-include": "this",
+                "hx-target": "#finance-recette-produit-wrap",
+                "hx-swap": "innerHTML",
+                "hx-trigger": "change",
+            }
+        )
+        self.fields["projet"].label = "Projet"
+        self.fields["projet_produit"].label = "Culture"
+        self.fields["produit"].label = "Produit vendu"
+        self.fields["quantite"].label = "Quantité"
+        self.fields["unite"].label = "Unité"
+        self.fields["prix_unitaire"].label = "Prix unitaire (FCFA)"
+        self.fields["date_vente"].label = "Date de vente"
 
     def clean(self):
         cleaned_data = super().clean()

@@ -554,7 +554,7 @@ function initCharts() {
         statusChart = new Chart(statusCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['En cours', 'En pause', 'Terminé'],
+                labels: ['En cours', 'En pause', 'Terminés'],
                 datasets: [{
                     data: [statusCounts.en_cours, statusCounts.en_pause, statusCounts.fini],
                     backgroundColor: [
@@ -576,10 +576,15 @@ function initCharts() {
                 onClick: (event, elements) => {
                     if (elements.length > 0) {
                         const index = elements[0].index;
-                        const statusMap = ['en_cours', 'en_pause', 'fini'];
-                        const statusLabels = ['En cours', 'En pause', 'Terminé'];
-                        const status = statusMap[index];
-                        const projectsWithStatus = filteredProjects.filter(p => p.status === status);
+                        const statusMap = ['en_cours', 'en_pause', 'termines'];
+                        const statusLabels = ['En cours', 'En pause', 'Terminés'];
+                        const key = statusMap[index];
+                        const projectsWithStatus =
+                            key === 'termines'
+                                ? filteredProjects.filter(
+                                      (p) => p.status === 'fini' || p.status === 'cloture'
+                                  )
+                                : filteredProjects.filter((p) => p.status === key);
                         showProjectsModal('status', `Projets ${statusLabels[index]}`, projectsWithStatus);
                     }
                 },
@@ -802,7 +807,7 @@ function getStatusCounts(projects) {
     return {
         en_cours: projects.filter(p => p.status === 'en_cours').length,
         en_pause: projects.filter(p => p.status === 'en_pause').length,
-        fini: projects.filter(p => p.status === 'fini').length
+        fini: projects.filter(p => p.status === 'fini' || p.status === 'cloture').length
     };
 }
 
@@ -898,7 +903,9 @@ function updateKPIs() {
 function updateOverviewMetrics() {
     const active = filteredProjects.filter((project) => project.status === 'en_cours').length;
     const paused = filteredProjects.filter((project) => project.status === 'en_pause').length;
-    const finished = filteredProjects.filter((project) => project.status === 'fini').length;
+    const finished = filteredProjects.filter(
+        (project) => project.status === 'fini' || project.status === 'cloture'
+    ).length;
     const total = filteredProjects.length;
     const completionRate = total ? Math.round((finished / total) * 100) : 0;
 
@@ -993,7 +1000,12 @@ function updateActiveFilters(statut, cultureName, dateFrom, dateTo) {
         activeFilters.push({type: 'ferme', label: fermeLabel});
     }
     if (statut) {
-        const statusLabels = {'en_cours': 'En cours', 'en_pause': 'En pause', 'fini': 'Terminé'};
+        const statusLabels = {
+            en_cours: 'En cours',
+            en_pause: 'En pause',
+            fini: 'Fini',
+            cloture: 'Clôturé',
+        };
         activeFilters.push({type: 'statut', label: statusLabels[statut]});
     }
     if (cultureName && cultureName !== 'Toutes') {
@@ -1173,13 +1185,21 @@ function updateProjectStatus(newStatus) {
                 card.setAttribute('data-status', newStatus);
                 const badge = card.querySelector('.status-badge');
                 badge.className = `status-badge status-${newStatus}`;
-                badge.textContent = newStatus === 'en_cours' ? 'En cours' : 
-                                   newStatus === 'en_pause' ? 'En pause' : 'Terminé';
+                badge.textContent =
+                    newStatus === 'en_cours'
+                        ? 'En cours'
+                        : newStatus === 'en_pause'
+                          ? 'En pause'
+                          : newStatus === 'cloture'
+                            ? 'Clôturé'
+                            : newStatus === 'fini'
+                              ? 'Fini'
+                              : '—';
                 
                 // Update progress bar
                 const progressBar = card.querySelector('.project-progress-bar');
                 if (progressBar) {
-                    const progress = newStatus === 'fini' ? 100 : newStatus === 'en_pause' ? 50 : 75;
+                    const progress = newStatus === 'fini' || newStatus === 'cloture' ? 100 : newStatus === 'en_pause' ? 50 : 75;
                     progressBar.style.width = `${progress}%`;
                 }
             }
@@ -1196,7 +1216,7 @@ function updateProjectStatus(newStatus) {
             closeStatusModal();
             showToast('Statut mis à jour ✅', 'success');
         } else {
-            showToast('Erreur lors de la mise à jour', 'error');
+            showToast(data.error || 'Erreur lors de la mise à jour', 'error');
         }
     })
     .catch(err => {
@@ -1419,7 +1439,7 @@ function applyFarmFilter(fermeId) {
                     date: p.date_lancement,
                     superficie: p.superficie,
                     rendement: p.rendement_estime,
-                    progress: p.statut === 'fini' ? 100 : p.statut === 'en_pause' ? 50 : 75,
+                    progress: p.statut === 'fini' || p.statut === 'cloture' ? 100 : p.statut === 'en_pause' ? 50 : 75,
                     fermeNom: p.ferme_nom
                 });
             });
@@ -1709,8 +1729,9 @@ function updateProjectList(data) {
         return;
     }
 
-    const statusLabel = s => s === 'en_cours' ? 'En cours' : s === 'en_pause' ? 'En pause' : 'Terminé';
-    const progressVal = s => s === 'fini' ? 100 : s === 'en_pause' ? 50 : 75;
+    const statusLabel = s =>
+        s === 'en_cours' ? 'En cours' : s === 'en_pause' ? 'En pause' : s === 'cloture' ? 'Clôturé' : s === 'fini' ? 'Fini' : '—';
+    const progressVal = s => (s === 'fini' || s === 'cloture' ? 100 : s === 'en_pause' ? 50 : 75);
 
     const bulkBar = `<div class="bulk-actions-bar" id="bulkActionsBar">
         <span class="selected-count"><span id="selectedCount">0</span> sélectionné(s)</span>
@@ -1825,11 +1846,14 @@ function refreshData() {
                 if (el) animateValue(id, kpiMap[id]);
             });
 
+            const finis = data.projets_par_statut.find(p => p.statut === 'fini');
+            const clotures = data.projets_par_statut.find(p => p.statut === 'cloture');
+            const totalTermines = (finis ? finis.count : 0) + (clotures ? clotures.count : 0);
+            const total = data.nb_projets || 0;
+
             // Update spotlight stats
             const enCours = data.projets_par_statut.find(p => p.statut === 'en_cours');
             const enPause = data.projets_par_statut.find(p => p.statut === 'en_pause');
-            const finis = data.projets_par_statut.find(p => p.statut === 'fini');
-            const total = data.nb_projets || 0;
 
             // Farm view IDs
             const farmProjectsEl = document.getElementById('spotlightFarmProjects');
@@ -1851,7 +1875,7 @@ function refreshData() {
             const activeEl = document.getElementById('spotlightActiveProjects');
             const pausedEl = document.getElementById('spotlightPausedProjects');
             const completionEl = document.getElementById('spotlightCompletionRate');
-            const completionRate = total ? Math.round(((finis ? finis.count : 0) / total) * 100) : 0;
+            const completionRate = total ? Math.round((totalTermines / total) * 100) : 0;
             if (activeEl) activeEl.textContent = (enCours ? enCours.count : 0).toLocaleString('fr-FR');
             if (pausedEl) pausedEl.textContent = (enPause ? enPause.count : 0).toLocaleString('fr-FR');
             if (completionEl) completionEl.textContent = `${completionRate}%`;

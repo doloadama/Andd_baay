@@ -105,7 +105,16 @@ def _prediction_revenue_proxy(projet_id) -> Decimal:
 
 
 def calculer_kpis_financiers_projet(projet_id) -> dict:
-    """KPIs financiers reels d'un projet, utilisables par dashboard/services/API."""
+    """
+    KPIs financiers réels d'un projet (dashboard, API mobile, clôture).
+
+    Formules (FCFA) :
+    - Total coûts = Total dépenses + Total investissements matériels
+      (lignes ``Investissement`` : hors « matériel » = dépenses, catégorie « matériel » = investissements).
+    - Bénéfice net = Total recettes − Total coûts
+      (= Total recettes − (Total dépenses + Total investissements)).
+    - ROI (%) = (Bénéfice net / Total coûts) × 100 si Total coûts > 0, sinon null.
+    """
     inv_expr = investissement_montant_expr()
     couts = Investissement.objects.filter(projet_id=projet_id).aggregate(
         total_couts=Coalesce(Sum(inv_expr), Value(Decimal("0"))),
@@ -152,22 +161,45 @@ def calculer_kpis_financiers_projet(projet_id) -> dict:
 
 
 def cloturer_projet(projet_id) -> dict:
-    """Cloture un projet, verrouille ses depenses et calcule la rentabilite finale."""
+    """
+    Clôture comptable : passage au statut « Clôturé » et verrouillage des investissements.
+
+    Prérequis : le projet doit déjà être « Fini » (fin opérationnelle). Les écritures
+    financières restent possibles tant que le projet n'est qu'« Fini » ; la clôture les fige.
+
+    Idempotent si le projet est déjà « Clôturé » : re-verrouille les lignes éventuelles et
+    renvoie les KPI.
+    """
+    from django.utils import timezone as _tz
+
     with transaction.atomic():
         projet = Projet.objects.select_for_update().get(pk=projet_id)
-        if projet.statut != "fini":
-            projet.statut = "fini"
+        becoming = projet.statut != Projet.STATUT_CLOTURE
+        if becoming:
+            if projet.statut != "fini":
+                raise ValidationError(
+                    "Clôture comptable impossible : le projet doit d'abord être au statut « Fini » "
+                    "(travaux et récolte terminés). Les écritures comptables restent ouvertes tant "
+                    "qu'il n'est pas « Clôturé »."
+                )
+            projet.statut = Projet.STATUT_CLOTURE
+        date_fin_ajoutee = False
         if not projet.date_fin:
-            from django.utils import timezone as _tz
             projet.date_fin = _tz.localdate()
-        projet.save(update_fields=["statut", "date_fin"])
-        from django.utils import timezone as _tz
+            date_fin_ajoutee = True
+        to_update = []
+        if becoming:
+            to_update.append("statut")
+        if date_fin_ajoutee:
+            to_update.append("date_fin")
+        if to_update:
+            projet.save(update_fields=to_update)
         Investissement.objects.filter(projet=projet, verrouille=False).update(
             verrouille=True,
             date_verrouillage=_tz.now(),
         )
         kpis = calculer_kpis_financiers_projet(projet.id)
-    return {"projet": projet, "kpis": kpis}
+    return {"projet": projet, "kpis": kpis, "etait_deja_cloture": not becoming}
 
 
 def check_budget_status(projet_id):

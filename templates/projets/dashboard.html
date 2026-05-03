@@ -241,7 +241,8 @@
                         <option value="">Tous</option>
                         <option value="en_cours">En cours</option>
                         <option value="en_pause">En pause</option>
-                        <option value="fini">Terminé</option>
+                        <option value="fini">Fini</option>
+                        <option value="cloture">Clôturé</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -444,7 +445,7 @@
                     data-culture-name="{% for pp in projet_pps %}{{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|default:'N/A' }}{% endfor %}"
                     data-nom="{{ projet.nom }}" data-rendement="{{ projet.rendement_estime|default:0 }}"
                     data-superficie="{{ projet.superficie|default:0 }}"
-                    data-progress="{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}">
+                    data-progress="{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}">
 
                     <!-- Checkbox for bulk selection -->
                     <div class="project-checkbox" onclick="toggleProjectSelection(event, '{{ projet.id }}')"></div>
@@ -470,12 +471,12 @@
                         <!-- Progress bar -->
                         <div class="project-progress">
                             <div class="project-progress-bar"
-                                style="width: {% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%">
+                                style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%">
                             </div>
                         </div>
                         <div class="project-progress-meta">
                             <span>Progression</span>
-                            <strong>{% if projet.statut == 'fini' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                            <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
                         </div>
                     </div>
 
@@ -545,8 +546,12 @@
                     <span class="text-muted">Temporairement suspendu</span>
                 </div>
                 <div class="modal-project-item" onclick="updateProjectStatus('fini')">
-                    <span class="status-badge fini me-3">Terminé</span>
-                    <span class="text-muted">Projet complété</span>
+                    <span class="status-badge fini me-3">Fini</span>
+                    <span class="text-muted">Travaux terminés ; saisies finance encore possibles</span>
+                </div>
+                <div class="modal-project-item" onclick="updateProjectStatus('cloture')">
+                    <span class="status-badge fini me-3" style="opacity:.95;border-style:dashed;">Clôturé</span>
+                    <span class="text-muted">Clôture comptable — uniquement après « Fini »</span>
                 </div>
             </div>
         </div>
