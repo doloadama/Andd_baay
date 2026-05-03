@@ -10,6 +10,7 @@ body:has(.finance-ft-root) .voice-mic-btn {
 }
 
 .finance-ft-root {
+    color-scheme: light;
     --green-900: #04342c;
     --green-800: #085041;
     --green-700: #0f6e56;
@@ -46,6 +47,7 @@ body:has(.finance-ft-root) .voice-mic-btn {
 }
 
 html.dark-mode .finance-ft-root {
+    color-scheme: dark;
     --fh-page-bg: #0d1412;
     --fh-surface: #162019;
     --fh-surface2: #1d2b24;
@@ -53,6 +55,13 @@ html.dark-mode .finance-ft-root {
     --fh-text1: #f3f4f6;
     --fh-text2: #d1d5db;
     --fh-text3: #9ca3af;
+    /* Montants / accents lisibles sur fond sombre (évite vert trop foncé type mode clair) */
+    --sahara-success: #5dcaa5;
+    --sahara-warning: #fbbf24;
+    /* Pastille « catégorie » */
+    --fh-cat-pill-bg: rgba(159, 225, 203, 0.14);
+    --fh-cat-pill-border: rgba(159, 225, 203, 0.32);
+    --fh-cat-pill-text: #dff9ef;
 }
 
 .finance-ft-mono {
@@ -163,6 +172,11 @@ html.dark-mode .finance-ft-root {
 .finance-ft-metric__ico--amber {
     background: rgba(239, 159, 39, 0.2);
     color: var(--sahara-warning);
+}
+
+html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fcd34d;
 }
 
 .finance-ft-metric__ico--mint {
@@ -292,6 +306,13 @@ html.dark-mode .finance-ft-root {
     outline: none;
     border-color: var(--green-500);
     box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.2);
+}
+
+/* Listes natives (catégorie, périmètre…) : fond/texte cohérents avec le thème */
+.finance-ft-root select.fh-field option,
+.finance-ft-root select.fh-field optgroup {
+    background-color: var(--fh-surface);
+    color: var(--fh-text1);
 }
 
 .finance-ft-info {
@@ -447,12 +468,46 @@ html.dark-mode .finance-ft-root {
     border-radius: 999px;
     background: var(--fh-surface2);
     font-size: 12px;
-    color: var(--fh-text2);
+    font-weight: 500;
+    color: var(--fh-text1);
     border: 1px solid var(--fh-border);
 }
 
 .finance-ft-pill--muted {
+    font-weight: 400;
     font-size: 11px;
+    color: var(--fh-text3);
+    background: var(--fh-surface2);
+    border-color: var(--fh-border);
+}
+
+/* Catégorie de dépense : contraste renforcé en mode sombre */
+.finance-ft-pill--categorie {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
+    background: var(--fh-cat-pill-bg);
+    border-color: var(--fh-cat-pill-border);
+    color: var(--fh-cat-pill-text);
+}
+
+.finance-ft-pill--compact {
+    padding: 2px 8px;
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.finance-ft-dep-mobile-meta {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--fh-text2);
+    line-height: 1.45;
+}
+
+.finance-ft-dep-mobile-meta .finance-ft-dep-mobile-sep {
+    margin: 0 0.28em;
     color: var(--fh-text3);
 }
 
@@ -518,8 +573,18 @@ html.dark-mode .finance-ft-root {
     gap: 14px;
 }
 
+.finance-ft-sub2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
 @media (max-width: 767px) {
     .finance-ft-sub3 {
+        grid-template-columns: 1fr;
+    }
+
+    .finance-ft-sub2 {
         grid-template-columns: 1fr;
     }
 }
@@ -615,4 +680,543 @@ html.dark-mode .finance-ft-pagination a {
 .finance-ft-leaf {
     color: var(--green-500);
     flex-shrink: 0;
+}
+
+/* Entête réduite (ex. formulaire ferme sur le modèle Finance) */
+.finance-ft-hero--compact {
+    padding: 22px 28px;
+    grid-template-columns: 1fr;
+}
+
+.finance-ft-hero--compact h1 {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+/* ——— Form shell shared by farm/project/investment creation pages ——— */
+.finance-ft-form-card .finance-ft-card__body {
+    padding: 0;
+}
+
+.finance-ft-form-shell {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.55fr);
+    gap: 0;
+}
+
+.finance-ft-form-shell--wide {
+    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.7fr);
+}
+
+.finance-ft-form-aside {
+    padding: 28px;
+    border-right: 1px solid var(--fh-border);
+    background:
+        radial-gradient(circle at top left, rgba(29, 158, 117, 0.13), transparent 34%),
+        var(--fh-surface2);
+}
+
+.finance-ft-form-aside__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgba(29, 158, 117, 0.14);
+    color: var(--green-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 18px;
+}
+
+.finance-ft-form-aside h3 {
+    margin: 0 0 8px 0;
+    color: var(--fh-text1);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.finance-ft-form-aside p {
+    color: var(--fh-text3);
+    line-height: 1.55;
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.finance-ft-form-main {
+    padding: 28px;
+    min-width: 0;
+}
+
+.finance-ft-mini-list {
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
+}
+
+.finance-ft-mini-list span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fh-text2);
+    font-size: 0.84rem;
+}
+
+.finance-ft-mini-list i {
+    color: var(--green-500);
+    font-size: 0.76rem;
+}
+
+.finance-ft-inline-help {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.finance-ft-inline-help .finance-ft-help {
+    margin: 0;
+}
+
+.finance-ft-btn--sm {
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+.finance-ft-inline-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid var(--fh-border);
+    border-radius: 12px;
+    background: var(--fh-surface2);
+    color: var(--fh-text3);
+    padding: 12px 14px;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.finance-ft-inline-note i {
+    color: var(--green-500);
+    margin-top: 2px;
+}
+
+/* ——— Création projet / investissement (alignement hub Finance) ——— */
+.projet-form-ft-root .form-progress {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 20px 20px;
+    margin: 0;
+    border-bottom: 1px solid var(--fh-border);
+    background: var(--fh-surface2);
+}
+
+.projet-form-ft-root .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.projet-form-ft-root .step-circle {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    background: var(--fh-surface);
+    border: 2px solid var(--fh-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--fh-text3);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.projet-form-ft-root .progress-step.active .step-circle {
+    background: var(--green-500);
+    border-color: var(--green-500);
+    color: #fff;
+}
+
+.projet-form-ft-root .progress-step.completed .step-circle {
+    background: rgba(29, 158, 117, 0.2);
+    border-color: var(--green-500);
+    color: var(--green-500);
+}
+
+.projet-form-ft-root .step-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--fh-text3);
+    display: none;
+}
+
+.projet-form-ft-root .progress-step.active .step-label {
+    color: var(--green-500);
+    display: block;
+}
+
+.projet-form-ft-root .step-connector {
+    width: 28px;
+    height: 2px;
+    background: var(--fh-border);
+    margin: 0 2px;
+}
+
+.projet-form-ft-root .progress-step.completed + .step-connector,
+.projet-form-ft-root .step-connector.active {
+    background: linear-gradient(90deg, var(--green-500), var(--green-300));
+}
+
+.projet-form-ft-root .projet-input-shell {
+    border-radius: 8px;
+    transition: box-shadow 0.15s ease;
+}
+
+.projet-form-ft-root .projet-input-shell.error {
+    box-shadow: 0 0 0 2px rgba(226, 75, 74, 0.45);
+}
+
+.projet-form-ft-root .projet-input-shell.success {
+    box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.35);
+}
+
+.projet-form-ft-root .projet-info-tip {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--fh-border);
+    background: var(--fh-surface2);
+    margin-bottom: 20px;
+}
+
+.projet-form-ft-root .projet-info-tip__ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(29, 158, 117, 0.15);
+    color: var(--green-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.projet-form-ft-root .projet-info-tip h5 {
+    margin: 0 0 4px 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--fh-text1);
+}
+
+.projet-form-ft-root .projet-info-tip p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--fh-text3);
+    line-height: 1.45;
+}
+
+.projet-form-ft-root .product-checkbox-item {
+    border-radius: 12px !important;
+    border-width: 1px !important;
+    background: var(--fh-surface2);
+    border-color: var(--fh-border) !important;
+}
+
+.projet-form-ft-root .product-checkbox-item:hover {
+    border-color: rgba(29, 158, 117, 0.55) !important;
+    transform: translateY(-1px);
+}
+
+.projet-form-ft-root .form-section-title {
+    color: var(--green-500);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 20px 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--fh-border);
+}
+
+.projet-form-ft-root .form-section-title i {
+    width: 32px;
+    height: 32px;
+    background: rgba(29, 158, 117, 0.12);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+#creer-projet-htmx-indicator {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    font-size: 13px;
+    color: var(--fh-text3);
+    text-align: center;
+}
+
+#creer-projet-htmx-indicator.htmx-request {
+    opacity: 1;
+}
+
+/* Résumé projet — formulaire investissement */
+.inv-ft-summary {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 22px;
+    border-radius: 16px;
+    border: 1px solid var(--fh-border);
+    background: var(--fh-surface2);
+    margin-bottom: 18px;
+}
+
+.inv-ft-summary__ico {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(29, 158, 117, 0.15);
+    color: var(--green-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.inv-ft-summary h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--fh-text1);
+}
+
+.inv-ft-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.82rem;
+    color: var(--fh-text3);
+}
+
+.inv-ft-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.inv-ft-meta i {
+    color: var(--green-500);
+    font-size: 0.75rem;
+}
+
+.inv-ft-calculator {
+    margin-top: 20px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--fh-border);
+    background: var(--fh-surface2);
+}
+
+.inv-ft-calculator__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--fh-border);
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--fh-text1);
+}
+
+.inv-ft-calculator__head i {
+    color: var(--green-500);
+}
+
+.inv-ft-calculator .inv-ft-calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--fh-border);
+    font-size: 13px;
+}
+
+.inv-ft-calculator .inv-ft-calc-row:last-child {
+    border-bottom: none;
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 2px solid var(--fh-border);
+    font-weight: 700;
+    color: var(--green-500);
+}
+
+.inv-ft-calc-lbl {
+    color: var(--fh-text3);
+}
+
+.inv-ft-calc-val {
+    color: var(--fh-text1);
+    font-weight: 600;
+}
+
+@media (max-width: 767px) {
+    .finance-ft-root {
+        padding: 16px 12px 32px;
+        max-width: 100%;
+    }
+
+    .finance-ft-hero,
+    .finance-ft-hero--compact {
+        padding: 18px;
+        border-radius: 16px;
+        margin-bottom: 14px;
+    }
+
+    .finance-ft-hero--compact h1,
+    .finance-ft-hero h1 {
+        font-size: 20px;
+        line-height: 1.18;
+    }
+
+    .finance-ft-hero__sub {
+        font-size: 0.86rem;
+        line-height: 1.5;
+    }
+
+    .finance-ft-form-shell,
+    .finance-ft-form-shell--wide {
+        grid-template-columns: 1fr;
+    }
+
+    .finance-ft-form-aside {
+        border-right: none;
+        border-bottom: 1px solid var(--fh-border);
+        padding: 18px;
+    }
+
+    .finance-ft-form-aside__icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+    }
+
+    .finance-ft-form-aside h3 {
+        font-size: 0.98rem;
+    }
+
+    .finance-ft-mini-list {
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .finance-ft-form-main {
+        padding: 18px;
+    }
+
+    .projet-form-ft-root .form-progress {
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding: 14px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .projet-form-ft-root .step-label {
+        display: none !important;
+    }
+
+    .projet-form-ft-root .step-connector {
+        width: 18px;
+        flex: 0 0 18px;
+    }
+
+    .projet-form-ft-root .projet-info-tip {
+        padding: 14px;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .projet-form-ft-root .projet-info-tip__ico {
+        width: 34px;
+        height: 34px;
+    }
+
+    .projet-form-ft-root .form-section-title {
+        align-items: flex-start;
+        font-size: 0.76rem;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .projet-form-ft-root .product-checkbox-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .projet-form-ft-root .product-checkbox-item {
+        padding: 12px !important;
+    }
+
+    .finance-ft-inline-help {
+        align-items: stretch;
+    }
+
+    .finance-ft-inline-help .finance-ft-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .finance-ft-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        padding-top: 14px;
+    }
+
+    .finance-ft-form-actions .finance-ft-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .inv-ft-summary {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 14px;
+    }
+    .inv-ft-meta {
+        justify-content: center;
+        gap: 10px;
+        font-size: 0.78rem;
+    }
+
+    .inv-ft-summary__ico {
+        width: 48px;
+        height: 48px;
+    }
+
+    .inv-ft-calculator {
+        padding: 14px;
+    }
+
+    .inv-ft-calculator .inv-ft-calc-row {
+        gap: 12px;
+    }
 }

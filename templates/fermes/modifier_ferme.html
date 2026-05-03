@@ -1,37 +1,119 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block title %}Modifier {{ ferme.nom }} | Andd Baay{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="glass-form-card">
-                <div class="card-header-modern">
-                    <h4><i class="fas fa-edit text-accent me-2"></i>Modifier {{ ferme.nom }}</h4>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    <form method="post" class="modern-form">
-                        {% csrf_token %}
-                        {% for field in form %}
-                        <div class="mb-4">
-                            <label class="form-label-modern">{{ field.label }}</label>
-                            <div class="input-wrapper">{{ field }}</div>
-                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
-                        </div>
-                        {% endfor %}
-                        <div class="d-flex gap-3 mt-5">
-                            <button type="submit" class="btn-submit-modern"><i class="fas fa-save"></i> Enregistrer</button>
-                            <a href="{% url 'detail_ferme' ferme.id %}" class="btn btn-outline-light px-4">Annuler</a>
-                        </div>
-                    </form>
-                </div>
+<link rel="stylesheet" href="{% static 'css/finance_hub_ft.css' %}">
+
+<div class="finance-ft-root ferme-form-ft-root">
+    <script>
+    (function () {
+        var html = document.documentElement;
+        function sync() {
+            html.setAttribute('data-theme', html.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        sync();
+        new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['class'] });
+    })();
+    </script>
+
+    <header class="finance-ft-hero finance-ft-hero--compact">
+        <div class="finance-ft-hero__left">
+            <div class="finance-ft-badge-pill">
+                <i class="finance-ft-dot" aria-hidden="true"></i>
+                Exploitation
             </div>
+            <h1>Modifier la ferme</h1>
+            <p class="finance-ft-hero__sub">{{ ferme.nom }} — mettez à jour les informations comme pour une fiche Finance.</p>
         </div>
-    </div>
+    </header>
+
+    <section class="finance-ft-card" aria-labelledby="ferme-edit-heading">
+        <div class="finance-ft-card__head">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M4 21h4l13-13-4-4L4 17v4z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M14 5l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+            <h2 id="ferme-edit-heading" class="finance-ft-card__title">Informations de la ferme</h2>
+        </div>
+        <div class="finance-ft-card__body">
+            <form method="post" id="ferme-edit-form" class="ferme-ft-form" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-3" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="finance-ft-form-grid">
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
+                        {{ form.nom }}
+                        {% if form.nom.errors %}<div class="text-danger small mt-1">{{ form.nom.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form.pays.id_for_label }}">{{ form.pays.label }}</label>
+                        {{ form.pays }}
+                        {% if form.pays.errors %}<div class="text-danger small mt-1">{{ form.pays.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form.localite.id_for_label }}">{{ form.localite.label }}</label>
+                        {{ form.localite }}
+                        {% if form.localite.errors %}<div class="text-danger small mt-1">{{ form.localite.errors.0 }}</div>{% endif %}
+                        <p class="finance-ft-help">Filtrée automatiquement selon le pays choisi.</p>
+                    </div>
+
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ form.superficie_totale.id_for_label }}">{{ form.superficie_totale.label }}</label>
+                        {{ form.superficie_totale }}
+                        {% if form.superficie_totale.help_text %}<p class="finance-ft-help">{{ form.superficie_totale.help_text }}</p>{% endif %}
+                        {% if form.superficie_totale.errors %}<div class="text-danger small mt-1">{{ form.superficie_totale.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form.description.id_for_label }}">{{ form.description.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="finance-ft-span2" data-gps-row>
+                        <label class="finance-ft-field-label">Position GPS <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        <p class="finance-ft-help">Le bouton « Me localiser » remplit latitude et longitude.</p>
+                        <div class="ferme-ft-gps-inputs finance-ft-sub2">
+                            <div>
+                                <label class="finance-ft-field-label" for="{{ form.latitude.id_for_label }}">{{ form.latitude.label }}</label>
+                                {{ form.latitude }}
+                                {% if form.latitude.help_text %}<p class="finance-ft-help">{{ form.latitude.help_text }}</p>{% endif %}
+                                {% if form.latitude.errors %}<div class="text-danger small mt-1">{{ form.latitude.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div>
+                                <label class="finance-ft-field-label" for="{{ form.longitude.id_for_label }}">{{ form.longitude.label }}</label>
+                                {{ form.longitude }}
+                                {% if form.longitude.help_text %}<p class="finance-ft-help">{{ form.longitude.help_text }}</p>{% endif %}
+                                {% if form.longitude.errors %}<div class="text-danger small mt-1">{{ form.longitude.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="finance-ft-form-actions">
+                    <button type="submit" class="finance-ft-btn finance-ft-btn--dark">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 12l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Enregistrer
+                    </button>
+                    <a href="{% url 'detail_ferme' ferme.id %}" class="finance-ft-btn finance-ft-btn--ghost">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const paysSelect = document.getElementById('{{ form.pays.id_for_label }}');
-    const localiteSelect = document.getElementById('{{ form.localite.id_for_label }}');
+    const paysSelect = document.getElementById('id_ferme_pays');
+    const localiteSelect = document.getElementById('id_ferme_localite');
 
     if (paysSelect && localiteSelect) {
         const allLocaliteOptions = Array.from(localiteSelect.options).map(opt => ({

@@ -1,617 +1,77 @@
 {% extends 'base.html' %}
-{% block title %}Creer un Projet | Andd Baay{% endblock %}
+{% load static %}
+{% block title %}Créer un projet | Andd Baay{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<style>
-    /* ===== ENHANCED FORM PAGE STYLES ===== */
-    .form-page-bg {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
-        z-index: 0;
-    }
-    
-    .form-page-bg::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-image: 
-            radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.08) 0px, transparent 50%),
-            radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.04) 0px, transparent 50%);
-    }
-    
-    .dark-mode .form-page-bg::before {
-        background-image: 
-            radial-gradient(at 20% 20%, rgba(163, 230, 53, 0.15) 0px, transparent 50%),
-            radial-gradient(at 80% 80%, rgba(163, 230, 53, 0.08) 0px, transparent 50%);
-    }
-    
-    /* Floating particles animation */
-    .particles {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        overflow: hidden;
-        pointer-events: none;
-    }
-    
-    .particle {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background: rgba(163, 230, 53, 0.3);
-        border-radius: 50%;
-        animation: float-particle 15s infinite ease-in-out;
-    }
-    
-    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
-    .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
-    .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
-    .particle:nth-child(4) { left: 50%; animation-delay: 6s; }
-    .particle:nth-child(5) { left: 70%; animation-delay: 8s; }
-    .particle:nth-child(6) { left: 85%; animation-delay: 10s; }
-    
-    @keyframes float-particle {
-        0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
-        10% { opacity: 1; transform: translateY(80vh) scale(1); }
-        90% { opacity: 1; transform: translateY(10vh) scale(1); }
-        100% { transform: translateY(-10vh) scale(0); opacity: 0; }
-    }
+<link rel="stylesheet" href="{% static 'css/finance_hub_ft.css' %}">
 
-    /* Glass Form Card */
-    .glass-form-card {
-        background: var(--card-bg);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid var(--border-color);
-        border-radius: 32px;
-        overflow: hidden;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .card-header-modern {
-        background: var(--card-bg-solid);
-        padding: 32px 40px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    
-    .header-icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(163, 230, 53, 0.15);
-        border: 2px solid rgba(163, 230, 53, 0.3);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: var(--accent);
-    }
-    
-    .header-text h4 {
-        margin: 0;
-        font-size: 1.4rem;
-        color: var(--text-main);
-        font-family: var(--font-display);
-        font-weight: 700;
-    }
-    
-    .header-text p {
-        margin: 4px 0 0 0;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-    }
-
-    /* Progress Steps */
-    .form-progress {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        padding: 24px 40px;
-        background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
-    }
-    
-    .progress-step {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .step-circle {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: var(--bg-main);
-        border: 2px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .progress-step.active .step-circle {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #022c22;
-        box-shadow: 0 0 20px rgba(163, 230, 53, 0.4);
-    }
-    
-    .progress-step.completed .step-circle {
-        background: rgba(16, 185, 129, 0.2);
-        border-color: #10b981;
-        color: #10b981;
-    }
-    
-    .step-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        display: none;
-    }
-    
-    .progress-step.active .step-label {
-        color: var(--accent);
-        display: block;
-    }
-    
-    .step-connector {
-        width: 40px;
-        height: 2px;
-        background: var(--bg-main);
-        margin: 0 4px;
-    }
-    
-    .progress-step.completed + .step-connector,
-    .step-connector.active {
-        background: linear-gradient(90deg, #10b981, var(--accent));
-    }
-
-    /* Form Sections */
-    .form-section {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .form-section.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .form-section-title {
-        color: var(--accent);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        margin-bottom: 28px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(163, 230, 53, 0.15);
-    }
-    
-    .form-section-title i {
-        width: 32px;
-        height: 32px;
-        background: rgba(163, 230, 53, 0.1);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-    }
-
-    .form-label-modern {
-        color: var(--text-main);
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .form-label-modern .required {
-        color: #ef4444;
-        font-size: 0.7rem;
-    }
-    
-    .form-label-hint {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        font-weight: 400;
-        margin-left: auto;
-    }
-
-    .input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        background: var(--bg-secondary);
-        border: 2px solid var(--border-color);
-        border-radius: 16px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-    }
-    
-    .input-wrapper:hover {
-        border-color: rgba(163, 230, 53, 0.3);
-        background: var(--bg-secondary);
-    }
-
-    .input-wrapper:focus-within {
-        border-color: var(--accent);
-        background: var(--bg-main);
-        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.1);
-    }
-    
-    .input-wrapper.error {
-        border-color: #ef4444;
-        background: rgba(239, 68, 68, 0.05);
-    }
-    
-    .input-wrapper.success {
-        border-color: #10b981;
-    }
-
-    .input-icon {
-        color: var(--text-muted);
-        padding-left: 20px;
-        width: 48px;
-        text-align: center;
-        transition: color 0.3s ease;
-    }
-
-    .input-wrapper:focus-within .input-icon { 
-        color: var(--accent); 
-    }
-
-    /* Ne pas appliquer width:100% + gros padding aux cases à cocher / radio :
-       sinon elles écrasent la colonne texte à côté (noms de produits tronqués). */
-    .modern-form input:not([type="checkbox"]):not([type="radio"]),
-    .modern-form select,
-    .modern-form textarea {
-        background: transparent !important;
-        border: none !important;
-        color: var(--text-main) !important;
-        width: 100%;
-        padding: 18px 20px 18px 12px;
-        font-size: 1rem;
-        box-shadow: none !important;
-        outline: none !important;
-        font-weight: 500;
-    }
-
-    .modern-form input[type="checkbox"],
-    .modern-form input[type="radio"] {
-        width: auto !important;
-        max-width: none;
-        padding: 0 !important;
-        flex-shrink: 0;
-    }
-    
-    .modern-form input::placeholder {
-        color: var(--text-muted);
-        opacity: 0.5;
-    }
-    
-    .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-    }
-    
-    .modern-form input[type="date"]::-webkit-calendar-picker-indicator:hover {
-        opacity: 1;
-    }
-
-    .modern-form select option {
-        background: var(--card-bg-solid);
-        color: var(--text-main);
-        padding: 12px;
-    }
-
-    .form-error {
-        color: #ef4444;
-        font-size: 0.8rem;
-        margin-top: 8px;
-        margin-left: 4px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .form-error i {
-        font-size: 0.7rem;
-    }
-    
-    /* Input validation feedback */
-    .validation-icon {
-        position: absolute;
-        right: 16px;
-        font-size: 1rem;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .input-wrapper.success .validation-icon.success {
-        opacity: 1;
-        color: #10b981;
-    }
-    
-    .input-wrapper.error .validation-icon.error {
-        opacity: 1;
-        color: #ef4444;
-    }
-
-    /* Character counter */
-    .char-counter {
-        position: absolute;
-        right: 16px;
-        bottom: -20px;
-        font-size: 0.7rem;
-        color: var(--text-muted);
-    }
-
-    /* Custom select styling */
-    .select-wrapper {
-        position: relative;
-    }
-    
-    .select-wrapper::after {
-        content: '\f078';
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-        position: absolute;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        pointer-events: none;
-        transition: transform 0.3s ease;
-    }
-    
-    .select-wrapper:focus-within::after {
-        transform: translateY(-50%) rotate(180deg);
-        color: var(--accent);
-    }
-
-    /* Form Footer Actions */
-    .form-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 32px;
-        margin-top: 40px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .btn-back {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 14px 24px;
-        background: transparent;
-        border: 2px solid var(--border-color);
-        border-radius: 14px;
-        color: var(--text-muted);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-back:hover {
-        border-color: var(--text-muted); opacity: 0.6;
-        color: var(--text-main);
-        transform: translateX(-4px);
-    }
-    
-    .btn-submit-modern {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 16px 32px;
-        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
-        border: none;
-        border-radius: 14px;
-        color: #022c22;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .btn-submit-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.5s ease;
-    }
-    
-    .btn-submit-modern:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(163, 230, 53, 0.35);
-    }
-    
-    .btn-submit-modern:hover::before {
-        left: 100%;
-    }
-    
-    .btn-submit-modern:active {
-        transform: translateY(0);
-    }
-    
-    .btn-submit-modern:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    /* Info Card */
-    .info-card {
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 32px;
-        display: flex;
-        gap: 16px;
-    }
-    
-    .info-card-icon {
-        width: 40px;
-        height: 40px;
-        background: rgba(59, 130, 246, 0.15);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #3b82f6;
-        flex-shrink: 0;
-    }
-    
-    .info-card-content h5 {
-        margin: 0 0 4px 0;
-        font-size: 0.95rem;
-        color: var(--text-main);
-    }
-    
-    .info-card-content p {
-        margin: 0;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        line-height: 1.5;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .card-header-modern {
-            padding: 24px;
+<div class="finance-ft-root projet-form-ft-root">
+    <script>
+    (function () {
+        var html = document.documentElement;
+        function sync() {
+            html.setAttribute('data-theme', html.classList.contains('dark-mode') ? 'dark' : 'light');
         }
-        
-        .form-progress {
-            padding: 16px;
-        }
-        
-        .step-label {
-            display: none !important;
-        }
-        
-        .form-actions {
-            flex-direction: column-reverse;
-            gap: 12px;
-        }
-        
-        .btn-back, .btn-submit-modern {
-            width: 100%;
-            justify-content: center;
-        }
-    }
+        sync();
+        new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['class'] });
+    })();
+    </script>
 
-    /* HTMX création projet + étapes lisibles au doigt */
-    #creer-projet-htmx-indicator {
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        pointer-events: none;
-    }
-
-    #creer-projet-htmx-indicator.htmx-request {
-        opacity: 1;
-    }
-
-    .progress-step .step-circle {
-        min-width: 44px;
-        min-height: 44px;
-    }
-</style>
-
-<!-- Background -->
-<div class="form-page-bg">
-    <div class="particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-</div>
-
-<div class="container animate__animated animate__fadeIn tw-relative tw-mx-auto tw-max-w-[100vw] tw-overflow-x-hidden tw-px-3 sm:tw-px-4 md:tw-px-6" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
-
-    <div class="tw-mx-auto tw-mb-8 tw-max-w-2xl tw-text-center tw-px-1">
-        <h1 class="display-4 fw-bold tw-mb-3 tw-text-3xl sm:tw-text-5xl md:tw-text-6xl" style="font-family: var(--font-display); text-shadow: 0 4px 20px rgba(0,0,0,0.4);">Nouveau Projet</h1>
-        <p class="lead text-muted tw-text-base sm:tw-text-lg" style="max-width: 500px; margin: 0 auto;">Faconnez l'avenir de votre exploitation agricole avec notre outil de planification intelligent.</p>
-    </div>
+    <header class="finance-ft-hero finance-ft-hero--compact">
+        <div class="finance-ft-hero__left">
+            <div class="finance-ft-badge-pill">
+                <i class="finance-ft-dot" aria-hidden="true"></i>
+                Exploitation
+            </div>
+            <h1>Nouveau projet</h1>
+            <p class="finance-ft-hero__sub">Formulaire aligné sur le hub Finance : grille, labels, champs et thème clair/sombre unifiés.</p>
+        </div>
+    </header>
 
     {% if messages %}
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                {% for message in messages %}
-                    <div class="alert alert-modern mb-4 animate__animated animate__shakeX">{{ message }}</div>
-                {% endfor %}
-            </div>
-        </div>
+        {% for message in messages %}
+            <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags or 'danger' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% else %}alert-info{% endif %} mb-3" role="alert">{{ message }}</div>
+        {% endfor %}
     {% endif %}
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="glass-form-card animate__animated animate__fadeInUp">
-                
-                <!-- Header -->
-                <div class="card-header-modern">
-                    <div class="header-icon">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <div class="header-text">
-                        <h4>Details du Projet</h4>
-                        <p>Remplissez les informations de votre projet agricole</p>
-                    </div>
-                </div>
-                
-                <!-- Progress Steps -->
-                <div class="form-progress">
-                    <div class="progress-step active" data-step="1">
-                        <div class="step-circle">1</div>
-                        <span class="step-label">Informations</span>
-                    </div>
-                    <div class="step-connector"></div>
-                    <div class="progress-step" data-step="2">
-                        <div class="step-circle">2</div>
-                        <span class="step-label">Specifications</span>
-                    </div>
-                    <div class="step-connector"></div>
-                    <div class="progress-step" data-step="3">
-                        <div class="step-circle"><i class="fas fa-check"></i></div>
-                        <span class="step-label">Confirmation</span>
-                    </div>
-                </div>
-                
-                <div class="card-body tw-p-4 sm:tw-p-5 md:tw-p-8">
-                    <div id="creer-projet-htmx-indicator" class="tw-mb-3 tw-min-h-[1.25rem] tw-text-center tw-text-sm" aria-live="polite">
-                        <span class="tw-inline-flex tw-items-center tw-gap-2"><i class="fas fa-spinner fa-spin"></i> Envoi en cours…</span>
-                    </div>
-                    <div id="creer-projet-swap">
-                        {% include 'projets/partials/_creer_projet_form_fragment.html' %}
-                    </div>
-                </div>
+    <section class="finance-ft-card projet-create-card" aria-labelledby="projet-create-heading">
+        <div class="finance-ft-card__head">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M12 3v3M12 18v3M5.64 5.64l2.12 2.12M14.24 14.24l2.12 2.12M3 12h3M18 12h3M5.64 18.36l2.12-2.12M14.24 9.76l2.12-2.12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.75"/></svg>
+            <h2 id="projet-create-heading" class="finance-ft-card__title">Détails du projet</h2>
+        </div>
+
+        <div class="form-progress" aria-hidden="true">
+            <div class="progress-step active" data-step="1">
+                <div class="step-circle">1</div>
+                <span class="step-label">Informations</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="progress-step" data-step="2">
+                <div class="step-circle">2</div>
+                <span class="step-label">Spécifications</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="progress-step" data-step="3">
+                <div class="step-circle"><i class="fas fa-check"></i></div>
+                <span class="step-label">Validation</span>
             </div>
         </div>
-    </div>
+
+        <div class="finance-ft-card__body">
+            <div id="creer-projet-htmx-indicator" class="tw-mb-3 tw-min-h-[1.25rem] tw-text-center" aria-live="polite">
+                <span class="tw-inline-flex tw-items-center tw-gap-2"><i class="fas fa-spinner fa-spin"></i> Envoi en cours…</span>
+            </div>
+            <div id="creer-projet-swap">
+                {% include 'projets/partials/_creer_projet_form_fragment.html' %}
+            </div>
+        </div>
+    </section>
 </div>
 
 <script>
@@ -641,9 +101,13 @@
         }
     });
 
+    function fieldShell(input) {
+        return input.closest('.projet-input-shell') || input.closest('.input-wrapper');
+    }
+
     function updateProgressIndicators() {
-        const progressSteps = document.querySelectorAll('.glass-form-card .progress-step');
-        const connectors = document.querySelectorAll('.glass-form-card .step-connector');
+        const progressSteps = document.querySelectorAll('.projet-form-ft-root .form-progress .progress-step');
+        const connectors = document.querySelectorAll('.projet-form-ft-root .form-progress .step-connector');
         if (!progressSteps.length) return;
 
         const nomInput = document.getElementById('id_nom');
@@ -659,10 +123,10 @@
             selectedProducts.length > 0;
 
         const section2Inputs = document.querySelectorAll('[data-section="2"] input:not([type="hidden"]), [data-section="2"] select');
-        const requiredSection2 = Array.from(section2Inputs).filter(input => {
+        const requiredSection2 = Array.from(section2Inputs).filter(function (input) {
             return input.closest('.input-modern-group') && input.closest('.input-modern-group').querySelector('.required');
         });
-        const section2Complete = requiredSection2.every(input => input.value.trim());
+        const section2Complete = requiredSection2.every(function (input) { return input.value.trim(); });
 
         if (section1Complete) {
             progressSteps[0].classList.add('completed');
@@ -691,7 +155,7 @@
     }
 
     function validateInput(input, updateProgressFn) {
-        const wrapper = input.closest('.input-wrapper');
+        var wrapper = fieldShell(input);
         if (!wrapper) return;
 
         var group = input.closest('.input-modern-group');
@@ -728,10 +192,8 @@
                 validateInput(input, updateProgressIndicators);
             });
             input.addEventListener('input', function () {
-                if (input.value && input.parentElement) {
-                    input.parentElement.classList.remove('error');
-                    var errIcon = input.parentElement.querySelector('.validation-icon.error');
-                    if (errIcon) errIcon.style.opacity = '0';
+                if (input.value && fieldShell(input)) {
+                    fieldShell(input).classList.remove('error');
                 }
             });
         });
@@ -821,8 +283,8 @@
         }
 
         function applyItemStyle(item, checked) {
-            item.style.borderColor = checked ? 'var(--accent)' : 'var(--border-color)';
-            item.style.background = checked ? 'rgba(163, 230, 53, 0.1)' : 'var(--bg-secondary)';
+            item.style.borderColor = checked ? 'var(--green-500)' : 'var(--fh-border)';
+            item.style.background = checked ? 'rgba(29, 158, 117, 0.1)' : 'var(--fh-surface2)';
         }
 
         document.querySelectorAll('.product-checkbox-item').forEach(function (item) {

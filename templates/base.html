@@ -132,6 +132,14 @@
         }
 
         /* Mode Sombre (Override) */
+        html {
+            color-scheme: light;
+        }
+
+        html.dark-mode {
+            color-scheme: dark;
+        }
+
         .dark-mode {
             --brand-bg: #0d1f1a;
             --bg-deep: #0a0f0e;
@@ -2391,6 +2399,12 @@
             color: var(--text-muted);
         }
 
+        .dark-mode select.form-control option,
+        .dark-mode select.form-select option {
+            background-color: var(--card-bg-solid);
+            color: var(--text-main);
+        }
+
         .form-label {
             font-family: var(--font-display);
             font-weight: 600;
@@ -3307,7 +3321,7 @@
                             <a class="btn-nav btn-nav-primary" href="{% url 'register' %}">Inscription</a>
                         </li>
                         {% endif %}
-                        <li class="nav-item d-none d-lg-block">
+                        <li class="nav-item d-none d-lg-flex align-items-center">
                             <button id="themeToggle" type="button" class="theme-toggle" aria-label="Changer de thème">
                                 <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
                                 <i class="fas fa-sun icon-sun" aria-hidden="true"></i>

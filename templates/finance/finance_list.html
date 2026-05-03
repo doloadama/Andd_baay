@@ -140,7 +140,7 @@
                                         {{ d.projet.nom }}
                                     </span>
                                 </td>
-                                <td><span class="finance-ft-pill">{{ d.get_categorie_display }}</span></td>
+                                <td><span class="finance-ft-pill finance-ft-pill--categorie">{{ d.get_categorie_display }}</span></td>
                                 <td class="text-end">
                                     <span class="finance-ft-mono finance-ft-amount-main">{{ d.calculer_investissement_total|floatformat:0 }}</span>
                                     <span class="finance-ft-amount-suffix">FCFA</span>
@@ -177,7 +177,11 @@
                     <article class="finance-ft-card" style="margin-bottom:12px;padding:14px;">
                         <div style="font-weight:600;margin-bottom:6px;">{{ d.libelle_affichage|truncatechars:64 }}</div>
                         <div class="fh-date" style="font-size:12px;color:var(--fh-text3);">{{ d.date_investissement|date:"d/m/Y" }}</div>
-                        <div style="margin-top:8px;font-size:13px;">{{ d.projet.nom }} · {{ d.get_categorie_display }}</div>
+                        <div class="finance-ft-dep-mobile-meta">
+                            <span class="finance-ft-dep-mobile-proj">{{ d.projet.nom }}</span>
+                            <span class="finance-ft-dep-mobile-sep" aria-hidden="true">·</span>
+                            <span class="finance-ft-pill finance-ft-pill--categorie finance-ft-pill--compact">{{ d.get_categorie_display }}</span>
+                        </div>
                         <div style="margin-top:10px;font-family:'DM Mono',monospace;font-weight:500;color:var(--green-500);">{{ d.calculer_investissement_total|floatformat:0 }} <span style="font-size:11px;color:var(--fh-text3);">FCFA</span></div>
                     </article>
                 {% endfor %}
@@ -285,19 +289,25 @@
 
 <script>
 (function () {
-    var surfaces = {{ projet_superficies_json|safe }};
-    function projetHa() {
-        var sel = document.getElementById('id_finance_depense_projet');
-        if (!sel || !sel.value) return 0;
-        var v = surfaces[sel.value];
-        return typeof v === 'number' ? v : parseFloat(v) || 0;
+    var surfaceRef = {{ finance_surface_reference_json|safe }};
+    function hectaresPourLigne() {
+        var projSel = document.getElementById('id_finance_depense_projet');
+        var ppSel = document.getElementById('id_projet_produit');
+        if (!projSel || !projSel.value) return 0;
+        var block = surfaceRef[projSel.value];
+        if (!block) return 0;
+        var projetHa = typeof block.ha === 'number' ? block.ha : parseFloat(block.ha) || 0;
+        if (!ppSel || !ppSel.value || ppSel.disabled) return projetHa;
+        var s = block.pps[ppSel.value];
+        if (s != null && !isNaN(parseFloat(s))) return parseFloat(s);
+        return projetHa;
     }
     function calcTotal() {
         var coutEl = document.getElementById('fCoutHa');
         var fraisEl = document.getElementById('fFraisAutres');
         var cout = parseFloat(coutEl && coutEl.value ? coutEl.value.replace(',', '.') : '0') || 0;
         var frais = parseFloat(fraisEl && fraisEl.value ? fraisEl.value.replace(',', '.') : '0') || 0;
-        var ha = projetHa();
+        var ha = hectaresPourLigne();
         var total = Math.round(cout * ha + frais);
         var wrap = document.getElementById('totalPreview');
         var numEl = document.getElementById('totalPreviewNum');
@@ -312,6 +322,9 @@
         if (coutEl) coutEl.addEventListener('input', calcTotal);
         if (fraisEl) fraisEl.addEventListener('input', calcTotal);
         if (projEl) projEl.addEventListener('change', calcTotal);
+        document.body.addEventListener('change', function (ev) {
+            if (ev.target && ev.target.id === 'id_projet_produit') calcTotal();
+        });
         document.body.addEventListener('htmx:afterSwap', function (ev) {
             if (ev.target && ev.target.id === 'finance-depense-produit-wrap') calcTotal();
         });

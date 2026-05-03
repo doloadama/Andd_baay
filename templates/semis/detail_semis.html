@@ -330,14 +330,12 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Quantite de semences</div>
-                        <div class="info-value">{{ projet_produit.quantite_semences|default:"-" }} {% if
-                            projet_produit.quantite_semences %}kg{% endif %}</div>
+                        <div class="info-value">{{ projet_produit.quantite_semences|default:"-" }}{% if projet_produit.quantite_semences %} kg{% endif %}</div>
                     </div>
 
                     <div class="info-item">
                         <div class="info-label">Superficie allouee</div>
-                        <div class="info-value">{{ projet_produit.superficie_allouee|default:"-" }} {% if
-                            projet_produit.superficie_allouee %}ha{% endif %}</div>
+                        <div class="info-value">{{ projet_produit.superficie_allouee|default:"-" }}{% if projet_produit.superficie_allouee %} ha{% endif %}</div>
                     </div>
 
                     <div class="info-item">

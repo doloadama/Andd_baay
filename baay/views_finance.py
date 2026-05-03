@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Sum, Value
+from django.db.models import Prefetch, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -124,13 +124,32 @@ MONTH_OPTIONS_FR = [
 ]
 
 
+def _finance_surface_reference_json(profile):
+    """
+    Par projet modifiable : superficie projet + ha par ProjetProduit (comme hectaresPourLigne
+    sur la fiche projet / ajouter investissement).
+    """
+    pps_qs = ProjetProduit.objects.only("id", "projet_id", "superficie_allouee")
+    projets = projets_modifiables_depenses_qs(profile).prefetch_related(
+        Prefetch("projet_produits", queryset=pps_qs)
+    )
+    out = {}
+    for p in projets:
+        ha = float(p.superficie or 0)
+        pps = {}
+        for pp in p.projet_produits.all():
+            s = pp.superficie_allouee
+            pps[str(pp.pk)] = float(s) if s is not None else None
+        out[str(p.pk)] = {"ha": ha, "pps": pps}
+    return json.dumps(out)
+
+
 def _finance_hub_extra_context(request):
     profile = request.user.profile
     pairs = list(projets_modifiables_depenses_qs(profile).values_list("pk", "superficie"))
-    surfaces = {str(pk): float(sup or 0) for pk, sup in pairs}
     modify_ids = {pk for pk, _ in pairs}
     return {
-        "projet_superficies_json": json.dumps(surfaces),
+        "finance_surface_reference_json": _finance_surface_reference_json(profile),
         "finance_modify_project_ids": modify_ids,
         "month_options": MONTH_OPTIONS_FR,
     }

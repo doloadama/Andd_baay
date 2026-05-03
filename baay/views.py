@@ -916,9 +916,15 @@ def ajouter_investissement(request, projet_id):
     else:
         investissement_form = InvestissementForm(projet=projet)
 
+    superficie_par_culture = {
+        str(pp.pk): float(pp.superficie_allouee) if pp.superficie_allouee is not None else None
+        for pp in projet.projet_produits.only("id", "projet_id", "superficie_allouee")
+    }
+
     return render(request, 'projets/ajouter_investissement.html', {
         'projet': projet,
         'investissement_form': investissement_form,
+        'superficie_par_culture_json': json.dumps(superficie_par_culture),
     })
 
 @login_required

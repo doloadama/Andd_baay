@@ -2,619 +2,155 @@
 {% load static %}
 {% load l10n %}
 
-{% block title %}Ajouter un Investissement | Andd Baay{% endblock %}
+{% block title %}Ajouter un investissement | Andd Baay{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<style>
-    /* ===== INVESTMENT PAGE STYLES ===== */
-    .form-page-bg {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(160deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
-        z-index: 0;
-    }
-    
-    .form-page-bg::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-image: 
-            radial-gradient(at 80% 20%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-            radial-gradient(at 20% 80%, rgba(163, 230, 53, 0.08) 0px, transparent 50%);
-    }
+<link rel="stylesheet" href="{% static 'css/finance_hub_ft.css' %}">
 
-    /* Investment Card Header with Project Info */
-    .project-summary-card {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(163, 230, 53, 0.05) 100%);
-        border: 1px solid rgba(16, 185, 129, 0.25);
-        border-radius: 20px;
-        padding: 24px;
-        margin-bottom: 32px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    
-    .project-icon {
-        width: 64px;
-        height: 64px;
-        background: rgba(16, 185, 129, 0.2);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        color: #10b981;
-        flex-shrink: 0;
-    }
-    
-    .project-info h3 {
-        margin: 0 0 6px 0;
-        font-size: 1.3rem;
-        color: var(--text-main);
-        font-family: var(--font-display);
-    }
-    
-    .project-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-    
-    .project-meta span {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .project-meta i {
-        color: #10b981;
-        font-size: 0.8rem;
-    }
-
-    /* Glass Form Card */
-    .glass-form-card {
-        background: var(--card-bg);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(16, 185, 129, 0.15);
-        border-radius: 32px;
-        overflow: hidden;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .card-header-modern {
-        background: var(--card-bg-solid);
-        padding: 32px 40px;
-        border-bottom: 1px solid rgba(16, 185, 129, 0.2);
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    
-    .header-icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(16, 185, 129, 0.2);
-        border: 2px solid rgba(16, 185, 129, 0.35);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: #10b981;
-    }
-    
-    .header-text h4 {
-        margin: 0;
-        font-size: 1.4rem;
-        color: var(--text-main);
-        font-family: var(--font-display);
-        font-weight: 700;
-    }
-    
-    .header-text p {
-        margin: 4px 0 0 0;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-    }
-
-    /* Form Styles */
-    .form-section-title {
-        color: #10b981;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        margin-bottom: 28px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(16, 185, 129, 0.2);
-    }
-    
-    .form-section-title i {
-        width: 32px;
-        height: 32px;
-        background: rgba(16, 185, 129, 0.15);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-    }
-
-    .form-label-modern {
-        color: var(--text-main);
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .form-label-modern .required {
-        color: #ef4444;
-        font-size: 0.7rem;
-    }
-    
-    .form-label-hint {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        font-weight: 400;
-        margin-left: auto;
-    }
-
-    .input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        background: var(--bg-secondary);
-        border: 2px solid var(--border-color);
-        border-radius: 16px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-    }
-    
-    .input-wrapper:hover {
-        border-color: rgba(16, 185, 129, 0.3);
-        background: var(--bg-secondary);
-    }
-
-    .input-wrapper:focus-within {
-        border-color: #10b981;
-        background: rgba(16, 185, 129, 0.05);
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-    }
-    
-    .input-wrapper.error {
-        border-color: #ef4444;
-        background: rgba(239, 68, 68, 0.05);
-    }
-
-    .input-icon {
-        color: var(--text-muted);
-        padding-left: 20px;
-        width: 48px;
-        text-align: center;
-        transition: color 0.3s ease;
-    }
-
-    .input-wrapper:focus-within .input-icon { 
-        color: #10b981; 
-    }
-    
-    /* Currency suffix */
-    .input-suffix {
-        padding-right: 20px;
-        color: var(--text-muted);
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    
-    .input-wrapper:focus-within .input-suffix {
-        color: #10b981;
-    }
-
-    .modern-form input,
-    .modern-form select,
-    .modern-form textarea {
-        background: transparent !important;
-        border: none !important;
-        color: var(--text-main) !important;
-        width: 100%;
-        padding: 18px 20px 18px 12px;
-        font-size: 1rem;
-        box-shadow: none !important;
-        outline: none !important;
-        font-weight: 500;
-    }
-    
-    .modern-form textarea {
-        min-height: 120px;
-        resize: vertical;
-    }
-    
-    .modern-form input::placeholder,
-    .modern-form textarea::placeholder {
-        color: var(--text-muted);
-        opacity: 0.5;
-    }
-    
-    .modern-form input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-    }
-
-    .form-error {
-        color: #ef4444;
-        font-size: 0.8rem;
-        margin-top: 8px;
-        margin-left: 4px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    /* Calculator Preview */
-    .investment-calculator {
-        background: rgba(16, 185, 129, 0.08);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        border-radius: 20px;
-        padding: 24px;
-        margin-top: 32px;
-    }
-    
-    .calc-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(16, 185, 129, 0.15);
-    }
-    
-    .calc-header i {
-        color: #10b981;
-        font-size: 1.2rem;
-    }
-    
-    .calc-header h5 {
-        margin: 0;
-        color: var(--text-main);
-        font-size: 1rem;
-    }
-    
-    .calc-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px dashed var(--border-color);
-    }
-    
-    .calc-row:last-child {
-        border-bottom: none;
-        padding-top: 16px;
-        margin-top: 8px;
-        border-top: 2px solid rgba(16, 185, 129, 0.3);
-    }
-    
-    .calc-label {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
-    
-    .calc-value {
-        color: var(--text-main);
-        font-weight: 600;
-        font-size: 1rem;
-    }
-    
-    .calc-row:last-child .calc-label,
-    .calc-row:last-child .calc-value {
-        color: #10b981;
-        font-weight: 700;
-        font-size: 1.1rem;
-    }
-
-    /* Form Actions */
-    .form-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 32px;
-        margin-top: 40px;
-        border-top: 1px solid var(--border-color);
-    }
-    
-    .btn-back {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 14px 24px;
-        background: transparent;
-        border: 2px solid var(--border-color);
-        border-radius: 14px;
-        color: var(--text-muted);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
-    
-    .btn-back:hover {
-        border-color: var(--accent);
-        color: var(--text-main);
-        transform: translateX(-4px);
-    }
-    
-    .btn-submit-modern {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 16px 32px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        border: none;
-        border-radius: 14px;
-        color: var(--text-main);
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .btn-submit-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s ease;
-    }
-    
-    .btn-submit-modern:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.35);
-    }
-    
-    .btn-submit-modern:hover::before {
-        left: 100%;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .project-summary-card {
-            flex-direction: column;
-            text-align: center;
+<div class="finance-ft-root investissement-ft-root">
+    <script>
+    (function () {
+        var html = document.documentElement;
+        function sync() {
+            html.setAttribute('data-theme', html.classList.contains('dark-mode') ? 'dark' : 'light');
         }
-        
-        .project-meta {
-            justify-content: center;
-        }
-        
-        .form-actions {
-            flex-direction: column-reverse;
-            gap: 12px;
-        }
-        
-        .btn-back, .btn-submit-modern {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-</style>
+        sync();
+        new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['class'] });
+    })();
+    </script>
 
-<!-- Background -->
-<div class="form-page-bg"></div>
-
-<div class="container investissement-page animate__animated animate__fadeIn relative" style="z-index: 10; padding-top: 40px; padding-bottom: 80px;">
-    
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold  mb-3" style="font-family: var(--font-display);">Nouvel Investissement</h1>
-        <p class="text-muted">Enregistrez vos depenses pour suivre la rentabilite de votre projet.</p>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            
-            <!-- Project Summary Card -->
-            <div class="project-summary-card animate__animated animate__fadeInDown">
-                <div class="project-icon">
-                    <i class="fas fa-seedling"></i>
-                </div>
-                <div class="project-info">
-                    <h3>{{ projet.nom }}</h3>
-                    <div class="project-meta">
-                        <span><i class="fas fa-leaf"></i> {{ projet.culture.nom }}</span>
-                        <span><i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom }}</span>
-                        <span><i class="fas fa-ruler-combined"></i> {{ projet.superficie }} ha</span>
-                        <span><i class="fas fa-calendar"></i> Lance le {{ projet.date_lancement|date:"d M Y" }}</span>
-                    </div>
-                </div>
+    <header class="finance-ft-hero finance-ft-hero--compact">
+        <div class="finance-ft-hero__left">
+            <div class="finance-ft-badge-pill">
+                <i class="finance-ft-dot" aria-hidden="true"></i>
+                Finance projet
             </div>
+            <h1>Nouvel investissement</h1>
+            <p class="finance-ft-hero__sub">Même modèle de saisie que le hub Finance : champs clairs, thème clair/sombre cohérent.</p>
+        </div>
+    </header>
 
-            <!-- Form Card -->
-            <div class="glass-form-card animate__animated animate__fadeInUp">
-                
-                <!-- Header -->
-                <div class="card-header-modern">
-                    <div class="header-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="header-text">
-                        <h4>Details de l'Investissement</h4>
-                        <p>Ajoutez les informations de votre investissement</p>
-                    </div>
-                </div>
-                
-                <div class="card-body p-4 p-md-5">
-                    
-                    <!-- Error Display -->
-                    {% if investissement_form.errors %}
-                        <div class="alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 16px; margin-bottom: 24px; color: #fca5a5;">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
-                                <strong>Veuillez corriger les erreurs suivantes :</strong>
-                            </div>
-                            <ul style="margin: 0; padding-left: 20px;">
-                                {% for field in investissement_form %}
-                                    {% for error in field.errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %}
-
-                    <form method="post" novalidate class="modern-form" id="investmentForm">
-                        {% csrf_token %}
-
-                        <div class="form-section mb-4">
-                            <h5 class="form-section-title">
-                                <i class="fas fa-file-alt"></i> 
-                                Informations
-                            </h5>
-                            
-                            <div class="row g-4">
-                                <!-- Description -->
-                                <div class="col-12">
-                                    <div class="input-modern-group">
-                                        <label for="id_description" class="form-label-modern">
-                                            Description
-                                            <span class="required">*</span>
-                                            <span class="form-label-hint">Ex: Achat de semences, engrais...</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-align-left input-icon" style="align-self: flex-start; padding-top: 18px;"></i>
-                                            {{ investissement_form.description }}
-                                        </div>
-                                        {% if investissement_form.description.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.description.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- Cost per hectare -->
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="id_cout_par_hectare" class="form-label-modern">
-                                            Cout par hectare
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-money-bill-wave input-icon"></i>
-                                            {{ investissement_form.cout_par_hectare }}
-                                            <span class="input-suffix">FCFA</span>
-                                        </div>
-                                        {% if investissement_form.cout_par_hectare.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.cout_par_hectare.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- Date -->
-                                <div class="col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="id_date_investissement" class="form-label-modern">
-                                            Date de l'investissement
-                                            <span class="required">*</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-calendar-alt input-icon"></i>
-                                            {{ investissement_form.date_investissement }}
-                                        </div>
-                                        {% if investissement_form.date_investissement.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.date_investissement.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row g-4">
-                                <div class="col-12 col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="id_projet_produit" class="form-label-modern">
-                                            Culture concernée
-                                            <span class="form-label-hint">Optionnel — laissez vide pour une dépense générale au projet</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-leaf input-icon"></i>
-                                            {{ investissement_form.projet_produit }}
-                                        </div>
-                                        {% if investissement_form.projet_produit.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.projet_produit.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="input-modern-group">
-                                        <label for="id_autres_frais" class="form-label-modern">
-                                            Autres frais (FCFA)
-                                            <span class="form-label-hint">Montant fixe en plus du coût × surface</span>
-                                        </label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-receipt input-icon"></i>
-                                            {{ investissement_form.autres_frais }}
-                                        </div>
-                                        {% if investissement_form.autres_frais.errors %}
-                                            <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ investissement_form.autres_frais.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Investment Calculator -->
-                        <div class="investment-calculator">
-                            <div class="calc-header">
-                                <i class="fas fa-calculator"></i>
-                                <h5>Estimation du coût total de la ligne</h5>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">Surface de référence</span>
-                                <span class="calc-value" id="calcSuperficie">—</span>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">Coût par hectare</span>
-                                <span class="calc-value" id="calcCoutHa">0 FCFA</span>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">Autres frais</span>
-                                <span class="calc-value" id="calcAutres">0 FCFA</span>
-                            </div>
-                            <div class="calc-row">
-                                <span class="calc-label">Total estimé (× ha + autres)</span>
-                                <span class="calc-value" id="calcTotal">0 FCFA</span>
-                            </div>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="form-actions">
-                            <a href="{% url 'detail_projet' projet.id %}" class="btn-back">
-                                <i class="fas fa-arrow-left"></i>
-                                Retour au projet
-                            </a>
-                            <button type="submit" class="btn-submit-modern" id="submitBtn">
-                                <i class="fas fa-plus-circle"></i>
-                                Ajouter l'investissement
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    <div class="inv-ft-summary">
+        <div class="inv-ft-summary__ico" aria-hidden="true"><i class="fas fa-seedling"></i></div>
+        <div>
+            <h3>{{ projet.nom }}</h3>
+            <div class="inv-ft-meta">
+                <span><i class="fas fa-leaf"></i> {{ projet.culture.nom }}</span>
+                <span><i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom }}</span>
+                <span><i class="fas fa-ruler-combined"></i> {{ projet.superficie }} ha</span>
+                <span><i class="fas fa-calendar"></i> Lancé le {{ projet.date_lancement|date:"d M Y" }}</span>
             </div>
         </div>
     </div>
+
+    <section class="finance-ft-card finance-ft-form-card" aria-labelledby="inv-form-heading">
+        <div class="finance-ft-card__head">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+            <h2 id="inv-form-heading" class="finance-ft-card__title">Détails de l'investissement</h2>
+        </div>
+        <div class="finance-ft-card__body">
+            {% if investissement_form.errors %}
+                <div class="alert alert-danger mb-3" role="alert">
+                    <strong>Corrigez les erreurs ci‑dessous.</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        {% for field in investissement_form %}
+                            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate id="investmentForm">
+                {% csrf_token %}
+
+                <div class="finance-ft-form-shell finance-ft-form-shell--wide">
+                    <aside class="finance-ft-form-aside">
+                        <div class="finance-ft-form-aside__icon"><i class="fas fa-calculator"></i></div>
+                        <h3>Coût prévisionnel</h3>
+                        <p>Le montant est calculé avec la surface du projet ou de la culture sélectionnée.</p>
+                        <div class="inv-ft-calculator" aria-live="polite">
+                            <div class="inv-ft-calculator__head">
+                                <i class="fas fa-calculator"></i>
+                                Estimation
+                            </div>
+                            <div class="inv-ft-calc-row"><span class="inv-ft-calc-lbl">Surface</span><span class="inv-ft-calc-val" id="calcSuperficie">—</span></div>
+                            <div class="inv-ft-calc-row"><span class="inv-ft-calc-lbl">Coût / ha</span><span class="inv-ft-calc-val" id="calcCoutHa">0 FCFA</span></div>
+                            <div class="inv-ft-calc-row"><span class="inv-ft-calc-lbl">Autres frais</span><span class="inv-ft-calc-val" id="calcAutres">0 FCFA</span></div>
+                            <div class="inv-ft-calc-row"><span class="inv-ft-calc-lbl">Total</span><span class="inv-ft-calc-val" id="calcTotal">0 FCFA</span></div>
+                        </div>
+                    </aside>
+
+                    <div class="finance-ft-form-main">
+                <h3 class="form-section-title" style="margin-top:0;"><i class="fas fa-file-alt"></i> Informations</h3>
+
+                <div class="finance-ft-form-grid">
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ investissement_form.libelle.id_for_label }}">{{ investissement_form.libelle.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel si description)</span></label>
+                        {{ investissement_form.libelle }}
+                        {% if investissement_form.libelle.errors %}<div class="text-danger small mt-1">{{ investissement_form.libelle.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ investissement_form.categorie.id_for_label }}">{{ investissement_form.categorie.label }}</label>
+                        {{ investissement_form.categorie }}
+                        {% if investissement_form.categorie.errors %}<div class="text-danger small mt-1">{{ investissement_form.categorie.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ investissement_form.description.id_for_label }}">Description <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(obligatoire si pas de libellé)</span></label>
+                        {{ investissement_form.description }}
+                        {% if investissement_form.description.errors %}<div class="text-danger small mt-1">{{ investissement_form.description.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ investissement_form.cout_par_hectare.id_for_label }}">Coût / ha (FCFA) <span class="text-danger">*</span></label>
+                        {{ investissement_form.cout_par_hectare }}
+                        {% if investissement_form.cout_par_hectare.errors %}<div class="text-danger small mt-1">{{ investissement_form.cout_par_hectare.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ investissement_form.date_investissement.id_for_label }}">Date <span class="text-danger">*</span></label>
+                        {{ investissement_form.date_investissement }}
+                        {% if investissement_form.date_investissement.errors %}<div class="text-danger small mt-1">{{ investissement_form.date_investissement.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ investissement_form.projet_produit.id_for_label }}">Culture <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        {{ investissement_form.projet_produit }}
+                        <p class="finance-ft-help">Vide = dépense générale au niveau projet.</p>
+                        {% if investissement_form.projet_produit.errors %}<div class="text-danger small mt-1">{{ investissement_form.projet_produit.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="finance-ft-field-label" for="{{ investissement_form.autres_frais.id_for_label }}">Autres frais (FCFA)</label>
+                        {{ investissement_form.autres_frais }}
+                        <p class="finance-ft-help">Montant fixe en plus du coût × surface.</p>
+                        {% if investissement_form.autres_frais.errors %}<div class="text-danger small mt-1">{{ investissement_form.autres_frais.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="finance-ft-span2">
+                        <div class="finance-ft-inline-note">
+                            <i class="fas fa-circle-info"></i>
+                            <span>Choisissez une culture pour utiliser sa superficie allouée ; sinon la superficie totale du projet sera utilisée.</span>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+
+                <div class="finance-ft-form-actions">
+                    <a href="{% url 'detail_projet' projet.id %}" class="finance-ft-btn finance-ft-btn--ghost">
+                        <i class="fas fa-arrow-left"></i> Retour au projet
+                    </a>
+                    <button type="submit" class="finance-ft-btn finance-ft-btn--dark" id="submitBtn">
+                        <i class="fas fa-plus-circle"></i> Ajouter l'investissement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
 
 <script>
@@ -622,12 +158,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const coutInput = document.getElementById('id_cout_par_hectare');
     const ppSelect = document.getElementById('id_projet_produit');
     const autresInput = document.getElementById('id_autres_frais');
-    const superficieProjet = parseFloat({{ projet.superficie|default:0|unlocalize }}) || 0;
-    const superficieParCulture = {
-        {% for pp in projet.projet_produits.all %}
-        "{{ pp.pk }}": {% if pp.superficie_allouee %}{{ pp.superficie_allouee|unlocalize }}{% else %}null{% endif %},
-        {% endfor %}
-    };
+    const superficieProjet = parseFloat('{{ projet.superficie|default:0|unlocalize }}') || 0;
+    const superficieParCulture = JSON.parse('{{ superficie_par_culture_json|escapejs }}');
 
     function hectaresPourLigne() {
         if (!ppSelect || !ppSelect.value) return superficieProjet;
@@ -651,41 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
             new Intl.NumberFormat('fr-FR').format(autres) + ' FCFA';
         document.getElementById('calcTotal').textContent =
             new Intl.NumberFormat('fr-FR').format(total) + ' FCFA';
-
-        const totalEl = document.getElementById('calcTotal');
-        totalEl.style.transform = 'scale(1.05)';
-        setTimeout(() => totalEl.style.transform = 'scale(1)', 200);
     }
 
-    if (coutInput) {
-        coutInput.addEventListener('input', updateCalculation);
-    }
-    if (autresInput) {
-        autresInput.addEventListener('input', updateCalculation);
-    }
-    if (ppSelect) {
-        ppSelect.addEventListener('change', updateCalculation);
-    }
+    if (coutInput) coutInput.addEventListener('input', updateCalculation);
+    if (ppSelect) ppSelect.addEventListener('change', updateCalculation);
+    if (autresInput) autresInput.addEventListener('input', updateCalculation);
     updateCalculation();
-    
-    // Form submission
-    const form = document.getElementById('investmentForm');
-    form.addEventListener('submit', function() {
-        const btn = document.getElementById('submitBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout en cours...';
-        btn.disabled = true;
-    });
-    
-    // Input focus effects
-    const inputs = document.querySelectorAll('.input-wrapper input, .input-wrapper textarea');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.closest('.input-wrapper').style.transform = 'scale(1.01)';
-        });
-        input.addEventListener('blur', function() {
-            this.closest('.input-wrapper').style.transform = 'scale(1)';
-        });
-    });
 });
 </script>
 {% endblock %}

@@ -349,13 +349,11 @@
         <div class="semis-card-body">
             <div class="semis-stats">
                 <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.quantite_semences|default:"-" }} {% if s.quantite_semences %}kg{%
-                        endif %}</div>
+                    <div class="semis-stat-value">{{ s.quantite_semences|default:"-" }}{% if s.quantite_semences %} kg{% endif %}</div>
                     <div class="semis-stat-label">Semences</div>
                 </div>
                 <div class="semis-stat">
-                    <div class="semis-stat-value">{{ s.superficie_allouee|default:"-" }} {% if s.superficie_allouee
-                        %}ha{% endif %}</div>
+                    <div class="semis-stat-value">{{ s.superficie_allouee|default:"-" }}{% if s.superficie_allouee %} ha{% endif %}</div>
                     <div class="semis-stat-label">Superficie</div>
                 </div>
             </div>

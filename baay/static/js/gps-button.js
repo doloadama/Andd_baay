@@ -10,8 +10,8 @@
     const lngInput = document.querySelector('input[name="longitude"], input[name*="longitude"]');
     if (!latInput || !lngInput) return;
 
-    // Find the wrapper .mb-4 container of latInput
-    let container = latInput.closest('.mb-4');
+    // Wrapper ligne GPS (formulaire ferme style hub Finance ou ancien .mb-4)
+    let container = latInput.closest('[data-gps-row]') || latInput.closest('.mb-4');
     if (!container) return;
 
     // Create button
@@ -39,7 +39,10 @@
     });
 
     // Insert after the input-wrapper (or after label)
-    const wrapper = container.querySelector('.input-wrapper') || latInput.parentElement;
+    const wrapper =
+      container.querySelector('.input-wrapper') ||
+      container.querySelector('.ferme-ft-gps-inputs') ||
+      latInput.parentElement;
     if (wrapper && wrapper.nextElementSibling) {
       wrapper.parentElement.insertBefore(btn, wrapper.nextElementSibling);
     } else {

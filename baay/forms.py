@@ -6,6 +6,17 @@ from baay.models import Projet, ProduitAgricole, Investissement, Localite, Profi
 from baay.permissions import role_dans_ferme, roles_assignables_par
 
 
+def _aligner_champ_categorie_investissement(form_field, *, instance):
+    """
+    Les deux formulaires (fiche projet + hub Finance) exposent la même liste
+    que Investissement.CATEGORIE_CHOICES (seule définition métier).
+    """
+    form_field.choices = list(Investissement.CATEGORIE_CHOICES)
+    form_field.label = "Catégorie"
+    if not (instance and getattr(instance, "pk", None)):
+        form_field.initial = Investissement.CATEGORIE_GENERAL
+
+
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):
     """Accepte l’adresse email (recommandé) ou le nom d’utilisateur Django pour la connexion."""
 
@@ -150,15 +161,33 @@ class InvestissementForm(forms.ModelForm):
             "projet_produit",
         ]
         widgets = {
-            "libelle": forms.TextInput(attrs={"class": "form-control", "placeholder": "Libellé de la dépense"}),
-            "categorie": forms.Select(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control"}),
-            "cout_par_hectare": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
-            "autres_frais": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.01", "min": "0"}
+            "libelle": forms.TextInput(
+                attrs={
+                    "class": "fh-field",
+                    "id": "id_libelle",
+                    "placeholder": "Ex. Achat d'engrais…",
+                    "autocomplete": "off",
+                }
             ),
-            "date_investissement": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "projet_produit": forms.Select(attrs={"class": "form-control"}),
+            "categorie": forms.Select(attrs={"class": "fh-field", "id": "id_categorie"}),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "fh-field",
+                    "id": "id_description",
+                    "rows": 4,
+                    "placeholder": "Détails, libellé long…",
+                }
+            ),
+            "cout_par_hectare": forms.NumberInput(
+                attrs={"class": "fh-field", "id": "id_cout_par_hectare", "step": "0.01", "min": "0"}
+            ),
+            "autres_frais": forms.NumberInput(
+                attrs={"class": "fh-field", "id": "id_autres_frais", "step": "0.01", "min": "0"}
+            ),
+            "date_investissement": forms.DateInput(
+                attrs={"type": "date", "class": "fh-field", "id": "id_date_investissement"}
+            ),
+            "projet_produit": forms.Select(attrs={"class": "fh-field", "id": "id_projet_produit"}),
         }
 
     def __init__(self, *args, projet=None, **kwargs):
@@ -168,7 +197,7 @@ class InvestissementForm(forms.ModelForm):
         self.fields["description"].required = False
         self.fields["projet_produit"].required = False
         self.fields["autres_frais"].required = False
-        self.fields["categorie"].initial = Investissement.CATEGORIE_GENERAL
+        _aligner_champ_categorie_investissement(self.fields["categorie"], instance=self.instance)
         if projet:
             self.fields["projet_produit"].queryset = (
                 projet.projet_produits.select_related("produit").order_by("produit__nom")
@@ -286,6 +315,7 @@ class FinanceDepenseForm(forms.ModelForm):
             }
         )
         self.fields["libelle"].label = "Libellé"
+        _aligner_champ_categorie_investissement(self.fields["categorie"], instance=self.instance)
         self.fields["date_investissement"].label = "Date"
         self.fields["projet_produit"].label = "Culture"
         self.fields["cout_par_hectare"].label = "Coût / ha (FCFA)"
@@ -311,7 +341,7 @@ class FinanceDepenseForm(forms.ModelForm):
 class ProjetForm(forms.ModelForm):
     statut = forms.ChoiceField(
         choices=Projet.STATUT_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        widget=forms.Select(attrs={'class': 'fh-field'}),
         initial='en_cours',
     )
     
@@ -330,21 +360,20 @@ class ProjetForm(forms.ModelForm):
             'budget_alloue': 'Budget prévisionnel (FCFA)',
         }
         widgets = {
-            'nom': forms.TextInput(attrs={'class': 'form-control'}),
-            'ferme': forms.Select(attrs={'class': 'form-control'}),
-            'image_fond': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'capture': 'environment'}),
-            'pays': forms.Select(attrs={'class': 'form-control'}),
-            'localite': forms.Select(attrs={'class': 'form-control'}),
-            'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
-            'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'date_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
+            'nom': forms.TextInput(attrs={'class': 'fh-field', 'placeholder': 'Ex. Rizière Nord 2024'}),
+            'ferme': forms.Select(attrs={'class': 'fh-field'}),
+            'image_fond': forms.ClearableFileInput(attrs={'class': 'fh-field', 'accept': 'image/*', 'capture': 'environment'}),
+            'pays': forms.Select(attrs={'class': 'fh-field'}),
+            'localite': forms.Select(attrs={'class': 'fh-field'}),
+            'superficie': forms.NumberInput(attrs={'class': 'fh-field', 'step': '0.01', 'min': '0'}),
+            'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'fh-field'}),
+            'date_fin': forms.DateInput(attrs={'type': 'date', 'class': 'fh-field'}),
+            'rendement_estime': forms.NumberInput(attrs={'class': 'fh-field', 'step': '0.01', 'min': '0'}),
             'budget_alloue': forms.NumberInput(
-                attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Budget prévisionnel (FCFA)'}
+                attrs={'class': 'fh-field', 'step': '0.01', 'min': '0', 'placeholder': 'Optionnel (FCFA)'}
             ),
-            'statut': forms.Select(attrs={'class': 'form-control'}),
-            'type_irrigation': forms.Select(attrs={'class': 'form-control'}),
-            'type_engrais': forms.Select(attrs={'class': 'form-control'}),
+            'type_irrigation': forms.Select(attrs={'class': 'fh-field'}),
+            'type_engrais': forms.Select(attrs={'class': 'fh-field'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -619,14 +648,61 @@ class FermeForm(forms.ModelForm):
     class Meta:
         model = Ferme
         fields = ['nom', 'description', 'pays', 'localite', 'superficie_totale', 'latitude', 'longitude']
+        labels = {
+            'nom': 'Nom de la ferme',
+            'description': 'Description',
+            'pays': 'Pays',
+            'localite': 'Localité',
+            'superficie_totale': 'Superficie totale (ha)',
+            'latitude': 'Latitude',
+            'longitude': 'Longitude',
+        }
         widgets = {
-            'nom': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'pays': forms.Select(attrs={'class': 'form-control'}),
-            'localite': forms.Select(attrs={'class': 'form-control'}),
-            'superficie_totale': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'placeholder': 'Ex: 14.7167'}),
-            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'placeholder': 'Ex: -17.4677'}),
+            'nom': forms.TextInput(
+                attrs={
+                    'class': 'fh-field',
+                    'id': 'id_ferme_nom',
+                    'placeholder': 'Ex. Ferme du Sahel',
+                    'autocomplete': 'organization',
+                }
+            ),
+            'description': forms.Textarea(
+                attrs={
+                    'class': 'fh-field',
+                    'id': 'id_ferme_description',
+                    'rows': 4,
+                    'placeholder': 'Activités, cultures principales, notes…',
+                }
+            ),
+            'pays': forms.Select(attrs={'class': 'fh-field', 'id': 'id_ferme_pays'}),
+            'localite': forms.Select(attrs={'class': 'fh-field', 'id': 'id_ferme_localite'}),
+            'superficie_totale': forms.NumberInput(
+                attrs={
+                    'class': 'fh-field',
+                    'id': 'id_ferme_superficie',
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0',
+                }
+            ),
+            'latitude': forms.NumberInput(
+                attrs={
+                    'class': 'fh-field',
+                    'id': 'id_ferme_latitude',
+                    'step': 'any',
+                    'placeholder': 'Ex. 14.7167',
+                    'inputmode': 'decimal',
+                }
+            ),
+            'longitude': forms.NumberInput(
+                attrs={
+                    'class': 'fh-field',
+                    'id': 'id_ferme_longitude',
+                    'step': 'any',
+                    'placeholder': 'Ex. -17.4677',
+                    'inputmode': 'decimal',
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
