@@ -127,6 +127,16 @@ class DemandeAccesFerme(models.Model):
             raise ValidationError(
                 {"utilisateur": "Vous êtes déjà membre de cette ferme ; une demande d'accès est inutile."}
             )
+        # Empêche plusieurs demandes actives (en attente) pour la même ferme
+        active_qs = DemandeAccesFerme.objects.filter(
+            ferme_id=self.ferme_id,
+            utilisateur_id=self.utilisateur_id,
+            statut='en_attente',
+        )
+        if self.pk:
+            active_qs = active_qs.exclude(pk=self.pk)
+        if active_qs.exists():
+            raise ValidationError({"statut": "Une demande en attente existe déjà pour cette ferme."})
 
 
 class ProduitAgricole(models.Model):
@@ -251,6 +261,7 @@ class Projet(models.Model):
     localite = models.ForeignKey(Localite, on_delete=models.CASCADE)
     superficie = models.DecimalField(max_digits=10, decimal_places=2)
     date_lancement = models.DateField()
+    date_fin = models.DateField(null=True, blank=True, help_text="Date de fin prévue/réelle du projet")
     rendement_estime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     budget_alloue = models.DecimalField(
         max_digits=14,
@@ -281,6 +292,34 @@ class Projet(models.Model):
             return f"Projet {self.nom} - {self.culture.nom} by {self.utilisateur.user.username}"
         return f"Projet {self.nom} by {self.utilisateur.user.username}"
     
+    def clean(self):
+        super().clean()
+        from datetime import timedelta as _td
+        from django.utils.dateparse import parse_date
+
+        date_lancement = parse_date(self.date_lancement) if isinstance(self.date_lancement, str) else self.date_lancement
+        date_fin = parse_date(self.date_fin) if isinstance(self.date_fin, str) else self.date_fin
+
+        if not date_lancement:
+            raise ValidationError({"date_lancement": "La date de début est obligatoire."})
+        if date_fin:
+            if date_fin <= date_lancement:
+                raise ValidationError({"date_fin": "La date de fin doit être postérieure à la date de début."})
+            if self.statut != 'fini' and date_fin < timezone.localdate():
+                raise ValidationError({"date_fin": "La date de fin ne peut pas être dans le passé pour un projet actif."})
+            # Durée raisonnable ≤ 2 ans
+            if (date_fin - date_lancement).days > 730:
+                raise ValidationError({"date_fin": "La durée d'un projet ne doit pas excéder 2 ans."})
+        else:
+            # Projet en cours: ne pas démarrer dans un futur lointain (> 2 ans)
+            today = timezone.localdate()
+            if date_lancement > (today + _td(days=730)):
+                raise ValidationError({"date_lancement": "La date de début ne peut pas dépasser 2 ans dans le futur."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     @property
     def rendement_total_final(self):
         """Calcule le rendement final total de tous les produits du projet"""
@@ -334,6 +373,29 @@ class ProjetProduit(models.Model):
         if self.superficie_allouee and self.produit.rendement_moyen:
             return float(self.superficie_allouee * self.produit.rendement_moyen)
         return 0
+
+    def clean(self):
+        super().clean()
+        # Semis après début de projet
+        if self.date_semis and self.projet and self.projet.date_lancement:
+            if self.date_semis < self.projet.date_lancement:
+                raise ValidationError({"date_semis": "La date de semis ne peut pas être antérieure au début du projet."})
+            if self.projet.date_fin and self.date_semis > self.projet.date_fin:
+                raise ValidationError({"date_semis": "La date de semis ne peut pas être postérieure à la fin du projet."})
+        # Récolte prévue après semis
+        if self.date_recolte_prevue and self.date_semis:
+            if self.date_recolte_prevue <= self.date_semis:
+                raise ValidationError({"date_recolte_prevue": "La date de récolte prévue doit être postérieure au semis."})
+        if self.date_recolte_effective and self.date_semis:
+            if self.date_recolte_effective < self.date_semis:
+                raise ValidationError({"date_recolte_effective": "La date de récolte effective ne peut pas être antérieure au semis."})
+        if self.date_recolte_prevue and self.projet and self.projet.date_fin:
+            if self.date_recolte_prevue > self.projet.date_fin:
+                raise ValidationError({"date_recolte_prevue": "La récolte prévue ne peut pas dépasser la date de fin du projet."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 
@@ -416,6 +478,22 @@ class PrevisionRecolte(models.Model):
 
     def __str__(self):
         return f"Prévision pour {self.projet.nom} ({self.indice_confiance or 0}%)"
+
+    def clean(self):
+        super().clean()
+        if (
+            self.date_recolte_prevue
+            and self.projet_produit_id
+            and self.projet_produit.date_semis
+            and self.date_recolte_prevue <= self.projet_produit.date_semis
+        ):
+            raise ValidationError(
+                {"date_recolte_prevue": "La date de récolte prévue doit être postérieure au semis."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class Conversation(models.Model):
@@ -662,11 +740,6 @@ class Tache(models.Model):
 
     def peut_changer_statut(self, profile):
         return self.assigne_a_id == profile.id or self.peut_etre_modifiee_par(profile)
-
-
-
-
-
 
 
 

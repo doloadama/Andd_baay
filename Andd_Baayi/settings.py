@@ -22,6 +22,8 @@ from django.urls import reverse_lazy
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
+WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -175,8 +177,9 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     }
 }
-# Override with Redis if REDIS_URL is set
-_redis_url = os.getenv('REDIS_URL')
+# Override with Redis if REDIS_URL is set (Redis doit tourner sinon erreurs / retries ;
+# pour du dev sans Redis : retirez REDIS_URL du .env pour rester en InMemoryChannelLayer.)
+_redis_url = os.getenv('REDIS_URL', '').strip()
 if _redis_url:
     CHANNEL_LAYERS = {
         'default': {
@@ -187,10 +190,37 @@ if _redis_url:
         }
     }
 
-# Celery — background tasks (use Redis if available)
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
-CELERY_TASK_ALWAYS_EAGER = os.getenv('CELERY_TASK_ALWAYS_EAGER', 'False').lower() in ('1', 'true', 'yes')
+# Celery — broker explicite ou REDIS_URL ; en DEBUG sans les deux : pas de Redis requis (eager + memory).
+_celery_broker_env = os.getenv('CELERY_BROKER_URL', '').strip()
+_redis_env = _redis_url
+
+if _celery_broker_env:
+    CELERY_BROKER_URL = _celery_broker_env
+elif _redis_env:
+    CELERY_BROKER_URL = _redis_env
+elif DEBUG:
+    CELERY_BROKER_URL = 'memory://'
+else:
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+CELERY_RESULT_BACKEND_ENV = os.getenv('CELERY_RESULT_BACKEND', '').strip()
+if CELERY_RESULT_BACKEND_ENV:
+    CELERY_RESULT_BACKEND = CELERY_RESULT_BACKEND_ENV
+elif str(CELERY_BROKER_URL).startswith('memory'):
+    # Celery attend une URL de backend (`memory://` seul est résolu comme module Python inexistant).
+    CELERY_RESULT_BACKEND = 'cache+memory://'
+else:
+    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
+_eager_env = os.getenv('CELERY_TASK_ALWAYS_EAGER', '').strip().lower()
+if _eager_env in ('1', 'true', 'yes'):
+    CELERY_TASK_ALWAYS_EAGER = True
+elif _eager_env in ('0', 'false', 'no'):
+    CELERY_TASK_ALWAYS_EAGER = False
+else:
+    CELERY_TASK_ALWAYS_EAGER = DEBUG and not (_celery_broker_env or _redis_env)
+
+CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_TASK_TIME_LIMIT = int(os.getenv('CELERY_TASK_TIME_LIMIT', '900'))
 CELERY_TASK_SOFT_TIME_LIMIT = int(os.getenv('CELERY_TASK_SOFT_TIME_LIMIT', '600'))
 
@@ -249,6 +279,14 @@ else:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+
+# Cache Django — backend locmem par défaut (Axes, etc.)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'anddbaay-locmem-default',
+    }
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

@@ -5,6 +5,7 @@ from .views import (
     api_notifications_list,
     api_projet_bulk_delete,
     api_projet_creer,
+    api_projet_weather,
     api_voice_command,
     ask_chatbot,
     dashboard_filters_api,

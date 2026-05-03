@@ -475,6 +475,17 @@
                                 <div class="text-danger small mt-1">{{ projet_form.statut.errors }}</div>
                                 {% endif %}
                             </div>
+
+                            <div class="col-md-6">
+                                <label for="date_fin" class="form-label-modern">Date de fin prévue</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar-check input-icon"></i>
+                                    {{ projet_form.date_fin }}
+                                </div>
+                                {% if projet_form.date_fin.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.date_fin.errors }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="d-flex gap-3 mt-5">

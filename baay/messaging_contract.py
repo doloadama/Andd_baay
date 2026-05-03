@@ -91,3 +91,15 @@ def build_unread_count_event_v1(non_lus_total):
         "event_version": "v1",
         "non_lus_total": int(non_lus_total or 0),
     }
+
+
+def build_recruitment_status_event_v1(demande, statut):
+    return {
+        "type": "recruitment_status_v1",
+        "event_version": "v1",
+        "event_id": f"recruitment:{demande.id}:{statut}",
+        "demande_id": str(demande.id),
+        "ferme_id": str(demande.ferme_id),
+        "ferme_nom": demande.ferme.nom,
+        "statut": statut,
+    }

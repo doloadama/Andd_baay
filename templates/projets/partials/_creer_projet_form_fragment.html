@@ -295,6 +295,22 @@ Fragment échangé via HTMX (réponse 422) ou rendu inclus dans creer_projet.htm
 
             <div class="col-12 col-md-6">
                 <div class="input-modern-group">
+                    <label for="{{ projet_form.date_fin.id_for_label }}" class="form-label-modern">
+                        Date de fin prévue
+                        <span class="form-label-hint">Optionnel</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar-check input-icon"></i>
+                        {{ projet_form.date_fin }}
+                    </div>
+                    {% if projet_form.date_fin.errors %}
+                        <div class="form-error"><i class="fas fa-exclamation-triangle"></i> {{ projet_form.date_fin.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <div class="input-modern-group">
                     <label for="{{ projet_form.type_irrigation.id_for_label }}" class="form-label-modern">
                         Type d'irrigation
                     </label>

@@ -12,30 +12,26 @@
 
 {% block content %}
 <div class="projet-detail-page">
-<!-- Immersive Hero Background -->
-<div class="project-hero-bg" style="background-image: url('{% if projet.image_fond %}{{ projet.image_fond.url }}{% else %}{% static 'images/default_farm_bg.png' %}{% endif %}'); background-size: cover; background-position: center; transition: background-image 0.5s ease;">
-    <div class="african-motif"></div>
+<!-- Hero — dégradé charte + motif ; photo optionnelle en couche -->
+<div class="project-hero-bg">
+    {% if projet.image_fond %}
+    <div class="project-hero-bg__photo" style="background-image: url('{{ projet.image_fond.url }}');" role="img" aria-hidden="true"></div>
+    {% endif %}
+    <div class="african-motif" aria-hidden="true"></div>
     <div class="hero-overlay"></div>
     <div class="container relative z-10 h-100 d-flex flex-column justify-content-center text-center px-3">
         <p class="projet-hero-kicker animate__animated animate__fadeInDown mb-0">Fiche projet</p>
         <div class="badge-modern mx-auto mb-3 animate__animated animate__fadeInDown">
-            <span class="status-dot 
-                {% if projet.statut == 'en_cours' %}bg-primary
-                {% elif projet.statut == 'en_pause' %}bg-warning
-                {% elif projet.statut == 'fini' %}bg-success
-                {% elif projet.statut == 'Terminé' %}bg-primary
-                {% elif projet.statut == 'Annulé' %}bg-danger
-                {% else %}bg-secondary{% endif %}">
-            </span>
+            <span class="status-dot status-dot--{{ projet.statut }}" aria-hidden="true"></span>
             {{ projet.get_statut_display }}
         </div>
         <h1 class="fw-bold mb-2 mb-md-3 text-white text-shadow-lg animate__animated animate__fadeInUp projet-hero-title">{{ projet.nom }}</h1>
         <p class="lead text-white-50 text-shadow-md animate__animated animate__fadeInUp projet-hero-subtitle" style="animation-delay: 0.1s;" title="{{ projet.localite.nom }} — {% for pp in projet_produits %}{{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}{% empty %}{% if projet.culture %}{{ projet.culture.nom }}{% else %}Aucun produit{% endif %}{% endfor %}">
             <span class="projet-hero-meta-line d-block">
-                <i class="fas fa-map-marker-alt text-accent me-2" aria-hidden="true"></i>{{ projet.localite.nom }}
+                <i class="fas fa-map-marker-alt projet-hero-meta-icon me-2" aria-hidden="true"></i>{{ projet.localite.nom }}
             </span>
             <span class="projet-hero-products d-block mt-1">
-                <i class="fas fa-seedling text-accent me-2" aria-hidden="true"></i>
+                <i class="fas fa-seedling projet-hero-meta-icon me-2" aria-hidden="true"></i>
                 <span class="projet-hero-product-list">{% for pp in projet_produits %}
                 {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
                 {% empty %}
@@ -263,6 +259,19 @@
                 </div>
             </div>
 
+            <!-- Météo (ferme — OpenWeatherMap) -->
+            <div id="projetMeteoCard" class="glass-card flex-fill projet-meteo-card" data-weather-url="{% url 'api_projet_weather' projet.id %}">
+                <div class="glass-card-header">
+                    <h5 class="mb-0"><i class="fas fa-cloud-sun text-accent me-2" aria-hidden="true"></i> Météo à la ferme</h5>
+                </div>
+                <div class="glass-card-body projet-meteo-body" data-meteo-body>
+                    <div class="projet-meteo-skeleton text-muted small mb-0">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Chargement…
+                    </div>
+                </div>
+            </div>
+
             <!-- Map Card -->
             <div class="glass-card flex-fill">
                 <div class="glass-card-header">
@@ -484,6 +493,60 @@
         }
         window.addEventListener("resize", relayoutMap);
         window.addEventListener("orientationchange", relayoutMap);
+
+        var meteoCard = document.getElementById('projetMeteoCard');
+        if (meteoCard && meteoCard.dataset.weatherUrl) {
+            var meteoBody = meteoCard.querySelector('[data-meteo-body]');
+            var messages = {
+                coords_absentes: 'Ajoutez la latitude et la longitude de la ferme pour afficher la météo en temps réel.',
+                api_key_absente: 'La clé OpenWeatherMap n’est pas configurée sur le serveur (variable OPENWEATHER_API_KEY).',
+                ferme_introuvable: 'Ferme introuvable.',
+                forbidden: 'Vous n’avez pas accès à cette météo.',
+                exception: 'Service météo temporairement indisponible.',
+                http_401: 'Clé OpenWeatherMap invalide.',
+                http_429: 'Quota OpenWeather dépassé. Réessayez plus tard.'
+            };
+            fetch(meteoCard.dataset.weatherUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                .then(function (r) { return r.json().then(function (j) { return { okHttp: r.ok, status: r.status, json: j }; }); })
+                .then(function (res) {
+                    if (!meteoBody) return;
+                    var j = res.json;
+                    if (res.status === 403 || j.error === 'forbidden') {
+                        meteoBody.innerHTML = '<p class="text-muted small mb-0">' + messages.forbidden + '</p>';
+                        return;
+                    }
+                    if (!j.ok) {
+                        var key = j.error || '';
+                        var detail = messages[key];
+                        if (!detail && /^http_/.test(key)) {
+                            detail = 'Erreur du fournisseur météo (HTTP ' + key.replace(/^http_/, '') + ').';
+                        }
+                        if (!detail) detail = 'Météo indisponible' + (key ? ' (' + key + ').' : '.');
+                        meteoBody.innerHTML = '<p class="text-muted small mb-0">' + detail + '</p>';
+                        return;
+                    }
+                    var d = j.data || {};
+                    var iconHtml = '';
+                    if (d.icone) {
+                        iconHtml = '<img src="https://openweathermap.org/img/wn/' + encodeURIComponent(d.icone) + '@2x.png" alt="" class="projet-meteo-icon" width="72" height="72" loading="lazy" />';
+                    }
+                    var tempStr = (d.temperature != null && d.temperature !== '') ? (Math.round(Number(d.temperature) * 10) / 10) + '&thinsp;°C' : '—';
+                    var humStr = (d.humidite != null && d.humidite !== '') ? d.humidite + '&thinsp;% HR' : '—';
+                    var desc = (d.description || '').replace(/(^|\s)\w/g, function (c) { return c.toUpperCase(); });
+                    meteoBody.innerHTML =
+                        '<div class="projet-meteo-grid">' +
+                        iconHtml +
+                        '<div class="projet-meteo-main">' +
+                        '<div class="projet-meteo-temp">' + tempStr + '</div>' +
+                        '<div class="projet-meteo-desc">' + (desc || 'Conditions actuelles') + '</div>' +
+                        '<div class="projet-meteo-meta text-muted small">Humidité&nbsp;: <strong>' + humStr + '</strong></div>' +
+                        '</div></div>' +
+                        '<p class="text-muted projet-meteo-credit mb-0 mt-2 small">Données&nbsp;: OpenWeather · Position GPS de la ferme</p>';
+                })
+                .catch(function () {
+                    if (meteoBody) meteoBody.innerHTML = '<p class="text-muted small mb-0">Impossible de charger la météo (réseau).</p>';
+                });
+        }
     });
 </script>
 

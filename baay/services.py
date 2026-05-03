@@ -1,16 +1,34 @@
 import logging
+import os
 from datetime import timedelta
 from types import SimpleNamespace
 
+import requests
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 
 from decimal import Decimal
 
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db import transaction
 from django.db.models.functions import Coalesce
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
-from .models import Investissement, PrevisionRecolte, Profile, Projet, ProjetProduit
+from .models import (
+    Ferme,
+    Investissement,
+    MembreFerme,
+    PrevisionRecolte,
+    Profile,
+    Projet,
+    ProjetProduit,
+    DemandeAccesFerme,
+)
+from .messaging_contract import build_recruitment_status_event_v1
 
 logger = logging.getLogger(__name__)
 
@@ -300,3 +318,160 @@ def compute_previsions_for_projet(projet_id: str) -> dict:
         "total_max": total_max,
         "count_pp": len(pps),
     }
+
+
+# =====================
+# Météo (OpenWeatherMap)
+# =====================
+def get_weather_data(ferme_id: str) -> dict:
+    """Retourne la meteo temps reel d'une ferme via OpenWeatherMap."""
+    ferme = (
+        Ferme.objects
+        .only("id", "latitude", "longitude")
+        .filter(pk=ferme_id)
+        .first()
+    )
+    if not ferme:
+        return {"ok": False, "error": "ferme_introuvable"}
+
+    lat = ferme.latitude
+    lon = ferme.longitude
+    if lat is None or lon is None:
+        return {"ok": False, "error": "coords_absentes"}
+
+    api_key = getattr(settings, "OPENWEATHER_API_KEY", None) or os.getenv("OPENWEATHER_API_KEY", "").strip()
+    if not api_key:
+        return {"ok": False, "error": "api_key_absente"}
+
+    cache_key = f"weather:ferme:{ferme_id}:{round(float(lat),3)}:{round(float(lon),3)}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return {"ok": True, "data": cached}
+
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {
+        "lat": lat,
+        "lon": lon,
+        "appid": api_key,
+        "units": "metric",
+        "lang": "fr",
+    }
+    try:
+        resp = requests.get(url, params=params, timeout=8)
+        if resp.status_code != 200:
+            return {"ok": False, "error": f"http_{resp.status_code}"}
+        raw = resp.json() or {}
+        weather = (raw.get("weather") or [{}])[0]
+        w = {
+            "temperature": (raw.get("main") or {}).get("temp"),
+            "humidite": (raw.get("main") or {}).get("humidity"),
+            "description": weather.get("description"),
+            "icone": weather.get("icon"),
+        }
+        try:
+            ttl_min = int(getattr(settings, "WEATHER_CACHE_TTL_MINUTES", 30))
+        except Exception:
+            ttl_min = 30
+        cache.set(cache_key, w, timeout=max(60, ttl_min * 60))
+        return {"ok": True, "data": w}
+    except Exception as e:
+        logger.error("Erreur appel OpenWeather", exc_info=True)
+        return {"ok": False, "error": "exception"}
+
+
+# =====================
+# Recrutement / Demandes
+# =====================
+def transition_demande_acces(demande_id: str, nouveau_statut: str, role: str = "ouvrier", peut_gerer_membres: bool = False) -> dict:
+    """Transition d'etat pour DemandeAccesFerme.
+
+    Si approuvee, cree MembreFerme et notifie l'utilisateur.
+    """
+    if nouveau_statut not in {"en_attente", "approuvee", "refusee"}:
+        raise ValidationError({"statut": "Statut invalide."})
+    if role not in {"manager", "technicien", "ouvrier"}:
+        role = "ouvrier"
+
+    with transaction.atomic():
+        demande = (
+            DemandeAccesFerme.objects.select_for_update()
+            .select_related("ferme", "utilisateur__user")
+            .filter(pk=demande_id)
+            .first()
+        )
+        if not demande:
+            return {"ok": False, "error": "demande_introuvable"}
+
+        created_membership = False
+        if demande.statut == nouveau_statut:
+            return {"ok": True, "demande": demande, "created_membership": False}
+
+        if nouveau_statut == "approuvee":
+            membre, created_membership = MembreFerme.objects.get_or_create(
+                ferme=demande.ferme,
+                utilisateur=demande.utilisateur,
+                defaults={"role": role, "peut_gerer_membres": bool(peut_gerer_membres)},
+            )
+            if not created_membership:
+                membre.role = role
+                membre.peut_gerer_membres = bool(peut_gerer_membres)
+                membre.save(update_fields=["role", "peut_gerer_membres"])
+
+        demande.statut = nouveau_statut
+        from django.utils import timezone as _tz
+        demande.date_traitement = _tz.now()
+        demande.save(update_fields=["statut", "date_traitement"])
+
+    _notify_demande_acces_user(demande, nouveau_statut)
+    return {"ok": True, "demande": demande, "created_membership": bool(created_membership)}
+
+
+def create_demande_acces_ferme(ferme: Ferme, utilisateur: Profile) -> DemandeAccesFerme:
+    """Cree une demande apres validation anti-doublon et anti-membre."""
+    demande = DemandeAccesFerme(
+        ferme=ferme,
+        utilisateur=utilisateur,
+        code=ferme.code_acces,
+    )
+    demande.full_clean()
+    demande.save()
+    return demande
+
+
+def _notify_demande_acces_user(demande: DemandeAccesFerme, statut: str) -> None:
+    """Notification best-effort : websocket si disponible, email sinon/en plus."""
+    try:
+        layer = get_channel_layer()
+        payload = build_recruitment_status_event_v1(demande, statut)
+        async_to_sync(layer.group_send)(f"inbox_{demande.utilisateur.id}", payload)
+    except Exception:
+        logger.warning("Notification recrutement Channels ignoree", exc_info=True)
+
+    email = demande.utilisateur.user.email
+    if not email:
+        return
+    if statut == "approuvee":
+        subject = f"Votre demande d'acces a {demande.ferme.nom} a ete approuvee"
+        message = (
+            f"Bonjour {demande.utilisateur.user.username},\n\n"
+            f"Votre demande d'acces a la ferme {demande.ferme.nom} a ete approuvee.\n"
+            "Vous pouvez desormais y acceder depuis Andd Baay."
+        )
+    elif statut == "refusee":
+        subject = f"Votre demande d'acces a {demande.ferme.nom} a ete refusee"
+        message = (
+            f"Bonjour {demande.utilisateur.user.username},\n\n"
+            f"Votre demande d'acces a la ferme {demande.ferme.nom} n'a pas ete acceptee."
+        )
+    else:
+        return
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@anddbaay.local"),
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.warning("Email recrutement non envoye a %s", email, exc_info=True)

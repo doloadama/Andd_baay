@@ -105,10 +105,13 @@ from baay.permissions import (
 from baay.services import (
     check_budget_status,
     check_projet_produit_budget_status,
+    create_demande_acces_ferme,
     ensure_profile_for_user,
     get_prevision_affichee_projet,
+    get_weather_data,
     investissement_montant_expr,
     total_investissements_projet,
+    transition_demande_acces,
     update_prediction_for_projet_produit,
 )
 
@@ -2288,20 +2291,14 @@ def demander_acces_ferme(request):
                 return redirect('demander_acces_ferme')
             ferme = form.cleaned_data['code']
             ferme.refresh_from_db()
-            demande = DemandeAccesFerme(
-                ferme=ferme,
-                utilisateur=profile,
-                code=ferme.code_acces,
-            )
             try:
-                demande.full_clean()
+                demande = create_demande_acces_ferme(ferme, profile)
             except ValidationError as exc:
                 messages.error(
                     request,
                     next(iter(exc.messages), "Impossible d'enregistrer cette demande."),
                 )
                 return redirect('demander_acces_ferme')
-            demande.save()
             proprietaire_email = ferme.proprietaire.user.email
             if proprietaire_email:
                 _send_mail_safe(
@@ -2325,7 +2322,6 @@ def demander_acces_ferme(request):
 def traiter_demande_acces_ferme(request, ferme_id, demande_id, action):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     demande = get_object_or_404(DemandeAccesFerme, id=demande_id, ferme=ferme, statut='en_attente')
-    demandeur_email = demande.utilisateur.user.email
     demandeur_username = demande.utilisateur.user.username
     if action == 'approuver':
         if ferme.membres.filter(utilisateur=demande.utilisateur).exists():
@@ -2342,38 +2338,19 @@ def traiter_demande_acces_ferme(request, ferme_id, demande_id, action):
         if role not in valid_roles:
             role = 'ouvrier'
         peut_gerer_membres = bool(request.POST.get('peut_gerer_membres'))
-        MembreFerme.objects.get_or_create(
-            ferme=ferme,
-            utilisateur=demande.utilisateur,
-            defaults={'role': role, 'peut_gerer_membres': peut_gerer_membres}
+        transition_demande_acces(
+            demande.id,
+            'approuvee',
+            role=role,
+            peut_gerer_membres=peut_gerer_membres,
         )
-        demande.statut = 'approuvee'
         messages.success(request, f"{demandeur_username} a été ajouté à la ferme.")
-        _send_mail_safe(
-            subject=f"Votre demande d'accès à {ferme.nom} a été approuvée",
-            message=(
-                f"Bonjour {demandeur_username},\n\n"
-                f"Votre demande d'accès à la ferme {ferme.nom} a été approuvée.\n"
-                f"Vous pouvez désormais y accéder depuis Andd Baay."
-            ),
-            recipient_list=[demandeur_email] if demandeur_email else [],
-        )
     elif action == 'refuser':
-        demande.statut = 'refusee'
+        transition_demande_acces(demande.id, 'refusee')
         messages.info(request, f"Demande de {demandeur_username} refusée.")
-        _send_mail_safe(
-            subject=f"Votre demande d'accès à {ferme.nom} a été refusée",
-            message=(
-                f"Bonjour {demandeur_username},\n\n"
-                f"Votre demande d'accès à la ferme {ferme.nom} n'a pas été acceptée."
-            ),
-            recipient_list=[demandeur_email] if demandeur_email else [],
-        )
     else:
         messages.error(request, "Action invalide.")
         return redirect('detail_ferme', ferme_id=ferme.id)
-    demande.date_traitement = timezone.now()
-    demande.save()
     return redirect('detail_ferme', ferme_id=ferme.id)
 
 
@@ -3341,6 +3318,20 @@ def nouvelle_conversation(request):
     return render(request, 'messagerie/nouvelle_conversation.html', {
         'membres': membres,
     })
+
+
+@login_required
+@require_GET
+def api_projet_weather(request, projet_id):
+    """Météo temps réel (OpenWeather) pour la ferme du projet — coords GPS de la ferme requises."""
+    profile = ensure_profile_for_user(request.user)
+    projet = get_object_or_404(
+        Projet.objects.select_related("ferme"),
+        id=projet_id,
+    )
+    if not peut_voir_projet(profile, projet):
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    return JsonResponse(get_weather_data(str(projet.ferme_id)))
 
 
 @login_required

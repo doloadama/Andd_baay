@@ -325,7 +325,7 @@ class ProjetForm(forms.ModelForm):
 
     class Meta:
         model = Projet
-        fields = ['nom', 'ferme', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'rendement_estime', 'budget_alloue', 'statut', 'type_irrigation', 'type_engrais']
+        fields = ['nom', 'ferme', 'image_fond', 'pays', 'localite', 'superficie', 'date_lancement', 'date_fin', 'rendement_estime', 'budget_alloue', 'statut', 'type_irrigation', 'type_engrais']
         labels = {
             'budget_alloue': 'Budget prévisionnel (FCFA)',
         }
@@ -337,6 +337,7 @@ class ProjetForm(forms.ModelForm):
             'localite': forms.Select(attrs={'class': 'form-control'}),
             'superficie': forms.NumberInput(attrs={'class': 'form-control'}),
             'date_lancement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'date_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'rendement_estime': forms.NumberInput(attrs={'class': 'form-control'}),
             'budget_alloue': forms.NumberInput(
                 attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Budget prévisionnel (FCFA)'}
@@ -402,6 +403,10 @@ class ProjetForm(forms.ModelForm):
         cleaned_data = super().clean()
         produits = list(cleaned_data.get('produits_selection') or [])
         ferme = cleaned_data.get('ferme')
+        date_lancement = cleaned_data.get('date_lancement')
+        date_fin = cleaned_data.get('date_fin')
+        if date_lancement and date_fin and date_fin <= date_lancement:
+            self.add_error('date_fin', "La date de fin doit etre posterieure a la date de debut.")
         if not produits:
             raise forms.ValidationError("Vous devez selectionner au moins un produit.")
 
@@ -525,10 +530,15 @@ class ProjetProduitForm(forms.ModelForm):
         date_semis = cleaned_data.get('date_semis')
         date_recolte_prevue = cleaned_data.get('date_recolte_prevue')
         
-        if date_semis and date_recolte_prevue and date_recolte_prevue < date_semis:
-            raise forms.ValidationError(
-                "La date de recolte prevue ne peut pas etre anterieure a la date de semis."
-            )
+        projet = getattr(self.instance, 'projet', None)
+        if projet and date_semis and projet.date_lancement and date_semis < projet.date_lancement:
+            self.add_error('date_semis', "La date de semis ne peut pas etre anterieure au debut du projet.")
+        if projet and date_semis and projet.date_fin and date_semis > projet.date_fin:
+            self.add_error('date_semis', "La date de semis ne peut pas etre posterieure a la fin du projet.")
+        if date_semis and date_recolte_prevue and date_recolte_prevue <= date_semis:
+            self.add_error('date_recolte_prevue', "La date de recolte prevue doit etre posterieure au semis.")
+        if projet and date_recolte_prevue and projet.date_fin and date_recolte_prevue > projet.date_fin:
+            self.add_error('date_recolte_prevue', "La recolte prevue ne peut pas depasser la date de fin du projet.")
         
         return cleaned_data
 
