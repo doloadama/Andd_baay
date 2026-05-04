@@ -9,11 +9,15 @@
 <link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
 <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 
-<!--maj Header -->
-<div class="dashboard-header-modern db-header-cockpit animate__animated animate__fadeInDown">
-    <div class="db-title">
-        <p class="dash-subtitle">Espace Analytique</p>
-        <h1>Bonjour, {{ user.first_name|default:user.username }}</h1>
+<header class="dashboard-header-modern db-header-cockpit cockpit-topbar animate__animated animate__fadeInDown">
+    <div class="cockpit-topbar__main">
+        <p class="dash-subtitle">Cockpit stratégique</p>
+        <h1>{% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Bonjour, {{ user.first_name|default:user.username }}{% endif %}</h1>
+        <div class="cockpit-topbar__meta">
+            <span><i class="fas fa-warehouse" aria-hidden="true"></i> {% if selected_ferme %}{{ selected_ferme.localite.nom|default:"Ferme sélectionnée" }}{% else %}{{ nombre_fermes }} ferme{{ nombre_fermes|pluralize }}{% endif %}</span>
+            <span><i class="fas fa-layer-group" aria-hidden="true"></i> {{ projets.count }} projet{{ projets.count|pluralize }}</span>
+            <span><i class="far fa-calendar-alt" aria-hidden="true"></i> {% now "j F Y" %}</span>
+        </div>
     </div>
     <div class="cockpit-weather" id="weatherWidget" role="status" aria-live="polite"
          data-weather-ferme="{{ dashboard_weather_ferme_id|default:'' }}">
@@ -22,102 +26,28 @@
             <span id="weatherSummary">Météo locale…</span>
         </div>
     </div>
-    <div class="db-actions">
+    <div class="db-actions cockpit-topbar__actions">
         <div class="refresh-indicator" id="refreshIndicator">
             <i class="fas fa-sync-alt refresh-icon"></i>
             <span id="lastUpdated">Mis à jour: {% now "H:i" %}</span>
         </div>
-        <span class="live-indicator">
-            <span class="live-dot"></span>
-            Données en direct
-        </span>
         <button class="theme-toggle" id="dashboardThemeShortcut" title="Changer le thème (T)">
             <i class="fas fa-moon"></i>
         </button>
-        <div class="dash-date">
-            <i class="far fa-calendar-alt me-2"></i> {% now "j F Y" %}
-        </div>
-    </div>
-</div>
-
-<section class="dashboard-spotlight animate__animated animate__fadeInUp" id="spotlightSection">
-    <div class="dashboard-spotlight-main">
         {% if selected_ferme %}
-        <span class="spotlight-kicker"><i class="fas fa-warehouse"></i> Ferme selectionnée</span>
-        <h2 class="spotlight-title">{{ selected_ferme.nom }}</h2>
-        <p class="spotlight-copy">
-            {{ selected_ferme.description|default:"Gerer les projets lies a cette ferme." }}
-            <br><small class="text-muted">{{ selected_ferme.localite.nom|default:"" }}, {{ selected_ferme.pays.nom|default:"" }} — {{ selected_ferme.superficie_totale|default:"?" }} ha</small>
-        </p>
-        <div class="spotlight-actions">
-            <a href="{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}" class="btn-baay btn-baay-primary">
-                <i class="fas fa-plus"></i> Nouveau projet
-            </a>
-            <a href="{% url 'detail_ferme' selected_ferme.id %}" class="btn-baay btn-baay-outline">
-                <i class="fas fa-warehouse"></i> Fiche ferme
-            </a>
-            <a href="{% url 'dashboard' %}" class="btn-baay btn-baay-ghost">
-                <i class="fas fa-globe"></i> Vue globale
-            </a>
-        </div>
+        <a href="{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}" class="btn-baay btn-baay-primary cockpit-topbar__cta">
+            <i class="fas fa-plus"></i> Projet
+        </a>
         {% else %}
-        <span class="spotlight-kicker">Vue d'ensemble</span>
-        <h2 class="spotlight-title">Pilotez vos projets agricoles depuis un tableau de bord plus clair.</h2>
-        <p class="spotlight-copy">
-            {{ nombre_fermes }} ferme(s), {{ projets.count }} projet(s) — Gardez les indicateurs importants visibles et filtrez rapidement.
-        </p>
-        <div class="spotlight-actions">
-            <button class="btn-baay btn-baay-primary" type="button" data-open-quick-add>
-                <i class="fas fa-plus"></i> Nouveau projet
-            </button>
-            <a href="{% url 'liste_fermes' %}" class="btn-baay btn-baay-outline">
-                <i class="fas fa-warehouse"></i> Mes fermes
-            </a>
-            <a href="{% url 'liste_projets' %}" class="btn-baay btn-baay-ghost">
-                <i class="fas fa-layer-group"></i> Tous les projets
-            </a>
-        </div>
+        <button class="btn-baay btn-baay-primary cockpit-topbar__cta" type="button" data-open-quick-add>
+            <i class="fas fa-plus"></i> Projet
+        </button>
         {% endif %}
     </div>
-    <div class="dashboard-spotlight-side">
-        {% if selected_ferme %}
-        <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Utilisation</span>
-            <strong class="spotlight-stat-value" id="spotlightFarmUtilisation">{{ ferme_utilisation }}%</strong>
-            <span class="spotlight-stat-meta">{{ ferme_superficie_utilisee|floatformat:0 }}/{{ ferme_superficie|floatformat:0 }} ha</span>
-        </div>
-        <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Membres</span>
-            <strong class="spotlight-stat-value" id="spotlightFarmMembers">{{ ferme_membres }}</strong>
-            <span class="spotlight-stat-meta">dans cette ferme</span>
-        </div>
-        <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Projets actifs</span>
-            <strong class="spotlight-stat-value" id="spotlightFarmProjects">{{ projets_en_cours }}</strong>
-            <span class="spotlight-stat-meta">dans cette ferme</span>
-        </div>
-        {% else %}
-        <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Fermes</span>
-            <strong class="spotlight-stat-value" id="spotlightFarms">{{ nombre_fermes }}</strong>
-            <span class="spotlight-stat-meta">{% if fermes_inactives %}<span class="text-warning">{{ fermes_inactives }} inactive(s)</span>{% else %}actives{% endif %}</span>
-        </div>
-        <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Projets</span>
-            <strong class="spotlight-stat-value" id="spotlightProjects">{{ projets.count }}</strong>
-            <span class="spotlight-stat-meta">{{ projets_en_cours }} en cours</span>
-        </div>
-        <div class="spotlight-stat-card">
-            <span class="spotlight-stat-label">Membres</span>
-            <strong class="spotlight-stat-value" id="spotlightMembers">{{ total_membres }}</strong>
-            <span class="spotlight-stat-meta">dans toutes les fermes</span>
-        </div>
-        {% endif %}
-    </div>
-</section>
+</header>
 
 {% with qs=cockpit.quick_stats %}
-<section class="cockpit-quick-strip" id="cockpitQuickStrip" aria-label="Indicateurs stratégiques">
+<section class="cockpit-quick-strip cockpit-quick-strip--primary" id="cockpitQuickStrip" aria-label="Indicateurs stratégiques">
     <article class="cockpit-qcard cockpit-q-revenue">
         <span class="cq-kicker">Bénéfice net (périmètre financier)</span>
         <strong class="cq-value" id="cqBenefice">{% if qs.show_financial_kpis %}{{ qs.benefice_net_total|floatformat:0 }} FCFA{% else %}—{% endif %}</strong>
@@ -132,6 +62,11 @@
         <span class="cq-kicker">Tâches critiques en retard</span>
         <strong class="cq-value" id="cqTachesCrit">{{ qs.taches_critiques_retard }}</strong>
         <p class="cq-hint">Priorité haute / urgente</p>
+    </article>
+    <article class="cockpit-qcard cockpit-q-completion">
+        <span class="cq-kicker">Complétion projets</span>
+        <strong class="cq-value" id="cqCompletion">{{ completion_rate }}%</strong>
+        <p class="cq-hint">Fini ou clôturé / total filtré</p>
     </article>
 </section>
 {% endwith %}

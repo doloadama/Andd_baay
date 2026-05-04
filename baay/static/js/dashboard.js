@@ -981,8 +981,11 @@ function initCharts() {
     if (typeof Chart === 'undefined') return;
 
     const isDark = document.body.classList.contains('dark-mode');
-    const gridColor = isDark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+    const gridColor = isDark ? 'rgba(226, 232, 240, 0.04)' : 'rgba(15, 23, 42, 0.04)';
     const textColor = isDark ? '#cbd5e1' : '#64748b';
+    const brandGreen = '#1D9E75';
+    const brandGreenLight = '#5DCAA5';
+    const brandMuted = '#94a3b8';
 
     // Destroy existing charts
     if (rendementChart) rendementChart.destroy();
@@ -996,8 +999,8 @@ function initCharts() {
     if (rendementCtx && filteredProjects.length > 0) {
         const ctx = rendementCtx.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(57, 255, 20, 0.4)');
-        gradient.addColorStop(1, 'rgba(57, 255, 20, 0.01)');
+        gradient.addColorStop(0, 'rgba(29, 158, 117, 0.36)');
+        gradient.addColorStop(1, 'rgba(29, 158, 117, 0.04)');
 
         rendementChart = new Chart(ctx, {
             type: 'bar',
@@ -1007,7 +1010,7 @@ function initCharts() {
                     label: 'Rendement Estimé (kg)',
                     data: filteredProjects.map(p => p.rendement),
                     backgroundColor: gradient,
-                    borderColor: '#39FF14',
+                    borderColor: brandGreen,
                     borderWidth: 2,
                     borderRadius: 8,
                     borderSkipped: false,
@@ -1033,7 +1036,7 @@ function initCharts() {
                         beginAtZero: true,
                         grid: { color: gridColor, drawBorder: false },
                         ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
-                        title: { display: true, text: 'Rendement (kg)', color: '#39FF14', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
+                        title: { display: true, text: 'Rendement (kg)', color: brandGreen, font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
                     },
                     x: {
                         grid: { display: false, drawBorder: false },
@@ -1053,11 +1056,11 @@ function initCharts() {
                     },
                     tooltip: {
                         backgroundColor: 'rgba(22, 27, 19, 0.95)',
-                        titleColor: '#39FF14',
+                        titleColor: brandGreenLight,
                         titleFont: { family: "'Space Grotesk', sans-serif", weight: '700' },
-                        bodyColor: '#e0e0e0',
+                        bodyColor: isDark ? '#e2e8f0' : '#334155',
                         bodyFont: { family: "'Inter', sans-serif" },
-                        borderColor: 'rgba(57, 255, 20, 0.3)',
+                        borderColor: 'rgba(29, 158, 117, 0.28)',
                         borderWidth: 1,
                         padding: 16,
                         cornerRadius: 15,
@@ -1089,11 +1092,11 @@ function initCharts() {
                 datasets: [{
                     data: [statusCounts.en_cours, statusCounts.en_pause, statusCounts.fini],
                     backgroundColor: [
-                        'rgba(57, 255, 20, 0.6)',
-                        'rgba(226, 114, 91, 0.6)',
-                        'rgba(255, 215, 0, 0.6)'
+                        'rgba(29, 158, 117, 0.76)',
+                        'rgba(148, 163, 184, 0.58)',
+                        'rgba(93, 202, 165, 0.72)'
                     ],
-                    borderColor: ['#39FF14', '#E2725B', '#FFD700'],
+                    borderColor: [brandGreen, brandMuted, brandGreenLight],
                     borderWidth: 2,
                     hoverOffset: 15,
                     spacing: 8
@@ -1133,8 +1136,8 @@ function initCharts() {
                     tooltip: {
                         backgroundColor: 'rgba(22, 27, 19, 0.95)',
                         titleColor: '#e0e0e0',
-                        bodyColor: '#39FF14',
-                        borderColor: 'rgba(57, 255, 20, 0.3)',
+                        bodyColor: isDark ? '#e2e8f0' : '#334155',
+                        borderColor: 'rgba(29, 158, 117, 0.24)',
                         borderWidth: 1,
                         padding: 16,
                         cornerRadius: 15,
@@ -1156,12 +1159,12 @@ function initCharts() {
         const cultures = dashboardStatsData.projets_par_culture;
         const cCtx = cultureCtx.getContext('2d');
         const cultureColors = [
-            'rgba(57, 255, 20, 0.7)',
-            'rgba(226, 114, 91, 0.7)',
-            'rgba(255, 215, 0, 0.7)',
-            'rgba(59, 130, 246, 0.7)',
-            'rgba(168, 85, 247, 0.7)',
-            'rgba(236, 72, 153, 0.7)'
+            'rgba(29, 158, 117, 0.78)',
+            'rgba(93, 202, 165, 0.72)',
+            'rgba(239, 159, 39, 0.72)',
+            'rgba(8, 80, 65, 0.64)',
+            'rgba(159, 225, 203, 0.72)',
+            'rgba(217, 138, 28, 0.68)'
         ];
 
         cultureChart = new Chart(cCtx, {
@@ -1187,7 +1190,7 @@ function initCharts() {
                         beginAtZero: true,
                         grid: { color: gridColor, drawBorder: false },
                         ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
-                        title: { display: true, text: 'Superficie (ha)', color: '#39FF14', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
+                        title: { display: true, text: 'Superficie (ha)', color: brandGreen, font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
                     },
                     y: {
                         grid: { display: false, drawBorder: false },
@@ -1199,8 +1202,8 @@ function initCharts() {
                     tooltip: {
                         backgroundColor: 'rgba(22, 27, 19, 0.95)',
                         titleColor: '#e0e0e0',
-                        bodyColor: '#39FF14',
-                        borderColor: 'rgba(57, 255, 20, 0.3)',
+                        bodyColor: isDark ? '#e2e8f0' : '#334155',
+                        borderColor: 'rgba(29, 158, 117, 0.24)',
                         borderWidth: 1,
                         padding: 12,
                         cornerRadius: 12,
@@ -1234,7 +1237,7 @@ function updateCharts() {
             dashboardStatsData = data;
             updateQuickStripFromStats(data);
             const dark = document.body.classList.contains('dark-mode');
-            const gc = dark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const gc = dark ? 'rgba(226, 232, 240, 0.04)' : 'rgba(15, 23, 42, 0.04)';
             const tc = dark ? '#cbd5e1' : '#64748b';
             buildFinanceCockpitCharts(dark, gc, tc);
             if (cultureChart && data.projets_par_culture) {
@@ -2295,7 +2298,7 @@ function refreshData() {
             dashboardStatsData = data;
             updateQuickStripFromStats(data);
             const isDark = document.body.classList.contains('dark-mode');
-            const gridColor = isDark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const gridColor = isDark ? 'rgba(226, 232, 240, 0.04)' : 'rgba(15, 23, 42, 0.04)';
             const textCol = isDark ? '#cbd5e1' : '#64748b';
             buildFinanceCockpitCharts(isDark, gridColor, textCol);
             // Update KPI cards from server data (only if element exists)

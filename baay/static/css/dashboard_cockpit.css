@@ -1,13 +1,66 @@
 /* Cockpit stratégique — contrastes élevés (lecture plein soleil) */
 :root {
-    --cockpit-recette: #15803d;
-    --cockpit-recette-bg: rgba(21, 128, 61, 0.18);
+    --cockpit-recette: #1D9E75;
+    --cockpit-recette-bg: rgba(29, 158, 117, 0.16);
     --cockpit-depense: #b91c1c;
     --cockpit-depense-bg: rgba(185, 28, 28, 0.15);
-    --cockpit-orange: #c2410c;
+    --cockpit-orange: #EF9F27;
     --cockpit-terre: #78350f;
     --cockpit-ink: #0f172a;
     --cockpit-paper: #f8fafc;
+}
+
+.cockpit-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.7fr) auto;
+    gap: 14px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(8, 80, 65, 0.12);
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(244, 251, 248, 0.92)),
+        radial-gradient(circle at 0% 0%, rgba(29, 158, 117, 0.12), transparent 36%);
+    box-shadow: 0 12px 30px rgba(8, 80, 65, 0.08);
+}
+
+body.dark-mode .cockpit-topbar {
+    border-color: rgba(93, 202, 165, 0.12);
+    background:
+        linear-gradient(135deg, rgba(18, 28, 25, 0.94), rgba(10, 15, 14, 0.9)),
+        radial-gradient(circle at 0% 0%, rgba(93, 202, 165, 0.12), transparent 36%);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+}
+
+.cockpit-topbar__main h1 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: clamp(1.35rem, 2.4vw, 2rem);
+    line-height: 1.08;
+}
+
+.cockpit-topbar__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.86rem;
+    font-weight: 650;
+}
+
+.cockpit-topbar__meta i {
+    color: var(--cockpit-recette);
+    margin-right: 5px;
+}
+
+.cockpit-topbar__actions {
+    justify-content: flex-end;
+}
+
+.cockpit-topbar__cta {
+    min-height: 44px;
+    padding-inline: 20px;
 }
 
 .cockpit-quick-strip {
@@ -83,6 +136,11 @@ body.dark-mode .cockpit-qcard .cq-hint {
 .cockpit-q-alert {
     border-left: 5px solid var(--cockpit-depense);
     background: var(--cockpit-depense-bg);
+}
+
+.cockpit-q-completion {
+    border-left: 5px solid #5DCAA5;
+    background: rgba(93, 202, 165, 0.14);
 }
 
 .cockpit-weather {
@@ -191,6 +249,62 @@ body.dark-mode .cockpit-weather {
 
 .cockpit-grid {
     align-items: stretch;
+}
+
+.cockpit-grid > .tile-kpi {
+    min-height: 112px;
+    padding: 18px 18px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(8, 80, 65, 0.1) !important;
+    background: rgba(255, 255, 255, 0.86) !important;
+    box-shadow: 0 8px 20px rgba(8, 80, 65, 0.07);
+}
+
+body.dark-mode .cockpit-grid > .tile-kpi {
+    border-color: rgba(93, 202, 165, 0.1) !important;
+    background: rgba(18, 28, 25, 0.82) !important;
+}
+
+.cockpit-grid > .tile-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(8, 80, 65, 0.11);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    color: #ffffff;
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.green,
+.cockpit-grid > .tile-kpi .dash-stat-icon.teal {
+    background: linear-gradient(135deg, #1D9E75, #085041);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.orange {
+    background: linear-gradient(135deg, #EF9F27, #c2410c);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.blue,
+.cockpit-grid > .tile-kpi .dash-stat-icon.purple,
+.cockpit-grid > .tile-kpi .dash-stat-icon.accent {
+    background: linear-gradient(135deg, #5DCAA5, #1D9E75);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-value {
+    color: var(--text-main);
+    font-size: clamp(1.18rem, 2vw, 1.55rem);
+    font-weight: 850;
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-label {
+    color: var(--text-muted);
+    font-size: 0.77rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 .cockpit-data-card {
@@ -374,6 +488,14 @@ body.dark-mode .cockpit-project-gauge {
 }
 
 @media (max-width: 991.98px) {
+    .cockpit-topbar {
+        grid-template-columns: 1fr;
+    }
+
+    .cockpit-topbar__actions {
+        justify-content: flex-start;
+    }
+
     .dashboard-header-modern.db-header-cockpit .cockpit-weather {
         flex: 1 1 100%;
     }
