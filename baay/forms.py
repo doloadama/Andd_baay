@@ -990,20 +990,39 @@ class TacheForm(forms.ModelForm):
         model = Tache
         fields = ['titre', 'description', 'projet', 'assigne_a', 'priorite', 'date_echeance']
         widgets = {
-            'titre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex. Préparer la parcelle nord'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Détails, consignes, matériel...'}),
-            'projet': forms.Select(attrs={'class': 'form-control'}),
-            'assigne_a': forms.Select(attrs={'class': 'form-control'}),
-            'priorite': forms.Select(attrs={'class': 'form-control'}),
-            'date_echeance': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'titre': forms.TextInput(
+                attrs={
+                    'class': 'fh-field',
+                    'placeholder': 'Ex. Préparer la parcelle nord',
+                    'autocomplete': 'off',
+                    'maxlength': '200',
+                }
+            ),
+            'description': forms.Textarea(
+                attrs={
+                    'class': 'fh-field',
+                    'rows': 4,
+                    'placeholder': 'Consignes, lieu, matériel, précisions…',
+                }
+            ),
+            'projet': forms.Select(attrs={'class': 'fh-field'}),
+            'assigne_a': forms.Select(attrs={'class': 'fh-field'}),
+            'priorite': forms.Select(attrs={'class': 'fh-field'}),
+            'date_echeance': forms.DateInput(attrs={'class': 'fh-field', 'type': 'date'}),
         }
         labels = {
             'titre': 'Titre',
             'description': 'Description',
-            'projet': 'Projet concerné (optionnel)',
-            'assigne_a': 'Assigné à',
+            'projet': 'Projet lié',
+            'assigne_a': 'Assigner à',
             'priorite': 'Priorité',
-            'date_echeance': "Date d'échéance",
+            'date_echeance': "Échéance",
+        }
+        help_texts = {
+            'description': 'Optionnel mais recommandé pour les équipes terrain.',
+            'projet': 'Limite les projets à ceux de la ferme sélectionnée.',
+            'assigne_a': 'Seuls les rôles autorisés par votre niveau hiérarchique sont listés.',
+            'date_echeance': 'Facultatif — doit être aujourd’hui ou une date future.',
         }
 
     def __init__(self, *args, ferme=None, auteur=None, **kwargs):
@@ -1015,25 +1034,31 @@ class TacheForm(forms.ModelForm):
         if ferme is not None:
             self.fields['projet'].queryset = Projet.objects.filter(ferme=ferme).order_by('nom')
         self.fields['projet'].required = False
-        self.fields['projet'].empty_label = '— Aucun (tâche générale) —'
+        self.fields['projet'].empty_label = '— Tâche générale (sans projet) —'
 
         # Limiter les assignés possibles selon la hiérarchie
         if ferme is not None and auteur is not None:
             role_auteur = role_dans_ferme(auteur, ferme)
             roles_cibles = roles_assignables_par(role_auteur)
-            membres_qs = MembreFerme.objects.filter(
-                ferme=ferme, role__in=roles_cibles
-            ).select_related('utilisateur__user')
-            profile_ids = list(membres_qs.values_list('utilisateur_id', flat=True))
+            membres_list = list(
+                MembreFerme.objects.filter(ferme=ferme, role__in=roles_cibles).select_related(
+                    'utilisateur__user'
+                )
+            )
+            profile_ids = [m.utilisateur_id for m in membres_list]
+            role_labels = {m.utilisateur_id: m.get_role_display() for m in membres_list}
             self.fields['assigne_a'].queryset = (
                 Profile.objects.filter(id__in=profile_ids)
                 .select_related('user')
                 .order_by('user__username')
             )
-            self.fields['assigne_a'].label_from_instance = lambda p: (
-                f"{p.user.get_full_name() or p.user.username} "
-                f"({next((m.get_role_display() for m in membres_qs if m.utilisateur_id == p.id), '')})"
-            )
+
+            def _label_assigne(profile_obj):
+                nom = profile_obj.user.get_full_name() or profile_obj.user.username
+                role_txt = role_labels.get(profile_obj.id, '')
+                return f"{nom} ({role_txt})" if role_txt else nom
+
+            self.fields['assigne_a'].label_from_instance = _label_assigne
 
     def clean(self):
         cleaned = super().clean()

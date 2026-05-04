@@ -2525,10 +2525,18 @@ def creer_tache(request, ferme_id=None):
     else:
         form = TacheForm(ferme=ferme, auteur=profile)
 
+    fermes_pour_creation = [
+        f
+        for f in fermes_user
+        if roles_assignables_par(role_dans_ferme(profile, f))
+    ]
+
     return render(request, 'taches/creer.html', {
         'form': form,
         'ferme': ferme,
         'fermes': fermes_user,
+        'fermes_pour_creation': fermes_pour_creation,
+        'plusieurs_fermes_pour_creation': len(fermes_pour_creation) > 1,
         'role': role,
     })
 
