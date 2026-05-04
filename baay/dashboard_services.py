@@ -4,13 +4,16 @@ Agrégations pour le tableau de bord admin Unfold (périmètre ferme / rôle).
 Les requêtes utilisent des QuerySet filtrés selon `fermes_accessibles_qs` /
 `projets_accessibles_qs`, sauf pour le superutilisateur (vue plateforme).
 
-KPIs financiers par projet (cohérents avec `baay.services.calculer_kpis_financiers_projet`) :
-  Bénéfice net = Total recettes − (Total dépenses + Total investissements matériels).
+KPIs financiers par projet (voir `baay.services.calculer_kpis_financiers_projet`) :
+  Bénéfice net = Total recettes − Total coûts, avec Total coûts =
+  Total dépenses (lignes hors « matériel ») + Total investissements matériels.
   ROI (%) = (Bénéfice net / Total coûts) × 100 lorsque Total coûts > 0.
 
-Progression projet (`Projet.taux_avancement`) : par défaut, ratio temporel entre
-`date_lancement` et `date_fin` (clôture prévue/réelle) ; une valeur
-``taux_avancement_personnalise`` peut la remplacer (managers / admin).
+Progression projet (`Projet.taux_avancement`) : hors valeur
+``taux_avancement_personnalise``, moyenne de la progression temporelle
+(`date_lancement` / `date_fin`) et du % de tâches du projet terminées lorsqu'il
+existe au moins une tâche liée au projet (hors annulées), sinon temps seul.
+Statuts fini/clôturé : taux à 100 %.
 """
 
 from __future__ import annotations
@@ -248,7 +251,8 @@ def mobile_project_kpis_payload(
     """
     Dictionnaire pour le dashboard mobile : progression + KPIs financiers optionnels.
 
-    Clés progression : ``taux_avancement``, ``progress_time_pct``, ``taux_avancement_source``
+    Clés progression : ``taux_avancement``, ``progress_tasks_pct``, ``progress_time_pct``,
+    ``has_project_tasks``, ``tasks_total``, ``tasks_done``, ``taux_avancement_source``
     (``calcule`` | ``personnalise``), et si personnalisé ``taux_avancement_calcule``.
     Clés financières (null si ``include_financial`` est False) : recettes, dépenses,
     investissements, coûts totaux, bénéfice net, ROI %.
@@ -295,6 +299,9 @@ def financial_kpis_by_project(projets_qs, limit: int = 20) -> list[dict[str, Any
                 "taux_avancement": prog["taux_avancement"],
                 "progress_tasks_pct": prog["progress_tasks_pct"],
                 "progress_time_pct": prog["progress_time_pct"],
+                "has_project_tasks": prog["has_project_tasks"],
+                "tasks_total": prog["tasks_total"],
+                "tasks_done": prog["tasks_done"],
                 "total_recettes": _fdec(kpis["total_recettes"]),
                 "total_depenses": _fdec(kpis["total_depenses"]),
                 "total_investissements": _fdec(kpis["total_investissements"]),

@@ -280,6 +280,13 @@ else:
         }
     }
 
+# Les curseurs nommés côté serveur (QuerySet.iterator chunké, etc.) sont incompatibles avec
+# PgBouncer en pooling « transaction » (ex. Supabase :6543) et peuvent lever
+# InvalidCursorName (« cursor "_django_curs_…" does not exist »). On les désactive pour PostgreSQL.
+for _alias, _cfg in DATABASES.items():
+    if _cfg.get("ENGINE") == "django.db.backends.postgresql":
+        _cfg.setdefault("DISABLE_SERVER_SIDE_CURSORS", True)
+
 # Cache Django — backend locmem par défaut (Axes, etc.)
 CACHES = {
     'default': {

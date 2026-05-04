@@ -1583,6 +1583,10 @@ def dashboard_stats_api(request):
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
         ),
+        Prefetch(
+            'taches',
+            queryset=Tache.objects.exclude(statut='annulee'),
+        ),
     )
     if selected_ferme:
         projets = projets.filter(ferme=selected_ferme)
@@ -1773,6 +1777,10 @@ def dashboard_projets_api(request):
         Prefetch(
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
+        ),
+        Prefetch(
+            'taches',
+            queryset=Tache.objects.exclude(statut='annulee'),
         ),
         'previsions',
     )

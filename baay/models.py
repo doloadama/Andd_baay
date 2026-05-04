@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.timezone import now
 from decimal import Decimal
@@ -407,52 +408,99 @@ class Projet(models.Model):
         elapsed = (today - start).days
         return max(0.0, min(100.0, (elapsed / 365.0) * 100.0))
 
-    def _taux_avancement_calcule(self) -> int:
-        """Taux issu uniquement du calendrier (avant toute valeur personnalisée)."""
+    def _temps_pct_ajuste_pause(self) -> float:
+        """Progression temporelle 0–100 (plafonnée pour les projets en pause)."""
         t = self._taux_avancement_temporel()
         if self.statut == "en_pause":
             t = min(t, 75.0)
-        return int(max(0, min(100, round(t))))
+        return t
+
+    def _taches_avancement_stats(self) -> tuple[int, int, float | None]:
+        """
+        Tâches rattachées au projet (hors annulées) : (total, terminées, % terminées ou None).
+        """
+        stats = self.taches.exclude(statut="annulee").aggregate(
+            total=Count("id"),
+            done=Count("id", filter=Q(statut="terminee")),
+        )
+        total = stats["total"] or 0
+        done = stats["done"] or 0
+        if total <= 0:
+            return 0, 0, None
+        return total, done, max(0.0, min(100.0, (done / total) * 100.0))
+
+    def _progression_auto_combinee(
+        self, taches_stats: tuple[int, int, float | None] | None = None
+    ) -> float:
+        """
+        Taux 0–100 sans valeur manuelle : moyenne du temps et des tâches si des tâches existent,
+        sinon uniquement le temps.
+        """
+        time_v = self._temps_pct_ajuste_pause()
+        if self.statut in ("fini", self.STATUT_CLOTURE):
+            return 100.0
+        if taches_stats is None:
+            taches_stats = self._taches_avancement_stats()
+        _total, _done, tasks_pct = taches_stats
+        if tasks_pct is not None:
+            return max(0.0, min(100.0, (time_v + tasks_pct) / 2.0))
+        return max(0.0, min(100.0, time_v))
+
+    def _taux_avancement_calcule(self) -> int:
+        """Taux calculé (temps + tâches du projet) avant toute valeur personnalisée."""
+        return int(max(0, min(100, round(self._progression_auto_combinee()))))
 
     def _avancement_breakdown(self) -> dict:
-        time_pct = self._taux_avancement_temporel()
-        if self.statut == "en_pause":
-            time_pct = min(time_pct, 75.0)
+        time_pct = self._temps_pct_ajuste_pause()
+        t_stats = self._taches_avancement_stats()
+        t_total, t_done, tasks_pct = t_stats
+        has_tasks = t_total > 0
+        tasks_pct_rounded = None if tasks_pct is None else round(tasks_pct, 1)
+        auto_f = self._progression_auto_combinee(t_stats)
 
         manual = self.taux_avancement_personnalise
         if manual is not None:
             combined = int(max(0, min(100, manual)))
             return {
                 "combined": combined,
-                "tasks_pct": None,
+                "tasks_pct": tasks_pct_rounded,
                 "time_pct": round(time_pct, 1),
-                "has_tasks": False,
+                "has_tasks": has_tasks,
+                "tasks_total": t_total,
+                "tasks_done": t_done,
                 "is_manual": True,
+                "_auto_progress_float": auto_f,
             }
 
-        combined = int(max(0, min(100, round(time_pct))))
+        combined = int(max(0, min(100, round(auto_f))))
         return {
             "combined": combined,
-            "tasks_pct": None,
+            "tasks_pct": tasks_pct_rounded,
             "time_pct": round(time_pct, 1),
-            "has_tasks": False,
+            "has_tasks": has_tasks,
+            "tasks_total": t_total,
+            "tasks_done": t_done,
             "is_manual": False,
+            "_auto_progress_float": auto_f,
         }
 
     @property
     def taux_avancement(self) -> int:
-        """Progression 0-100 pour les jauges (dashboard mobile, API)."""
+        """Progression 0–100 : tâches (liées au projet) + temps, ou valeur personnalisée."""
         return self._avancement_breakdown()["combined"]
 
     def avancement_pour_api(self) -> dict:
         """Sous-scores de progression pour les composants UI (anneaux, barres)."""
         d = self._avancement_breakdown()
-        calc = self._taux_avancement_calcule()
+        calc = int(max(0, min(100, round(d.pop("_auto_progress_float")))))
         out = {
             "taux_avancement": d["combined"],
             "progress_tasks_pct": d["tasks_pct"],
             "progress_time_pct": d["time_pct"],
             "taux_avancement_source": "personnalise" if d.get("is_manual") else "calcule",
+            "has_project_tasks": d["has_tasks"],
+            "tasks_total": d["tasks_total"],
+            "tasks_done": d["tasks_done"],
         }
         if d.get("is_manual"):
             out["taux_avancement_calcule"] = calc
