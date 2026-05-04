@@ -250,12 +250,12 @@ def onboarding_complete_view(request):
 
 def page_not_found_view(request, exception=None):
     """Page 404 personnalisée — utilisée automatiquement lorsque DEBUG=False."""
-    return render(request, 'errors/404.html', status=404)
+    return render(request, '404.html', status=404)
 
 
 def page_not_found_preview(request):
     """Aperçu de la 404 en local (DEBUG=True uniquement ; réponse HTTP 200)."""
-    return render(request, 'errors/404.html', status=200)
+    return render(request, '404.html', status=200)
 
 
 def _send_confirmation_email(user, request):

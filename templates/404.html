@@ -1,10 +1,22 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% url 'home' as err404_home_url %}
+
 {% block title %}Page introuvable | Andd Baay{% endblock %}
+
+{% block meta_tags %}
+<meta name="robots" content="noindex, nofollow" />
+{% endblock %}
 
 {% block meta_description %}
 <meta name="description" content="La page demandée n'existe pas ou a été déplacée — Andd Baay." />
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:title" content="Page introuvable | Andd Baay" />
+<meta property="og:description" content="La page demandée n'existe pas ou a été déplacée." />
+<meta property="og:type" content="website" />
 {% endblock %}
 
 {% block content %}
@@ -37,6 +49,12 @@
         pointer-events: none;
     }
     .err404-card > * { position: relative; z-index: 1; }
+    .err404-illus {
+        margin: 0 auto 16px;
+        max-width: 200px;
+        color: var(--brand-primary);
+        opacity: 0.85;
+    }
     .err404-code {
         font-family: var(--font-display);
         font-weight: 800;
@@ -68,34 +86,46 @@
         flex-wrap: wrap;
         gap: 12px;
         justify-content: center;
+        align-items: center;
     }
 </style>
 
 <div class="err404-wrap">
-    <div class="err404-card animate__animated animate__fadeInUp">
-        <div class="tw-flex tw-justify-center tw-mb-4">
+    <article class="err404-card animate__animated animate__fadeInUp" aria-labelledby="err404-heading">
+        <div class="tw-flex tw-justify-center tw-mb-3">
             {% include 'includes/brand_wordmark.html' with variant='nav' %}
         </div>
+        <div class="err404-illus" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 88" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 76h96M28 76V52l16-16 14 14 22-22 16 16v16H28z" opacity="0.35"/>
+                <circle cx="58" cy="28" r="10"/>
+                <path d="M62 38l14 22"/>
+                <path d="M84 48l8 8M92 40l8 8" opacity="0.6"/>
+            </svg>
+        </div>
         <p class="err404-code" aria-hidden="true">404</p>
-        <h1>Page introuvable</h1>
+        <h1 id="err404-heading">Page introuvable</h1>
         <p>
-            Le lien est peut-être incorrect, ou la page a été déplacée.
-            Retournez à l’accueil ou ouvrez votre tableau de bord si vous êtes connecté.
+            Le lien est peut-être incorrect ou la page a été déplacée.
+            Retournez à l’accueil ou utilisez le tableau de bord si vous êtes connecté.
         </p>
         <div class="err404-actions">
             <a href="{% url 'home' %}" class="btn-baay btn-baay-primary tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5">
-                <i class="fas fa-home me-2"></i> Accueil
+                <i class="fas fa-home me-2" aria-hidden="true"></i> Accueil
             </a>
             {% if user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="btn-baay btn-baay-outline tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5" data-pjax>
-                <i class="fas fa-chart-pie me-2"></i> Dashboard
+                <i class="fas fa-chart-pie me-2" aria-hidden="true"></i> Dashboard
             </a>
             {% else %}
             <a href="{% url 'login' %}" class="btn-baay btn-baay-outline tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5">
-                <i class="fas fa-sign-in-alt me-2"></i> Connexion
+                <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i> Connexion
             </a>
             {% endif %}
+            <button type="button" class="btn-baay btn-baay-outline tw-min-h-[44px] tw-inline-flex tw-items-center tw-px-5 tw-border-dashed" onclick="if (history.length > 1) { history.back(); } else { window.location.href='{{ err404_home_url|escapejs }}'; }">
+                <i class="fas fa-arrow-left me-2" aria-hidden="true"></i> Page précédente
+            </button>
         </div>
-    </div>
+    </article>
 </div>
 {% endblock %}
