@@ -159,7 +159,7 @@ body.dark-mode .cockpit-qcard .cq-hint {
     line-height: 1.25;
 }
 
-body.dark-mode .cockpit-weather {
+body.dark-mode .cockpit-weather:not([class*="cw-skin-"]) {
     background: rgba(30, 41, 59, 0.95);
     border-color: rgba(248, 250, 252, 0.12);
     color: #f8fafc;
@@ -175,6 +175,159 @@ body.dark-mode .cockpit-weather {
 .cockpit-weather .cw-inner i {
     color: var(--cockpit-orange);
     flex-shrink: 0;
+}
+
+.cockpit-weather .cw-weather-icon {
+    flex-shrink: 0;
+}
+
+/* Teintes cockpit selon météo (alignées weather-theme.js) */
+.cockpit-weather.cw-skin-clear-day {
+    background: linear-gradient(135deg, rgba(254, 243, 199, 0.98), rgba(186, 230, 253, 0.95));
+    border-color: rgba(251, 191, 36, 0.45);
+    color: #0f172a;
+}
+.cockpit-weather.cw-skin-clear-day .cw-weather-icon {
+    color: #f59e0b;
+}
+
+.cockpit-weather.cw-skin-clear-night {
+    background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+    border-color: rgba(165, 180, 252, 0.35);
+    color: #f1f5f9;
+}
+.cockpit-weather.cw-skin-clear-night .cw-weather-icon {
+    color: #fde68a;
+}
+
+.cockpit-weather.cw-skin-few-clouds-day {
+    background: linear-gradient(135deg, #fef9c3 0%, #a5f3fc 100%);
+    border-color: rgba(34, 211, 238, 0.35);
+    color: #0f172a;
+}
+.cockpit-weather.cw-skin-few-clouds-day .cw-weather-icon {
+    color: #0ea5e9;
+}
+
+.cockpit-weather.cw-skin-few-clouds-night {
+    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+    border-color: rgba(129, 140, 248, 0.35);
+    color: #e2e8f0;
+}
+.cockpit-weather.cw-skin-few-clouds-night .cw-weather-icon {
+    color: #93c5fd;
+}
+
+.cockpit-weather.cw-skin-cloudy-day {
+    background: linear-gradient(160deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-color: rgba(100, 116, 139, 0.35);
+    color: #1e293b;
+}
+.cockpit-weather.cw-skin-cloudy-day .cw-weather-icon {
+    color: #64748b;
+}
+
+.cockpit-weather.cw-skin-cloudy-night {
+    background: linear-gradient(165deg, #1e293b 0%, #334155 100%);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #e2e8f0;
+}
+.cockpit-weather.cw-skin-cloudy-night .cw-weather-icon {
+    color: #94a3b8;
+}
+
+.cockpit-weather.cw-skin-overcast-day {
+    background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+    border-color: rgba(71, 85, 105, 0.35);
+    color: #0f172a;
+}
+.cockpit-weather.cw-skin-overcast-day .cw-weather-icon {
+    color: #475569;
+}
+
+.cockpit-weather.cw-skin-overcast-night {
+    background: linear-gradient(180deg, #0f172a 0%, #334155 100%);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: #f1f5f9;
+}
+.cockpit-weather.cw-skin-overcast-night .cw-weather-icon {
+    color: #cbd5e1;
+}
+
+.cockpit-weather.cw-skin-rain {
+    background: linear-gradient(145deg, #bae6fd 0%, #38bdf8 100%);
+    border-color: rgba(3, 105, 161, 0.35);
+    color: #0c4a6e;
+}
+.cockpit-weather.cw-skin-rain .cw-weather-icon {
+    color: #0369a1;
+}
+
+.cockpit-weather.cw-skin-rain-night {
+    background: linear-gradient(150deg, #0c4a6e 0%, #0f172a 100%);
+    border-color: rgba(56, 189, 248, 0.25);
+    color: #e0f2fe;
+}
+.cockpit-weather.cw-skin-rain-night .cw-weather-icon {
+    color: #7dd3fc;
+}
+
+.cockpit-weather.cw-skin-storm {
+    background: linear-gradient(130deg, #475569 0%, #312e81 100%);
+    border-color: rgba(250, 204, 21, 0.35);
+    color: #fef9c3;
+}
+.cockpit-weather.cw-skin-storm .cw-weather-icon {
+    color: #facc15;
+}
+
+.cockpit-weather.cw-skin-storm-night {
+    background: linear-gradient(145deg, #1a1025 0%, #1e1b4b 100%);
+    border-color: rgba(250, 204, 21, 0.3);
+    color: #fef08a;
+}
+.cockpit-weather.cw-skin-storm-night .cw-weather-icon {
+    color: #fde047;
+}
+
+.cockpit-weather.cw-skin-snow {
+    background: linear-gradient(160deg, #f0f9ff 0%, #bae6fd 100%);
+    border-color: rgba(14, 165, 233, 0.3);
+    color: #0c4a6e;
+}
+.cockpit-weather.cw-skin-snow .cw-weather-icon {
+    color: #0ea5e9;
+}
+
+.cockpit-weather.cw-skin-snow-night {
+    background: linear-gradient(165deg, #1e3a5f 0%, #0f172a 100%);
+    border-color: rgba(186, 230, 253, 0.25);
+    color: #e0f2fe;
+}
+.cockpit-weather.cw-skin-snow-night .cw-weather-icon {
+    color: #bae6fd;
+}
+
+.cockpit-weather.cw-skin-fog {
+    background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 100%);
+    border-color: rgba(100, 116, 139, 0.3);
+    color: #334155;
+}
+.cockpit-weather.cw-skin-fog .cw-weather-icon {
+    color: #94a3b8;
+}
+
+.cockpit-weather.cw-skin-fog-night {
+    background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #e2e8f0;
+}
+.cockpit-weather.cw-skin-fog-night .cw-weather-icon {
+    color: #cbd5e1;
+}
+
+body.dark-mode .cockpit-weather[class*="cw-skin-"] {
+    border-color: rgba(248, 250, 252, 0.12);
 }
 
 .cockpit-weather .cw-temp {

@@ -493,38 +493,58 @@ function updateQuickStripFromStats(data) {
 
 function loadDashboardWeather() {
     const w = document.getElementById('weatherWidget');
-    const out = document.getElementById('weatherSummary');
-    if (!w || !out) return;
+    const inner = w && w.querySelector('.cw-inner');
+    if (!w || !inner) return;
     let fermeId = w.dataset.weatherFerme || '';
     if (!fermeId) {
         fermeId = document.getElementById('filterFerme')?.value || '';
     }
     if (!fermeId) {
-        out.textContent = 'Coordonnées ferme ou filtre à définir';
+        w.className = 'cockpit-weather';
+        inner.innerHTML =
+            '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">Coordonnées ferme ou filtre à définir</span>';
         return;
     }
-    out.textContent = 'Chargement météo…';
+    w.className = 'cockpit-weather';
+    inner.innerHTML =
+        '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">Chargement météo…</span>';
     fetch(`/api/dashboard/weather/?ferme=${encodeURIComponent(fermeId)}`)
-        .then(res => res.json())
-        .then(payload => {
+        .then((res) => res.json())
+        .then((payload) => {
+            const resolve = window.resolveOpenWeatherTheme || function () {
+                return { cockpitSkin: '', cockpitIcon: 'fa-cloud-sun' };
+            };
             if (!payload.ok || !payload.data) {
-                if (payload.error === 'coords_absentes')
-                    out.textContent = 'GPS ferme à renseigner';
-                else if (payload.error === 'api_key_absente')
-                    out.textContent = 'Météo : clé API absente';
-                else out.textContent = 'Météo indisponible';
+                w.className = 'cockpit-weather';
+                const msg =
+                    payload.error === 'coords_absentes'
+                        ? 'GPS ferme à renseigner'
+                        : payload.error === 'api_key_absente'
+                          ? 'Météo : clé API absente'
+                          : 'Météo indisponible';
+                inner.innerHTML =
+                    '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">' +
+                    msg +
+                    '</span>';
                 return;
             }
             const d = payload.data;
+            const theme = resolve(d.icone);
+            const skin = theme.cockpitSkin ? ` ${theme.cockpitSkin}` : '';
+            w.className = `cockpit-weather${skin}`;
             const tmp =
                 d.temperature != null ? `${Math.round(Number(d.temperature))}°C` : '';
             const desc =
-                ((d.description || '') + '').charAt(0).toUpperCase() +
-                (d.description || '').slice(1);
-            out.innerHTML = `<span class="cw-temp">${tmp}</span> <span>${desc}</span>`;
+                ((d.description || '') + '').charAt(0).toUpperCase() + (d.description || '').slice(1);
+            const icon = theme.cockpitIcon || 'fa-cloud-sun';
+            inner.innerHTML =
+                `<i class="fas ${icon} fa-lg cw-weather-icon" aria-hidden="true"></i>` +
+                `<span id="weatherSummary"><span class="cw-temp">${tmp}</span> <span class="cw-desc">${desc}</span></span>`;
         })
         .catch(() => {
-            out.textContent = 'Erreur réseau météo';
+            w.className = 'cockpit-weather';
+            inner.innerHTML =
+                '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">Erreur réseau météo</span>';
         });
 }
 

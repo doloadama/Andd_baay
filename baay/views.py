@@ -1000,6 +1000,26 @@ def detail_projet(request, projet_id):
         else Investissement.objects.none()
     )
 
+    investissement_total_fcfa = None
+    if can_view_investissements and investissements.exists():
+        inv_expr = investissement_montant_expr()
+        investissement_total_fcfa = investissements.aggregate(
+            t=Coalesce(Sum(inv_expr), Value(Decimal("0")))
+        )["t"]
+
+    if (
+        projet.ferme.latitude is not None
+        and projet.ferme.longitude is not None
+    ):
+        map_latitude = float(projet.ferme.latitude)
+        map_longitude = float(projet.ferme.longitude)
+    elif projet.localite_id and projet.localite.latitude is not None and projet.localite.longitude is not None:
+        map_latitude = float(projet.localite.latitude)
+        map_longitude = float(projet.localite.longitude)
+    else:
+        map_latitude = 14.497401
+        map_longitude = -14.452362
+
     # Prévision(s) liée(s) aux ProjetProduit — affichage agrégé
     prediction = get_prevision_affichee_projet(projet)
 
@@ -1033,6 +1053,9 @@ def detail_projet(request, projet_id):
         'can_view_investissements': can_view_investissements,
         'can_modify_investissements': peut_modifier_investissement(request.user.profile, projet),
         'investissements': investissements,
+        'investissement_total_fcfa': investissement_total_fcfa,
+        'map_latitude': map_latitude,
+        'map_longitude': map_longitude,
         'prediction': prediction,
         'projet_produits': projet_produits,
         'plant_photos': plant_photos,
