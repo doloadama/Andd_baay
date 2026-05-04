@@ -6,12 +6,21 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+<link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 
 <!--maj Header -->
-<div class="dashboard-header-modern animate__animated animate__fadeInDown">
+<div class="dashboard-header-modern db-header-cockpit animate__animated animate__fadeInDown">
     <div class="db-title">
         <p class="dash-subtitle">Espace Analytique</p>
         <h1>Bonjour, {{ user.first_name|default:user.username }}</h1>
+    </div>
+    <div class="cockpit-weather" id="weatherWidget" role="status" aria-live="polite"
+         data-weather-ferme="{{ dashboard_weather_ferme_id|default:'' }}">
+        <div class="cw-inner">
+            <i class="fas fa-cloud-sun fa-lg" aria-hidden="true"></i>
+            <span id="weatherSummary">Météo locale…</span>
+        </div>
     </div>
     <div class="db-actions">
         <div class="refresh-indicator" id="refreshIndicator">
@@ -107,8 +116,28 @@
     </div>
 </section>
 
+{% with qs=cockpit.quick_stats %}
+<section class="cockpit-quick-strip" id="cockpitQuickStrip" aria-label="Indicateurs stratégiques">
+    <article class="cockpit-qcard cockpit-q-revenue">
+        <span class="cq-kicker">Bénéfice net (périmètre financier)</span>
+        <strong class="cq-value" id="cqBenefice">{% if qs.show_financial_kpis %}{{ qs.benefice_net_total|floatformat:0 }} FCFA{% else %}—{% endif %}</strong>
+        <p class="cq-hint">{% if qs.show_financial_kpis %}Recettes − coûts{% else %}Visible selon vos droits sur les fermes{% endif %}</p>
+    </article>
+    <article class="cockpit-qcard cockpit-q-roi">
+        <span class="cq-kicker">ROI synthétique</span>
+        <strong class="cq-value" id="cqRoi">{% if qs.show_financial_kpis %}{% if qs.roi_moyen_pct is not None %}{{ qs.roi_moyen_pct|floatformat:1 }}%{% else %}—{% endif %}{% else %}—{% endif %}</strong>
+        <p class="cq-hint">Bénéfice / coûts totaux</p>
+    </article>
+    <article class="cockpit-qcard cockpit-q-alert">
+        <span class="cq-kicker">Tâches critiques en retard</span>
+        <strong class="cq-value" id="cqTachesCrit">{{ qs.taches_critiques_retard }}</strong>
+        <p class="cq-hint">Priorité haute / urgente</p>
+    </article>
+</section>
+{% endwith %}
+
 <!-- Stats Grid -->
-<div class="dashboard-grid" id="dashboardGrid">
+<div class="dashboard-grid cockpit-grid" id="dashboardGrid">
     <!-- KPI Cards -->
     {% if selected_ferme %}
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-projects">
@@ -352,29 +381,38 @@
         </div>
     </div>
 
-    <!-- Monthly Trends -->
-    <div class="dash-section span-2 row-span-2 tile-chart" data-tile-id="chart-trends">
+    <!-- Cashflow vs recettes -->
+    <div class="dash-section span-2 row-span-2 tile-chart cockpit-data-card cockpit-data-card--finance" data-tile-id="chart-finance-flow">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-section-header" data-toggle="collapse">
-            <h3 class="dash-section-title"><i class="fas fa-chart-line"></i> Tendances mensuelles</h3>
+            <h3 class="dash-section-title"><i class="fas fa-scale-balanced"></i> Recettes vs dépenses (12 mois)</h3>
             <i class="fas fa-chevron-down dash-section-toggle"></i>
         </div>
         <div class="dash-section-body">
-            {% if projets %}
-            <div class="chart-container">
-                <canvas id="monthlyTrendsChart"></canvas>
+            <div class="chart-container cockpit-chart-container">
+                <div class="cockpit-chart-loading is-hidden" aria-hidden="true"></div>
+                <canvas id="financeFlowChart" aria-label="Graphique recettes et dépenses"></canvas>
             </div>
-            {% else %}
-            <div class="empty-state empty-state-padded">
-                <div class="empty-state-icon"><i class="fas fa-chart-line"></i></div>
-                <p class="empty-state-text">Pas de données disponibles.</p>
+        </div>
+    </div>
+
+    <!-- Investissements par catégorie -->
+    <div class="dash-section span-2 row-span-2 tile-chart-pie cockpit-data-card cockpit-data-card--terre" data-tile-id="chart-invest-cat">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header" data-toggle="collapse">
+            <h3 class="dash-section-title"><i class="fas fa-tractor"></i> Investissements par catégorie</h3>
+            <i class="fas fa-chevron-down dash-section-toggle"></i>
+        </div>
+        <div class="dash-section-body">
+            <div class="chart-container cockpit-chart-container">
+                <div class="cockpit-chart-loading is-hidden" aria-hidden="true"></div>
+                <canvas id="investCategoryChart" aria-label="Répartition des investissements"></canvas>
             </div>
-            {% endif %}
         </div>
     </div>
 
     <!-- Culture Distribution -->
-    <div class="dash-section span-2 row-span-2 tile-chart-pie" data-tile-id="chart-culture">
+    <div class="dash-section span-4 row-span-2 tile-chart-pie" data-tile-id="chart-culture">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-section-header" data-toggle="collapse">
             <h3 class="dash-section-title"><i class="fas fa-seedling"></i> Superficie par culture</h3>
@@ -411,7 +449,7 @@
     {% endif %}
 
     <!-- Projects List -->
-    <div class="dash-section span-4 tile-projects" data-tile-id="projects-list">
+    <div class="dash-section span-4 tile-projects cockpit-projects-panel" data-tile-id="projects-list">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-section-header" data-toggle="collapse">
             <h3 class="dash-section-title"><i class="fas fa-layer-group"></i> Projets récents</h3>
@@ -437,23 +475,35 @@
             </div>
 
             {% if projets %}
-            <div class="project-list" id="projectsList">
+            <div class="project-list cockpit-project-grid" id="projectsList" aria-label="Cartes de pilotage des projets">
                 {% for projet in projets %}
                 {% with projet_pps=projet.projet_produits.all %}
-                <div class="project-item" data-id="{{ projet.id }}" data-status="{{ projet.statut }}"
+                <article class="project-item cockpit-project-card status-ring-{{ projet.statut }}" data-id="{{ projet.id }}" data-status="{{ projet.statut }}"
                     data-culture="{% if projet.culture %}{{ projet.culture.id }}{% endif %}" data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
                     data-culture-name="{% for pp in projet_pps %}{{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|default:'N/A' }}{% endfor %}"
                     data-nom="{{ projet.nom }}" data-rendement="{{ projet.rendement_estime|default:0 }}"
                     data-superficie="{{ projet.superficie|default:0 }}"
-                    data-progress="{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}">
+                    data-progress="{{ projet.taux_avancement }}">
 
-                    <!-- Checkbox for bulk selection -->
                     <div class="project-checkbox" onclick="toggleProjectSelection(event, '{{ projet.id }}')"></div>
 
                     <div class="project-info" onclick="window.location.href='{% url 'detail_projet' projet.id %}'">
-                        <div class="project-name editable" data-id="{{ projet.id }}"
+                        <div class="cockpit-project-topline">
+                            <span class="status-badge status-{{ projet.statut }}">
+                                {% if projet.statut == 'en_cours' %}En cours
+                                {% elif projet.statut == 'en_pause' %}En pause
+                                {% elif projet.statut == 'fini' %}Fini
+                                {% elif projet.statut == 'cloture' %}Clôturé
+                                {% else %}—{% endif %}
+                            </span>
+                            <span class="cockpit-project-score">{{ projet.taux_avancement }}%</span>
+                        </div>
+                        <h4 class="project-name editable cockpit-project-title" data-id="{{ projet.id }}"
                             ondblclick="editProjectName(event, '{{ projet.id }}', '{{ projet.nom|escapejs }}')">
                             {{ projet.nom }}
+                        </h4>
+                        <div class="cockpit-project-gauge" aria-label="Avancement {{ projet.taux_avancement }}%">
+                            <div class="cockpit-project-gauge__bar" style="width: {{ projet.taux_avancement }}%;"></div>
                         </div>
                         <div class="project-meta">
                             {% if not selected_ferme and projet.ferme %}<span class="farm-badge"><i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}</span>{% endif %}
@@ -468,24 +518,20 @@
                             {% if projet_pps|length > 1 %}<span class="farm-badge" style="background: rgba(163,230,53,0.15);"><i class="fas fa-layer-group"></i> {{ projet_pps|length }} produits</span>{% endif %}
                             <span><i class="fas fa-map"></i> {{ projet.superficie }} ha</span>
                         </div>
-                        <!-- Progress bar -->
-                        <div class="project-progress">
-                            <div class="project-progress-bar"
-                                style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%">
-                            </div>
-                        </div>
                         <div class="project-progress-meta">
-                            <span>Progression</span>
-                            <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                            <span>Cycle & tâches</span>
+                            <strong>{{ projet.taux_avancement }}%</strong>
                         </div>
                     </div>
 
-                    <span class="status-badge status-{{ projet.statut }}"
+                    <button type="button" class="status-badge status-{{ projet.statut }} cockpit-status-action"
                         onclick="event.stopPropagation(); showStatusModal('{{ projet.id }}', '{{ projet.statut }}')">
                         {% if projet.statut == 'en_cours' %}En cours
                         {% elif projet.statut == 'en_pause' %}En pause
-                        {% else %}Terminé{% endif %}
-                    </span>
+                        {% elif projet.statut == 'fini' %}Fini
+                        {% elif projet.statut == 'cloture' %}Clôturé
+                        {% else %}—{% endif %}
+                    </button>
 
                     <div class="mini-p-stats">
                         <span><i class="fas fa-crop-alt"></i> {{ projet.superficie }} ha</span>
@@ -509,15 +555,16 @@
                             <i class="fas fa-robot"></i>
                         </a>
                     </div>
-                </div>
+                </article>
                 {% endwith %}
                 {% endfor %}
             </div>
             {% else %}
             <div class="empty-state">
-                <i class="fas fa-folder-open"></i>
-                <h4>Aucun projet</h4>
-                <p>{% if selected_ferme %}Cette ferme n'a pas encore de projet.{% else %}Commencez par créer votre premier projet agricole.{% endif %}</p>
+                <div class="cockpit-empty-illu" aria-hidden="true"></div>
+                <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                <h4>Aucun projet actif</h4>
+                <p>{% if selected_ferme %}Cette ferme n'a pas encore de projet. Créez une campagne pour voir le cockpit complet.{% else %}Commencez par créer votre premier projet agricole — les graphiques et indicateurs s'activeront automatiquement.{% endif %}</p>
                 <a href="{% if selected_ferme %}{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}{% else %}{% url 'creer_projet' %}{% endif %}" class="btn-baay btn-baay-primary mt-3">
                     <i class="fas fa-plus"></i> Créer un projet
                 </a>
@@ -666,14 +713,42 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<button type="button" class="cockpit-voice-fab" id="voiceFab" title="Assistant vocal (Wolof, Pulaar…)" aria-label="Ouvrir l'assistant vocal">
+    <i class="fas fa-microphone" aria-hidden="true"></i>
+</button>
+
+<div class="modal-overlay" id="voiceAssistantModal" aria-hidden="true">
+    <div class="modal-content" style="max-width:420px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-microphone-lines"></i> Assistant vocal</h3>
+            <button type="button" class="modal-close" id="voiceModalClose" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="text-muted" style="font-size:0.9rem;">Posez une question en français, Wolof ou Pulaar (texte ou micro si votre navigateur le permet).</p>
+            <label class="filter-label" for="voiceLocale">Langue</label>
+            <select id="voiceLocale" class="filter-select" style="width:100%;margin-bottom:12px;">
+                <option value="fr">Français</option>
+                <option value="wo">Wolof</option>
+                <option value="ff">Pulaar / Peul</option>
+            </select>
+            <textarea id="voiceTranscript" rows="3" class="filter-input" style="width:100%;min-height:88px;" placeholder="Ex: Quel est le rendement du champ Nord ?"></textarea>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                <button type="button" class="btn-baay btn-baay-primary" id="voiceSendBtn"><i class="fas fa-paper-plane"></i> Envoyer</button>
+                <button type="button" class="btn-baay btn-baay-outline" id="voiceMicBtn"><i class="fas fa-microphone"></i> Micro</button>
+            </div>
+            <div id="voiceAssistantReply" class="mt-3" style="font-weight:600;min-height:2rem;color:var(--text-main);"></div>
+        </div>
+    </div>
+</div>
+
 <!-- SortableJS for drag & drop -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js" defer></script>
 <!-- Chart.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" defer></script>
 <!-- Chart.js Zoom Plugin -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js" defer></script>
 <!-- Dashboard Logic -->
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}" defer></script>
 
 <!-- Farm Utilization Chart (inline data from context) -->
 <script>

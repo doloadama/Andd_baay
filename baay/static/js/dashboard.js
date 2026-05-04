@@ -3,7 +3,8 @@ const allProjects = [];
 let filteredProjects = [];
 let rendementChart = null;
 let statusChart = null;
-let monthlyTrendsChart = null;
+let financeFlowChart = null;
+let investCategoryChart = null;
 let cultureChart = null;
 let selectedProjects = new Set();
 let dashboardStatsData = null;
@@ -24,20 +25,29 @@ document.addEventListener('DOMContentLoaded', function () {
             date: card.dataset.date,
             superficie: parseFloat(card.dataset.superficie) || 0,
             rendement: parseFloat(card.dataset.rendement) || 0,
-            progress: parseInt(card.dataset.progress) || 0
+            progress: parseInt(card.dataset.progress, 10) || 0
         });
     });
     
     filteredProjects = [...allProjects];
     
-    // Initialize features
-    initCharts();
+    dashboardStatsBootstrap()
+        .then(() => {
+            updateQuickStripFromStats(dashboardStatsData);
+            loadDashboardWeather();
+            initCharts();
+        })
+        .catch(() => {
+            initCharts();
+        });
+
     initDragAndDrop();
     initKeyboardShortcuts();
     initContextMenu();
     initCollapsibleSections();
     initThemeToggle();
     bindQuickAddTriggers();
+    initVoiceAssistantUi();
     animateCounters();
     applyFilters();
 
@@ -448,10 +458,528 @@ function buildStatsApiUrl() {
     return `/api/dashboard/stats/?${params.toString()}`;
 }
 
+function dashboardStatsBootstrap() {
+    return fetchDashboardStats(buildStatsApiUrl());
+}
+
+function fcfa(n) {
+    if (n === null || n === undefined || Number.isNaN(Number(n))) return '—';
+    try {
+        return `${Math.round(Number(n)).toLocaleString('fr-FR')} FCFA`;
+    } catch {
+        return String(n);
+    }
+}
+
+function updateQuickStripFromStats(data) {
+    if (!data || !data.quick_stats) return;
+    const qs = data.quick_stats;
+    const b = document.getElementById('cqBenefice');
+    const r = document.getElementById('cqRoi');
+    const t = document.getElementById('cqTachesCrit');
+    if (b) {
+        if (qs.show_financial_kpis) b.textContent = fcfa(qs.benefice_net_total);
+        else b.textContent = '—';
+    }
+    if (r) {
+        if (qs.show_financial_kpis && qs.roi_moyen_pct != null)
+            r.textContent = `${Number(qs.roi_moyen_pct).toLocaleString('fr-FR', {
+                maximumFractionDigits: 1
+            })}%`;
+        else r.textContent = '—';
+    }
+    if (t) t.textContent = String(qs.taches_critiques_retard ?? 0);
+}
+
+function loadDashboardWeather() {
+    const w = document.getElementById('weatherWidget');
+    const out = document.getElementById('weatherSummary');
+    if (!w || !out) return;
+    let fermeId = w.dataset.weatherFerme || '';
+    if (!fermeId) {
+        fermeId = document.getElementById('filterFerme')?.value || '';
+    }
+    if (!fermeId) {
+        out.textContent = 'Coordonnées ferme ou filtre à définir';
+        return;
+    }
+    out.textContent = 'Chargement météo…';
+    fetch(`/api/dashboard/weather/?ferme=${encodeURIComponent(fermeId)}`)
+        .then(res => res.json())
+        .then(payload => {
+            if (!payload.ok || !payload.data) {
+                if (payload.error === 'coords_absentes')
+                    out.textContent = 'GPS ferme à renseigner';
+                else if (payload.error === 'api_key_absente')
+                    out.textContent = 'Météo : clé API absente';
+                else out.textContent = 'Météo indisponible';
+                return;
+            }
+            const d = payload.data;
+            const tmp =
+                d.temperature != null ? `${Math.round(Number(d.temperature))}°C` : '';
+            const desc =
+                ((d.description || '') + '').charAt(0).toUpperCase() +
+                (d.description || '').slice(1);
+            out.innerHTML = `<span class="cw-temp">${tmp}</span> <span>${desc}</span>`;
+        })
+        .catch(() => {
+            out.textContent = 'Erreur réseau météo';
+        });
+}
+
+function getCsrfToken() {
+    const fromInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (fromInput && fromInput.value) return fromInput.value;
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
+function initVoiceAssistantUi() {
+    const fab = document.getElementById('voiceFab');
+    const modal = document.getElementById('voiceAssistantModal');
+    const closeBtn = document.getElementById('voiceModalClose');
+    const send = document.getElementById('voiceSendBtn');
+    const mic = document.getElementById('voiceMicBtn');
+    const ta = document.getElementById('voiceTranscript');
+    const locale = document.getElementById('voiceLocale');
+    const reply = document.getElementById('voiceAssistantReply');
+    if (!fab || !modal) return;
+
+    const open = () => {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        if (reply) reply.textContent = '';
+    };
+    const shut = () => {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+    };
+
+    fab.addEventListener('click', () => open());
+    closeBtn?.addEventListener('click', shut);
+
+    async function submitVocal() {
+        const text = (ta?.value || '').trim();
+        if (!text) {
+            showToast('Saisissez une phrase ou utilisez le micro.', 'info');
+            return;
+        }
+        const hint = (locale?.value || 'fr').trim();
+        if (reply) reply.textContent = '…';
+        try {
+            const res = await fetch('/api/vocal-query/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ text: text, transcript: text, locale_hint: hint })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                if (reply) reply.textContent = data.error || 'Erreur assistant';
+                return;
+            }
+            if (reply) reply.textContent = data.answer_text || data.summary || data.message || '';
+        } catch {
+            if (reply) reply.textContent = 'Erreur réseau';
+        }
+    }
+
+    send?.addEventListener('click', submitVocal);
+
+    mic?.addEventListener('click', () => {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+            showToast('Micro : non supporté sur ce navigateur', 'warning');
+            return;
+        }
+        const rec = new SR();
+        rec.lang =
+            locale?.value === 'wo' ? 'wo-SN' : locale?.value === 'ff' ? 'ff-SN' : 'fr-FR';
+        rec.onresult = ev => {
+            const t =
+                ev.results && ev.results[0] && ev.results[0][0]
+                    ? ev.results[0][0].transcript
+                    : '';
+            if (ta) ta.value = t;
+        };
+        rec.onerror = () => showToast('Échec reconnaissance vocale', 'error');
+        rec.start();
+        showToast('Écoute…', 'info');
+    });
+}
+
+/** Mois affichés en français court (ex. 2025-03 → mars 25). */
+function cockpitYmToFrShort(key) {
+    if (key == null || typeof key !== 'string') return key;
+    const m = /^(\d{4})-(\d{2})/.exec(key.trim());
+    if (!m) return key;
+    const monthIdx = parseInt(m[2], 10) - 1;
+    const shorts = [
+        'janv.',
+        'févr.',
+        'mars',
+        'avr.',
+        'mai',
+        'juin',
+        'juil.',
+        'août',
+        'sept.',
+        'oct.',
+        'nov.',
+        'déc.'
+    ];
+    const y2 = m[1].slice(-2);
+    if (monthIdx < 0 || monthIdx > 11) return `${m[2]}/${y2}`;
+    return `${shorts[monthIdx]} ${y2}`;
+}
+
+/** Axe Y : montants lisibles (k / M). */
+function cockpitFormatFcfaAxis(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '';
+    const a = Math.abs(n);
+    if (a < 1000) return n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+    if (a < 999_500) return `${(n / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} k`;
+    return `${(n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} M`;
+}
+
+function cockpitFormatFcfaFull(value) {
+    return `${Number(value).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA`;
+}
+
+function cockpitSetChartOverlay(canvasEl, mode, message) {
+    const wrap = canvasEl?.closest('.cockpit-chart-container');
+    const overlay = wrap?.querySelector('.cockpit-chart-loading');
+    if (!canvasEl || !overlay) return;
+    canvasEl.classList.remove('cockpit-chart--concealed');
+    overlay.classList.remove('cockpit-chart-overlay--empty');
+    if (mode === 'loading') {
+        overlay.textContent = message || '';
+        if (overlay.textContent) {
+            overlay.classList.remove('is-hidden');
+            canvasEl.classList.add('cockpit-chart--concealed');
+        }
+        overlay.setAttribute('aria-hidden', overlay.textContent ? 'false' : 'true');
+        return;
+    }
+    if (mode === 'empty') {
+        overlay.textContent = message || 'Aucune donnée sur cette période.';
+        overlay.classList.add('cockpit-chart-overlay--empty');
+        overlay.classList.remove('is-hidden');
+        overlay.setAttribute('aria-hidden', 'false');
+        canvasEl.classList.add('cockpit-chart--concealed');
+        return;
+    }
+    canvasEl.classList.remove('cockpit-chart--concealed');
+    overlay.classList.add('is-hidden');
+    overlay.setAttribute('aria-hidden', 'true');
+}
+
+function scheduleFinanceChartsInit(isDark, gridColor, textColor) {
+    window.setTimeout(() => {
+        buildFinanceCockpitCharts(isDark, gridColor, textColor);
+    }, 0);
+}
+
+/**
+ * Évolution recettes / dépenses (12 mois) + répartition investissements.
+ * Libellés lisibles, axe Y compact, solde mensuel en infobulle.
+ */
+function buildFinanceCockpitCharts(isDark, gridColor, textColor) {
+    if (typeof Chart === 'undefined') return;
+
+    const data = dashboardStatsData || {};
+
+    const fm = data.finance_monthly || { labels: [], recettes: [], depenses: [] };
+    const rawLabs = fm.labels || [];
+    const rec = fm.recettes || [];
+    const dep = fm.depenses || [];
+
+    const ttBorder = isDark ? 'rgba(248,250,252,0.12)' : 'rgba(15,23,42,0.12)';
+    const ttBg = isDark ? 'rgba(15, 23, 42, 0.97)' : 'rgba(255, 255, 255, 0.98)';
+    const axisLabel = isDark ? '#e2e8f0' : '#334155';
+
+    /* ---- Recettes vs dépenses ---- */
+    const finEl = document.getElementById('financeFlowChart');
+    if (finEl) {
+        if (financeFlowChart) financeFlowChart.destroy();
+
+        const totalMouv =
+            rec.reduce((s, v) => s + Number(v || 0), 0) + dep.reduce((s, v) => s + Number(v || 0), 0);
+
+        if (!rawLabs.length || totalMouv === 0) {
+            cockpitSetChartOverlay(
+                finEl,
+                'empty',
+                'Pas de recettes ni de dépenses enregistrées sur les 12 derniers mois (périmètre et droits financiers actuels).'
+            );
+            financeFlowChart = null;
+        } else {
+            cockpitSetChartOverlay(finEl, 'ready');
+            const labelFr = rawLabs.map(cockpitYmToFrShort);
+
+            const borderRec = isDark ? '#4ade80' : '#15803d';
+            const borderDep = isDark ? '#f87171' : '#dc2626';
+
+            const finCtx = finEl.getContext('2d');
+            const recGrad = finCtx.createLinearGradient(0, 0, 0, Math.max(260, finEl.height || 260));
+            recGrad.addColorStop(0, isDark ? 'rgba(74,222,128,0.35)' : 'rgba(34,197,94,0.38)');
+            recGrad.addColorStop(1, isDark ? 'rgba(74,222,128,0.02)' : 'rgba(34,197,94,0.02)');
+
+            financeFlowChart = new Chart(finCtx, {
+                type: 'line',
+                data: {
+                    labels: labelFr,
+                    datasets: [
+                        {
+                            label: 'Recettes',
+                            data: rec,
+                            borderColor: borderRec,
+                            backgroundColor: recGrad,
+                            fill: true,
+                            tension: 0.38,
+                            pointRadius: 3,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: borderRec,
+                            pointBorderWidth: 2,
+                            pointBorderColor: isDark ? '#0f172a' : '#fff',
+                            borderWidth: 2.5
+                        },
+                        {
+                            label: 'Dépenses (invest. + fiches)',
+                            data: dep,
+                            borderColor: borderDep,
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: borderDep,
+                            pointBorderWidth: 2,
+                            pointBorderColor: isDark ? '#0f172a' : '#fff',
+                            borderWidth: 2.5,
+                            borderDash: [7, 4]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 16,
+                    animation: { duration: 520 },
+                    interaction: { intersect: false, mode: 'index' },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                color: textColor,
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 12,
+                                font: { weight: '600', size: 11 }
+                            },
+                            border: { color: gridColor }
+                        },
+                        y: {
+                            stacked: false,
+                            beginAtZero: true,
+                            grace: '8%',
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false,
+                                tickLength: 0
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: v => cockpitFormatFcfaAxis(v),
+                                font: { size: 11 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Montants (FCFA)',
+                                color: axisLabel,
+                                font: { size: 11, weight: '700' },
+                                padding: { bottom: 6 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'start',
+                            labels: {
+                                color: textColor,
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                padding: 16,
+                                font: { weight: '600', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: ttBg,
+                            titleColor: axisLabel,
+                            bodyColor: axisLabel,
+                            borderColor: ttBorder,
+                            borderWidth: 1,
+                            padding: 14,
+                            titleAlign: 'left',
+                            bodyAlign: 'left',
+                            displayColors: true,
+                            footerAlign: 'left',
+                            callbacks: {
+                                title(items) {
+                                    const i = items[0]?.dataIndex;
+                                    if (i === undefined || i < 0) return '';
+                                    return `Période : ${cockpitYmToFrShort(rawLabs[i])} (${rawLabs[i] ?? ''})`;
+                                },
+                                label(ctx) {
+                                    return ` ${ctx.dataset.label}: ${cockpitFormatFcfaFull(Number(ctx.raw) || 0)}`;
+                                },
+                                footer(items) {
+                                    const i = items[0]?.dataIndex;
+                                    if (i === undefined || i < 0) return '';
+                                    const rVal = Number(rec[i]) || 0;
+                                    const dVal = Number(dep[i]) || 0;
+                                    const solde = rVal - dVal;
+                                    const sign = solde > 0 ? '+' : '';
+                                    return `\nSolde du mois : ${sign}${cockpitFormatFcfaFull(solde)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /* ---- Investissements par catégorie ---- */
+    const invEl = document.getElementById('investCategoryChart');
+    if (invEl) {
+        if (investCategoryChart) investCategoryChart.destroy();
+
+        const inv = data.invest_by_category || { labels: [], values: [] };
+        const browns = ['#78350f', '#92400e', '#b45309', '#ca8a04', '#a16207', '#713f12', '#854d0e'];
+        let pairs = (inv.labels || []).map((l, i) => ({
+            label: l || '—',
+            value: Number(inv.values?.[i]) || 0
+        }));
+
+        pairs = pairs.filter(p => p.value > 0);
+        const totalInvest = pairs.reduce((s, p) => s + p.value, 0);
+
+        if (!pairs.length || totalInvest <= 0) {
+            cockpitSetChartOverlay(
+                invEl,
+                'empty',
+                'Aucun investissement enregistré pour les projets de votre périmètre financier (ou filtres trop restrictifs).'
+            );
+            investCategoryChart = null;
+        } else {
+            cockpitSetChartOverlay(invEl, 'ready');
+            const labs = pairs.map(p => p.label);
+            const vals = pairs.map(p => p.value);
+
+            investCategoryChart = new Chart(invEl.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labs,
+                    datasets: [
+                        {
+                            data: vals,
+                            backgroundColor: labs.map((_, i) =>
+                                isDark ? `${browns[i % browns.length]}d0` : `${browns[i % browns.length]}cc`
+                            ),
+                            borderColor: labs.map((_, i) => browns[i % browns.length]),
+                            borderWidth: 2,
+                            hoverOffset: 10,
+                            spacing: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 16,
+                    cutout: '56%',
+                    animation: { animateRotate: true, duration: 600 },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            align: 'center',
+                            labels: {
+                                color: textColor,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 14,
+                                font: { size: 11, weight: '600' },
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                generateLabels(chart) {
+                                    const ds = chart.data.datasets[0];
+                                    const d = ds.data.map(x => Number(x) || 0);
+                                    const t = d.reduce((a, b) => a + b, 0);
+                                    return chart.data.labels.map((label, i) => {
+                                        const v = d[i];
+                                        const pct = t > 0 ? Math.round((v / t) * 1000) / 10 : 0;
+                                        return {
+                                            text: `${label} — ${pct}%`,
+                                            fillStyle: Array.isArray(ds.backgroundColor)
+                                                ? ds.backgroundColor[i]
+                                                : ds.backgroundColor,
+                                            strokeStyle: Array.isArray(ds.borderColor)
+                                                ? ds.borderColor[i]
+                                                : ds.borderColor,
+                                            fontColor: textColor,
+                                            hidden: false,
+                                            index: i,
+                                            datasetIndex: 0
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: ttBg,
+                            titleColor: axisLabel,
+                            bodyColor: axisLabel,
+                            borderColor: ttBorder,
+                            borderWidth: 1,
+                            padding: 14,
+                            callbacks: {
+                                title(ctxItems) {
+                                    return ctxItems[0]?.label || '';
+                                },
+                                label(ctx) {
+                                    const v = Number(ctx.raw) || 0;
+                                    const sum = vals.reduce((a, b) => a + b, 0);
+                                    const pct = sum > 0 ? Math.round((v / sum) * 1000) / 10 : 0;
+                                    return [
+                                        cockpitFormatFcfaFull(v),
+                                        `Part du total : ${pct}%`
+                                    ];
+                                },
+                                footer() {
+                                    return `Total catégories : ${cockpitFormatFcfaFull(totalInvest)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+}
+
 // ===== CHART INITIALIZATION WITH ZOOM =====
 function initCharts() {
-    if (typeof Chart === 'undefined' || allProjects.length === 0) return;
-    
+    if (typeof Chart === 'undefined') return;
+
     const isDark = document.body.classList.contains('dark-mode');
     const gridColor = isDark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
     const textColor = isDark ? '#cbd5e1' : '#64748b';
@@ -459,10 +987,13 @@ function initCharts() {
     // Destroy existing charts
     if (rendementChart) rendementChart.destroy();
     if (statusChart) statusChart.destroy();
+    if (financeFlowChart) financeFlowChart.destroy();
+    if (investCategoryChart) investCategoryChart.destroy();
+    if (cultureChart) cultureChart.destroy();
 
     // Yield Chart with zoom plugin
     const rendementCtx = document.getElementById('rendementChart');
-    if (rendementCtx) {
+    if (rendementCtx && filteredProjects.length > 0) {
         const ctx = rendementCtx.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(57, 255, 20, 0.4)');
@@ -548,7 +1079,7 @@ function initCharts() {
 
     // Status Pie Chart
     const statusCtx = document.getElementById('statusChart');
-    if (statusCtx) {
+    if (statusCtx && filteredProjects.length > 0) {
         const statusCounts = getStatusCounts(filteredProjects);
         
         statusChart = new Chart(statusCtx.getContext('2d'), {
@@ -617,97 +1148,11 @@ function initCharts() {
         });
     }
 
-    if (!dashboardStatsData) {
-        fetchDashboardStats().then(() => initCharts());
-        return;
-    }
-
-    // Monthly Trends Line Chart
-    const trendsCtx = document.getElementById('monthlyTrendsChart');
-    if (trendsCtx && dashboardStatsData.monthly_trends) {
-        const trends = dashboardStatsData.monthly_trends;
-        const tCtx = trendsCtx.getContext('2d');
-        const trendsGradient = tCtx.createLinearGradient(0, 0, 0, 300);
-        trendsGradient.addColorStop(0, 'rgba(57, 255, 20, 0.3)');
-        trendsGradient.addColorStop(1, 'rgba(57, 255, 20, 0.01)');
-
-        monthlyTrendsChart = new Chart(tCtx, {
-            type: 'line',
-            data: {
-                labels: trends.map(t => t.month),
-                datasets: [
-                    {
-                        label: 'Projets',
-                        data: trends.map(t => t.count),
-                        borderColor: '#39FF14',
-                        backgroundColor: trendsGradient,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#39FF14',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Superficie (ha)',
-                        data: trends.map(t => t.superficie),
-                        borderColor: '#E2725B',
-                        backgroundColor: 'transparent',
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#E2725B',
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor, drawBorder: false },
-                        ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
-                        title: { display: true, text: 'Projets', color: '#39FF14', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
-                    },
-                    y1: {
-                        position: 'right',
-                        beginAtZero: true,
-                        grid: { drawOnChartArea: false },
-                        ticks: { color: textColor, font: { family: "'Space Grotesk', sans-serif" } },
-                        title: { display: true, text: 'Superficie (ha)', color: '#E2725B', font: { family: "'Space Grotesk', sans-serif", weight: '700' } }
-                    },
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: textColor, font: { family: "'Inter', sans-serif" } }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: textColor, font: { family: "'Space Grotesk', sans-serif", weight: 600, size: 12 }, usePointStyle: true, padding: 20 }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
-                        titleColor: '#e0e0e0',
-                        bodyColor: '#39FF14',
-                        borderColor: 'rgba(57, 255, 20, 0.3)',
-                        borderWidth: 1,
-                        padding: 12,
-                        cornerRadius: 12,
-                        callbacks: {
-                            label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString('fr-FR')}`
-                        }
-                    }
-                }
-            }
-        });
-    }
+    scheduleFinanceChartsInit(isDark, gridColor, textColor);
 
     // Culture Distribution Horizontal Bar
     const cultureCtx = document.getElementById('cultureChart');
-    if (cultureCtx && dashboardStatsData.projets_par_culture) {
+    if (cultureCtx && dashboardStatsData && dashboardStatsData.projets_par_culture) {
         const cultures = dashboardStatsData.projets_par_culture;
         const cCtx = cultureCtx.getContext('2d');
         const cultureColors = [
@@ -787,12 +1232,11 @@ function updateCharts() {
         .then(r => r.json())
         .then(data => {
             dashboardStatsData = data;
-            if (monthlyTrendsChart && data.monthly_trends) {
-                monthlyTrendsChart.data.labels = data.monthly_trends.map(t => t.month);
-                monthlyTrendsChart.data.datasets[0].data = data.monthly_trends.map(t => t.count);
-                monthlyTrendsChart.data.datasets[1].data = data.monthly_trends.map(t => t.superficie);
-                monthlyTrendsChart.update('active');
-            }
+            updateQuickStripFromStats(data);
+            const dark = document.body.classList.contains('dark-mode');
+            const gc = dark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const tc = dark ? '#cbd5e1' : '#64748b';
+            buildFinanceCockpitCharts(dark, gc, tc);
             if (cultureChart && data.projets_par_culture) {
                 cultureChart.data.labels = data.projets_par_culture.map(c => c.culture || 'Inconnu');
                 cultureChart.data.datasets[0].data = data.projets_par_culture.map(c => c.superficie);
@@ -1426,10 +1870,21 @@ function applyFarmFilter(fermeId) {
             updateFarmCards(data);
             updateProjectList(data);
             updateChartsFromAPI(data);
+            updateQuickStripFromStats(data);
+            const ww = document.getElementById('weatherWidget');
+            if (ww && fermeId) ww.dataset.weatherFerme = fermeId;
 
             // Update allProjects data store
             allProjects.length = 0;
             (data.projets_list || []).forEach(p => {
+                const pct =
+                    typeof p.taux_avancement === 'number'
+                        ? p.taux_avancement
+                        : p.statut === 'fini' || p.statut === 'cloture'
+                          ? 100
+                          : p.statut === 'en_pause'
+                            ? 50
+                            : 75;
                 allProjects.push({
                     id: p.id,
                     nom: p.nom,
@@ -1439,11 +1894,13 @@ function applyFarmFilter(fermeId) {
                     date: p.date_lancement,
                     superficie: p.superficie,
                     rendement: p.rendement_estime,
-                    progress: p.statut === 'fini' || p.statut === 'cloture' ? 100 : p.statut === 'en_pause' ? 50 : 75,
+                    progress: pct,
                     fermeNom: p.ferme_nom
                 });
             });
             filteredProjects = [...allProjects];
+
+            loadDashboardWeather();
 
             // Update filter count
             const filterCountEl = document.getElementById('filterCount');
@@ -1719,10 +2176,11 @@ function updateProjectList(data) {
     if (projets.length === 0) {
         projectsSection.innerHTML = `
             <div class="empty-state">
-                <i class="fas fa-folder-open"></i>
-                <h4>Aucun projet</h4>
+                <div class="cockpit-empty-illu" aria-hidden="true"></div>
+                <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                <h4>Aucun projet actif</h4>
                 <p>${data.selected_ferme ? "Cette ferme n'a pas encore de projet." : 'Commencez par créer votre premier projet agricole.'}</p>
-                <a href="/creer-projet/${data.selected_ferme ? '?ferme=' + data.selected_ferme.id : ''}" class="btn-baay btn-baay-primary mt-3">
+                <a href="${data.selected_ferme ? '/creer-projet/?ferme=' + data.selected_ferme.id : '/creer-projet/'}" class="btn-baay btn-baay-primary mt-3">
                     <i class="fas fa-plus"></i> Créer un projet
                 </a>
             </div>`;
@@ -1731,7 +2189,8 @@ function updateProjectList(data) {
 
     const statusLabel = s =>
         s === 'en_cours' ? 'En cours' : s === 'en_pause' ? 'En pause' : s === 'cloture' ? 'Clôturé' : s === 'fini' ? 'Fini' : '—';
-    const progressVal = s => (s === 'fini' || s === 'cloture' ? 100 : s === 'en_pause' ? 50 : 75);
+    const progressFallback = s =>
+        s === 'fini' || s === 'cloture' ? 100 : s === 'en_pause' ? 50 : 75;
 
     const bulkBar = `<div class="bulk-actions-bar" id="bulkActionsBar">
         <span class="selected-count"><span id="selectedCount">0</span> sélectionné(s)</span>
@@ -1741,7 +2200,8 @@ function updateProjectList(data) {
     </div>`;
 
     const listHtml = projets.map(p => {
-        const prog = progressVal(p.statut);
+        const prog =
+            typeof p.taux_avancement === 'number' ? Math.round(p.taux_avancement) : progressFallback(p.statut);
         const farmBadge = (showFerme && p.ferme_nom) ? `<span class="farm-badge"><i class="fas fa-warehouse"></i> ${p.ferme_nom}</span>` : '';
         return `
         <div class="project-item" data-id="${p.id}" data-status="${p.statut}"
@@ -1802,6 +2262,7 @@ function updateProjectList(data) {
 function updateChartsFromAPI(data) {
     // Store API data for chart rebuilding
     dashboardStatsData = data;
+    updateQuickStripFromStats(data);
 
     // Rebuild rendement & status charts from the new allProjects
     if (typeof Chart !== 'undefined') {
@@ -1825,12 +2286,18 @@ function refreshData() {
     const indicator = document.getElementById('refreshIndicator');
     indicator.classList.add('refreshing');
 
-    fetch('/api/dashboard/stats/')
+    fetch(buildStatsApiUrl())
         .then(res => {
             if (!res.ok) throw new Error('Network response was not ok');
             return res.json();
         })
         .then(data => {
+            dashboardStatsData = data;
+            updateQuickStripFromStats(data);
+            const isDark = document.body.classList.contains('dark-mode');
+            const gridColor = isDark ? 'rgba(57, 255, 20, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            const textCol = isDark ? '#cbd5e1' : '#64748b';
+            buildFinanceCockpitCharts(isDark, gridColor, textCol);
             // Update KPI cards from server data (only if element exists)
             const kpiIds = ['kpiTotalProjects', 'kpiSuperficie', 'kpiRendement', 'kpiInvestissement', 'kpiUtilisation', 'kpiFermes'];
             const kpiMap = {
@@ -1889,12 +2356,6 @@ function refreshData() {
             }
 
             // Update API-based charts
-            if (monthlyTrendsChart && data.monthly_trends) {
-                monthlyTrendsChart.data.labels = data.monthly_trends.map(t => t.month);
-                monthlyTrendsChart.data.datasets[0].data = data.monthly_trends.map(t => t.count);
-                monthlyTrendsChart.data.datasets[1].data = data.monthly_trends.map(t => t.superficie);
-                monthlyTrendsChart.update('active');
-            }
             if (cultureChart && data.projets_par_culture) {
                 cultureChart.data.labels = data.projets_par_culture.map(c => c.culture || 'Inconnu');
                 cultureChart.data.datasets[0].data = data.projets_par_culture.map(c => c.superficie);

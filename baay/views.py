@@ -96,10 +96,12 @@ from baay.permissions import (
     peut_modifier_investissement,
     peut_voir_investissements,
     peut_voir_investissements_any,
+    peut_voir_kpi_roi_projet,
     peut_voir_projet,
     peut_voir_semis,
     peut_voir_tache,
     projets_accessibles_qs,
+    projets_accessibles_kpi_roi_qs,
     role_dans_ferme,
     roles_assignables_par,
 )
@@ -589,6 +591,24 @@ def ask_chatbot(request):
                 }, status=500)
 
     return JsonResponse({'error': 'Méthode non autorisée.'}, status=405)
+
+
+@login_required
+@require_POST
+def api_vocal_query(request):
+    """POST JSON { transcript | text, locale_hint? } — pipeline vocal simulée (STT/RAG/TTS stub)."""
+    from baay.voice_assistant_service import run_vocal_query_pipeline
+
+    try:
+        data = json.loads(request.body.decode() or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON invalide."}, status=400)
+    transcript = (data.get("transcript") or data.get("text") or "").strip()
+    if not transcript:
+        return JsonResponse({"error": "Champ « transcript » ou « text » requis."}, status=400)
+    locale_hint = (data.get("locale_hint") or data.get("lang") or "fr").strip()[:12]
+    payload = run_vocal_query_pipeline(transcript_text=transcript, locale_hint=locale_hint)
+    return JsonResponse(payload)
 
 
 @login_required
@@ -1130,6 +1150,10 @@ def dashboard(request):
     ).prefetch_related(
         'projet_produits__produit',
         Prefetch(
+            'taches',
+            queryset=Tache.objects.exclude(statut='annulee'),
+        ),
+        Prefetch(
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
         ),
@@ -1154,15 +1178,14 @@ def dashboard(request):
     # --- Aggregates ---
     superficie_totale = projets_qs.aggregate(Sum('superficie'))['superficie__sum'] or 0
     rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-    can_view_investissements = peut_voir_investissements_any(utilisateur)
-    if can_view_investissements:
+    roi_scope_projets = projets_accessibles_kpi_roi_qs(utilisateur, projets_qs)
+    investissement_total = Decimal('0')
+    if roi_scope_projets.exists():
         investissement_expr = investissement_montant_expr()
-        inv_agg = Investissement.objects.filter(projet__in=projets_qs).aggregate(
+        inv_agg = Investissement.objects.filter(projet__in=roi_scope_projets).aggregate(
             total=Coalesce(Sum(investissement_expr), Value(Decimal('0')))
         )
-        investissement_total = inv_agg['total'] or 0
-    else:
-        investissement_total = 0
+        investissement_total = inv_agg['total'] or Decimal('0')
 
     projets_en_cours = projets_qs.filter(statut='en_cours').count()
     projets_en_pause = projets_qs.filter(statut='en_pause').count()
@@ -1219,6 +1242,18 @@ def dashboard(request):
     cultures = ProduitAgricole.objects.filter(projet__in=projets_accessibles_qs(utilisateur)).distinct()
     localites = Localite.objects.all().order_by('nom')
 
+    can_view_investissements = peut_voir_investissements_any(utilisateur)
+
+    cockpit_dashboard = dashboard_services.cockpit_payload(projets_qs, roi_scope_projets)
+    weather_ferme_id = None
+    if selected_ferme and selected_ferme.latitude is not None and selected_ferme.longitude is not None:
+        weather_ferme_id = str(selected_ferme.id)
+    else:
+        for wf in user_fermes:
+            if wf.latitude is not None and wf.longitude is not None:
+                weather_ferme_id = str(wf.id)
+                break
+
     context = {
         'projets': projets_qs,
         'superficie_totale': superficie_totale,
@@ -1245,9 +1280,27 @@ def dashboard(request):
         'ferme_utilisation': f_util,
         'ferme_membres': f_mem,
         'ferme_rendement': f_rend,
+        'cockpit': cockpit_dashboard,
+        'dashboard_weather_ferme_id': weather_ferme_id,
     }
 
     return render(request, 'projets/dashboard.html', context)
+
+
+@login_required
+@require_GET
+def dashboard_weather_api(request):
+    """Météo localisée pour le cockpit (coords ferme → OpenWeather)."""
+    ferme_id = (request.GET.get('ferme') or '').strip()
+    if not ferme_id:
+        return JsonResponse({'ok': False, 'error': 'ferme_requise'}, status=400)
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+    if not fermes_accessibles_qs(utilisateur).filter(pk=ferme_id).exists():
+        return JsonResponse({'ok': False, 'error': 'acces_refuse'}, status=403)
+    return JsonResponse(get_weather_data(ferme_id))
 
 
 @login_required
@@ -1605,17 +1658,16 @@ def dashboard_stats_api(request):
     superficie_totale = projets.aggregate(Sum('superficie'))['superficie__sum'] or Decimal('0')
     rendement_total = projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or Decimal('0')
     
-    # Get investissements total (cout_par_hectare * superficie + autres_frais)
-    can_view_investissements = peut_voir_investissements_any(utilisateur)
-    if can_view_investissements:
+    # Investissements agrégés — uniquement sur les projets « propriétaire / staff » (sensibles).
+    roi_scope_projets = projets_accessibles_kpi_roi_qs(utilisateur, projets)
+    investissement_total = Decimal('0')
+    if roi_scope_projets.exists():
         investissement_expr = investissement_montant_expr()
-        inv_agg = Investissement.objects.filter(projet__in=projets).aggregate(
+        inv_agg = Investissement.objects.filter(projet__in=roi_scope_projets).aggregate(
             total=Coalesce(Sum(investissement_expr), Value(Decimal('0')))
         )
         investissement_total = inv_agg['total'] or Decimal('0')
-    else:
-        investissement_total = Decimal('0')
-    
+
     # Projects by status
     projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))
     
@@ -1710,10 +1762,12 @@ def dashboard_stats_api(request):
         }
         row.update(
             dashboard_services.mobile_project_kpis_payload(
-                p, include_financial=can_view_investissements
+                p, include_financial=peut_voir_kpi_roi_projet(utilisateur, p)
             )
         )
         projets_list.append(row)
+
+    cockpit = dashboard_services.cockpit_payload(projets, roi_scope_projets)
 
     data = {
         'superficie_totale': decimal_to_float(superficie_totale),
@@ -1747,6 +1801,9 @@ def dashboard_stats_api(request):
         'fermes_inactives': fermes_inactives,
         'selected_ferme': ferme_kpis,
         'projets_list': projets_list,
+        'quick_stats': cockpit['quick_stats'],
+        'finance_monthly': cockpit['finance_monthly'],
+        'invest_by_category': cockpit['invest_by_category'],
     }
     
     return JsonResponse(data)
@@ -1803,11 +1860,11 @@ def dashboard_projets_api(request):
     projets_page = projets[start:end]
     
     projets_data = []
-    can_fin_kpis = peut_voir_investissements_any(utilisateur)
     for p in projets_page:
         prevision = get_prevision_affichee_projet(p)
         prediction = prevision.rendement_estime_min if prevision else None
-        
+        can_fin_kpis = peut_voir_kpi_roi_projet(utilisateur, p)
+
         item = {
             'id': str(p.id),
             'nom': p.nom,

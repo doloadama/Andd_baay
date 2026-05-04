@@ -19,6 +19,8 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from .models import (
+    DemandeAccesFerme,
+    Depense,
     Ferme,
     Investissement,
     MembreFerme,
@@ -26,7 +28,6 @@ from .models import (
     Profile,
     Projet,
     ProjetProduit,
-    DemandeAccesFerme,
     Recette,
 )
 from .messaging_contract import build_recruitment_status_event_v1
@@ -109,33 +110,41 @@ def calculer_kpis_financiers_projet(projet_id) -> dict:
     KPIs financiers réels d'un projet (dashboard, API mobile, clôture).
 
     Formules (FCFA) :
-    - Total coûts = Total dépenses + Total investissements matériels
-      (lignes ``Investissement`` : hors « matériel » = dépenses, catégorie « matériel » = investissements).
-    - Bénéfice net = Total recettes − Total coûts
-      (= Total recettes − (Total dépenses + Total investissements)).
-    - ROI (%) = (Bénéfice net / Total coûts) × 100 si Total coûts > 0, sinon null.
+    - Somme des lignes ``Investissement`` : total_lignes_investissement (= tout matériel + hors matériel).
+    - Total ``Depense`` (fiches projet) ajouté au dénominateur de coût total.
+    - Total coûts = total_lignes_investissement + total_depenses_fiche_simple.
+    - total_depenses : charges d'exploitation = lignes inv hors « matériel » + fiches ``Depense``.
+    - Investissements matériels : catégorie « matériel » sur les lignes inv.
+    - Bénéfice net = Total recettes − Total coûts ; ROI % = Bénéfice net / Total coûts × 100.
     """
     inv_expr = investissement_montant_expr()
-    couts = Investissement.objects.filter(projet_id=projet_id).aggregate(
-        total_couts=Coalesce(Sum(inv_expr), Value(Decimal("0"))),
+    inv_aggr = Investissement.objects.filter(projet_id=projet_id).aggregate(
+        total_lignes_investissement=Coalesce(Sum(inv_expr), Value(Decimal("0"))),
         total_investissements=Coalesce(
             Sum(inv_expr, filter=Q(categorie="materiel")),
             Value(Decimal("0")),
         ),
-        total_depenses=Coalesce(
+        total_depenses_lignes_investissement=Coalesce(
             Sum(inv_expr, filter=~Q(categorie="materiel")),
             Value(Decimal("0")),
         ),
     )
+    dep_aggr = Depense.objects.filter(projet_id=projet_id).aggregate(
+        sf=Coalesce(Sum("montant"), Value(Decimal("0")))
+    )
+    total_depenses_fiche = dep_aggr["sf"] or Decimal("0")
     total_recettes = total_recettes_projet(projet_id)
-    total_couts = couts["total_couts"] or Decimal("0")
-    total_depenses = couts["total_depenses"] or Decimal("0")
-    total_investissements = couts["total_investissements"] or Decimal("0")
+    total_lignes_inv = inv_aggr["total_lignes_investissement"] or Decimal("0")
+    total_depenses_inv = inv_aggr["total_depenses_lignes_investissement"] or Decimal("0")
+    total_investissements = inv_aggr["total_investissements"] or Decimal("0")
+    total_depenses_combinees = total_depenses_inv + total_depenses_fiche
+    total_couts = total_lignes_inv + total_depenses_fiche
     benefice_net = total_recettes - total_couts
     roi = (benefice_net / total_couts * Decimal("100")) if total_couts else None
     quantite_recoltee = _quantite_recoltee_projet(projet_id)
-    # Spécification: coût de revient par unité = Total Dépenses / Quantité Récoltée (exclut investissements matériels)
-    cout_revient_unite = (total_depenses / quantite_recoltee) if quantite_recoltee else None
+    cout_revient_unite = (
+        (total_depenses_combinees / quantite_recoltee) if quantite_recoltee else None
+    )
     recettes_prevues = _prediction_revenue_proxy(projet_id)
     ecart_previsionnel = total_recettes - recettes_prevues
     ecart_previsionnel_pct = (
@@ -147,7 +156,10 @@ def calculer_kpis_financiers_projet(projet_id) -> dict:
     return {
         "projet_id": str(projet_id),
         "total_recettes": total_recettes,
-        "total_depenses": total_depenses,
+        "total_depenses": total_depenses_combinees,
+        "total_depenses_lignes_investissement": total_depenses_inv,
+        "total_depenses_fiche_simple": total_depenses_fiche,
+        "total_lignes_investissement_fcfa": total_lignes_inv,
         "total_investissements": total_investissements,
         "total_couts": total_couts,
         "benefice_net": benefice_net,
@@ -162,13 +174,11 @@ def calculer_kpis_financiers_projet(projet_id) -> dict:
 
 def cloturer_projet(projet_id) -> dict:
     """
-    Clôture comptable : passage au statut « Clôturé » et verrouillage des investissements.
+    Clôture comptable : statut « clôturé », verrouillage des lignes ``Investissement`` et
+    des fiches ``Depense`` associées au projet.
 
-    Prérequis : le projet doit déjà être « Fini » (fin opérationnelle). Les écritures
-    financières restent possibles tant que le projet n'est qu'« Fini » ; la clôture les fige.
-
-    Idempotent si le projet est déjà « Clôturé » : re-verrouille les lignes éventuelles et
-    renvoie les KPI.
+    Prérequis : projet « fini ». Idempotent : re-verrouille les lignes restées ouvertes
+    et renvoie les KPI.
     """
     from django.utils import timezone as _tz
 
@@ -195,6 +205,10 @@ def cloturer_projet(projet_id) -> dict:
         if to_update:
             projet.save(update_fields=to_update)
         Investissement.objects.filter(projet=projet, verrouille=False).update(
+            verrouille=True,
+            date_verrouillage=_tz.now(),
+        )
+        Depense.objects.filter(projet=projet, verrouille=False).update(
             verrouille=True,
             date_verrouillage=_tz.now(),
         )

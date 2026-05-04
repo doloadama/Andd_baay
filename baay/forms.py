@@ -3,18 +3,18 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 import json
 from baay.models import (
-    Projet,
-    ProduitAgricole,
+    DemandeAccesFerme,
+    Ferme,
     Investissement,
     Localite,
-    Profile,
-    ProjetProduit,
     Pays,
-    Ferme,
-    MembreFerme,
-    DemandeAccesFerme,
-    Tache,
+    ProduitAgricole,
+    Profile,
+    Projet,
+    ProjetProduit,
     Recette,
+    Region,
+    Tache,
 )
 from baay.permissions import role_dans_ferme, roles_assignables_par
 
@@ -823,11 +823,12 @@ class PlantDetailsForm(forms.Form):
 class FermeForm(forms.ModelForm):
     class Meta:
         model = Ferme
-        fields = ['nom', 'description', 'pays', 'localite', 'superficie_totale', 'latitude', 'longitude']
+        fields = ['nom', 'description', 'pays', 'region', 'localite', 'superficie_totale', 'latitude', 'longitude']
         labels = {
             'nom': 'Nom de la ferme',
             'description': 'Description',
             'pays': 'Pays',
+            'region': 'Région',
             'localite': 'Localité',
             'superficie_totale': 'Superficie totale (ha)',
             'latitude': 'Latitude',
@@ -851,6 +852,7 @@ class FermeForm(forms.ModelForm):
                 }
             ),
             'pays': forms.Select(attrs={'class': 'fh-field', 'id': 'id_ferme_pays'}),
+            'region': forms.Select(attrs={'class': 'fh-field', 'id': 'id_ferme_region'}),
             'localite': forms.Select(attrs={'class': 'fh-field', 'id': 'id_ferme_localite'}),
             'superficie_totale': forms.NumberInput(
                 attrs={
@@ -885,6 +887,12 @@ class FermeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['pays'].queryset = Pays.objects.all().order_by('nom')
         self.fields['pays'].label_from_instance = lambda obj: obj.nom
+        self.fields['region'].queryset = Region.objects.select_related('pays').order_by(
+            'pays__nom', 'nom'
+        )
+        self.fields['region'].label_from_instance = lambda obj: (
+            f"{obj.nom} ({obj.pays.nom})" if obj.pays_id else obj.nom
+        )
         self.fields['localite'].queryset = Localite.objects.all().order_by('nom')
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
         self.localites_mapping_json = json.dumps({

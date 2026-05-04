@@ -5,9 +5,8 @@ Les requêtes utilisent des QuerySet filtrés selon `fermes_accessibles_qs` /
 `projets_accessibles_qs`, sauf pour le superutilisateur (vue plateforme).
 
 KPIs financiers par projet (voir `baay.services.calculer_kpis_financiers_projet`) :
-  Bénéfice net = Total recettes − Total coûts, avec Total coûts =
-  Total dépenses (lignes hors « matériel ») + Total investissements matériels.
-  ROI (%) = (Bénéfice net / Total coûts) × 100 lorsque Total coûts > 0.
+  Total coûts = somme des lignes Investissement + somme des ``Depense`` (fiches projet).
+  Bénéfice net = Total recettes − Total coûts ; ROI % = Bénéfice net / Total coûts × 100.
 
 Progression projet (`Projet.taux_avancement`) : hors valeur
 ``taux_avancement_personnalise``, moyenne de la progression temporelle
@@ -19,7 +18,7 @@ Statuts fini/clôturé : taux à 100 %.
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -40,6 +39,7 @@ from django.utils import timezone
 from baay import permissions as perm
 from baay.services import calculer_kpis_financiers_projet, investissement_montant_expr
 from baay.models import (
+    Depense,
     Ferme,
     Investissement,
     PrevisionRecolte,
@@ -245,6 +245,189 @@ def build_owner_payload(fermes_qs, projets_qs) -> dict[str, Any]:
     }
 
 
+def _month_key(md) -> str | None:
+    if md is None:
+        return None
+    try:
+        if hasattr(md, "strftime"):
+            return md.strftime("%Y-%m")
+    except Exception:
+        return None
+    return str(md)[:7]
+
+
+def count_taches_critiques_en_retard(projets_scope_qs) -> int:
+    """Tâches haute / urgente, encore ouvertes, échéance dépassée (périmètre filtres projet)."""
+    today = timezone.localdate()
+    ferme_ids = list(projets_scope_qs.values_list("ferme_id", flat=True).distinct())
+    if not ferme_ids:
+        return 0
+    return Tache.objects.filter(
+        ferme_id__in=ferme_ids,
+        priorite__in=("haute", "urgente"),
+        statut__in=("a_faire", "en_cours"),
+        date_echeance__lt=today,
+    ).count()
+
+
+def cockpit_finance_aggregate(roi_projets_qs) -> dict[str, Any]:
+    """
+    Agrège recettes et coûts (lignes investissement + fiches Dépen­se), aligné sur
+    ``calculer_kpis_financiers_projet`` (total_couts = somme lignes inv + dépenses fiches).
+    """
+    if not roi_projets_qs.exists():
+        return {
+            "benefice_net_total": 0.0,
+            "roi_moyen_pct": None,
+            "total_recettes": 0.0,
+            "total_couts": 0.0,
+        }
+    inv_expr = investissement_montant_expr()
+    tot_rec = (
+        Recette.objects.filter(projet__in=roi_projets_qs).aggregate(
+            s=Coalesce(Sum("montant_total"), Value(Decimal("0")))
+        )["s"]
+        or Decimal("0")
+    )
+    lignes_inv = (
+        Investissement.objects.filter(projet__in=roi_projets_qs).aggregate(
+            s=Coalesce(Sum(inv_expr), Value(Decimal("0")))
+        )["s"]
+        or Decimal("0")
+    )
+    dep_fiche = (
+        Depense.objects.filter(projet__in=roi_projets_qs).aggregate(
+            s=Coalesce(Sum("montant"), Value(Decimal("0")))
+        )["s"]
+        or Decimal("0")
+    )
+    total_couts = lignes_inv + dep_fiche
+    benefice = tot_rec - total_couts
+    roi_pct: Decimal | None
+    if total_couts > 0:
+        roi_pct = benefice / total_couts * Decimal("100")
+    else:
+        roi_pct = None
+    return {
+        "benefice_net_total": _fdec(benefice),
+        "roi_moyen_pct": None if roi_pct is None else round(float(roi_pct), 2),
+        "total_recettes": _fdec(tot_rec),
+        "total_couts": _fdec(total_couts),
+    }
+
+
+def cockpit_finance_monthly_series(
+    roi_projets_qs, *, months: int = 12
+) -> dict[str, Any]:
+    """Série mensuelle recettes vs sorties cash (investissements + fiches dépense)."""
+    labels: list[str] = []
+    anchor = timezone.localdate()
+    y, mo = anchor.year, anchor.month
+    for _ in range(months):
+        labels.append(date(y, mo, 1).strftime("%Y-%m"))
+        mo -= 1
+        if mo == 0:
+            mo = 12
+            y -= 1
+    labels.reverse()
+    if not roi_projets_qs.exists():
+        return {"labels": labels, "recettes": [0.0] * len(labels), "depenses": [0.0] * len(labels)}
+
+    inv_expr = investissement_montant_expr()
+    rec_map: dict[str, float] = {}
+    exp_map: dict[str, float] = {}
+
+    rev_rows = (
+        Recette.objects.filter(projet__in=roi_projets_qs)
+        .annotate(m=TruncMonth("date_vente"))
+        .values("m")
+        .annotate(s=Coalesce(Sum("montant_total"), Value(Decimal("0"))))
+    )
+    for r in rev_rows:
+        k = _month_key(r["m"])
+        if k:
+            rec_map[k] = rec_map.get(k, 0.0) + _fdec(r["s"])
+
+    inv_rows = (
+        Investissement.objects.filter(projet__in=roi_projets_qs)
+        .annotate(m=TruncMonth("date_investissement"))
+        .values("m")
+        .annotate(s=Coalesce(Sum(inv_expr), Value(Decimal("0"))))
+    )
+    for r in inv_rows:
+        k = _month_key(r["m"])
+        if k:
+            exp_map[k] = exp_map.get(k, 0.0) + _fdec(r["s"])
+
+    dep_rows = (
+        Depense.objects.filter(projet__in=roi_projets_qs)
+        .annotate(m=TruncMonth("date_depense"))
+        .values("m")
+        .annotate(s=Coalesce(Sum("montant"), Value(Decimal("0"))))
+    )
+    for r in dep_rows:
+        k = _month_key(r["m"])
+        if k:
+            exp_map[k] = exp_map.get(k, 0.0) + _fdec(r["s"])
+
+    return {
+        "labels": labels,
+        "recettes": [rec_map.get(lab, 0.0) for lab in labels],
+        "depenses": [exp_map.get(lab, 0.0) for lab in labels],
+    }
+
+
+def cockpit_investissements_par_categorie(roi_projets_qs) -> dict[str, Any]:
+    """Montants CFA par catégorie de ligne Investissement."""
+    inv_expr = investissement_montant_expr()
+    if not roi_projets_qs.exists():
+        return {"labels": [], "values": []}
+
+    rows = list(
+        Investissement.objects.filter(projet__in=roi_projets_qs)
+        .values("categorie")
+        .annotate(s=Coalesce(Sum(inv_expr), Value(Decimal("0"))))
+        .order_by("-s")
+    )
+    legend = dict(Investissement.CATEGORIE_CHOICES)
+    labels = [legend.get(r["categorie"], r["categorie"] or "—") for r in rows]
+    values = [_fdec(r["s"]) for r in rows]
+    return {"labels": labels, "values": values}
+
+
+def cockpit_payload(projets_filtrés_qs, roi_projets_qs) -> dict[str, Any]:
+    """
+    Données cockpit (quick stats finance + série mensuelle + répartition catégories)
+    pour une portée projet identique au dashboard filté.
+    """
+    t_crit = count_taches_critiques_en_retard(projets_filtrés_qs)
+    if not roi_projets_qs.exists():
+        fm = cockpit_finance_monthly_series(roi_projets_qs)
+        return {
+            "quick_stats": {
+                "show_financial_kpis": False,
+                "benefice_net_total": None,
+                "roi_moyen_pct": None,
+                "taches_critiques_retard": t_crit,
+            },
+            "finance_monthly": fm,
+            "invest_by_category": {"labels": [], "values": []},
+        }
+
+    agg = cockpit_finance_aggregate(roi_projets_qs)
+    qs_block = {
+        "show_financial_kpis": True,
+        "benefice_net_total": agg["benefice_net_total"],
+        "roi_moyen_pct": agg["roi_moyen_pct"],
+        "taches_critiques_retard": t_crit,
+    }
+    return {
+        "quick_stats": qs_block,
+        "finance_monthly": cockpit_finance_monthly_series(roi_projets_qs),
+        "invest_by_category": cockpit_investissements_par_categorie(roi_projets_qs),
+    }
+
+
 def mobile_project_kpis_payload(
     projet: Projet, *, include_financial: bool = True
 ) -> dict[str, Any]:
@@ -254,8 +437,9 @@ def mobile_project_kpis_payload(
     Clés progression : ``taux_avancement``, ``progress_tasks_pct``, ``progress_time_pct``,
     ``has_project_tasks``, ``tasks_total``, ``tasks_done``, ``taux_avancement_source``
     (``calcule`` | ``personnalise``), et si personnalisé ``taux_avancement_calcule``.
-    Clés financières (null si ``include_financial`` est False) : recettes, dépenses,
-    investissements, coûts totaux, bénéfice net, ROI %.
+    Clés financières (null si ``include_financial`` est False) : recettes, dépenses
+    combinées, détail lignes hors matériel / fiches ``Depense``, investissements matériels,
+    coûts totaux, bénéfice net, ROI %.
     """
     out: dict[str, Any] = {**projet.avancement_pour_api()}
     if not include_financial:
@@ -263,6 +447,8 @@ def mobile_project_kpis_payload(
             {
                 "total_recettes": None,
                 "total_depenses": None,
+                "total_depenses_lignes_investissement": None,
+                "total_depenses_fiche_simple": None,
                 "total_investissements": None,
                 "total_couts": None,
                 "benefice_net": None,
@@ -276,6 +462,8 @@ def mobile_project_kpis_payload(
         {
             "total_recettes": _fdec(k["total_recettes"]),
             "total_depenses": _fdec(k["total_depenses"]),
+            "total_depenses_lignes_investissement": _fdec(k["total_depenses_lignes_investissement"]),
+            "total_depenses_fiche_simple": _fdec(k["total_depenses_fiche_simple"]),
             "total_investissements": _fdec(k["total_investissements"]),
             "total_couts": _fdec(k["total_couts"]),
             "benefice_net": _fdec(k["benefice_net"]),
@@ -304,6 +492,10 @@ def financial_kpis_by_project(projets_qs, limit: int = 20) -> list[dict[str, Any
                 "tasks_done": prog["tasks_done"],
                 "total_recettes": _fdec(kpis["total_recettes"]),
                 "total_depenses": _fdec(kpis["total_depenses"]),
+                "total_depenses_lignes_investissement": _fdec(
+                    kpis["total_depenses_lignes_investissement"]
+                ),
+                "total_depenses_fiche_simple": _fdec(kpis["total_depenses_fiche_simple"]),
                 "total_investissements": _fdec(kpis["total_investissements"]),
                 "total_couts": _fdec(kpis["total_couts"]),
                 "benefice_net": _fdec(kpis["benefice_net"]),

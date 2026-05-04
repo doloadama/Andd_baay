@@ -6,9 +6,11 @@ from .views import (
     api_projet_bulk_delete,
     api_projet_creer,
     api_projet_weather,
+    api_vocal_query,
     api_voice_command,
     ask_chatbot,
     dashboard_filters_api,
     dashboard_projets_api,
     dashboard_stats_api,
+    dashboard_weather_api,
 )

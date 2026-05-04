@@ -30,6 +30,7 @@ from .models import (
     Projet,
     ProjetProduit,
     Recette,
+    Region,
     Tache,
 )
 
@@ -46,6 +47,14 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
 @admin.register(Group)
 class GroupAdmin(DjangoGroupAdmin, ModelAdmin):
     """Interface groupes compatibles Unfold."""
+
+
+@admin.register(Region)
+class RegionAdmin(ModelAdmin):
+    list_display = ("nom", "pays", "code")
+    list_filter = (("pays", AutocompleteSelectFilter),)
+    search_fields = ("nom", "code", "pays__nom")
+    ordering = ("pays__nom", "nom")
 
 
 @admin.register(Pays)
@@ -72,11 +81,12 @@ class FermeAdmin(DashboardChangelistMixin, ModelAdmin):
     list_display = ("nom", "proprietaire", "code_acces", "date_creation")
     list_filter = [
         ("pays", AutocompleteSelectFilter),
+        ("region", AutocompleteSelectFilter),
         ("localite", AutocompleteSelectFilter),
     ]
     search_fields = ("nom", "code_acces", "proprietaire__user__username")
     ordering = ("-date_creation",)
-    list_select_related = ("proprietaire__user", "pays", "localite")
+    list_select_related = ("proprietaire__user", "pays", "region", "localite")
     list_filter_submit = True
 
 
@@ -125,9 +135,10 @@ class ProjetAdmin(DashboardChangelistMixin, ModelAdmin):
 
 @admin.register(Localite)
 class LocaliteAdmin(ModelAdmin):
-    list_display = ("nom", "pays", "type_sol")
+    list_display = ("nom", "pays", "region", "type_sol")
     list_filter = [
         ("pays", AutocompleteSelectFilter),
+        ("region", AutocompleteSelectFilter),
         ("type_sol", ChoicesDropdownFilter),
     ]
     search_fields = ("nom",)

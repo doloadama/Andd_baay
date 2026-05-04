@@ -30,6 +30,14 @@ class Ferme(models.Model):
     description = models.TextField(blank=True, null=True)
     proprietaire = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='fermes')
     pays = models.ForeignKey('Pays', on_delete=models.SET_NULL, null=True, blank=True)
+    region = models.ForeignKey(
+        "Region",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="fermes",
+        help_text="Division administrative (filtre performances / cartes).",
+    )
     localite = models.ForeignKey('Localite', on_delete=models.SET_NULL, null=True, blank=True)
     superficie_totale = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie totale de la ferme en hectares")
     latitude = models.FloatField(null=True, blank=True, help_text="Latitude GPS de la ferme")
@@ -44,7 +52,19 @@ class Ferme(models.Model):
     def __str__(self):
         return f"Ferme {self.nom} ({self.proprietaire.user.username})"
 
+    def clean(self):
+        super().clean()
+        if self.region_id and self.pays_id and self.region and self.region.pays_id != self.pays_id:
+            raise ValidationError({"region": "La région ne correspond pas au pays de la ferme."})
+        if self.localite_id and self.pays_id and self.localite and self.localite.pays_id and self.localite.pays_id != self.pays_id:
+            raise ValidationError({"localite": "La localité sélectionnée n'est pas dans le même pays que la ferme."})
+        if self.localite_id and self.region_id and self.localite and self.localite.region_id and self.localite.region_id != self.region_id:
+            raise ValidationError(
+                {"localite": "La localité doit appartenir à la même région que celle sélectionnée lorsque les deux sont renseignées."}
+            )
+
     def save(self, *args, **kwargs):
+        self.full_clean()
         if not self.code_acces:
             self.code_acces = self.generate_unique_code_acces(
                 exclude_pk=self.pk if self.pk else None
@@ -190,6 +210,31 @@ class Pays(models.Model):
     def __str__(self):
         return self.nom
 
+
+class Region(models.Model):
+    """Région / division administrative nationale (filtre géographique fin)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pays = models.ForeignKey(Pays, on_delete=models.CASCADE, related_name="regions")
+    nom = models.CharField(max_length=150)
+    code = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="Code officiel facultatif (ex. ISO subdivisions).",
+    )
+
+    class Meta:
+        verbose_name = "Région"
+        verbose_name_plural = "Régions"
+        ordering = ["pays__nom", "nom"]
+        constraints = [
+            models.UniqueConstraint(fields=["pays", "nom"], name="uniq_region_nom_par_pays"),
+        ]
+
+    def __str__(self):
+        return f"{self.nom} ({self.pays})"
+
+
 class Localite(models.Model):
     class TypeSol(models.TextChoices):
         DIOR = 'Dior', 'Dior'
@@ -200,6 +245,14 @@ class Localite(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     pays = models.ForeignKey(Pays, on_delete=models.CASCADE, null=True, blank=True, related_name='localites')
+    region = models.ForeignKey(
+        "Region",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="localites",
+        help_text="Rattache la localité pour des filtres cartographiques / agrégations régionales.",
+    )
     nom = models.CharField(max_length=100, unique=True)
     type_sol = models.CharField(max_length=50, choices=TypeSol.choices, null=True, blank=True)
     pluviometrie_moyenne = models.FloatField(null=True, blank=True, help_text="Pluviométrie moyenne annuelle/saisonnière (mm)")
@@ -208,11 +261,19 @@ class Localite(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
+    def clean(self):
+        super().clean()
+        if self.region_id and self.pays_id and self.region and self.region.pays_id != self.pays_id:
+            raise ValidationError(
+                {"region": "La région choisie n'appartient pas au même pays que la localité."}
+            )
+
     def __str__(self):
         return self.nom
-        
 
-
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class HistoriqueRendement(models.Model):
@@ -575,18 +636,17 @@ class ProjetProduit(models.Model):
             debut = _d(projet.date_lancement)
             fin = _d(projet.date_fin)
             if date_semis and debut:
-                if date_semis < debut:
+                if date_semis <= debut:
                     raise ValidationError(
                         {
-                            "date_semis": "La date de semis doit être postérieure ou égale à la date de début du projet "
-                            "(date de lancement), et comprise dans la plage du projet."
+                            "date_semis": "La date de semis doit être strictement postérieure à la date de début "
+                            "(lancement) du projet."
                         }
                     )
-                if fin and date_semis > fin:
+                if fin and date_semis >= fin:
                     raise ValidationError(
                         {
-                            "date_semis": "La date de semis doit être antérieure ou égale à la date de fin du projet, "
-                            "et comprise entre la date de début et la date de fin du projet."
+                            "date_semis": "La date de semis doit être strictement antérieure à la date de fin du projet."
                         }
                     )
             elif date_semis and not debut:
@@ -755,6 +815,11 @@ class Depense(models.Model):
     )
     date_depense = models.DateField(default=now)
     description = models.TextField(blank=True)
+    verrouille = models.BooleanField(
+        default=False,
+        help_text="Verrouillage après clôture comptable : la ligne ne peut plus être modifiée.",
+    )
+    date_verrouillage = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-date_depense", "-pk"]
@@ -773,6 +838,14 @@ class Depense(models.Model):
             raise ValidationError(
                 "Impossible d'ajouter ou de modifier une dépense : le projet est clôturé."
             )
+        if not self.pk:
+            return
+        ancienne = Depense.objects.filter(pk=self.pk).first()
+        if not ancienne or not ancienne.verrouille:
+            return
+        champs = ("projet_id", "libelle", "montant", "date_depense", "description")
+        if any(getattr(ancienne, ch) != getattr(self, ch) for ch in champs):
+            raise ValidationError("Cette dépense est verrouillée : modification interdite.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -786,6 +859,8 @@ class Depense(models.Model):
             raise ValidationError(
                 "Impossible de supprimer cette dépense : le projet est clôturé."
             )
+        if self.verrouille:
+            raise ValidationError("Impossible de supprimer cette dépense : ligne verrouillée.")
         return super().delete(*args, **kwargs)
 
 

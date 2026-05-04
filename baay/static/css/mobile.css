@@ -479,3 +479,36 @@
 @media (max-width: 991.98px) {
     body:has(.msg-conv-partial) .msg-fab { display: none !important; }
 }
+
+/* Dashboard cockpit — grandes zones tactiles terrain / PWA */
+@media (max-width: 991.98px) {
+    .cockpit-quick-strip .cockpit-qcard {
+        min-height: 108px;
+        padding: 1.05rem 1.15rem;
+    }
+    .cockpit-quick-strip .cq-value {
+        font-size: 1.68rem;
+    }
+    .dashboard-header-modern .cockpit-weather {
+        max-width: 100%;
+        width: 100%;
+        margin-top: 10px;
+        order: 3;
+        font-size: 0.92rem;
+        padding: 0.65rem 0.85rem;
+    }
+    .dashboard-header-modern.db-header-cockpit {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+    .dashboard-header-modern.db-header-cockpit .db-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .cockpit-voice-fab {
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        width: 60px;
+        height: 60px;
+    }
+}

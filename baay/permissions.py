@@ -229,7 +229,32 @@ def peut_voir_investissements_any(profile):
     ).exists()
 
 
-def peut_creer_tache(profile, ferme):
+def peut_voir_kpi_roi_projet(profile, projet) -> bool:
+    """
+    Données sensibles ROI / coûts complets : superuser ou staff Django, sinon propriétaire
+    de la ferme du projet (PAS manager invité hors propriété).
+
+    Cf. cloisonnement type « need-to-know » sur indicateurs financiers consolidés.
+    """
+    if profile is None or projet is None:
+        return False
+    user = getattr(profile, "user", None)
+    if user is not None and (user.is_superuser or user.is_staff):
+        return True
+    ferme_id = getattr(projet, "ferme_id", None)
+    if not ferme_id:
+        return False
+    return Ferme.objects.filter(pk=ferme_id, proprietaire=profile).exists()
+
+
+def projets_accessibles_kpi_roi_qs(profile, projets_qs):
+    """Sous-ensemble de projets autorisés pour agrégats finance (ROI, total investissement)."""
+    if profile is None:
+        return Projet.objects.none()
+    user = getattr(profile, "user", None)
+    if user is not None and (user.is_superuser or user.is_staff):
+        return projets_qs
+    return projets_qs.filter(ferme__proprietaire=profile)
     return bool(roles_assignables_par(role_dans_ferme(profile, ferme)))
 
 
