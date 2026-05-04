@@ -690,4 +690,67 @@ body.dark-mode .cockpit-project-gauge {
     .cockpit-chart-container {
         min-height: 260px;
     }
+
+    /* Header cockpit — lecture et tactique téléphone */
+    .cockpit-topbar {
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        gap: 12px;
+        border-radius: 18px;
+    }
+
+    .cockpit-topbar__main {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .cockpit-topbar__main h1 {
+        font-size: clamp(1.2rem, 5.2vw, 1.5rem);
+        word-break: break-word;
+        hyphens: auto;
+    }
+
+    .cockpit-topbar__meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 0.8rem;
+    }
+
+    .cockpit-topbar__meta span {
+        max-width: 100%;
+    }
+
+    .cockpit-grid {
+        gap: 12px;
+        margin-bottom: var(--space-8, 1.5rem);
+    }
+
+    .cockpit-grid > .tile-kpi {
+        min-height: 100px;
+        padding: 14px 14px 12px;
+    }
+
+    .cockpit-grid > .tile-kpi .tile-handle,
+    .cockpit-grid .bento-tile .tile-handle {
+        display: none;
+    }
+
+    .cockpit-grid > .tile-kpi .dash-stat-value {
+        font-size: clamp(1.05rem, 4vw, 1.35rem);
+    }
+
+    .cockpit-grid > .tile-kpi .dash-stat-label {
+        font-size: 0.7rem;
+    }
+
+    .cockpit-qcard .cq-kicker {
+        font-size: 0.65rem;
+    }
+
+    .cockpit-qcard .cq-hint {
+        font-size: 0.72rem;
+        line-height: 1.35;
+    }
 }
