@@ -578,6 +578,7 @@ class ProjetForm(forms.ModelForm):
             and user.is_authenticated
             and self.instance
             and getattr(self.instance, "pk", None)
+            and getattr(self.instance, "ferme_id", None)
             and peut_personnaliser_taux_avancement_projet(user.profile, self.instance)
         )
         if not can_set_av:

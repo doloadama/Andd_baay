@@ -187,7 +187,14 @@ def peut_personnaliser_taux_avancement_projet(profile, projet) -> bool:
         return True
     if user is not None and user.is_staff:
         return True
-    return role_dans_ferme(profile, projet.ferme) == ROLE_MANAGER
+    ferme_id = getattr(projet, "ferme_id", None)
+    if not ferme_id:
+        return False
+    try:
+        ferme = projet.ferme
+    except Projet.ferme.RelatedObjectDoesNotExist:
+        return False
+    return role_dans_ferme(profile, ferme) == ROLE_MANAGER
 
 
 def peut_modifier_budget_ferme(profile, ferme):
