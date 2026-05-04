@@ -228,11 +228,9 @@ CELERY_TASK_SOFT_TIME_LIMIT = int(os.getenv('CELERY_TASK_SOFT_TIME_LIMIT', '600'
 AXES_ENABLED = os.getenv('AXES_ENABLED', 'True').lower() in ('1', 'true', 'yes')
 AXES_FAILURE_LIMIT = int(os.getenv('AXES_FAILURE_LIMIT', '5'))
 AXES_COOLOFF_TIME = timedelta(minutes=int(os.getenv('AXES_COOLOFF_MINUTES', '15')))
-AXES_LOCKOUT_PARAMETERS = {
-    'username': True,
-    'ip_address': True,
-    'user_agent': True,
-}
+# Critères composés pour le suivi des tentatives (liste requise par django-axes 6+ ;
+# un groupe interne = AND sur ces champs pour une même entrée de suivi).
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address", "user_agent"]]
 AXES_ONLY_ADMIN_SITE = os.getenv('AXES_ONLY_ADMIN_SITE', 'False').lower() in ('1', 'true', 'yes')
 
 
