@@ -1429,39 +1429,59 @@ body.dark-mode .pd-meteo--fog-day {
 @media (max-width: 576px) {
     .pd-header {
         grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 16px 0 10px;
+        gap: 10px;
+        padding: 16px 0 12px;
+    }
+
+    /* Status badge on its own row, left-aligned */
+    .pd-status-badge {
+        justify-self: start;
+        align-self: start;
+        font-size: 0.72rem;
+        padding: 4px 10px;
+        margin-top: 0;
     }
 
     .pd-header__title {
-        font-size: clamp(1.3rem, 5vw, 1.6rem);
+        font-size: clamp(1.25rem, 5vw, 1.55rem);
         line-height: 1.15;
     }
 
     .pd-header__meta {
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
         font-size: 0.82rem;
     }
 
-    .pd-status-badge {
-        align-self: flex-start;
-        font-size: 0.75rem;
-        padding: 5px 10px;
+    .pd-header__meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .pd-actions {
-        gap: 6px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
         margin-bottom: 16px;
         padding-bottom: 12px;
     }
 
+    /* Dropdown takes full row */
+    .pd-actions .dropdown {
+        grid-column: 1 / -1;
+    }
+
+    .pd-actions .dropdown .pd-btn {
+        width: 100%;
+    }
+
     .pd-btn {
-        padding: 8px 12px;
-        font-size: 0.78rem;
-        min-height: 38px;
-        flex: 1 1 auto;
+        padding: 10px 12px;
+        font-size: 0.82rem;
+        min-height: 44px;
         justify-content: center;
+        flex: unset;
     }
 
     .pd-quick-strip {
@@ -1659,11 +1679,16 @@ body.dark-mode .pd-meteo--fog-day {
     }
 
     .pd-actions {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+
+    .pd-actions .dropdown {
+        grid-column: 1;
     }
 
     .pd-btn {
         width: 100%;
+        min-height: 44px;
     }
 }
 

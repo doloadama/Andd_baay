@@ -3,7 +3,7 @@
  * Strategy: stale-while-revalidate for static assets,
  *            network-first for HTML pages.
  */
-const CACHE_NAME = 'andd-baay-v4';
+const CACHE_NAME = 'andd-baay-v5';
 
 /** Toujours mis en cache (page hors ligne + PWA). */
 const PRECACHE_CRITICAL = [
@@ -19,8 +19,16 @@ const PRECACHE_CRITICAL = [
 const PRECACHE_OPTIONAL = [
   '/static/css/base.css',
   '/static/css/dashboard.css',
+  '/static/css/dashboard_cockpit.css',
   '/static/css/projects.css',
+  '/static/css/projet-detail-modern.css',
   '/static/css/mobile.css',
+  '/static/css/mobile-agri-pages.css',
+  '/static/css/finance_hub_ft.css',
+  '/static/css/semis-cards.css',
+  '/static/css/messagerie-conversation.css',
+  '/static/css/messagerie-drawer.css',
+  '/static/css/home.css',
   '/static/js/base.js',
   '/static/js/main.js',
   '/static/js/pjax.js',
@@ -31,7 +39,7 @@ const PRECACHE_OPTIONAL = [
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap',
 ];
 
 const OFFLINE_PAGE = '/offline/';

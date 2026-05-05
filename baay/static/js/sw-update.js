@@ -22,7 +22,7 @@
       <span style="font-size:1.1rem">🔄</span>
       <span style="flex:1">Nouvelle version disponible.</span>
       <button id="sw-update-btn" style="
-        background:var(--accent);color:#0f172a;border:none;
+        background:var(--accent);color:#ffffff;border:none;
         border-radius:8px;padding:6px 14px;font-weight:600;
         font-size:0.82rem;cursor:pointer;white-space:nowrap;
       ">Mettre à jour</button>
