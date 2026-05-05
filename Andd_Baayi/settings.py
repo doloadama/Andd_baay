@@ -25,6 +25,43 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 
+# ── Cloudinary (médias : CLOUDINARY_URL requis pour le stockage distant) ──
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "").strip()
+CLOUDINARY_MEDIA_PREFIX = (
+    os.getenv("CLOUDINARY_MEDIA_PREFIX", "").strip()
+    or ("prod" if os.getenv("ENV", "").lower() == "production" else "dev")
+)
+
+_srcset_w = os.getenv("CLOUDINARY_SRCSET_WIDTHS", "320,480,640,960").strip()
+CLOUDINARY_SRCSET_WIDTHS = tuple(
+    int(x.strip()) for x in _srcset_w.split(",") if x.strip().isdigit()
+)
+if not CLOUDINARY_SRCSET_WIDTHS:
+    CLOUDINARY_SRCSET_WIDTHS = (320, 480, 640, 960)
+
+
+def _parse_cloudinary_url(url: str) -> dict:
+    """cloudinary://API_KEY:API_SECRET@CLOUD_NAME"""
+    from urllib.parse import unquote, urlparse
+
+    cleaned = url.replace("cloudinary://", "https://", 1)
+    parsed = urlparse(cleaned)
+    key = unquote(parsed.username or "")
+    secret = unquote(parsed.password or "")
+    cloud = (parsed.hostname or "").split("/")[0]
+    if not all([key, secret, cloud]):
+        raise ValueError("CLOUDINARY_URL invalide (cloudinary://API_KEY:API_SECRET@CLOUD_NAME)")
+    return {"API_KEY": key, "API_SECRET": secret, "CLOUD_NAME": cloud}
+
+
+CLOUDINARY_ACTIVE = bool(CLOUDINARY_URL)
+_CLOUDINARY_PARSED = None
+if CLOUDINARY_ACTIVE:
+    try:
+        _CLOUDINARY_PARSED = _parse_cloudinary_url(CLOUDINARY_URL)
+    except ValueError as e:
+        raise ValueError(f"Configuration Cloudinary : {e}") from e
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -79,6 +116,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'baay.apps.BaayConfig',
     'rest_framework',
     'rest_framework.authtoken',
@@ -405,6 +444,16 @@ else:
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'baay/static/media')
+
+if CLOUDINARY_ACTIVE and _CLOUDINARY_PARSED:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': _CLOUDINARY_PARSED['CLOUD_NAME'],
+        'API_KEY': _CLOUDINARY_PARSED['API_KEY'],
+        'API_SECRET': _CLOUDINARY_PARSED['API_SECRET'],
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 
 # Environnement d'exécution affiché dans l'admin Unfold (badge + préfixe title).

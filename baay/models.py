@@ -10,6 +10,11 @@ import uuid
 import secrets
 import string
 
+from cloudinary.models import CloudinaryField
+
+from baay.cloudinary_paths import cloudinary_media_folder
+
+
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -42,6 +47,20 @@ class Ferme(models.Model):
     superficie_totale = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Superficie totale de la ferme en hectares")
     latitude = models.FloatField(null=True, blank=True, help_text="Latitude GPS de la ferme")
     longitude = models.FloatField(null=True, blank=True, help_text="Longitude GPS de la ferme")
+    image_couverture = CloudinaryField(
+        "image_couverture",
+        null=True,
+        blank=True,
+        folder=cloudinary_media_folder("fermes"),
+        help_text="Photo principale / vue de la ferme",
+    )
+    image_infrastructure = CloudinaryField(
+        "image_infrastructure",
+        null=True,
+        blank=True,
+        folder=cloudinary_media_folder("fermes/infrastructures"),
+        help_text="Photo des infrastructures ou équipements (optionnel)",
+    )
     code_acces = models.CharField(max_length=12, unique=True, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
@@ -102,6 +121,13 @@ class MembreFerme(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ouvrier')
     peut_gerer_membres = models.BooleanField(default=False)
     date_ajout = models.DateTimeField(auto_now_add=True)
+    photo_profil = CloudinaryField(
+        "photo_profil",
+        null=True,
+        blank=True,
+        folder=cloudinary_media_folder("profils"),
+        help_text="Photo du collaborateur (membre de la ferme)",
+    )
 
     class Meta:
         unique_together = ('ferme', 'utilisateur')
@@ -192,7 +218,7 @@ class ProduitAgricole(models.Model):
 class PhotoProduitAgricole(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     produit = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, related_name='photos')
-    image = models.ImageField(upload_to='produits_photos/')
+    image = CloudinaryField("image", folder=cloudinary_media_folder("produits/catalogue"))
     description = models.TextField(blank=True, null=True)
 
     date_ajout = models.DateTimeField(auto_now_add=True)
@@ -358,7 +384,13 @@ class Projet(models.Model):
     )
     
     # Image de fond du projet
-    image_fond = models.ImageField(upload_to='projets_fonds/', null=True, blank=True, help_text="Image de couverture du projet (optionnelle)")
+    image_fond = CloudinaryField(
+        "image_fond",
+        null=True,
+        blank=True,
+        folder=cloudinary_media_folder("projets/couvertures"),
+        help_text="Image de couverture du projet (optionnelle)",
+    )
     
     # Pratiques Agronomiques (optionnel côté saisie ; défauts si non renseigné)
     type_irrigation = models.CharField(
@@ -581,7 +613,13 @@ class ProjetProduit(models.Model):
     date_recolte_prevue = models.DateField(null=True, blank=True, help_text="Date de recolte prevue")
 
     # Current state
-    image = models.ImageField(upload_to='plants_photos/', null=True, blank=True, help_text="Photo du plant")
+    image = CloudinaryField(
+        "image",
+        null=True,
+        blank=True,
+        folder=cloudinary_media_folder("projets/plants"),
+        help_text="Photo du plant",
+    )
     age_plant = models.IntegerField(null=True, blank=True, help_text="Age du plant (ex: en jours)")
     
     # Harvest data (filled when project is finished)
@@ -726,6 +764,14 @@ class Investissement(models.Model):
     cout_par_hectare = models.DecimalField(max_digits=10, decimal_places=2)
     autres_frais = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     date_investissement = models.DateField(default=now)
+    piece_justificative = CloudinaryField(
+        "piece_justificative",
+        null=True,
+        blank=True,
+        resource_type="auto",
+        folder=cloudinary_media_folder("finance/investissements"),
+        help_text="Justificatif (scan photo ou PDF — optimisé côté Cloudinary pour images)",
+    )
     verrouille = models.BooleanField(default=False, help_text="Bloque la modification apres cloture du projet.")
     date_verrouillage = models.DateTimeField(null=True, blank=True)
 
@@ -777,6 +823,7 @@ class Investissement(models.Model):
             "cout_par_hectare",
             "autres_frais",
             "date_investissement",
+            "piece_justificative",
         )
         if any(getattr(ancien, champ) != getattr(self, champ) for champ in champs_financiers):
             raise ValidationError(
@@ -815,6 +862,14 @@ class Depense(models.Model):
     )
     date_depense = models.DateField(default=now)
     description = models.TextField(blank=True)
+    justificatif = CloudinaryField(
+        "justificatif",
+        null=True,
+        blank=True,
+        resource_type="auto",
+        folder=cloudinary_media_folder("finance/depenses"),
+        help_text="Justificatif (photo / scan — léger pour le mobile)",
+    )
     verrouille = models.BooleanField(
         default=False,
         help_text="Verrouillage après clôture comptable : la ligne ne peut plus être modifiée.",
@@ -843,7 +898,7 @@ class Depense(models.Model):
         ancienne = Depense.objects.filter(pk=self.pk).first()
         if not ancienne or not ancienne.verrouille:
             return
-        champs = ("projet_id", "libelle", "montant", "date_depense", "description")
+        champs = ("projet_id", "libelle", "montant", "date_depense", "description", "justificatif")
         if any(getattr(ancienne, ch) != getattr(self, ch) for ch in champs):
             raise ValidationError("Cette dépense est verrouillée : modification interdite.")
 
@@ -890,6 +945,14 @@ class Recette(models.Model):
     prix_unitaire = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])
     montant_total = models.DecimalField(max_digits=18, decimal_places=2, editable=False)
     date_vente = models.DateField(default=now)
+    justificatif_facture = CloudinaryField(
+        "justificatif_facture",
+        null=True,
+        blank=True,
+        resource_type="auto",
+        folder=cloudinary_media_folder("finance/recettes"),
+        help_text="Justificatif de vente (facture ou photo pesée)",
+    )
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
@@ -1044,7 +1107,14 @@ class Message(models.Model):
     date_envoi = models.DateTimeField(auto_now_add=True)
     client_message_id = models.UUIDField(null=True, blank=True, db_index=True)
     lu_par = models.ManyToManyField(Profile, related_name='messages_lus', blank=True)
-    piece_jointe = models.FileField(upload_to='messages/%Y/%m/', blank=True, null=True)
+    piece_jointe = CloudinaryField(
+        "piece_jointe",
+        blank=True,
+        null=True,
+        resource_type="auto",
+        folder=cloudinary_media_folder("messagerie/pieces_jointes"),
+        help_text="Pièce jointe (photo optimisée ou document)",
+    )
     reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='reponses')
 
     class Meta:

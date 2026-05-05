@@ -7,5 +7,6 @@ class BaayConfig(AppConfig):
 
     def ready(self):
         import baay.signals
+        import baay.signals_cloudinary  # noqa: F401
 
 

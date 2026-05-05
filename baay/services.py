@@ -627,3 +627,152 @@ def _notify_demande_acces_user(demande: DemandeAccesFerme, statut: str) -> None:
         )
     except Exception:
         logger.warning("Email recrutement non envoye a %s", email, exc_info=True)
+
+
+# =====================
+# Médias Cloudinary — livraison optimisée (mobile / faible bande passante)
+# =====================
+
+
+class CloudinaryPreset:
+    """Noms usuels pour `cloudinary_sahara_url` / gabarits HTML."""
+
+    THUMB = "thumb"
+    LIST = "list"
+    DASHBOARD = "dashboard"
+    DETAIL = "detail"
+    REPORT = "report"
+
+
+_SAHARA_IMAGE_PRESETS = {
+    CloudinaryPreset.THUMB: {
+        "width": 280,
+        "height": 280,
+        "crop": "fill",
+        "gravity": "auto",
+        "fetch_format": "auto",
+        "quality": "auto",
+    },
+    CloudinaryPreset.LIST: {
+        "width": 480,
+        "height": 480,
+        "crop": "limit",
+        "fetch_format": "auto",
+        "quality": "auto",
+    },
+    CloudinaryPreset.DASHBOARD: {
+        "width": 768,
+        "height": 432,
+        "crop": "limit",
+        "fetch_format": "auto",
+        "quality": "auto",
+    },
+    CloudinaryPreset.DETAIL: {
+        "width": 1280,
+        "height": 1280,
+        "crop": "limit",
+        "fetch_format": "auto",
+        "quality": "auto",
+    },
+    CloudinaryPreset.REPORT: {
+        "width": 2000,
+        "height": 2000,
+        "crop": "limit",
+        "fetch_format": "auto",
+        "quality": "auto",
+    },
+}
+
+
+def cloudinary_direct_url(media_value) -> str:
+    """URL de livraison par défaut (sans transformation catalogue)."""
+    if not media_value:
+        return ""
+    try:
+        u = getattr(media_value, "url", None)
+        if u:
+            return u
+    except Exception:
+        pass
+    raw = getattr(media_value, "name", None) or str(media_value)
+    return raw.strip() if raw else ""
+
+
+def cloudinary_sahara_url(
+    media_value,
+    preset: str = CloudinaryPreset.LIST,
+    *,
+    dpr_auto: bool = True,
+) -> str:
+    """
+    URL avec f_auto et q_auto (via options Cloudinary).
+    Pour les fichiers ``resource_type=raw`` (PDF…) : fallback sur l’URL directe sans transformation image.
+    """
+    if not media_value:
+        return ""
+
+    try:
+        from baay.cloudinary_helpers import public_id_and_type as _pid_rt
+        from django.conf import settings as dj_settings
+
+        from cloudinary import utils as cu
+    except Exception:
+        return cloudinary_direct_url(media_value)
+
+    if not getattr(dj_settings, "CLOUDINARY_ACTIVE", False):
+        return cloudinary_direct_url(media_value)
+
+    pid, rt = _pid_rt(media_value)
+    if not pid:
+        return cloudinary_direct_url(media_value)
+
+    if rt != "image":
+        return cloudinary_direct_url(media_value)
+
+    transforms = dict(_SAHARA_IMAGE_PRESETS.get(preset, _SAHARA_IMAGE_PRESETS[CloudinaryPreset.LIST]))
+    if dpr_auto:
+        transforms.setdefault("dpr", "auto")
+    kw = dict(transforms)
+    kw["secure"] = True
+    try:
+        url, _unused = cu.cloudinary_url(pid, **kw)
+        return url or cloudinary_direct_url(media_value)
+    except Exception:
+        return cloudinary_direct_url(media_value)
+
+
+def cloudinary_img_lazy_attrs(media_value, preset: str = CloudinaryPreset.LIST, *, alt: str = ""):
+    """
+    Attributs HTML conseillés pour chargement différé (dashboard mobile).
+    Exemple gabarit : ``<img {...|cloudinary_img_lazy_attrs:pp.image,'thumb',alt='Plant'} />``
+    (avec un filtre custom ou en Python : ``attr=cloudinary_img_lazy_attrs(...)`` puis spread).
+    """
+    src = cloudinary_sahara_url(media_value, preset=preset)
+    attrs = {"src": src, "loading": "lazy", "decoding": "async", "alt": alt}
+    widths = []
+    sizes = getattr(settings, "CLOUDINARY_SRCSET_WIDTHS", (320, 480, 640, 960))
+    try:
+        from baay.cloudinary_helpers import public_id_and_type as _pid_rt
+        from django.conf import settings as dj_settings
+        from cloudinary import utils as cu
+
+        if getattr(dj_settings, "CLOUDINARY_ACTIVE", False):
+            pid, rt = _pid_rt(media_value)
+            if pid and rt == "image":
+                for w in sizes:
+                    u, _x = cu.cloudinary_url(
+                        pid,
+                        secure=True,
+                        width=w,
+                        crop="limit",
+                        fetch_format="auto",
+                        quality="auto",
+                    )
+                    if u:
+                        widths.append((u, w))
+    except Exception:
+        widths = []
+    if widths:
+        attrs["srcset"] = ", ".join(f"{u} {w}w" for u, w in widths)
+        attrs["sizes"] = "(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+    return attrs

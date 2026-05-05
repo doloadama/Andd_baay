@@ -8,6 +8,8 @@ python-dotenv>=1.0.0
 whitenoise>=6.6.0
 # Pillow for ImageField - using minimal version
 pillow>=10.0.0
+cloudinary>=1.41.2
+django-cloudinary-storage>=0.3.0
 gunicorn>=22.0.0
 psycopg[binary]>=3.2.0
 dj-database-url>=2.2.0

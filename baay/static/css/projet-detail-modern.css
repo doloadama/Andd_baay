@@ -1425,31 +1425,244 @@ body.dark-mode .pd-meteo--fog-day {
     margin-bottom: 16px;
 }
 
-/* ─── Mobile actions ─── */
+/* ─── Mobile alignment fixes ─── */
 @media (max-width: 576px) {
     .pd-header {
         grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px 0 10px;
+    }
+
+    .pd-header__title {
+        font-size: clamp(1.3rem, 5vw, 1.6rem);
+        line-height: 1.15;
+    }
+
+    .pd-header__meta {
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.82rem;
+    }
+
+    .pd-status-badge {
+        align-self: flex-start;
+        font-size: 0.75rem;
+        padding: 5px 10px;
     }
 
     .pd-actions {
         gap: 6px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
     }
 
     .pd-btn {
         padding: 8px 12px;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
+        min-height: 38px;
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .pd-quick-strip {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .pd-qstat {
+        padding: 12px 10px;
+        gap: 8px;
+    }
+
+    .pd-qstat__icon {
+        width: 34px;
+        height: 34px;
+        font-size: 0.85rem;
+    }
+
+    .pd-qstat__value {
+        font-size: 0.95rem;
+    }
+
+    .pd-qstat__hint {
+        font-size: 0.6rem;
     }
 
     .pd-section {
-        padding: 18px 16px;
-        border-radius: 16px;
+        padding: 16px 14px;
+        border-radius: 14px;
+        margin-bottom: 16px;
+    }
+
+    .pd-section__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .pd-section__title {
+        font-size: 1rem;
+    }
+
+    .pd-products-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .pd-product-card__header {
+        padding: 14px 14px 10px;
+    }
+
+    .pd-product-card__name {
+        font-size: 1rem;
+    }
+
+    .pd-product-card__body {
+        padding: 12px 14px;
+    }
+
+    .pd-product-stats {
+        gap: 8px;
+    }
+
+    .pd-product-stat {
+        padding: 10px 8px;
+    }
+
+    .pd-product-stat__value {
+        font-size: 0.95rem;
     }
 
     .pd-product-card__footer {
         flex-direction: column;
+        gap: 6px;
+        padding: 10px 14px;
     }
 
     .pd-product-btn {
+        width: 100%;
+        padding: 8px 10px;
+    }
+
+    .pd-products-summary {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 14px;
+        font-size: 0.85rem;
+    }
+
+    /* Photos carousel mobile */
+    .pd-carousel-img {
+        height: 200px;
+    }
+
+    /* Context grid - stack on mobile */
+    .pd-context-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Prediction panel mobile */
+    .pd-prediction-panel {
+        padding: 16px 14px;
+    }
+
+    .pd-prediction-panel__grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .pd-prediction-yield__nums {
+        font-size: clamp(1.5rem, 6vw, 1.9rem);
+    }
+
+    .pd-prediction-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .pd-prediction-conf,
+    .pd-prediction-date {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .pd-prediction-donut {
+        width: 56px;
+        height: 56px;
+    }
+
+    .pd-prediction-donut__inner {
+        width: 44px;
+        height: 44px;
+        font-size: 0.65rem;
+    }
+
+    .pd-prediction-aside {
+        padding: 12px;
+    }
+
+    .pd-prediction-aside__chart {
+        height: 100px;
+    }
+
+    .pd-prediction-aside__chart canvas {
+        height: 100px !important;
+    }
+
+    /* Invest table mobile */
+    .pd-invest-mobile__card {
+        padding: 12px;
+    }
+
+    .pd-invest-mobile__row {
+        font-size: 0.8rem;
+    }
+
+    .pd-invest-chart-wrap {
+        height: 220px;
+        min-height: 200px;
+    }
+
+    /* Map mobile */
+    .pd-map-wrap {
+        height: 180px;
+    }
+
+    /* Empty states */
+    .pd-empty {
+        padding: 32px 16px;
+    }
+
+    .pd-empty i {
+        font-size: 2rem;
+    }
+
+    /* Dropdown mobile */
+    .pd-dropdown-menu {
+        --bs-dropdown-min-width: 10rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    .pd-quick-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .pd-qstat {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+    }
+
+    .pd-actions {
+        flex-direction: column;
+    }
+
+    .pd-btn {
         width: 100%;
     }
 }
