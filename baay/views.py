@@ -63,6 +63,7 @@ from baay.messaging_contract import (
     build_read_receipt_event_v1,
     build_unread_count_event_v1,
 )
+from baay.services import CloudinaryPreset, cloudinary_img_lazy_attrs, cloudinary_sahara_url
 from baay.models import (
     Profile,
     Projet,
@@ -1036,8 +1037,15 @@ def detail_projet(request, projet_id):
     plant_photos = []
     for pp in projet_produits:
         if pp.image:
+            attrs = cloudinary_img_lazy_attrs(
+                pp.image,
+                preset=CloudinaryPreset.DETAIL,
+                alt=pp.produit.nom,
+            )
             plant_photos.append({
-                'url': pp.image.url,
+                'url': attrs.get("src") or cloudinary_sahara_url(pp.image, preset=CloudinaryPreset.DETAIL),
+                'srcset': attrs.get("srcset", ""),
+                'sizes': attrs.get("sizes", ""),
                 'title': pp.produit.nom,
                 'subtitle': f"Age: {pp.age_plant} jours" if pp.age_plant else ""
             })
@@ -1045,8 +1053,15 @@ def detail_projet(request, projet_id):
     if projet.culture:
         for photo in projet.culture.photos.all():
             try:
+                attrs = cloudinary_img_lazy_attrs(
+                    photo.image,
+                    preset=CloudinaryPreset.DETAIL,
+                    alt=projet.culture.nom,
+                )
                 plant_photos.append({
-                    'url': photo.image.url,
+                    'url': attrs.get("src") or cloudinary_sahara_url(photo.image, preset=CloudinaryPreset.DETAIL),
+                    'srcset': attrs.get("srcset", ""),
+                    'sizes': attrs.get("sizes", ""),
                     'title': projet.culture.nom,
                     'subtitle': photo.description or ""
                 })

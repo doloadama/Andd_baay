@@ -11,7 +11,8 @@
     --pd-terre: #78350f;
     --pd-paper: #f8fafc;
     --pd-ink: #0f172a;
-    padding-bottom: 48px;
+    /* Keep content above mobile bottom-nav (see mobile.css: body padding-bottom: 84px) */
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ─── Header cockpit compact ─── */
@@ -488,6 +489,12 @@
     height: 280px;
     object-fit: cover;
     width: 100%;
+}
+
+@media (max-width: 576px) {
+    .pd-carousel-img {
+        height: 220px;
+    }
 }
 
 @media (min-width: 768px) {
@@ -1400,6 +1407,7 @@ body.dark-mode .pd-meteo--fog-day {
     border-radius: 14px;
     overflow: hidden;
     height: 200px;
+    background: linear-gradient(180deg, rgba(29, 158, 117, 0.08), rgba(15, 23, 42, 0.02));
 }
 
 /* ─── Empty states ─── */

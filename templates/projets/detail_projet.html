@@ -211,7 +211,15 @@
             <div class="carousel-inner">
                 {% for photo in plant_photos %}
                 <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                    <img src="{{ photo.url }}" alt="{{ photo.title }}" class="d-block w-100 pd-carousel-img" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    <img
+                        src="{{ photo.url }}"
+                        {% if photo.srcset %}srcset="{{ photo.srcset }}"{% endif %}
+                        {% if photo.sizes %}sizes="{{ photo.sizes }}"{% endif %}
+                        alt="{{ photo.title }}"
+                        class="d-block w-100 pd-carousel-img"
+                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                        decoding="async"
+                    >
                 </div>
                 {% endfor %}
             </div>
@@ -435,9 +443,17 @@
         var latitude = {{ map_latitude }};
         var longitude = {{ map_longitude }};
 
-        var map = L.map('map').setView([latitude, longitude], 13);
+        var isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+        var map = L.map('map', {
+            preferCanvas: true,
+            zoomControl: !isMobile,
+            scrollWheelZoom: false,
+            tap: true,
+        }).setView([latitude, longitude], isMobile ? 12 : 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            updateWhenIdle: true,
+            keepBuffer: isMobile ? 2 : 4,
         }).addTo(map);
 
         var marker = L.marker([latitude, longitude]).addTo(map);
@@ -519,115 +535,144 @@
     });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        {% if can_view_investissements %}
-        var investmentLabels = [{% for inv in investissements %}"{{ inv.libelle_affichage|escapejs }}",{% endfor %}];
-        var investmentData = [{% for inv in investissements %}{{ inv.calculer_investissement_total|unlocalize }},{% endfor %}];
-        {% else %}
-        var investmentLabels = [];
-        var investmentData = [];
-        {% endif %}
+    (function () {
+        function loadChartJs(cb) {
+            if (window.Chart) {
+                cb();
+                return;
+            }
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            s.async = true;
+            s.onload = cb;
+            document.head.appendChild(s);
+        }
 
-        if (investmentLabels.length > 0) {
-            const chartEl = document.getElementById('investmentChart');
-            if (chartEl) {
-            const isDark = document.body.classList.contains('dark-mode');
-            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-
-            var ctx = chartEl.getContext('2d');
-            const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient1.addColorStop(0, 'rgba(29, 158, 117, 0.7)');
-            gradient1.addColorStop(1, 'rgba(29, 158, 117, 0.1)');
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: investmentLabels,
-                    datasets: [{
-                        label: 'Montant ligne (FCFA)',
-                        data: investmentData,
-                        backgroundColor: gradient1,
-                        borderColor: '#1D9E75',
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        barPercentage: 0.5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(22, 27, 19, 0.95)',
-                            titleColor: '#5DCAA5',
-                            bodyColor: '#e2e8f0',
-                            cornerRadius: 10,
-                            padding: 12
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: gridColor },
-                            ticks: { color: textColor }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: textColor }
-                        }
-                    }
-                }
-            });
+        function idle(fn) {
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(fn, { timeout: 1500 });
+            } else {
+                setTimeout(fn, 250);
             }
         }
 
-        // Growth Curve Chart (Predictive S-Curve)
-        const growthCtx = document.getElementById('growthCurveChart');
-        if (growthCtx) {
-            const gCtx = growthCtx.getContext('2d');
-            const totalDays = 90;
-            const labels = Array.from({length: 10}, (_, i) => Math.round(i * (totalDays / 9)));
-            const sigmoid = (x) => 1 / (1 + Math.exp(-0.7 * (x - 5)));
-            const dataPoints = labels.map((_, i) => sigmoid(i) * 100);
+        function initCharts() {
+            var chartEl = document.getElementById('investmentChart');
+            var growthEl = document.getElementById('growthCurveChart');
+            if (!chartEl && !growthEl) return;
 
-            const gradient = gCtx.createLinearGradient(0, 0, 0, 100);
-            gradient.addColorStop(0, 'rgba(29, 158, 117, 0.35)');
-            gradient.addColorStop(1, 'rgba(29, 158, 117, 0)');
+            loadChartJs(function () {
+                // Investment chart — desktop only (table + chart are hidden on mobile)
+                if (chartEl && window.matchMedia && window.matchMedia('(min-width: 992px)').matches) {
+                    {% if can_view_investissements %}
+                    var investmentLabels = [{% for inv in investissements %}"{{ inv.libelle_affichage|escapejs }}",{% endfor %}];
+                    var investmentData = [{% for inv in investissements %}{{ inv.calculer_investissement_total|unlocalize }},{% endfor %}];
+                    {% else %}
+                    var investmentLabels = [];
+                    var investmentData = [];
+                    {% endif %}
 
-            new Chart(gCtx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Croissance (%)',
-                        data: dataPoints,
-                        borderColor: '#1D9E75',
-                        borderWidth: 2.5,
-                        pointRadius: 0,
-                        fill: true,
-                        backgroundColor: gradient,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { display: false, min: 0, max: 110 },
-                        x: { display: false }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
+                    if (investmentLabels.length > 0) {
+                        const isDark = document.body.classList.contains('dark-mode');
+                        const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+                        const textColor = isDark ? '#94a3b8' : '#64748b';
+                        var ctx = chartEl.getContext('2d');
+                        const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient1.addColorStop(0, 'rgba(29, 158, 117, 0.7)');
+                        gradient1.addColorStop(1, 'rgba(29, 158, 117, 0.1)');
+
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: investmentLabels,
+                                datasets: [{
+                                    label: 'Montant ligne (FCFA)',
+                                    data: investmentData,
+                                    backgroundColor: gradient1,
+                                    borderColor: '#1D9E75',
+                                    borderWidth: 1,
+                                    borderRadius: 6,
+                                    barPercentage: 0.5
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
+                                        titleColor: '#5DCAA5',
+                                        bodyColor: '#e2e8f0',
+                                        cornerRadius: 10,
+                                        padding: 12
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: gridColor },
+                                        ticks: { color: textColor }
+                                    },
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { color: textColor }
+                                    }
+                                }
+                            }
+                        });
                     }
+                }
+
+                // Growth curve — lightweight, ok on mobile but deferred
+                if (growthEl) {
+                    const gCtx = growthEl.getContext('2d');
+                    const totalDays = 90;
+                    const labels = Array.from({length: 10}, (_, i) => Math.round(i * (totalDays / 9)));
+                    const sigmoid = (x) => 1 / (1 + Math.exp(-0.7 * (x - 5)));
+                    const dataPoints = labels.map((_, i) => sigmoid(i) * 100);
+
+                    const gradient = gCtx.createLinearGradient(0, 0, 0, 100);
+                    gradient.addColorStop(0, 'rgba(29, 158, 117, 0.35)');
+                    gradient.addColorStop(1, 'rgba(29, 158, 117, 0)');
+
+                    new Chart(gCtx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Croissance (%)',
+                                data: dataPoints,
+                                borderColor: '#1D9E75',
+                                borderWidth: 2.5,
+                                pointRadius: 0,
+                                fill: true,
+                                backgroundColor: gradient,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { display: false, min: 0, max: 110 },
+                                x: { display: false }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { enabled: false }
+                            }
+                        }
+                    });
                 }
             });
         }
-    });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            idle(initCharts);
+        });
+    })();
 
     // Initialize Tooltips
     document.addEventListener('DOMContentLoaded', function () {
