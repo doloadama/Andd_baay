@@ -922,6 +922,12 @@ def supprimer_projets(request):
 def ajouter_investissement(request, projet_id):
     # Vérifier que le projet appartient à l'utilisateur connecté
     projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
+    if projet.statut == Projet.STATUT_CLOTURE:
+        messages.error(
+            request,
+            "Impossible d'ajouter un investissement : le projet est clôturé.",
+        )
+        return redirect('detail_projet', projet_id=projet.id)
     if not peut_modifier_investissement(request.user.profile, projet):
         messages.error(
             request,

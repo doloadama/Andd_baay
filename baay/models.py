@@ -662,9 +662,9 @@ class ProjetProduit(models.Model):
                 return None
             return parse_date(value) if isinstance(value, str) else value
 
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).first() if self.projet_id else None
+        )
 
         date_semis = _d(self.date_semis)
         date_recolte_prevue = _d(self.date_recolte_prevue)
@@ -802,9 +802,11 @@ class Investissement(models.Model):
 
     def clean(self):
         super().clean()
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).only("statut").first()
+            if self.projet_id
+            else None
+        )
         if projet and projet.statut == Projet.STATUT_CLOTURE:
             raise ValidationError(
                 "Impossible d'ajouter ou de modifier un investissement : le projet est clôturé."
@@ -835,9 +837,11 @@ class Investissement(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).only("statut").first()
+            if self.projet_id
+            else None
+        )
         if projet and projet.statut == Projet.STATUT_CLOTURE:
             raise ValidationError(
                 "Impossible de supprimer cet investissement : le projet est clôturé."
@@ -886,9 +890,11 @@ class Depense(models.Model):
 
     def clean(self):
         super().clean()
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).only("statut").first()
+            if self.projet_id
+            else None
+        )
         if projet and projet.statut == Projet.STATUT_CLOTURE:
             raise ValidationError(
                 "Impossible d'ajouter ou de modifier une dépense : le projet est clôturé."
@@ -907,9 +913,11 @@ class Depense(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).only("statut").first()
+            if self.projet_id
+            else None
+        )
         if projet and projet.statut == Projet.STATUT_CLOTURE:
             raise ValidationError(
                 "Impossible de supprimer cette dépense : le projet est clôturé."
@@ -970,9 +978,11 @@ class Recette(models.Model):
         if not self.produit and self.projet_produit_id:
             self.produit = self.projet_produit.produit.nom
 
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).only("statut").first()
+            if self.projet_id
+            else None
+        )
         if projet and projet.statut == Projet.STATUT_CLOTURE:
             raise ValidationError(
                 "Impossible d'ajouter ou de modifier une recette : le projet est clôturé."
@@ -988,14 +998,17 @@ class Recette(models.Model):
         return f"Recette {produit} - {self.montant_total} FCFA"
 
     def delete(self, *args, **kwargs):
-        projet = self.projet
-        if projet is None and self.projet_id:
-            projet = Projet.objects.filter(pk=self.projet_id).only("statut").first()
+        projet = (
+            Projet.objects.filter(pk=self.projet_id).only("statut").first()
+            if self.projet_id
+            else None
+        )
         if projet and projet.statut == Projet.STATUT_CLOTURE:
             raise ValidationError(
                 "Impossible de supprimer cette recette : le projet est clôturé."
             )
         return super().delete(*args, **kwargs)
+
 
 class PrevisionRecolte(models.Model):
     projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name='previsions')

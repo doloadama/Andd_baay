@@ -11,14 +11,14 @@
     gap: var(--space-5);
     padding: clamp(24px, 4vw, 36px);
     border-radius: calc(var(--radius-card) + 6px);
-    border: 1px solid rgba(190, 242, 100, 0.5);
+    border: 1px solid rgba(93, 202, 165, 0.45);
     background:
-        radial-gradient(circle at top left, rgba(57, 255, 20, 0.15), transparent 34%),
-        linear-gradient(135deg, rgba(2, 44, 34, 0.96), rgba(6, 78, 59, 0.92) 55%, rgba(15, 23, 42, 0.9));
+        radial-gradient(circle at top left, rgba(29, 158, 117, 0.22), transparent 34%),
+        linear-gradient(135deg, rgba(8, 80, 65, 0.96), rgba(29, 158, 117, 0.82) 55%, rgba(8, 80, 65, 0.94));
     box-shadow:
-        0 24px 60px rgba(2, 44, 34, 0.2),
+        0 24px 60px rgba(8, 80, 65, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 0 0 1px rgba(163, 230, 53, 0.08);
+        inset 0 0 0 1px rgba(29, 158, 117, 0.1);
     overflow: hidden;
 }
 
@@ -30,7 +30,7 @@
     width: 320px;
     height: 320px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(226, 114, 91, 0.22), transparent 68%);
+    background: radial-gradient(circle, rgba(239, 159, 39, 0.22), transparent 68%);
     pointer-events: none;
 }
 
@@ -83,8 +83,8 @@
 }
 
 .btn-secondary-surface:hover {
-    border-color: rgba(57, 255, 20, 0.35);
-    background: rgba(57, 255, 20, 0.08);
+    border-color: rgba(29, 158, 117, 0.35);
+    background: rgba(29, 158, 117, 0.08);
     color: var(--text-main);
 }
 
@@ -145,7 +145,7 @@
     position: sticky;
     top: var(--space-4);
     z-index: 100;
-    border-color: rgba(57, 255, 20, 0.28);
+    border-color: rgba(29, 158, 117, 0.28);
     box-shadow: var(--shadow-md);
 }
 
@@ -171,7 +171,7 @@
     outline: none;
     border-color: var(--accent);
     background: var(--bg-main);
-    box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.14);
+    box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.14);
 }
 
 .search-icon {
@@ -198,7 +198,7 @@
 }
 
 .search-action:hover {
-    background: rgba(57, 255, 20, 0.08);
+    background: rgba(29, 158, 117, 0.08);
     color: var(--accent-dark);
 }
 
@@ -243,8 +243,8 @@
 
 .filter-chip:hover,
 .filter-chip.is-active {
-    background: rgba(57, 255, 20, 0.14);
-    border-color: rgba(57, 255, 20, 0.3);
+    background: rgba(29, 158, 117, 0.14);
+    border-color: rgba(29, 158, 117, 0.3);
     color: var(--accent-dark);
 }
 
@@ -275,7 +275,7 @@
 .selection-pill {
     padding: 9px 14px;
     border-radius: var(--radius-pill);
-    background: rgba(57, 255, 20, 0.12);
+    background: rgba(29, 158, 117, 0.12);
     color: var(--accent-dark);
     font-size: 0.8rem;
     font-weight: 700;
@@ -388,12 +388,12 @@
 }
 
 .projects-table tbody tr:hover {
-    background: rgba(57, 255, 20, 0.04);
+    background: rgba(29, 158, 117, 0.04);
     transform: translateX(4px);
 }
 
 .projects-table tbody tr.is-selected {
-    background: rgba(57, 255, 20, 0.08);
+    background: rgba(29, 158, 117, 0.08);
 }
 
 .checkbox-col {
@@ -435,7 +435,7 @@
 
 .project-name-cell.editing {
     padding: 4px 8px;
-    border: 1px solid rgba(57, 255, 20, 0.35);
+    border: 1px solid rgba(29, 158, 117, 0.35);
     background: var(--bg-tertiary);
 }
 
@@ -507,8 +507,8 @@ button.status-badge {
 }
 
 .status-en_cours {
-    background: rgba(57, 255, 20, 0.14);
-    border-color: rgba(57, 255, 20, 0.26);
+    background: rgba(29, 158, 117, 0.14);
+    border-color: rgba(29, 158, 117, 0.26);
     color: var(--tech-green);
 }
 
@@ -552,8 +552,8 @@ button.status-badge {
 }
 
 .action-link:hover {
-    background: rgba(57, 255, 20, 0.08);
-    border-color: rgba(57, 255, 20, 0.18);
+    background: rgba(29, 158, 117, 0.08);
+    border-color: rgba(29, 158, 117, 0.18);
     color: var(--accent-dark);
 }
 
@@ -608,7 +608,7 @@ button.status-badge {
 .quick-actions-item:hover,
 .context-menu-item:hover,
 .status-menu-item:hover {
-    background: rgba(57, 255, 20, 0.08);
+    background: rgba(29, 158, 117, 0.08);
     color: var(--accent-dark);
 }
 
@@ -649,13 +649,13 @@ button.status-badge {
 
 .project-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(57, 255, 20, 0.24);
+    border-color: rgba(29, 158, 117, 0.24);
     box-shadow: var(--shadow-lg);
 }
 
 .project-card.is-selected {
-    background: rgba(57, 255, 20, 0.05);
-    border-color: rgba(57, 255, 20, 0.3);
+    background: rgba(29, 158, 117, 0.05);
+    border-color: rgba(29, 158, 117, 0.3);
 }
 
 .project-card-checkbox {
@@ -980,7 +980,7 @@ button.status-badge {
 
 @keyframes tableFlash {
     0% { background: transparent; }
-    50% { background: rgba(57, 255, 20, 0.14); }
+    50% { background: rgba(29, 158, 117, 0.14); }
     100% { background: transparent; }
 }
 
@@ -990,7 +990,7 @@ button.status-badge {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     .projects-shell {
         gap: var(--space-5);
     }
