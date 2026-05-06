@@ -7,6 +7,7 @@ from baay.models import (
     Ferme,
     Investissement,
     Localite,
+    MembreFerme,
     Pays,
     ProduitAgricole,
     Profile,

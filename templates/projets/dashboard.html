@@ -177,6 +177,67 @@
     </div>
     {% endif %}
 
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Bento Grid — 3 tuiles HTMX chargées en lazy (low-bandwidth friendly)
+    ════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Tuile 1 : KPIs Financiers (col-span-2) -->
+    <div class="dash-section bento-tile bento-tile--wide tile-bento-kpis" data-tile-id="bento-kpis">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header">
+            <h3 class="dash-section-title"><i class="fas fa-chart-line"></i> Performance financière</h3>
+            <span class="bento-badge-live">Live</span>
+        </div>
+        <div class="dash-section-body bento-htmx-target"
+             hx-get="{% url 'dashboard_partial_kpis' %}{% if selected_ferme %}?ferme={{ selected_ferme.id }}{% endif %}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-indicator="#bento-kpis-spinner">
+            <div class="bento-skeleton" id="bento-kpis-spinner" aria-label="Chargement…">
+                <div class="bento-skeleton-row"></div>
+                <div class="bento-skeleton-row bento-skeleton-row--short"></div>
+                <div class="bento-skeleton-row"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tuile 2 : Messages Récents (col-span-1) -->
+    <div class="dash-section bento-tile bento-tile--narrow tile-bento-messages" data-tile-id="bento-messages">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header">
+            <h3 class="dash-section-title"><i class="fas fa-comments"></i> Messages récents</h3>
+        </div>
+        <div class="dash-section-body bento-htmx-target"
+             hx-get="{% url 'dashboard_partial_messages' %}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-indicator="#bento-msg-spinner">
+            <div class="bento-skeleton" id="bento-msg-spinner" aria-label="Chargement…">
+                <div class="bento-skeleton-avatar-row"><div class="bento-skeleton-avatar"></div><div class="bento-skeleton-line"></div></div>
+                <div class="bento-skeleton-avatar-row"><div class="bento-skeleton-avatar"></div><div class="bento-skeleton-line bento-skeleton-line--short"></div></div>
+                <div class="bento-skeleton-avatar-row"><div class="bento-skeleton-avatar"></div><div class="bento-skeleton-line"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tuile 3 : Alertes & Stocks (col-span-1) -->
+    <div class="dash-section bento-tile bento-tile--narrow tile-bento-alertes" data-tile-id="bento-alertes">
+        <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="dash-section-header">
+            <h3 class="dash-section-title"><i class="fas fa-bell"></i> Alertes</h3>
+        </div>
+        <div class="dash-section-body bento-htmx-target"
+             hx-get="{% url 'dashboard_partial_alertes' %}{% if selected_ferme %}?ferme={{ selected_ferme.id }}{% endif %}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-indicator="#bento-alert-spinner">
+            <div class="bento-skeleton" id="bento-alert-spinner" aria-label="Chargement…">
+                <div class="bento-skeleton-row"></div>
+                <div class="bento-skeleton-row bento-skeleton-row--short"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filters -->
     <div class="dash-section span-4 tile-filters" data-tile-id="filters">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>

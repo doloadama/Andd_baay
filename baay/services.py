@@ -24,9 +24,11 @@ from .models import (
     DemandeAccesFerme,
     Depense,
     Ferme,
+    HistoriqueSol,
     Investissement,
     MembreFerme,
     PrevisionRecolte,
+    ProduitAgricole,
     Profile,
     Projet,
     ProjetProduit,
@@ -811,3 +813,128 @@ def product_placeholder_data_uri(product_name: str) -> str:
 </svg>"""
     b64 = base64.b64encode(svg.encode("utf-8")).decode("ascii")
     return f"data:image/svg+xml;base64,{b64}"
+
+
+# ─── Soil Ledger ─────────────────────────────────────────────────────────────
+
+_PH_TOLERANT_ACIDS = {"Manioc", "Arachide", "Patate douce", "Ananas"}  # pH < 6
+_PH_ALKALINE_SENSITIVE = {"Riz", "Blé", "Orge"}  # pH > 7.5 → déconseillé
+_LEGUMES = {"Arachide", "Niébé", "Soja", "Haricot"}  # fixateurs azote
+_HIGH_K_DEMAND = {"Banane", "Tomate", "Pomme de terre", "Patate douce"}  # K exigeants
+
+_SEUIL_K_BAS = Decimal("80")   # ppm — en dessous : déconseiller cultures K-exigeantes
+_SEUIL_N_BAS = Decimal("20")   # ppm — en dessous : favoriser légumineuses
+
+
+def suggerer_semis_saison_suivante(ferme_id) -> dict:
+    """
+    Analyse le dernier enregistrement ``HistoriqueSol`` de la ferme et retourne
+    une suggestion de culture pour la saison suivante.
+
+    Retourne ::
+
+        {
+            "suggestion": ProduitAgricole | None,
+            "raison": str,
+            "confiance": int,   # 0-100
+            "alertes": list[str],
+        }
+    """
+    derniere = (
+        HistoriqueSol.objects.filter(ferme_id=ferme_id)
+        .select_related("culture_precedente")
+        .order_by("-date_mesure")
+        .first()
+    )
+
+    if derniere is None:
+        return {
+            "suggestion": None,
+            "raison": "Aucune analyse de sol enregistrée pour cette ferme.",
+            "confiance": 0,
+            "alertes": [],
+        }
+
+    alertes: list[str] = []
+    exclusions: set[str] = set()
+    preferences: list[str] = []
+    raisons: list[str] = []
+    confiance = 40  # base
+
+    ph = derniere.ph
+    azote = derniere.azote_ppm
+    potassium = derniere.potassium_ppm
+    culture_prec = derniere.culture_precedente
+
+    # ── pH ──────────────────────────────────────────────────────────────────
+    if ph is not None:
+        confiance += 15
+        if ph < Decimal("5.5"):
+            alertes.append(f"pH acide ({ph}) — amendement calcique recommandé.")
+            preferences.extend(_PH_TOLERANT_ACIDS)
+            raisons.append("pH acide : cultures tolérantes choisies")
+        elif ph > Decimal("7.5"):
+            alertes.append(f"pH alcalin ({ph}) — apport de soufre possible.")
+            exclusions.update(_PH_ALKALINE_SENSITIVE)
+            raisons.append("pH alcalin : céréales sensibles exclues")
+        else:
+            raisons.append(f"pH optimal ({ph})")
+
+    # ── Azote ────────────────────────────────────────────────────────────────
+    if azote is not None:
+        confiance += 10
+        if azote < _SEUIL_N_BAS:
+            alertes.append(f"Azote bas ({azote} ppm) — légumineuse recommandée.")
+            preferences.extend(_LEGUMES)
+            raisons.append("Azote faible : légumineuse fixatrice favorisée")
+
+    # ── Potassium ────────────────────────────────────────────────────────────
+    if potassium is not None:
+        confiance += 10
+        if potassium < _SEUIL_K_BAS:
+            alertes.append(f"Potassium bas ({potassium} ppm) — éviter cultures K-exigeantes.")
+            exclusions.update(_HIGH_K_DEMAND)
+            raisons.append("Potassium faible : cultures exigeantes exclues")
+
+    # ── Rotation culturale ───────────────────────────────────────────────────
+    if culture_prec is not None:
+        confiance += 10
+        prec_nom = culture_prec.nom
+        if prec_nom in _LEGUMES:
+            raisons.append(f"Rotation après légumineuse ({prec_nom}) : céréale conseillée")
+            preferences.append("Mil")
+            preferences.append("Sorgho")
+            preferences.append("Maïs")
+        else:
+            exclusions.add(prec_nom)
+            raisons.append(f"Rotation : {prec_nom} exclu pour éviter l'épuisement")
+
+    # ── Sélection du candidat ────────────────────────────────────────────────
+    suggestion: ProduitAgricole | None = None
+
+    if preferences:
+        # Recherche stricte par ordre de préférence
+        for nom_pref in preferences:
+            candidat = (
+                ProduitAgricole.objects.filter(nom__iexact=nom_pref)
+                .exclude(nom__in=exclusions)
+                .first()
+            )
+            if candidat:
+                suggestion = candidat
+                break
+
+    if suggestion is None:
+        # Fallback : n'importe quelle culture hors exclusions
+        suggestion = (
+            ProduitAgricole.objects.exclude(nom__in=exclusions).order_by("nom").first()
+        )
+
+    confiance = min(confiance, 95)
+
+    return {
+        "suggestion": suggestion,
+        "raison": " ; ".join(raisons) if raisons else "Analyse standard.",
+        "confiance": confiance,
+        "alertes": alertes,
+    }

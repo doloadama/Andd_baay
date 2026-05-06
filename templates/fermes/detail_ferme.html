@@ -146,5 +146,79 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- ═══ Santé des sols ══════════════════════════════════════════════════ -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0"><i class="fas fa-leaf me-2" style="color:var(--color-primary,#1D9E75);"></i>Santé des sols</h5>
+                    <a href="{% url 'historique_sol_ferme' ferme.id %}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-flask me-1"></i>Voir toutes les analyses
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if suggestion_sol.suggestion %}
+                    <div class="alert alert-success d-flex align-items-start gap-3 mb-3" role="status">
+                        <i class="fas fa-seedling fa-lg mt-1" aria-hidden="true"></i>
+                        <div>
+                            <strong>Culture suggérée :</strong> {{ suggestion_sol.suggestion.nom }}
+                            <span class="badge bg-success ms-2">{{ suggestion_sol.confiance }}% confiance</span><br>
+                            <small class="text-muted">{{ suggestion_sol.raison }}</small>
+                        </div>
+                    </div>
+                    {% if suggestion_sol.alertes %}
+                    <ul class="list-unstyled mb-3">
+                        {% for alerte in suggestion_sol.alertes %}
+                        <li class="text-warning small"><i class="fas fa-exclamation-triangle me-1"></i>{{ alerte }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% elif not historiques_sol %}
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Aucune analyse de sol enregistrée.
+                        <a href="{% url 'historique_sol_ferme' ferme.id %}">Commencer le suivi</a>
+                    </p>
+                    {% else %}
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>{{ suggestion_sol.raison|default:"Données insuffisantes pour une suggestion." }}
+                    </p>
+                    {% endif %}
+
+                    {% if historiques_sol %}
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.85rem;">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Parcelle</th>
+                                    <th class="text-end">pH</th>
+                                    <th class="text-end">N (ppm)</th>
+                                    <th class="text-end">P (ppm)</th>
+                                    <th class="text-end">K (ppm)</th>
+                                    <th>Culture préc.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in historiques_sol %}
+                                <tr>
+                                    <td>{{ h.date_mesure|date:"d/m/Y" }}</td>
+                                    <td>{{ h.parcelle_nom|default:"—" }}</td>
+                                    <td class="text-end">{{ h.ph|default:"—" }}</td>
+                                    <td class="text-end">{{ h.azote_ppm|default:"—" }}</td>
+                                    <td class="text-end">{{ h.phosphore_ppm|default:"—" }}</td>
+                                    <td class="text-end">{{ h.potassium_ppm|default:"—" }}</td>
+                                    <td>{{ h.culture_precedente.nom|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

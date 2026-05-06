@@ -1297,3 +1297,80 @@ class Tache(models.Model):
     def peut_changer_statut(self, profile):
         return self.assigne_a_id == profile.id or self.peut_etre_modifiee_par(profile)
 
+
+class HistoriqueSol(models.Model):
+    """
+    Suivi historique de la santé des sols par ferme (Soil Ledger).
+
+    Permet de suivre pH, NPK et cultures précédentes pour guider
+    les recommandations de semis de la saison suivante.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(
+        Ferme,
+        on_delete=models.CASCADE,
+        related_name="historiques_sol",
+    )
+    parcelle_nom = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Nom libre de la parcelle ou zone (ex. 'Parcelle Nord', 'Champ A').",
+    )
+    date_mesure = models.DateField(help_text="Date du prélèvement / analyse de sol.")
+
+    ph = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="pH du sol (0–14). Idéal cultures : 5.5–7.0.",
+        validators=[MinValueValidator(0), MaxValueValidator(14)],
+    )
+    azote_ppm = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Teneur en azote (N) en ppm.",
+        validators=[MinValueValidator(0)],
+    )
+    phosphore_ppm = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Teneur en phosphore (P) en ppm.",
+        validators=[MinValueValidator(0)],
+    )
+    potassium_ppm = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Teneur en potassium (K) en ppm.",
+        validators=[MinValueValidator(0)],
+    )
+    culture_precedente = models.ForeignKey(
+        ProduitAgricole,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="historiques_sol_precedents",
+        help_text="Culture cultivée lors du cycle précédent (rotation).",
+    )
+    notes = models.TextField(blank=True, help_text="Observations agronomiques libres.")
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Historique Sol"
+        verbose_name_plural = "Historiques Sol"
+        ordering = ["-date_mesure"]
+        indexes = [
+            models.Index(fields=["ferme", "-date_mesure"]),
+        ]
+
+    def __str__(self):
+        parcelle = f" — {self.parcelle_nom}" if self.parcelle_nom else ""
+        return f"{self.ferme.nom}{parcelle} ({self.date_mesure})"
+

@@ -40,6 +40,7 @@ from django.db.models import (
 )
 from django.db.models.functions import TruncMonth, Coalesce
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.vary import vary_on_headers
 
 from Andd_Baayi import settings
 from baay.forms import (
@@ -70,6 +71,7 @@ from baay.services import (
     product_placeholder_data_uri,
 )
 from baay.models import (
+    HistoriqueSol,
     Profile,
     Projet,
     ProduitAgricole,
@@ -112,6 +114,7 @@ from baay.permissions import (
     roles_assignables_par,
 )
 from baay.services import (
+    calculer_kpis_financiers_projet,
     check_budget_status,
     check_projet_produit_budget_status,
     create_demande_acces_ferme,
@@ -119,6 +122,7 @@ from baay.services import (
     get_prevision_affichee_projet,
     get_weather_data,
     investissement_montant_expr,
+    suggerer_semis_saison_suivante,
     total_investissements_projet,
     transition_demande_acces,
     update_prediction_for_projet_produit,
@@ -2310,6 +2314,12 @@ def detail_ferme(request, ferme_id):
     projets = ferme.projets.select_related('culture', 'localite')
     membres = ferme.membres.select_related('utilisateur__user')
     demandes_acces = ferme.demandes_acces.filter(statut='en_attente').select_related('utilisateur__user') if is_proprietaire else []
+    historiques_sol = (
+        HistoriqueSol.objects.filter(ferme=ferme)
+        .select_related('culture_precedente')
+        .order_by('-date_mesure')[:10]
+    )
+    suggestion_sol = suggerer_semis_saison_suivante(ferme_id)
     return render(request, 'fermes/detail_ferme.html', {
         'ferme': ferme,
         'projets': projets,
@@ -2317,6 +2327,8 @@ def detail_ferme(request, ferme_id):
         'demandes_acces': demandes_acces,
         'is_proprietaire': is_proprietaire,
         'can_manage_members': can_manage_members,
+        'historiques_sol': historiques_sol,
+        'suggestion_sol': suggestion_sol,
     })
 
 
@@ -3805,4 +3817,155 @@ def drawer_conversation_fragment(request, conversation_id):
         'drawer': True,
         'has_older_messages': has_older_messages,
         'oldest_loaded_message_id': oldest_loaded_message_id,
+    })
+
+
+# ─── Bento Grid HTMX Partials ───────────────────────────────────────────────────────────
+
+@login_required
+@require_GET
+@vary_on_headers("HX-Request")
+def dashboard_partial_kpis(request):
+    """HTMX partial — résumé financier (recettes, dépenses, bénéfice, ROI)."""
+    utilisateur = request.user.profile
+    ferme_id = (request.GET.get('ferme') or '').strip()
+    projets_qs = projets_accessibles_qs(utilisateur)
+    if ferme_id:
+        projets_qs = projets_qs.filter(ferme_id=ferme_id)
+
+    can_view = peut_voir_investissements_any(utilisateur)
+
+    kpis = {
+        'total_recettes': Decimal('0'),
+        'total_couts': Decimal('0'),
+        'benefice_net': Decimal('0'),
+        'roi_pct': None,
+    }
+
+    if can_view:
+        total_rec = Decimal('0')
+        total_cout = Decimal('0')
+        for projet in projets_qs.only('id'):
+            try:
+                pk = calculer_kpis_financiers_projet(projet.id)
+                total_rec += pk.get('total_recettes') or Decimal('0')
+                total_cout += pk.get('total_couts') or Decimal('0')
+            except Exception:
+                pass
+        benefice = total_rec - total_cout
+        roi = round((float(benefice) / float(total_cout)) * 100, 1) if total_cout else None
+        kpis = {
+            'total_recettes': total_rec,
+            'total_couts': total_cout,
+            'benefice_net': benefice,
+            'roi_pct': roi,
+        }
+
+    return render(request, 'projets/partials/_bento_kpis.html', {
+        'kpis': kpis,
+        'can_view_investissements': can_view,
+    })
+
+
+@login_required
+@require_GET
+@vary_on_headers("HX-Request")
+def dashboard_partial_messages(request):
+    """HTMX partial — 5 derniers messages reçus."""
+    profile = request.user.profile
+    conv_ids = ParticipationConversation.objects.filter(
+        participant=profile
+    ).values_list('conversation_id', flat=True)
+
+    messages_recents = (
+        Message.objects.filter(conversation_id__in=conv_ids)
+        .exclude(expediteur=profile)
+        .select_related('expediteur__user', 'conversation')
+        .order_by('-date_envoi')[:5]
+    )
+
+    unread_conv_ids = set(
+        ParticipationConversation.objects.filter(
+            participant=profile,
+            conversation_id__in=conv_ids,
+        ).filter(
+            Q(last_read_at__isnull=True) |
+            Q(last_read_at__lt=Subquery(
+                Message.objects.filter(
+                    conversation_id=OuterRef('conversation_id')
+                ).order_by('-date_envoi').values('date_envoi')[:1]
+            ))
+        ).values_list('conversation_id', flat=True)
+    )
+
+    msgs_with_status = []
+    for msg in messages_recents:
+        msgs_with_status.append({
+            'expediteur': msg.expediteur,
+            'contenu': msg.contenu,
+            'date_envoi': msg.date_envoi,
+            'non_lu': msg.conversation_id in unread_conv_ids,
+        })
+
+    return render(request, 'projets/partials/_bento_messages.html', {
+        'messages_recents': msgs_with_status,
+    })
+
+
+@login_required
+@require_GET
+@vary_on_headers("HX-Request")
+def dashboard_partial_alertes(request):
+    """HTMX partial — tâches en retard + projets en pause."""
+    utilisateur = request.user.profile
+    ferme_id = (request.GET.get('ferme') or '').strip()
+
+    taches_qs = Tache.objects.filter(
+        Q(ferme__proprietaire=utilisateur) | Q(ferme__membres__utilisateur=utilisateur)
+    ).distinct().select_related('ferme')
+    if ferme_id:
+        taches_qs = taches_qs.filter(ferme_id=ferme_id)
+    taches_retard = [
+        t for t in taches_qs.filter(
+            statut__in=('a_faire', 'en_cours'),
+            date_echeance__lt=timezone.now().date(),
+        ).order_by('date_echeance')[:5]
+    ]
+
+    projets_qs = projets_accessibles_qs(utilisateur).filter(statut='en_pause').select_related('ferme')
+    if ferme_id:
+        projets_qs = projets_qs.filter(ferme_id=ferme_id)
+    projets_en_pause = list(projets_qs.order_by('-date_lancement')[:5])
+
+    return render(request, 'projets/partials/_bento_alertes.html', {
+        'taches_retard': taches_retard,
+        'projets_en_pause': projets_en_pause,
+    })
+
+
+# ─── Soil Ledger read-only view ───────────────────────────────────────────────────────
+
+@login_required
+@require_GET
+def historique_sol_ferme(request, ferme_id):
+    """Vue lecture seule : historique des analyses de sol d'une ferme + suggestion semis."""
+    ferme = get_object_or_404(Ferme, id=ferme_id)
+    profile = request.user.profile
+    is_proprietaire = ferme.proprietaire == profile
+    is_membre = ferme.membres.filter(utilisateur=profile).exists()
+    if not is_proprietaire and not is_membre:
+        messages.error(request, "Vous n'avez pas accès à cette ferme.")
+        return redirect('liste_fermes')
+
+    historiques = (
+        HistoriqueSol.objects.filter(ferme=ferme)
+        .select_related('culture_precedente')
+        .order_by('-date_mesure')
+    )
+    suggestion = suggerer_semis_saison_suivante(ferme_id)
+    return render(request, 'fermes/historique_sol.html', {
+        'ferme': ferme,
+        'historiques': historiques,
+        'suggestion': suggestion,
+        'is_proprietaire': is_proprietaire,
     })

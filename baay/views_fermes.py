@@ -3,6 +3,7 @@ from .views import (
     creer_ferme,
     demander_acces_ferme,
     detail_ferme,
+    historique_sol_ferme,
     liste_fermes,
     modifier_ferme,
     regenerer_code_acces_ferme,

@@ -139,6 +139,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'baay.middleware.htmx_cache.HtmxCacheMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -148,6 +149,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+]
+
+# ── HTMX Fragment Cache (Phase 2) ───────────────────────────────────────────
+HTMX_CACHE_TTL = 60  # secondes — durée de cache des fragments HTMX
+HTMX_CACHE_EXEMPT_PATHS = [
+    "/dashboard/partial/messages/",  # messages : non mis en cache (contenu personnel temps-réel)
 ]
 
 # On Vercel, we typically do not run `collectstatic` during build for Python serverless,

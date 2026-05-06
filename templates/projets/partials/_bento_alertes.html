@@ -1,0 +1,30 @@
+{% load humanize %}
+<div class="bento-partial-alertes">
+    {% if taches_retard or projets_en_pause %}
+    <ul class="bento-alert-list">
+        {% for tache in taches_retard %}
+        <li class="bento-alert-item bento-alert--danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="bento-alert-body">
+                <span class="bento-alert-title">{{ tache.titre|truncatechars:40 }}</span>
+                <span class="bento-alert-sub">Retard · {{ tache.ferme.nom }} · échéance {{ tache.date_echeance|naturalday }}</span>
+            </div>
+        </li>
+        {% endfor %}
+        {% for projet in projets_en_pause %}
+        <li class="bento-alert-item bento-alert--warn">
+            <i class="fas fa-pause-circle"></i>
+            <div class="bento-alert-body">
+                <span class="bento-alert-title">{{ projet.nom|truncatechars:40 }}</span>
+                <span class="bento-alert-sub">En pause · {{ projet.ferme.nom }}</span>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="bento-partial-empty bento-partial-empty--ok">
+        <i class="fas fa-check-circle"></i>
+        <span>Aucune alerte — tout est à jour !</span>
+    </div>
+    {% endif %}
+</div>

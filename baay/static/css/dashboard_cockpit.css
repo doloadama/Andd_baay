@@ -1064,3 +1064,276 @@ body.dark-mode .cockpit-project-gauge {
         justify-content: center;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Bento Grid — tuiles HTMX (Phase 2)
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Wide tile takes 2 cols on grid; narrow takes 1 */
+.bento-tile--wide {
+    grid-column: span 2;
+}
+.bento-tile--narrow {
+    grid-column: span 1;
+}
+
+@media (max-width: 767.98px) {
+    .bento-tile--wide,
+    .bento-tile--narrow {
+        grid-column: span 4;
+    }
+}
+
+/* Live badge */
+.bento-badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--brand-primary);
+    background: rgba(29, 158, 117, 0.12);
+    border: 1px solid rgba(29, 158, 117, 0.25);
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+.bento-badge-live::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand-primary);
+    animation: bento-pulse 1.8s ease-in-out infinite;
+}
+@keyframes bento-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+/* ── Skeleton loading ── */
+.bento-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0;
+    animation: bento-shimmer 1.5s infinite linear;
+}
+.bento-skeleton-row {
+    height: 18px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--bg-tertiary, #e2e8f0) 25%, rgba(255,255,255,0.18) 50%, var(--bg-tertiary, #e2e8f0) 75%);
+    background-size: 200% 100%;
+    animation: bento-shimmer-bg 1.4s infinite linear;
+}
+.bento-skeleton-row--short { width: 55%; }
+
+.bento-skeleton-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bento-skeleton-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, var(--bg-tertiary, #e2e8f0) 25%, rgba(255,255,255,0.18) 50%, var(--bg-tertiary, #e2e8f0) 75%);
+    background-size: 200% 100%;
+    animation: bento-shimmer-bg 1.4s infinite linear;
+}
+.bento-skeleton-line {
+    flex: 1;
+    height: 14px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--bg-tertiary, #e2e8f0) 25%, rgba(255,255,255,0.18) 50%, var(--bg-tertiary, #e2e8f0) 75%);
+    background-size: 200% 100%;
+    animation: bento-shimmer-bg 1.4s infinite linear;
+}
+.bento-skeleton-line--short { max-width: 60%; }
+
+@keyframes bento-shimmer-bg {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ── KPI row (inside _bento_kpis.html) ── */
+.bento-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+@media (max-width: 767.98px) {
+    .bento-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 400px) {
+    .bento-kpi-row { grid-template-columns: 1fr; }
+}
+
+.bento-kpi-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--card-glass, rgba(255,255,255,0.7));
+    border: 1px solid var(--border-glass, rgba(0,0,0,0.07));
+    backdrop-filter: blur(8px);
+}
+.bento-kpi--green  { border-left: 3px solid var(--brand-primary); }
+.bento-kpi--amber  { border-left: 3px solid var(--brand-accent); }
+.bento-kpi--blue   { border-left: 3px solid #3b82f6; }
+.bento-kpi--danger { border-left: 3px solid var(--danger, #ef4444); }
+
+.bento-kpi-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.bento-kpi-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
+}
+.bento-kpi-unit {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-left: 3px;
+}
+
+/* ── Messages list (inside _bento_messages.html) ── */
+.bento-msg-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.bento-msg-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+.bento-msg-item:hover { background: rgba(29, 158, 117, 0.06); }
+.bento-msg-item--unread { background: rgba(29, 158, 117, 0.08); }
+
+.bento-msg-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.bento-msg-body { flex: 1; min-width: 0; }
+.bento-msg-sender {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bento-msg-preview {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bento-msg-time {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Alerts list (inside _bento_alertes.html) ── */
+.bento-alert-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.bento-alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+}
+.bento-alert--danger {
+    background: rgba(239, 68, 68, 0.08);
+    border-left: 3px solid #ef4444;
+    color: #b91c1c;
+}
+.bento-alert--warn {
+    background: rgba(239, 159, 39, 0.1);
+    border-left: 3px solid var(--brand-accent);
+    color: #92400e;
+}
+.bento-alert-body { flex: 1; min-width: 0; }
+.bento-alert-title {
+    font-weight: 700;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bento-alert-sub {
+    font-size: 0.72rem;
+    opacity: 0.8;
+    display: block;
+}
+
+/* ── Shared partial utils ── */
+.bento-partial-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+.bento-partial-empty i { font-size: 1.6rem; opacity: 0.45; }
+.bento-partial-empty--ok { color: var(--brand-primary); }
+.bento-partial-empty--ok i { opacity: 0.7; }
+
+.bento-partial-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brand-primary);
+    text-decoration: none;
+}
+.bento-partial-link:hover { text-decoration: underline; }
+
+/* ── HTMX loading indicator — hide spinner after swap ── */
+.htmx-request .bento-skeleton { display: flex; }
+.htmx-request .bento-htmx-target > *:not(.bento-skeleton) { display: none; }

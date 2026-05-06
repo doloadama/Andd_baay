@@ -272,7 +272,16 @@ def peut_voir_tache(profile, tache):
 def peut_changer_statut_tache(profile, tache):
     if profile is None or tache is None:
         return False
-    return tache.assigne_a_id == profile.id or peut_modifier_tache(profile, tache)
+    # Changement de statut réservé à:
+    # - l'assigné
+    # - le créateur/assigneur
+    # - le propriétaire / manager de la ferme
+    if tache.assigne_a_id == profile.id:
+        return True
+    if tache.assigne_par_id == profile.id:
+        return True
+    role = role_dans_ferme(profile, tache.ferme)
+    return role in {ROLE_PROPRIETAIRE, ROLE_MANAGER}
 
 
 def peut_modifier_tache(profile, tache):

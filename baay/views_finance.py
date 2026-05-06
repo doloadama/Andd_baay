@@ -24,6 +24,7 @@ from baay.permissions import (
     projets_modifiables_depenses_qs,
 )
 from baay.services import (
+    calculer_kpis_financiers_projet,
     check_budget_status,
     check_projet_produit_budget_status,
     investissement_montant_expr,
@@ -257,6 +258,29 @@ def _finance_hub_template_context(
     }
 
 
+def _build_kpis_json(request):
+    """Calcule les KPIs financiers agrégés pour initialiser le widget Alpine ROI."""
+    from baay.permissions import projets_avec_vue_depenses_qs
+    profile = request.user.profile
+    projets = projets_avec_vue_depenses_qs(profile)
+    total_rec = Decimal("0")
+    total_cout = Decimal("0")
+    # projets_avec_vue_depenses_qs() utilise select_related("ferme").
+    # Ne pas combiner select_related + only("id") (FieldError sur Projet.ferme).
+    for projet_id in projets.values_list("id", flat=True):
+        try:
+            kp = calculer_kpis_financiers_projet(projet_id)
+            total_rec += kp.get("total_recettes") or Decimal("0")
+            total_cout += kp.get("total_couts") or Decimal("0")
+        except Exception:
+            pass
+    return json.dumps({
+        "totalRecettes": float(total_rec),
+        "totalCouts": float(total_cout),
+        "typeOperation": "depense",
+    })
+
+
 @method_decorator(login_required, name="dispatch")
 class FinanceHubView(View):
     template_name = "finance/finance_list.html"
@@ -275,6 +299,7 @@ class FinanceHubView(View):
             culture_partial_produits_depense=[],
             culture_partial_produits_recette=[],
         )
+        context["kpis_json"] = _build_kpis_json(request)
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):

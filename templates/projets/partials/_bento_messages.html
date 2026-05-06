@@ -1,0 +1,27 @@
+{% load humanize %}
+<div class="bento-partial-messages">
+    {% if messages_recents %}
+    <ul class="bento-msg-list">
+        {% for msg in messages_recents %}
+        <li class="bento-msg-item {% if msg.non_lu %}bento-msg-item--unread{% endif %}">
+            <span class="bento-msg-avatar">
+                {% if msg.expediteur.user.first_name %}{{ msg.expediteur.user.first_name|first|upper }}{% else %}{{ msg.expediteur.user.username|first|upper }}{% endif %}
+            </span>
+            <div class="bento-msg-body">
+                <span class="bento-msg-sender">{{ msg.expediteur.user.get_full_name|default:msg.expediteur.user.username }}</span>
+                <p class="bento-msg-preview">{{ msg.contenu|truncatechars:60 }}</p>
+            </div>
+            <time class="bento-msg-time" datetime="{{ msg.date_envoi|date:'c' }}">{{ msg.date_envoi|naturaltime }}</time>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'messagerie_inbox' %}" class="bento-partial-link">
+        Voir tous les messages <i class="fas fa-arrow-right"></i>
+    </a>
+    {% else %}
+    <div class="bento-partial-empty">
+        <i class="fas fa-comments"></i>
+        <span>Aucun message récent.</span>
+    </div>
+    {% endif %}
+</div>

@@ -49,6 +49,41 @@
     <style>
         [x-cloak] { display: none !important; }
 
+        /* ─── Offline Sync Indicator ─── */
+        #offlineBadge {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 9px 16px;
+            background: linear-gradient(90deg, #78350f 0%, #b45309 100%);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            box-shadow: 0 2px 12px rgba(120, 53, 15, 0.4);
+        }
+        .offline-badge__sub {
+            font-weight: 400;
+            opacity: 0.85;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 576px) {
+            #offlineBadge {
+                flex-direction: column;
+                gap: 3px;
+                padding: 10px 12px;
+                text-align: center;
+                font-size: 0.8rem;
+            }
+            .offline-badge__sub { font-size: 0.72rem; }
+        }
+
         /* Palette de base — charte Andd Baay (identité) */
         :root {
             --brand-primary: #1D9E75;
@@ -3071,6 +3106,27 @@
 </head>
 
 <body>
+    <!-- ─── Offline Sync Indicator ─── -->
+    <div
+        x-data="offlineIndicator()"
+        x-show="!online"
+        x-cloak
+        x-transition:enter="tw-transition tw-ease-out tw-duration-300"
+        x-transition:enter-start="tw-opacity-0 tw--translate-y-2"
+        x-transition:enter-end="tw-opacity-100 tw-translate-y-0"
+        x-transition:leave="tw-transition tw-ease-in tw-duration-200"
+        x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
+        x-transition:leave-end="tw-opacity-0 tw--translate-y-2"
+        role="status"
+        aria-live="polite"
+        aria-label="Mode hors-ligne actif"
+        id="offlineBadge"
+    >
+        <i class="fas fa-wifi" style="opacity:0.6;text-decoration:line-through;"></i>
+        <span>Mode Hors-ligne</span>
+        <span class="offline-badge__sub">Les données sont en cache local</span>
+    </div>
+
     <div class="african-pattern-overlay"></div>
     <a class="skip-link" href="#main">Aller au contenu</a>
     <div class="background-container"></div>
@@ -4038,6 +4094,20 @@
     {% if user.is_authenticated %}
     {% include 'includes/messagerie_drawer.html' %}
     {% endif %}
+
+    <script>
+    document.addEventListener('alpine:init', function () {
+        Alpine.data('offlineIndicator', function () {
+            return {
+                online: navigator.onLine,
+                init() {
+                    window.addEventListener('online',  () => { this.online = true; });
+                    window.addEventListener('offline', () => { this.online = false; });
+                },
+            };
+        });
+    });
+    </script>
 </body>
 
 </html>

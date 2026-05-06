@@ -386,6 +386,69 @@
         </div>
     </details>
 
+    <!-- ── ROI Calculator Widget (Alpine.js) ── -->
+    {% if kpis_json %}
+    <section
+        class="finance-ft-card"
+        x-data="roiCalculator({{ kpis_json|safe }})"
+        aria-label="Simulateur ROI"
+    >
+        <div class="finance-ft-card__head">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);flex-shrink:0;"><path d="M3 17l4-8 4 4 4-6 4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h2 class="finance-ft-card__title">Simulateur ROI — impact de la prochaine saisie</h2>
+        </div>
+        <div class="finance-ft-card__body">
+            <div class="roi-widget">
+                <div class="roi-widget__controls">
+                    <div class="roi-widget__field">
+                        <label class="finance-ft-field-label" for="roiMontant">Montant à saisir (FCFA)</label>
+                        <input
+                            id="roiMontant"
+                            type="number"
+                            min="0"
+                            step="100"
+                            class="roi-widget__input"
+                            x-model.number="montantSaisi"
+                            placeholder="0"
+                        >
+                    </div>
+                    <div class="roi-widget__field">
+                        <label class="finance-ft-field-label">Type d'opération</label>
+                        <div class="roi-widget__toggle-group">
+                            <label class="roi-widget__toggle-opt" :class="typeOperation === 'depense' ? 'active' : ''">
+                                <input type="radio" name="roiType" value="depense" x-model="typeOperation">
+                                <i class="fas fa-arrow-down"></i> Dépense
+                            </label>
+                            <label class="roi-widget__toggle-opt" :class="typeOperation === 'recette' ? 'active' : ''">
+                                <input type="radio" name="roiType" value="recette" x-model="typeOperation">
+                                <i class="fas fa-arrow-up"></i> Recette
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="roi-widget__results">
+                    <div class="roi-widget__kpi">
+                        <span class="roi-widget__kpi-label">Bénéfice net projeté</span>
+                        <strong class="roi-widget__kpi-value" :class="beneficeNet >= 0 ? 'roi-positive' : 'roi-negative'" x-text="beneficeLabel"></strong>
+                    </div>
+                    <div class="roi-widget__kpi roi-widget__kpi--main">
+                        <span class="roi-widget__kpi-label">ROI projeté</span>
+                        <strong class="roi-widget__kpi-value roi-widget__kpi-roi" :class="roiColorClass" x-text="roiLabel"></strong>
+                    </div>
+                    <div class="roi-widget__kpi">
+                        <span class="roi-widget__kpi-label">Total recettes</span>
+                        <strong class="roi-widget__kpi-value roi-neutral" x-text="Math.round(_previewRecettes()).toLocaleString('fr-FR') + ' FCFA'"></strong>
+                    </div>
+                    <div class="roi-widget__kpi">
+                        <span class="roi-widget__kpi-label">Total coûts</span>
+                        <strong class="roi-widget__kpi-value roi-neutral" x-text="Math.round(_previewCouts()).toLocaleString('fr-FR') + ' FCFA'"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- Nouvelle recette -->
     <details class="finance-ft-card finance-ft-details"{% if form_recette.errors %} open{% endif %} aria-labelledby="finance-recette-form-heading">
         <summary class="finance-ft-card__head finance-ft-details__summary">

@@ -1,0 +1,30 @@
+{% load l10n %}
+<div class="bento-partial-kpis">
+    {% if can_view_investissements %}
+    <div class="bento-kpi-row">
+        <div class="bento-kpi-item bento-kpi--green">
+            <span class="bento-kpi-label"><i class="fas fa-arrow-up"></i> Recettes</span>
+            <strong class="bento-kpi-value">{{ kpis.total_recettes|floatformat:0 }}<span class="bento-kpi-unit">FCFA</span></strong>
+        </div>
+        <div class="bento-kpi-item bento-kpi--amber">
+            <span class="bento-kpi-label"><i class="fas fa-arrow-down"></i> Coûts</span>
+            <strong class="bento-kpi-value">{{ kpis.total_couts|floatformat:0 }}<span class="bento-kpi-unit">FCFA</span></strong>
+        </div>
+        <div class="bento-kpi-item {% if kpis.benefice_net >= 0 %}bento-kpi--green{% else %}bento-kpi--danger{% endif %}">
+            <span class="bento-kpi-label"><i class="fas fa-scale-balanced"></i> Bénéfice</span>
+            <strong class="bento-kpi-value">{{ kpis.benefice_net|floatformat:0 }}<span class="bento-kpi-unit">FCFA</span></strong>
+        </div>
+        <div class="bento-kpi-item bento-kpi--blue">
+            <span class="bento-kpi-label"><i class="fas fa-percent"></i> ROI</span>
+            <strong class="bento-kpi-value">
+                {% if kpis.roi_pct is not None %}{{ kpis.roi_pct|floatformat:1 }}<span class="bento-kpi-unit">%</span>{% else %}—{% endif %}
+            </strong>
+        </div>
+    </div>
+    {% else %}
+    <div class="bento-partial-empty">
+        <i class="fas fa-lock"></i>
+        <span>KPIs financiers non disponibles pour votre profil.</span>
+    </div>
+    {% endif %}
+</div>

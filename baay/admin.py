@@ -18,6 +18,7 @@ from .models import (
     DemandeAccesFerme,
     Depense,
     Ferme,
+    HistoriqueSol,
     Investissement,
     Localite,
     Message,
@@ -73,6 +74,14 @@ class ProfileAdmin(ModelAdmin):
     list_filter_submit = True
 
 
+class HistoriqueSolInline(admin.TabularInline):
+    model = HistoriqueSol
+    extra = 0
+    fields = ("date_mesure", "parcelle_nom", "ph", "azote_ppm", "phosphore_ppm", "potassium_ppm", "culture_precedente", "notes")
+    show_change_link = True
+    ordering = ("-date_mesure",)
+
+
 @admin.register(Ferme)
 class FermeAdmin(DashboardChangelistMixin, ModelAdmin):
     list_before_template = "admin/baay/changelist_dashboard_note.html"
@@ -88,6 +97,7 @@ class FermeAdmin(DashboardChangelistMixin, ModelAdmin):
     ordering = ("-date_creation",)
     list_select_related = ("proprietaire__user", "pays", "region", "localite")
     list_filter_submit = True
+    inlines = [HistoriqueSolInline]
 
 
 @admin.register(ProduitAgricole)
@@ -321,4 +331,18 @@ class TacheAdmin(DashboardChangelistMixin, ModelAdmin):
     search_fields = ("titre", "description", "assigne_a__user__username")
     ordering = ("-date_creation",)
     list_select_related = ("ferme", "projet", "assigne_a__user", "assigne_par__user")
+    list_filter_submit = True
+
+
+@admin.register(HistoriqueSol)
+class HistoriqueSolAdmin(ModelAdmin):
+    list_display = ("ferme", "parcelle_nom", "date_mesure", "ph", "azote_ppm", "phosphore_ppm", "potassium_ppm", "culture_precedente")
+    list_filter = [
+        ("ferme", AutocompleteSelectFilter),
+        ("date_mesure", RangeDateFilter),
+    ]
+    search_fields = ("ferme__nom", "parcelle_nom", "notes")
+    ordering = ("-date_mesure",)
+    list_select_related = ("ferme", "culture_precedente")
+    autocomplete_fields = ("ferme", "culture_precedente")
     list_filter_submit = True
