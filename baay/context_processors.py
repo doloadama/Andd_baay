@@ -30,3 +30,12 @@ def finance_section(request):
         "show_finance_nav": show,
         "finance_section_active": active,
     }
+
+
+def auth_backgrounds(request):
+    """
+    Injecte les URLs de fond d'écran pour les pages d'authentification.
+    Utilise Cloudinary si disponible, sinon fallback sur les fichiers statiques.
+    """
+    from baay.services import get_auth_background_urls
+    return get_auth_background_urls()

@@ -15,7 +15,12 @@
 
     /* Left side — Visual panel */
     .auth-visual {
-        background: linear-gradient(160deg, #022c22 0%, #054c38 40%, #0a2540 100%);
+        background:
+            linear-gradient(160deg, rgba(2,44,34,0.4) 0%, rgba(5,76,56,0.5) 40%, rgba(10,37,64,0.6) 100%),
+            url('{% static 'images/image2.jpg' %}');
+        background-size: cover;
+        background-position: center;
+        background-blend-mode: multiply;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -53,8 +58,13 @@
     .auth-visual-content {
         position: relative;
         z-index: 2;
-        text-align: center;
+        text-align: left;
         max-width: 420px;
+        width: 100%;
+    }
+
+    .auth-visual-content .brand-wordmark {
+        margin-bottom: 24px;
     }
 
     .auth-visual .brand-wordmark-text--on-dark {
@@ -76,6 +86,7 @@
         color: #f8fafc;
         line-height: 1.2;
         margin-bottom: 12px;
+        text-align: left;
     }
 
     .visual-subtitle {
@@ -83,6 +94,7 @@
         font-size: 0.88rem;
         line-height: 1.6;
         margin-bottom: 28px;
+        text-align: left;
     }
 
     .visual-features {
@@ -90,6 +102,7 @@
         flex-direction: column;
         gap: 16px;
         text-align: left;
+        align-items: flex-start;
     }
 
     .visual-feature {

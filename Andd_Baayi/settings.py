@@ -209,6 +209,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'baay.context_processors.exploitation_section',
                 'baay.context_processors.finance_section',
+                'baay.context_processors.auth_backgrounds',
             ],
         },
     },
@@ -461,6 +462,12 @@ if CLOUDINARY_ACTIVE and _CLOUDINARY_PARSED:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# ── Auth Background Images (Cloudinary URLs) ────────────────────────────────
+# These are set automatically by the upload_auth_images management command.
+# Fallback to static files if not configured.
+LOGIN_BG_CLOUDINARY_URL = os.getenv("LOGIN_BG_CLOUDINARY_URL", "").strip()
+SIGNUP_BG_CLOUDINARY_URL = os.getenv("SIGNUP_BG_CLOUDINARY_URL", "").strip()
 
 
 # Environnement d'exécution affiché dans l'admin Unfold (badge + préfixe title).

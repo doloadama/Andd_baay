@@ -755,31 +755,90 @@ def cloudinary_img_lazy_attrs(media_value, preset: str = CloudinaryPreset.LIST, 
     attrs = {"src": src, "loading": "lazy", "decoding": "async", "alt": alt}
     widths = []
     sizes = getattr(settings, "CLOUDINARY_SRCSET_WIDTHS", (320, 480, 640, 960))
-    try:
-        from baay.cloudinary_helpers import public_id_and_type as _pid_rt
-        from django.conf import settings as dj_settings
-        from cloudinary import utils as cu
 
-        if getattr(dj_settings, "CLOUDINARY_ACTIVE", False):
-            pid, rt = _pid_rt(media_value)
-            if pid and rt == "image":
-                for w in sizes:
-                    u, _x = cu.cloudinary_url(
-                        pid,
-                        secure=True,
-                        width=w,
-                        crop="limit",
-                        fetch_format="auto",
-                        quality="auto",
-                    )
-                    if u:
-                        widths.append((u, w))
-    except Exception:
-        widths = []
-    if widths:
-        attrs["srcset"] = ", ".join(f"{u} {w}w" for u, w in widths)
-        attrs["sizes"] = "(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
-    return attrs
+
+def upload_static_to_cloudinary(
+    static_path: str,
+    public_id: str,
+    *,
+    overwrite: bool = False,
+    invalidate: bool = True,
+) -> dict:
+    """
+    Upload a file from ``baay/static/`` to Cloudinary.
+
+    Args:
+        static_path: Relative path inside ``baay/static/`` (e.g., "images/image2.jpg").
+        public_id: Desired public_id on Cloudinary (e.g., "auth/login-bg").
+        overwrite: Replace existing resource.
+        invalidate: Invalidate CDN cache.
+
+    Returns:
+        dict with ``url``, ``public_id``, ``secure_url``, or raises on failure.
+    """
+    from pathlib import Path
+
+    try:
+        import cloudinary
+        import cloudinary.uploader
+    except Exception as exc:
+        raise RuntimeError("Cloudinary SDK not installed") from exc
+
+    if not getattr(settings, "CLOUDINARY_ACTIVE", False):
+        raise RuntimeError("CLOUDINARY_URL not configured")
+
+    base_dir = Path(__file__).resolve().parent.parent
+    full_path = base_dir / "baay" / "static" / static_path
+
+    if not full_path.exists():
+        raise FileNotFoundError(f"Static file not found: {full_path}")
+
+    result = cloudinary.uploader.upload(
+        str(full_path),
+        public_id=public_id,
+        folder="andd-baayi",
+        resource_type="image",
+        overwrite=overwrite,
+        invalidate=invalidate,
+        use_filename=False,
+    )
+
+    return {
+        "url": result.get("url"),
+        "secure_url": result.get("secure_url"),
+        "public_id": result.get("public_id"),
+    }
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Context processor helpers (auth backgrounds)
+# ────────────────────────────────────────────────────────────────────────────
+
+def get_auth_background_urls() -> dict:
+    """
+    Returns Cloudinary URLs for auth pages backgrounds.
+    Falls back to static URLs if Cloudinary not configured.
+    """
+    from django.templatetags.static import static
+
+    # Local static paths (fallback)
+    login_bg_static = static("images/image2.jpg")
+    signup_bg_static = static("images/image.jpg")
+
+    if not getattr(settings, "CLOUDINARY_ACTIVE", False):
+        return {
+            "login_bg_url": login_bg_static,
+            "signup_bg_url": signup_bg_static,
+        }
+
+    # Try to get Cloudinary URLs from settings
+    login_bg = getattr(settings, "LOGIN_BG_CLOUDINARY_URL", None)
+    signup_bg = getattr(settings, "SIGNUP_BG_CLOUDINARY_URL", None)
+
+    return {
+        "login_bg_url": login_bg or login_bg_static,
+        "signup_bg_url": signup_bg or signup_bg_static,
+    }
 
 
 def product_placeholder_data_uri(product_name: str) -> str:
