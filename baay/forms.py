@@ -671,9 +671,20 @@ class ProjetProduitForm(forms.ModelForm):
     
     class Meta:
         model = ProjetProduit
-        fields = ['quantite_semences', 'superficie_allouee', 'date_semis', 
-                  'date_recolte_prevue', 'date_recolte_effective', 'rendement_final', 'notes']
+        fields = [
+            "image",
+            "quantite_semences",
+            "superficie_allouee",
+            "date_semis",
+            "date_recolte_prevue",
+            "date_recolte_effective",
+            "rendement_final",
+            "notes",
+        ]
         widgets = {
+            "image": forms.ClearableFileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
             'quantite_semences': forms.NumberInput(attrs={
                 'class': 'form-control', 
                 'placeholder': 'Quantite en kg',

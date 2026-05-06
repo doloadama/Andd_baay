@@ -63,7 +63,12 @@ from baay.messaging_contract import (
     build_read_receipt_event_v1,
     build_unread_count_event_v1,
 )
-from baay.services import CloudinaryPreset, cloudinary_img_lazy_attrs, cloudinary_sahara_url
+from baay.services import (
+    CloudinaryPreset,
+    cloudinary_img_lazy_attrs,
+    cloudinary_sahara_url,
+    product_placeholder_data_uri,
+)
 from baay.models import (
     Profile,
     Projet,
@@ -1036,19 +1041,30 @@ def detail_projet(request, projet_id):
     # Pre-calculate photos
     plant_photos = []
     for pp in projet_produits:
+        title = pp.produit.nom
+        subtitle = f"Age: {pp.age_plant} jours" if pp.age_plant else ""
         if pp.image:
-            attrs = cloudinary_img_lazy_attrs(
-                pp.image,
-                preset=CloudinaryPreset.DETAIL,
-                alt=pp.produit.nom,
+            attrs = cloudinary_img_lazy_attrs(pp.image, preset=CloudinaryPreset.DETAIL, alt=title)
+            plant_photos.append(
+                {
+                    "url": attrs.get("src") or cloudinary_sahara_url(pp.image, preset=CloudinaryPreset.DETAIL),
+                    "srcset": attrs.get("srcset", ""),
+                    "sizes": attrs.get("sizes", ""),
+                    "title": title,
+                    "subtitle": subtitle,
+                }
             )
-            plant_photos.append({
-                'url': attrs.get("src") or cloudinary_sahara_url(pp.image, preset=CloudinaryPreset.DETAIL),
-                'srcset': attrs.get("srcset", ""),
-                'sizes': attrs.get("sizes", ""),
-                'title': pp.produit.nom,
-                'subtitle': f"Age: {pp.age_plant} jours" if pp.age_plant else ""
-            })
+        else:
+            # Always provide at least a lightweight per-product image for the carousel.
+            plant_photos.append(
+                {
+                    "url": product_placeholder_data_uri(title),
+                    "srcset": "",
+                    "sizes": "",
+                    "title": title,
+                    "subtitle": subtitle,
+                }
+            )
 
     if projet.culture:
         for photo in projet.culture.photos.all():
@@ -2165,7 +2181,7 @@ def modifier_semis(request, semis_id):
         return redirect('detail_projet', projet_id=projet_produit.projet.id)
 
     if request.method == 'POST':
-        form = ProjetProduitForm(request.POST, instance=projet_produit)
+        form = ProjetProduitForm(request.POST, request.FILES, instance=projet_produit)
         if form.is_valid():
             form.save()
             messages.success(request, 'Informations mises a jour avec succes!')

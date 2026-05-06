@@ -241,9 +241,37 @@
             </div>
         </div>
         
-        <form method="POST" novalidate>
+        <form method="POST" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             
+            <!-- Section Photo -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-camera"></i> Photo du plant
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        {% if projet_produit.image %}
+                        <div class="mb-3">
+                            <img
+                                src="{{ projet_produit.image.url }}"
+                                alt="Photo — {{ projet_produit.produit.nom }}"
+                                style="width: 100%; max-height: 240px; object-fit: cover; border-radius: 14px; border: 1px solid var(--border-color);"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        </div>
+                        {% endif %}
+                        <label class="form-label">Ajouter / changer la photo</label>
+                        {{ form.image }}
+                        <div class="form-hint">Astuce : une photo nette en plein jour améliore le suivi.</div>
+                        {% if form.image.errors %}
+                        <div class="form-error">{{ form.image.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
             <!-- Section Semis -->
             <div class="form-section">
                 <h3 class="section-title">

@@ -1,5 +1,7 @@
 import logging
 import os
+import base64
+import hashlib
 from datetime import timedelta
 from types import SimpleNamespace
 
@@ -776,3 +778,36 @@ def cloudinary_img_lazy_attrs(media_value, preset: str = CloudinaryPreset.LIST, 
         attrs["srcset"] = ", ".join(f"{u} {w}w" for u, w in widths)
         attrs["sizes"] = "(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
     return attrs
+
+
+def product_placeholder_data_uri(product_name: str) -> str:
+    """
+    Lightweight per-product image (SVG data URI).
+    Deterministic colors based on product name, optimized for low bandwidth.
+    """
+    name = (product_name or "Produit").strip()
+    initials = "".join([p[0] for p in name.split()[:2] if p])[:2].upper() or "P"
+    h = hashlib.sha256(name.encode("utf-8")).hexdigest()
+    c1 = f"#{h[0:6]}"
+    c2 = f"#{h[6:12]}"
+    text = name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="{text}">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="{c1}"/>
+      <stop offset="1" stop-color="{c2}"/>
+    </linearGradient>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="960" height="540" rx="36" fill="url(#g)"/>
+  <g filter="url(#s)">
+    <rect x="56" y="56" width="848" height="428" rx="28" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.22)"/>
+  </g>
+  <text x="96" y="170" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-weight="800" font-size="64" fill="rgba(255,255,255,0.95)">{initials}</text>
+  <text x="96" y="250" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-weight="700" font-size="38" fill="rgba(255,255,255,0.9)">{text}</text>
+  <text x="96" y="310" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-weight="600" font-size="22" fill="rgba(255,255,255,0.75)">Suivi des plants</text>
+</svg>"""
+    b64 = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+    return f"data:image/svg+xml;base64,{b64}"
