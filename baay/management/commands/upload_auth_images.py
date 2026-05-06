@@ -51,17 +51,19 @@ class Command(BaseCommand):
                     invalidate=True,
                 )
                 self.stdout.write(
-                    self.style.SUCCESS(f"✓ Uploaded {static_path} → {result['public_id']}")
+                    self.style.SUCCESS(
+                        f"[OK] Uploaded {static_path} -> {result['public_id']}"
+                    )
                 )
                 self.stdout.write(f"  URL: {result['secure_url']}")
                 self.stdout.write(f"  Add to environment: {env_var}={result['secure_url']}")
             except FileNotFoundError:
                 self.stdout.write(
-                    self.style.ERROR(f"✗ File not found: {static_path}")
+                    self.style.ERROR(f"[ERR] File not found: {static_path}")
                 )
             except Exception as e:
                 self.stdout.write(
-                    self.style.ERROR(f"✗ Failed to upload {static_path}: {e}")
+                    self.style.ERROR(f"[ERR] Failed to upload {static_path}: {e}")
                 )
 
         self.stdout.write("\nDone! Add the URLs above to your .env file or settings.")
