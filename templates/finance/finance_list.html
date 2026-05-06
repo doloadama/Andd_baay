@@ -314,7 +314,7 @@
             <svg class="finance-ft-details__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </summary>
         <div class="finance-ft-card__body finance-ft-details__body">
-            <form id="finance-depense-form" method="post" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+            <form id="finance-depense-form" method="post" enctype="multipart/form-data" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                 {% csrf_token %}
                 {% if form_depense.non_field_errors %}
                     <div class="alert alert-danger mb-3">{{ form_depense.non_field_errors }}</div>
@@ -372,6 +372,12 @@
                         <div id="totalPreview" class="finance-ft-total-preview">
                             <span id="totalPreviewNum">0</span><span class="finance-ft-fcfa">FCFA</span>
                         </div>
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form_depense.piece_justificative.id_for_label }}">Justificatif <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(photo ou PDF)</span></label>
+                        {{ form_depense.piece_justificative }}
+                        {% if form_depense.piece_justificative.errors %}<div class="text-danger small mt-1">{{ form_depense.piece_justificative.errors.0 }}</div>{% endif %}
                     </div>
                 </div>
 
@@ -460,7 +466,7 @@
             <svg class="finance-ft-details__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </summary>
         <div class="finance-ft-card__body finance-ft-details__body">
-            <form id="finance-recette-form" method="post" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+            <form id="finance-recette-form" method="post" enctype="multipart/form-data" action="{% url 'finance_hub' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
                 {% csrf_token %}
                 <input type="hidden" name="submit_recette" value="1">
                 {% if form_recette.non_field_errors %}
@@ -511,6 +517,12 @@
                         <div id="recetteMontantPreview" class="finance-ft-total-preview">
                             <span id="recetteMontantPreviewNum">0</span><span class="finance-ft-fcfa">FCFA</span>
                         </div>
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form_recette.justificatif_facture.id_for_label }}">Justificatif <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(photo ou PDF)</span></label>
+                        {{ form_recette.justificatif_facture }}
+                        {% if form_recette.justificatif_facture.errors %}<div class="text-danger small mt-1">{{ form_recette.justificatif_facture.errors.0 }}</div>{% endif %}
                     </div>
                 </div>
 

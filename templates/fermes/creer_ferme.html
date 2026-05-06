@@ -42,7 +42,7 @@
             <h2 id="ferme-form-heading" class="finance-ft-card__title">Informations de la ferme</h2>
         </div>
         <div class="finance-ft-card__body">
-            <form method="post" id="ferme-create-form" class="ferme-ft-form" novalidate>
+            <form method="post" enctype="multipart/form-data" id="ferme-create-form" class="ferme-ft-form" novalidate>
                 {% csrf_token %}
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger mb-3" role="alert">{{ form.non_field_errors }}</div>
@@ -115,6 +115,18 @@
                                 {% if form.longitude.errors %}<div class="text-danger small mt-1">{{ form.longitude.errors.0 }}</div>{% endif %}
                             </div>
                         </div>
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form.image_couverture.id_for_label }}">{{ form.image_couverture.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        {{ form.image_couverture }}
+                        {% if form.image_couverture.errors %}<div class="text-danger small mt-1">{{ form.image_couverture.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="finance-ft-span2">
+                        <label class="finance-ft-field-label" for="{{ form.image_infrastructure.id_for_label }}">{{ form.image_infrastructure.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        {{ form.image_infrastructure }}
+                        {% if form.image_infrastructure.errors %}<div class="text-danger small mt-1">{{ form.image_infrastructure.errors.0 }}</div>{% endif %}
                     </div>
                 </div>
                     </div>

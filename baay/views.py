@@ -1048,7 +1048,9 @@ def detail_projet(request, projet_id):
         title = pp.produit.nom
         subtitle = f"Age: {pp.age_plant} jours" if pp.age_plant else ""
         if pp.image:
-            attrs = cloudinary_img_lazy_attrs(pp.image, preset=CloudinaryPreset.DETAIL, alt=title)
+            attrs = cloudinary_img_lazy_attrs(
+                pp.image, preset=CloudinaryPreset.DETAIL, alt=title
+            ) or {}
             plant_photos.append(
                 {
                     "url": attrs.get("src") or cloudinary_sahara_url(pp.image, preset=CloudinaryPreset.DETAIL),
@@ -2286,7 +2288,7 @@ def liste_fermes(request):
 @login_required
 def creer_ferme(request):
     if request.method == 'POST':
-        form = FermeForm(request.POST)
+        form = FermeForm(request.POST, request.FILES)
         if form.is_valid():
             ferme = form.save(commit=False)
             ferme.proprietaire = request.user.profile
@@ -2349,7 +2351,7 @@ def regenerer_code_acces_ferme(request, ferme_id):
 def modifier_ferme(request, ferme_id):
     ferme = get_object_or_404(Ferme, id=ferme_id, proprietaire=request.user.profile)
     if request.method == 'POST':
-        form = FermeForm(request.POST, instance=ferme)
+        form = FermeForm(request.POST, request.FILES, instance=ferme)
         if form.is_valid():
             form.save()
             messages.success(request, "Ferme modifiée avec succès.")

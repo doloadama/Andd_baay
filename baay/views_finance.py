@@ -304,7 +304,7 @@ class FinanceHubView(View):
 
     def post(self, request, *args, **kwargs):
         if request.POST.get("submit_recette"):
-            form_recette = FinanceRecetteForm(request.POST, user=request.user)
+            form_recette = FinanceRecetteForm(request.POST, request.FILES, user=request.user)
             form_depense = FinanceDepenseForm(user=request.user)
             if not form_recette.is_valid():
                 ctx = _finance_hub_template_context(
@@ -342,7 +342,7 @@ class FinanceHubView(View):
             return _redirect_finance_hub_preserving_query(request)
 
         # Défaut : dépense
-        form_depense = FinanceDepenseForm(request.POST, user=request.user)
+        form_depense = FinanceDepenseForm(request.POST, request.FILES, user=request.user)
         form_recette = FinanceRecetteForm(user=request.user)
         if not form_depense.is_valid():
             ctx = _finance_hub_template_context(

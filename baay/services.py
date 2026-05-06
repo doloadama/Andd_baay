@@ -753,8 +753,59 @@ def cloudinary_img_lazy_attrs(media_value, preset: str = CloudinaryPreset.LIST, 
     """
     src = cloudinary_sahara_url(media_value, preset=preset)
     attrs = {"src": src, "loading": "lazy", "decoding": "async", "alt": alt}
-    widths = []
     sizes = getattr(settings, "CLOUDINARY_SRCSET_WIDTHS", (320, 480, 640, 960))
+    if not media_value:
+        return attrs
+
+    try:
+        from baay.cloudinary_helpers import public_id_and_type as _pid_rt
+        from django.conf import settings as dj_settings
+
+        from cloudinary import utils as cu
+    except Exception:
+        return attrs
+
+    if not getattr(dj_settings, "CLOUDINARY_ACTIVE", False):
+        return attrs
+
+    pid, rt = _pid_rt(media_value)
+    if not pid or rt != "image":
+        return attrs
+
+    # srcset responsive : toujours "limit" (pas de crop) + f_auto/q_auto
+    srcset_parts = []
+    try:
+        for w in sizes or ():
+            try:
+                w_int = int(w)
+            except Exception:
+                continue
+            if w_int <= 0:
+                continue
+            transforms = dict(
+                _SAHARA_IMAGE_PRESETS.get(preset, _SAHARA_IMAGE_PRESETS[CloudinaryPreset.LIST])
+            )
+            transforms["width"] = w_int
+            transforms["crop"] = transforms.get("crop") or "limit"
+            transforms.setdefault("fetch_format", "auto")
+            transforms.setdefault("quality", "auto")
+            transforms.setdefault("dpr", "auto")
+            transforms["secure"] = True
+            url, _unused = cu.cloudinary_url(pid, **transforms)
+            if url:
+                srcset_parts.append(f"{url} {w_int}w")
+    except Exception:
+        srcset_parts = []
+
+    if srcset_parts:
+        attrs["srcset"] = ", ".join(srcset_parts)
+        # Sizes minimaliste: plein écran mobile, puis cartes sur desktop
+        attrs["sizes"] = "(max-width: 768px) 100vw, 640px"
+    else:
+        attrs["srcset"] = ""
+        attrs["sizes"] = ""
+
+    return attrs
 
 
 def upload_static_to_cloudinary(

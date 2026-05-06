@@ -20,6 +20,26 @@ from baay.models import (
 from baay.permissions import role_dans_ferme, roles_assignables_par
 
 
+def _validate_upload(
+    f,
+    *,
+    max_mb: int,
+    allowed_content_type_prefixes: tuple[str, ...] = ("image/",),
+    allowed_content_types: tuple[str, ...] = (),
+):
+    if not f:
+        return f
+    max_bytes = int(max_mb) * 1024 * 1024
+    if getattr(f, "size", 0) and f.size > max_bytes:
+        raise forms.ValidationError(f"Fichier trop volumineux (max {max_mb} Mo).")
+    ct = (getattr(f, "content_type", None) or "").lower()
+    if allowed_content_types and ct in {c.lower() for c in allowed_content_types}:
+        return f
+    if allowed_content_type_prefixes and any(ct.startswith(p.lower()) for p in allowed_content_type_prefixes):
+        return f
+    raise forms.ValidationError("Type de fichier non autorisé.")
+
+
 def _aligner_champ_categorie_investissement(form_field, *, instance):
     """
     Les deux formulaires (fiche projet + hub Finance) exposent la même liste
@@ -258,6 +278,7 @@ class FinanceDepenseForm(forms.ModelForm):
             "cout_par_hectare",
             "autres_frais",
             "date_investissement",
+            "piece_justificative",
         ]
         widgets = {
             "projet": forms.Select(attrs={"class": "fh-field"}),
@@ -287,6 +308,9 @@ class FinanceDepenseForm(forms.ModelForm):
             ),
             "date_investissement": forms.DateInput(
                 attrs={"type": "date", "class": "fh-field", "id": "fDateInv"}
+            ),
+            "piece_justificative": forms.ClearableFileInput(
+                attrs={"class": "fh-field", "accept": "image/*,application/pdf"}
             ),
         }
 
@@ -352,6 +376,14 @@ class FinanceDepenseForm(forms.ModelForm):
             )
         return cleaned_data
 
+    def clean_piece_justificative(self):
+        return _validate_upload(
+            self.cleaned_data.get("piece_justificative"),
+            max_mb=10,
+            allowed_content_type_prefixes=("image/",),
+            allowed_content_types=("application/pdf",),
+        )
+
 
 class FinanceRecetteForm(forms.ModelForm):
     """Saisie d'une recette (vente) depuis le hub Finance."""
@@ -366,6 +398,7 @@ class FinanceRecetteForm(forms.ModelForm):
             "unite",
             "prix_unitaire",
             "date_vente",
+            "justificatif_facture",
         ]
         widgets = {
             "projet": forms.Select(attrs={"class": "fh-field"}),
@@ -396,6 +429,9 @@ class FinanceRecetteForm(forms.ModelForm):
             ),
             "date_vente": forms.DateInput(
                 attrs={"type": "date", "class": "fh-field", "id": "fDateVente"}
+            ),
+            "justificatif_facture": forms.ClearableFileInput(
+                attrs={"class": "fh-field", "accept": "image/*,application/pdf"}
             ),
         }
 
@@ -459,6 +495,14 @@ class FinanceRecetteForm(forms.ModelForm):
                 {"projet_produit": "La culture ne correspond pas au projet sélectionné."}
             )
         return cleaned_data
+
+    def clean_justificatif_facture(self):
+        return _validate_upload(
+            self.cleaned_data.get("justificatif_facture"),
+            max_mb=10,
+            allowed_content_type_prefixes=("image/",),
+            allowed_content_types=("application/pdf",),
+        )
 
 
 class ProjetForm(forms.ModelForm):
@@ -835,7 +879,18 @@ class PlantDetailsForm(forms.Form):
 class FermeForm(forms.ModelForm):
     class Meta:
         model = Ferme
-        fields = ['nom', 'description', 'pays', 'region', 'localite', 'superficie_totale', 'latitude', 'longitude']
+        fields = [
+            'nom',
+            'description',
+            'pays',
+            'region',
+            'localite',
+            'superficie_totale',
+            'latitude',
+            'longitude',
+            'image_couverture',
+            'image_infrastructure',
+        ]
         labels = {
             'nom': 'Nom de la ferme',
             'description': 'Description',
@@ -845,6 +900,8 @@ class FermeForm(forms.ModelForm):
             'superficie_totale': 'Superficie totale (ha)',
             'latitude': 'Latitude',
             'longitude': 'Longitude',
+            'image_couverture': 'Image de couverture',
+            'image_infrastructure': "Photo d'infrastructure",
         }
         widgets = {
             'nom': forms.TextInput(
@@ -893,6 +950,12 @@ class FermeForm(forms.ModelForm):
                     'inputmode': 'decimal',
                 }
             ),
+            'image_couverture': forms.ClearableFileInput(
+                attrs={'class': 'fh-field', 'accept': 'image/*', 'capture': 'environment'}
+            ),
+            'image_infrastructure': forms.ClearableFileInput(
+                attrs={'class': 'fh-field', 'accept': 'image/*', 'capture': 'environment'}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -911,6 +974,12 @@ class FermeForm(forms.ModelForm):
             str(localite.id): str(localite.pays_id or '')
             for localite in self.fields['localite'].queryset
         })
+
+    def clean_image_couverture(self):
+        return _validate_upload(self.cleaned_data.get("image_couverture"), max_mb=8)
+
+    def clean_image_infrastructure(self):
+        return _validate_upload(self.cleaned_data.get("image_infrastructure"), max_mb=8)
 
 
 class MembreFermeForm(forms.Form):
