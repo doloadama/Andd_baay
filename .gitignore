@@ -23,6 +23,7 @@ modele_rendement.pkl
 # IDE
 .idea/
 .vscode/
+.cursor/
 *.swp
 
 # OS

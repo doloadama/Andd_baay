@@ -96,8 +96,15 @@ _allow_debug_in_prod = os.getenv("ALLOW_DEBUG_IN_PROD", "").strip().lower() in (
 if IS_VERCEL and DEBUG and not _allow_debug_in_prod:
     DEBUG = False
 
-if (IS_VERCEL or not DEBUG) and not _allow_debug_in_prod:
-    # Django's deploy checks flag weak/insecure keys. Enforce strength in prod-like contexts.
+_explicit_production = (
+    IS_VERCEL
+    or os.getenv("ENV", "").strip().lower() == "production"
+    or os.getenv("DJANGO_ENVIRONMENT", "").strip().lower() == "production"
+    or os.getenv("DJANGO_DEPLOY_ENV", "").strip().lower() == "production"
+)
+
+if _explicit_production and not _allow_debug_in_prod:
+    # Django's deploy checks flag weak/insecure keys. Enforce strength in explicit production.
     if SECRET_KEY.startswith("django-insecure-") or len(SECRET_KEY) < 50:
         raise ValueError("DJANGO_SECRET_KEY must be a strong random value (>=50 chars) in production.")
 
@@ -145,6 +152,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'baay.middleware.csp.ContentSecurityPolicyMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -162,6 +170,10 @@ MIDDLEWARE = [
     # Response header so /static/js/sw.js can use navigator.serviceWorker.register(..., { scope: '/' })
     'baay.middleware.service_worker_scope.ServiceWorkerAllowedMiddleware',
 ]
+
+# CSP (Content Security Policy)
+# Report-only can be enabled in env without breaking the UI: CSP_REPORT_ONLY=True
+CSP_REPORT_ONLY = os.getenv("CSP_REPORT_ONLY", "False").lower() in ("1", "true", "yes")
 
 # ── HTMX Fragment Cache (Phase 2) ───────────────────────────────────────────
 HTMX_CACHE_TTL = 60  # secondes — durée de cache des fragments HTMX
