@@ -615,9 +615,10 @@
     }
     
     .project-checkbox {
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
+        /* Mobile accessibility: 44×44 tap target */
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
         border: 2px solid var(--border-color);
         background: var(--bg-tertiary);
         cursor: pointer;
@@ -816,6 +817,11 @@
         align-items: center;
         gap: 4px;
     }
+
+    /* Mobile accessibility: 44×44 minimum tap target */
+    .chart-btn {
+        min-height: 44px;
+    }
     
     .chart-btn:hover {
         background: var(--accent);
@@ -871,6 +877,12 @@
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+    }
+
+    /* Mobile accessibility: 44×44 minimum tap target */
+    .theme-toggle {
+        min-width: 44px;
+        min-height: 44px;
     }
     
     .theme-toggle:hover {
@@ -1273,6 +1285,16 @@
             right: 16px;
             left: 16px;
             max-width: none;
+        }
+
+        /* Avoid clipping the projects list on small screens */
+        .tile-projects {
+            max-height: none;
+        }
+
+        .tile-projects .dash-section-body {
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
         }
     }
     

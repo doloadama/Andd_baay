@@ -926,7 +926,8 @@ body.dark-mode .cockpit-project-gauge {
 
     .mini-p-actions a,
     .cockpit-status-action {
-        min-height: 36px;
+        /* Mobile accessibility: 44×44 tap target */
+        min-height: 44px;
         padding: 6px 10px;
     }
 
@@ -986,7 +987,8 @@ body.dark-mode .cockpit-project-gauge {
     }
 
     .cockpit-topbar__cta {
-        min-height: 40px;
+        /* Mobile accessibility: 44×44 tap target */
+        min-height: 44px;
         padding-inline: 16px;
         font-size: 0.8rem;
     }
@@ -1001,8 +1003,9 @@ body.dark-mode .cockpit-project-gauge {
     }
 
     .theme-toggle {
-        width: 36px;
-        height: 36px;
+        /* Mobile accessibility: 44×44 tap target */
+        width: 44px;
+        height: 44px;
     }
 
     /* Quick strip — 2 colonnes déjà actives ≤767px ; resserre l’espacement */
