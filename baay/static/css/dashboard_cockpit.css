@@ -726,6 +726,29 @@ body.dark-mode .cockpit-project-gauge {
 }
 
 @media (max-width: 767.98px) {
+    /* Phone layout: KPIs in 2 columns, sections full width */
+    .dashboard-grid.cockpit-grid,
+    .cockpit-grid.dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Ensure main sections (charts, filters, lists, bento tiles) take full width */
+    .dashboard-grid.cockpit-grid > .dash-section,
+    .cockpit-grid.dashboard-grid > .dash-section {
+        grid-column: 1 / -1;
+    }
+
+    /* Keep KPI tiles as 1 cell each */
+    .dashboard-grid.cockpit-grid > .tile-kpi,
+    .cockpit-grid.dashboard-grid > .tile-kpi {
+        grid-column: auto;
+    }
+
+    /* Prevent bottom nav + FAB from covering content */
+    .dashboard-page {
+        padding-bottom: calc(120px + env(safe-area-inset-bottom));
+    }
+
     .cockpit-quick-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;

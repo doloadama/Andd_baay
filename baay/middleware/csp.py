@@ -37,8 +37,10 @@ class ContentSecurityPolicyMiddleware:
                 "'unsafe-inline'",
                 "'unsafe-eval'",
                 "https://cdn.tailwindcss.com",
+                # Allow Figma HTML-to-Design capture (dev / internal tooling)
+                "https://mcp.figma.com",
             ],
-            "connect-src": ["'self'", "https:"],
+            "connect-src": ["'self'", "https:", "https://mcp.figma.com"],
             "worker-src": ["'self'", "blob:"],
             "manifest-src": ["'self'"],
             "upgrade-insecure-requests": [],
