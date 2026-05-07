@@ -121,8 +121,9 @@ if IS_VERCEL and VERCEL_URL:
     if VERCEL_URL not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(VERCEL_URL)
 
+# Daphne est requis pour runserver ASGI / WebSockets en local ; absent sur Vercel (WSGI uniquement).
 INSTALLED_APPS = [
-    'daphne',
+    *([] if IS_VERCEL else ['daphne']),
     'unfold',
     'unfold.contrib.filters',
     'django.contrib.admin',
@@ -255,24 +256,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
 ASGI_APPLICATION = 'Andd_Baayi.asgi.application'
 
-# Channels (WebSockets) — in-memory for local dev; use Redis in production
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    }
-}
-# Override with Redis if REDIS_URL is set (Redis doit tourner sinon erreurs / retries ;
-# pour du dev sans Redis : retirez REDIS_URL du .env pour rester en InMemoryChannelLayer.)
+# Channels (WebSockets) — in-memory en dev ; Redis si REDIS_URL (hors Vercel).
+# Sur Vercel : pas de package channels_redis ; couche mémoire uniquement.
 _redis_url = os.getenv('REDIS_URL', '').strip()
-if _redis_url:
+if IS_VERCEL:
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                'hosts': [_redis_url],
-            },
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
         }
     }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
+    if _redis_url:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    'hosts': [_redis_url],
+                },
+            }
+        }
 
 # Celery — broker explicite ou REDIS_URL ; en DEBUG sans les deux : pas de Redis requis (eager + memory).
 _celery_broker_env = os.getenv('CELERY_BROKER_URL', '').strip()
@@ -307,6 +314,12 @@ else:
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_TASK_TIME_LIMIT = int(os.getenv('CELERY_TASK_TIME_LIMIT', '900'))
 CELERY_TASK_SOFT_TIME_LIMIT = int(os.getenv('CELERY_TASK_SOFT_TIME_LIMIT', '600'))
+
+# Pas de broker Redis/worker sur Vercel : tâches exécutées dans le processus Lambda.
+if IS_VERCEL:
+    CELERY_BROKER_URL = 'memory://'
+    CELERY_RESULT_BACKEND = 'cache+memory://'
+    CELERY_TASK_ALWAYS_EAGER = True
 
 # Django-Axes — brute force protection
 AXES_ENABLED = os.getenv('AXES_ENABLED', 'True').lower() in ('1', 'true', 'yes')

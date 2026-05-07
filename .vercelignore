@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.sqlite3
+.git/
+.idea/
+.vscode/
+.cursor/
+node_modules/
+media/
+staticfiles/
+tests/
+*.log
+.env
+.env.*
+!.env.example
+modele_rendement.pkl

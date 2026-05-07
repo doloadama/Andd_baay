@@ -1,3 +1,8 @@
+# Pile complète : développement local, Render, ASGI/WebSockets avec Redis.
+# Vercel installe requirements-vercel.txt (voir vercel.json → installCommand).
+# Tests : pip install -r requirements-dev.txt
+# ML / GenAI : pip install -r requirements-ml.txt
+
 # Core Django dependencies
 Django>=5.2,<5.3
 django-unfold>=0.90,<1
@@ -24,21 +29,3 @@ cryptography>=41.0.0
 celery>=5.3.0
 redis>=5.0.0
 django-axes>=6.4.0
-
-# NOTE: Heavy dependencies are NOT included due to Vercel's 250MB Lambda limit.
-# The app gracefully degrades when these are unavailable.
-# To enable full features, deploy to a platform with larger limits (Render, Railway)
-# and uncomment the following:
-#
-# AI Chatbot:
-google-genai>=0.6.0
-#
-# ML Predictions:
-scikit-learn>=1.3.0
-pandas>=2.0.0
-numpy>=1.24.0
-# joblib>=1.3.0
-
-# Testing
-pytest>=8.0.0
-pytest-django>=4.8.0

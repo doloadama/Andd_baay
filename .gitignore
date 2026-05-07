@@ -35,3 +35,5 @@ identifier.sqlite
 structure.txt
 *_scratch.py
 _smoke_*.py
+
+.vercel

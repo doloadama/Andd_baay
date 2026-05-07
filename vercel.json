@@ -1,13 +1,13 @@
 {
+  "installCommand": "pip install -r requirements-vercel.txt",
   "version": 2,
   "builds": [
     {
       "src": "Andd_Baayi/wsgi.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "50mb",
         "runtime": "python3.12",
-        "excludeFiles": "{**/*.pkl,**/static/**,**/*.jpg,**/*.png,**/*.gif,**/*.jpeg,**/media/**}"
+        "excludeFiles": "{**/*.pkl,**/static/**,**/*.jpg,**/*.png,**/*.gif,**/*.jpeg,**/media/**,__pycache__/**,**/*.pyc,**/tests/**,.git/**}"
       }
     },
     {
