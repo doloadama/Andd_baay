@@ -92,6 +92,14 @@ SECRET_KEY = _secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
+_allow_debug_in_prod = os.getenv("ALLOW_DEBUG_IN_PROD", "").strip().lower() in ("1", "true", "yes")
+if IS_VERCEL and DEBUG and not _allow_debug_in_prod:
+    DEBUG = False
+
+if (IS_VERCEL or not DEBUG) and not _allow_debug_in_prod:
+    # Django's deploy checks flag weak/insecure keys. Enforce strength in prod-like contexts.
+    if SECRET_KEY.startswith("django-insecure-") or len(SECRET_KEY) < 50:
+        raise ValueError("DJANGO_SECRET_KEY must be a strong random value (>=50 chars) in production.")
 
 ALLOWED_HOSTS = [
     h.strip()
@@ -116,6 +124,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'cloudinary_storage',
     'cloudinary',
     'baay.apps.BaayConfig',
@@ -139,16 +148,19 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'baay.middleware.htmx_cache.HtmxCacheMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'axes.middleware.AxesMiddleware',
+    # After AuthenticationMiddleware: needs request.user for HTMX fragment cache keys
+    'baay.middleware.htmx_cache.HtmxCacheMiddleware',
     'baay.middleware.current_request.CurrentRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    # Response header so /static/js/sw.js can use navigator.serviceWorker.register(..., { scope: '/' })
+    'baay.middleware.service_worker_scope.ServiceWorkerAllowedMiddleware',
 ]
 
 # ── HTMX Fragment Cache (Phase 2) ───────────────────────────────────────────
@@ -193,6 +205,19 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 if IS_VERCEL or not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# Security hardening for production-like environments (Vercel + non-DEBUG)
+_prod_like = IS_VERCEL or (not DEBUG)
+if _prod_like:
+    SECURE_SSL_REDIRECT = True
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = os.getenv("X_FRAME_OPTIONS", "DENY")
+
+    # HSTS: start small, raise progressively via env.
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "86400"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "False").lower() in ("1", "true", "yes")
+    SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "False").lower() in ("1", "true", "yes")
 
 ROOT_URLCONF = 'Andd_Baayi.urls'
 

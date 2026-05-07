@@ -11,10 +11,12 @@ import hashlib
 
 from django.conf import settings
 from django.core.cache import cache
+from django.http import HttpResponse
 
 
 _DEFAULT_TTL = 60
 _DEFAULT_EXEMPT: list[str] = []
+_SAFE_HEADERS = {"Content-Language"}
 
 
 class HtmxCacheMiddleware:
@@ -30,12 +32,12 @@ class HtmxCacheMiddleware:
         cache_key = self._build_key(request)
         cached = cache.get(cache_key)
         if cached is not None:
-            return cached
+            return self._rehydrate_response(cached)
 
         response = self.get_response(request)
 
-        if response.status_code == 200:
-            cache.set(cache_key, response, self.ttl)
+        if response.status_code == 200 and not response.has_header("Set-Cookie"):
+            cache.set(cache_key, self._dehydrate_response(response), self.ttl)
 
         return response
 
@@ -44,7 +46,8 @@ class HtmxCacheMiddleware:
             return False
         if request.headers.get("HX-Request") != "true":
             return False
-        if not request.user.is_authenticated:
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
             return False
         path = request.path
         for exempt_prefix in self.exempt:
@@ -56,6 +59,28 @@ class HtmxCacheMiddleware:
     def _build_key(request) -> str:
         qs = request.META.get("QUERY_STRING", "")
         qs_hash = hashlib.md5(qs.encode(), usedforsecurity=False).hexdigest()[:8]
-        user_pk = request.user.pk
+        user = getattr(request, "user", None)
+        user_pk = getattr(user, "pk", None) if user is not None else None
         path = request.path.replace("/", "_").strip("_")
         return f"htmx:{user_pk}:{path}:{qs_hash}"
+
+    @staticmethod
+    def _dehydrate_response(response: HttpResponse) -> dict:
+        headers = {k: v for (k, v) in response.items() if k in _SAFE_HEADERS}
+        return {
+            "status": int(getattr(response, "status_code", 200)),
+            "content_type": str(getattr(response, "headers", {}).get("Content-Type") or response.get("Content-Type", "text/html; charset=utf-8")),
+            "headers": headers,
+            "content": bytes(response.content),
+        }
+
+    @staticmethod
+    def _rehydrate_response(payload: dict) -> HttpResponse:
+        resp = HttpResponse(
+            payload.get("content", b""),
+            status=int(payload.get("status", 200)),
+            content_type=payload.get("content_type") or "text/html; charset=utf-8",
+        )
+        for k, v in (payload.get("headers") or {}).items():
+            resp[k] = v
+        return resp

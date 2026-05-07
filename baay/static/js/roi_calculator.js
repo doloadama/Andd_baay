@@ -17,11 +17,13 @@
  */
 document.addEventListener('alpine:init', function () {
     Alpine.data('roiCalculator', function (initialData) {
+        const d =
+            initialData != null && typeof initialData === 'object' ? initialData : {};
         return {
             montantSaisi: 0,
-            typeOperation: initialData.typeOperation || 'depense',
-            totalRecettes: Number(initialData.totalRecettes) || 0,
-            totalCouts: Number(initialData.totalCouts) || 0,
+            typeOperation: d.typeOperation || 'depense',
+            totalRecettes: Number(d.totalRecettes) || 0,
+            totalCouts: Number(d.totalCouts) || 0,
 
             get beneficeNet() {
                 return this._previewRecettes() - this._previewCouts();

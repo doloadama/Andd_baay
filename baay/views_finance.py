@@ -1,6 +1,7 @@
 """Hub Finance : liste des dépenses, filtres et saisie."""
 
 import json
+import logging
 from decimal import Decimal
 
 from django.contrib import messages
@@ -29,6 +30,8 @@ from baay.services import (
     check_projet_produit_budget_status,
     investissement_montant_expr,
 )
+
+logger = logging.getLogger("baay")
 
 
 def _deny_if_no_finance_access(request):
@@ -273,7 +276,7 @@ def _build_kpis_json(request):
             total_rec += kp.get("total_recettes") or Decimal("0")
             total_cout += kp.get("total_couts") or Decimal("0")
         except Exception:
-            pass
+            logger.exception("Erreur calcul KPIs financiers (projet_id=%s)", projet_id)
     return json.dumps({
         "totalRecettes": float(total_rec),
         "totalCouts": float(total_cout),
@@ -316,6 +319,7 @@ class FinanceHubView(View):
                         request.POST.get("recette-projet")
                     ),
                 )
+                ctx["kpis_json"] = _build_kpis_json(request)
                 return render(request, self.template_name, ctx, status=400)
 
             projet = form_recette.cleaned_data["projet"]
@@ -354,6 +358,7 @@ class FinanceHubView(View):
                 ),
                 culture_partial_produits_recette=[],
             )
+            ctx["kpis_json"] = _build_kpis_json(request)
             return render(request, self.template_name, ctx, status=400)
 
         projet = form_depense.cleaned_data["projet"]
@@ -373,7 +378,7 @@ class FinanceHubView(View):
 
             recompute_investment_budget_status_task.delay(str(inv.projet_id))
         except Exception:
-            pass
+            logger.exception("Erreur déclenchement recompute budget (projet_id=%s)", inv.projet_id)
 
         over = False
         st = check_budget_status(inv.projet_id)

@@ -1,4 +1,27 @@
 /* Cockpit stratégique — contrastes élevés (lecture plein soleil) */
+
+/* Page dashboard — rythme vertical + élargissement dans le layout (évite le bord trop serré sur grand écran) */
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+}
+
+main .container-modern:has(.dashboard-page) {
+    max-width: min(1520px, 100%);
+    padding-inline: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: clamp(24px, 4vh, 40px);
+}
+
+@media (min-width: 1200px) {
+    main .container-modern:has(.dashboard-page) {
+        padding-inline: max(28px, env(safe-area-inset-left));
+        padding-right: max(28px, env(safe-area-inset-right));
+    }
+}
+
 :root {
     --cockpit-recette: #1D9E75;
     --cockpit-recette-bg: rgba(29, 158, 117, 0.16);
@@ -640,6 +663,29 @@ body.dark-mode .cockpit-project-gauge {
     padding: clamp(32px, 6vw, 64px) 20px;
 }
 
+/* Tablette — synthèse 2×2 ; grand écran — grille et header plus aérés */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .cockpit-quick-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1200px) {
+    .cockpit-topbar {
+        padding: 22px 28px;
+        gap: 20px;
+    }
+
+    .cockpit-quick-strip {
+        gap: 16px;
+    }
+
+    .cockpit-grid.dashboard-grid,
+    .dashboard-grid.cockpit-grid {
+        gap: 18px;
+    }
+}
+
 @media (max-width: 991.98px) {
     .cockpit-topbar {
         grid-template-columns: 1fr;
@@ -647,6 +693,22 @@ body.dark-mode .cockpit-project-gauge {
 
     .cockpit-topbar__actions {
         justify-content: flex-start;
+    }
+
+    /* Barre d’actions : CTA pleine largeur sous rafraîchissement + thème */
+    .db-actions.cockpit-topbar__actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px 12px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .cockpit-topbar__cta {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+        justify-content: center;
     }
 
     .dashboard-header-modern.db-header-cockpit .cockpit-weather {
@@ -665,7 +727,8 @@ body.dark-mode .cockpit-project-gauge {
 
 @media (max-width: 767.98px) {
     .cockpit-quick-strip {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
     }
 
     .cockpit-qcard,
@@ -689,6 +752,10 @@ body.dark-mode .cockpit-project-gauge {
 
     .cockpit-chart-container {
         min-height: 260px;
+    }
+
+    .cockpit-grid .bento-tile:not(.tile-kpi) {
+        padding: clamp(16px, 3.5vw, 22px);
     }
 
     /* Header cockpit — lecture et tactique téléphone */
@@ -884,6 +951,22 @@ body.dark-mode .cockpit-project-gauge {
     .search-box input {
         font-size: 0.85rem;
     }
+
+    .cockpit-projects-panel .dash-section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .cockpit-projects-panel .dash-section-header > div {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cockpit-projects-panel .search-box {
+        flex: 1;
+        min-width: 0;
+    }
 }
 
 /* Extra small screens */
@@ -922,9 +1005,8 @@ body.dark-mode .cockpit-project-gauge {
         height: 36px;
     }
 
-    /* Quick strip 2x2 on mobile */
+    /* Quick strip — 2 colonnes déjà actives ≤767px ; resserre l’espacement */
     .cockpit-quick-strip {
-        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 
@@ -1162,49 +1244,69 @@ body.dark-mode .cockpit-project-gauge {
 .bento-kpi-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 16px;
 }
-@media (max-width: 767.98px) {
-    .bento-kpi-row { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 991.98px) {
+    .bento-kpi-row { grid-template-columns: repeat(2, 1fr); gap: 14px; }
 }
-@media (max-width: 400px) {
-    .bento-kpi-row { grid-template-columns: 1fr; }
+@media (max-width: 480px) {
+    .bento-kpi-row { grid-template-columns: 1fr; gap: 12px; }
 }
 
 .bento-kpi-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: var(--card-glass, rgba(255,255,255,0.7));
-    border: 1px solid var(--border-glass, rgba(0,0,0,0.07));
-    backdrop-filter: blur(8px);
+    gap: 8px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.9));
+    border: 1px solid rgba(0,0,0,0.06);
+    border-left-width: 4px;
+    box-shadow:
+        0 2px 4px rgba(0,0,0,0.02),
+        0 8px 24px rgba(0,0,0,0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 0;
 }
-.bento-kpi--green  { border-left: 3px solid var(--brand-primary); }
-.bento-kpi--amber  { border-left: 3px solid var(--brand-accent); }
-.bento-kpi--blue   { border-left: 3px solid #3b82f6; }
-.bento-kpi--danger { border-left: 3px solid var(--danger, #ef4444); }
+.bento-kpi-item:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 4px 8px rgba(0,0,0,0.04),
+        0 12px 32px rgba(0,0,0,0.06);
+}
+.bento-kpi--green  { border-left-color: var(--brand-primary); }
+.bento-kpi--amber  { border-left-color: var(--brand-accent); }
+.bento-kpi--blue   { border-left-color: #3b82f6; }
+.bento-kpi--danger { border-left-color: var(--danger, #ef4444); }
 
 .bento-kpi-label {
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+.bento-kpi-label i {
+    font-size: 0.85rem;
+    opacity: 0.7;
 }
 .bento-kpi-value {
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: 1.6rem;
+    font-weight: 700;
     color: var(--text-main);
-    line-height: 1;
+    line-height: 1.1;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    flex-wrap: wrap;
 }
 .bento-kpi-unit {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--text-muted);
-    margin-left: 3px;
 }
 
 /* ── Messages list (inside _bento_messages.html) ── */
