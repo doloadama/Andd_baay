@@ -319,6 +319,13 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     }
 }
 
+/* Tablette / desktop md : équilibre les 4 colonnes (2fr 2fr 1fr 1fr serrait Mois/Année). */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .finance-ft-filter-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+}
+
 @media (max-width: 575px) {
     .finance-ft-filter-grid {
         grid-template-columns: 1fr;
@@ -517,6 +524,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 
 .finance-ft-table .fh-libelle {
     font-weight: 500;
+    word-break: break-word;
 }
 
 .finance-ft-projet-cell {
@@ -744,9 +752,19 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 }
 
 .finance-ft-pagination a {
+    display: inline-flex;
+    align-items: center;
+    /* Mobile accessibility: tap target 44×44. */
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 8px;
     color: var(--green-700);
     text-decoration: none;
     font-weight: 600;
+}
+
+.finance-ft-pagination a:hover {
+    background: var(--fh-surface2);
 }
 
 html.dark-mode .finance-ft-pagination a {
@@ -1382,6 +1400,14 @@ html.dark-mode .finance-ft-pagination a {
     background: var(--green-500);
     color: #fff;
     border-color: var(--green-500);
+}
+
+/* Tactile : promouvoir le toggle ROI à 44×44 (label non couvert par mobile.css). */
+@media (hover: none) and (pointer: coarse) {
+    .roi-widget__toggle-opt {
+        min-height: 44px;
+        padding: 10px 14px;
+    }
 }
 
 .roi-widget__results {

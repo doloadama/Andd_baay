@@ -200,6 +200,17 @@
         z-index: 20;
     }
 
+    /* Mobile accessibility: extend tap-target to 44×44 sans modifier le visuel (pseudo invisible). */
+    .bento-tile .tile-handle::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 44px;
+        height: 44px;
+        transform: translate(-50%, -50%);
+    }
+
     .bento-tile:hover .tile-handle {
         opacity: 1;
     }
@@ -509,8 +520,20 @@
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
+        position: relative;
     }
-    
+
+    /* Mobile accessibility: tap target 44×44 (visuel reste 18×18). */
+    .filter-chip-remove::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 44px;
+        height: 44px;
+        transform: translate(-50%, -50%);
+    }
+
     .filter-chip-remove:hover {
         background: rgba(29, 158, 117, 0.3);
         transform: scale(1.1);
@@ -1075,6 +1098,12 @@
         padding: var(--space-2);
         border-radius: var(--radius-sm);
         transition: all var(--transition);
+        /* Mobile accessibility: tap target 44×44. */
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .modal-close:hover {
@@ -1371,6 +1400,12 @@
         padding: 4px;
         border-radius: 4px;
         transition: all 0.2s ease;
+        /* Mobile accessibility: tap target 44×44. */
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .toast-close:hover {
