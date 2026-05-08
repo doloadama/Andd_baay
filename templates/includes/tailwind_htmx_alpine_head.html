@@ -1,12 +1,6 @@
 {% load static %}
-{# Tailwind prefix tw- évite les collisions Bootstrap ; preflight désactivé pour ne pas casser Bootstrap. #}
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-    tailwind.config = {
-        prefix: 'tw-',
-        corePlugins: { preflight: false },
-    };
-</script>
+{# Tailwind compilé (build prod, -300 KB JS vs CDN runtime). Config : tailwind.config.js (prefix tw-, preflight off). Rebuild : npm run build:tailwind. Voir perf-audit.md action #2. #}
+<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 <script defer src="{% static 'vendor/htmx-2.0.4.min.js' %}"></script>
 <script defer src="{% static 'js/roi_calculator.js' %}"></script>
 <script defer src="{% static 'vendor/alpinejs-3.14.8.min.js' %}"></script>

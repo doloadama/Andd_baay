@@ -1,0 +1,627 @@
+/* Font Awesome subset — généré par scripts/build-fa-subset.mjs.
+ * NE PAS ÉDITER : regénérer via `npm run build:fa`.
+ * Source : @fortawesome/fontawesome-free (158 icônes utilisées).
+ */
+@font-face {
+  font-family: 'Font Awesome 6 Brands';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../webfonts/fa-brands-400.woff2") format("woff2"), url("../webfonts/fa-brands-400.ttf") format("truetype"); }
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../webfonts/fa-regular-400.woff2") format("woff2"), url("../webfonts/fa-regular-400.ttf") format("truetype"); }
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("../webfonts/fa-solid-900.woff2") format("woff2"), url("../webfonts/fa-solid-900.ttf") format("truetype"); }
+@font-face {
+  font-family: 'Font Awesome 5 Brands';
+  font-display: block;
+  font-weight: 400;
+  src: url("../webfonts/fa-brands-400.woff2") format("woff2"), url("../webfonts/fa-brands-400.ttf") format("truetype"); }
+@font-face {
+  font-family: 'Font Awesome 5 Free';
+  font-display: block;
+  font-weight: 900;
+  src: url("../webfonts/fa-solid-900.woff2") format("woff2"), url("../webfonts/fa-solid-900.ttf") format("truetype"); }
+@font-face {
+  font-family: 'Font Awesome 5 Free';
+  font-display: block;
+  font-weight: 400;
+  src: url("../webfonts/fa-regular-400.woff2") format("woff2"), url("../webfonts/fa-regular-400.ttf") format("truetype"); }
+@font-face {
+  font-family: 'FontAwesome';
+  font-display: block;
+  src: url("../webfonts/fa-solid-900.woff2") format("woff2"), url("../webfonts/fa-solid-900.ttf") format("truetype"); }
+@font-face {
+  font-family: 'FontAwesome';
+  font-display: block;
+  src: url("../webfonts/fa-brands-400.woff2") format("woff2"), url("../webfonts/fa-brands-400.ttf") format("truetype"); }
+@font-face {
+  font-family: 'FontAwesome';
+  font-display: block;
+  src: url("../webfonts/fa-regular-400.woff2") format("woff2"), url("../webfonts/fa-regular-400.ttf") format("truetype");
+  unicode-range: U+F003,U+F006,U+F014,U+F016-F017,U+F01A-F01B,U+F01D,U+F022,U+F03E,U+F044,U+F046,U+F05C-F05D,U+F06E,U+F070,U+F087-F088,U+F08A,U+F094,U+F096-F097,U+F09D,U+F0A0,U+F0A2,U+F0A4-F0A7,U+F0C5,U+F0C7,U+F0E5-F0E6,U+F0EB,U+F0F6-F0F8,U+F10C,U+F114-F115,U+F118-F11A,U+F11C-F11D,U+F133,U+F147,U+F14E,U+F150-F152,U+F185-F186,U+F18E,U+F190-F192,U+F196,U+F1C1-F1C9,U+F1D9,U+F1DB,U+F1E3,U+F1EA,U+F1F7,U+F1F9,U+F20A,U+F247-F248,U+F24A,U+F24D,U+F255-F25B,U+F25D,U+F271-F274,U+F278,U+F27B,U+F28C,U+F28E,U+F29C,U+F2B5,U+F2B7,U+F2BA,U+F2BC,U+F2BE,U+F2C0-F2C1,U+F2C3,U+F2D0,U+F2D2,U+F2D4,U+F2DC; }
+@font-face {
+  font-family: 'FontAwesome';
+  font-display: block;
+  src: url("../webfonts/fa-v4compatibility.woff2") format("woff2"), url("../webfonts/fa-v4compatibility.ttf") format("truetype");
+  unicode-range: U+F041,U+F047,U+F065-F066,U+F07D-F07E,U+F080,U+F08B,U+F08E,U+F090,U+F09A,U+F0AC,U+F0AE,U+F0B2,U+F0D0,U+F0D6,U+F0E4,U+F0EC,U+F10A-F10B,U+F123,U+F13E,U+F148-F149,U+F14C,U+F156,U+F15E,U+F160-F161,U+F163,U+F175-F178,U+F195,U+F1F8,U+F219,U+F27A; }
+@keyframes fa-beat {
+  0%, 90% {
+    transform: scale(1); }
+  45% {
+    transform: scale(var(--fa-beat-scale, 1.25)); } }
+@keyframes fa-bounce {
+  0% {
+    transform: scale(1, 1) translateY(0); }
+  10% {
+    transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0); }
+  30% {
+    transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em)); }
+  50% {
+    transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0); }
+  57% {
+    transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em)); }
+  64% {
+    transform: scale(1, 1) translateY(0); }
+  100% {
+    transform: scale(1, 1) translateY(0); } }
+@keyframes fa-fade {
+  50% {
+    opacity: var(--fa-fade-opacity, 0.4); } }
+@keyframes fa-beat-fade {
+  0%, 100% {
+    opacity: var(--fa-beat-fade-opacity, 0.4);
+    transform: scale(1); }
+  50% {
+    opacity: 1;
+    transform: scale(var(--fa-beat-fade-scale, 1.125)); } }
+@keyframes fa-flip {
+  50% {
+    transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg)); } }
+@keyframes fa-shake {
+  0% {
+    transform: rotate(-15deg); }
+  4% {
+    transform: rotate(15deg); }
+  8%, 24% {
+    transform: rotate(-18deg); }
+  12%, 28% {
+    transform: rotate(18deg); }
+  16% {
+    transform: rotate(-22deg); }
+  20% {
+    transform: rotate(22deg); }
+  32% {
+    transform: rotate(-12deg); }
+  36% {
+    transform: rotate(12deg); }
+  40%, 100% {
+    transform: rotate(0deg); } }
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg); }
+  100% {
+    transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .fa-beat,
+  .fa-bounce,
+  .fa-fade,
+  .fa-beat-fade,
+  .fa-flip,
+  .fa-pulse,
+  .fa-shake,
+  .fa-spin,
+  .fa-spin-pulse {
+    animation-delay: -1ms;
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+    transition-delay: 0s;
+    transition-duration: 0s; } }
+.fas,
+.far,
+.fab,
+.fa-solid,
+.fa-regular,
+.fa-brands,
+.fa{
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: var(--fa-display, inline-block);
+  font-style: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-rendering: auto; }
+.fas::before,
+.far::before,
+.fab::before,
+.fa-solid::before,
+.fa-regular::before,
+.fa-brands::before,
+.fa::before{
+  content: var(--fa); }
+.fa-classic,
+.fas,
+.fa-solid,
+.far,
+.fa-regular{
+  font-family: 'Font Awesome 6 Free'; }
+.fa-brands,
+.fab{
+  font-family: 'Font Awesome 6 Brands'; }
+.fa-xs{
+  font-size: 0.75em;
+  line-height: 0.08333em;
+  vertical-align: 0.125em; }
+.fa-sm{
+  font-size: 0.875em;
+  line-height: 0.07143em;
+  vertical-align: 0.05357em; }
+.fa-lg{
+  font-size: 1.25em;
+  line-height: 0.05em;
+  vertical-align: -0.075em; }
+.fa-fw{
+  text-align: center;
+  width: 1.25em; }
+.fa-ul{
+  list-style-type: none;
+  margin-left: var(--fa-li-margin, 2.5em);
+  padding-left: 0; }
+.fa-li{
+  left: calc(-1 * var(--fa-li-width, 2em));
+  position: absolute;
+  text-align: center;
+  width: var(--fa-li-width, 2em);
+  line-height: inherit; }
+.fa-border{
+  border-color: var(--fa-border-color, #eee);
+  border-radius: var(--fa-border-radius, 0.1em);
+  border-style: var(--fa-border-style, solid);
+  border-width: var(--fa-border-width, 0.08em);
+  padding: var(--fa-border-padding, 0.2em 0.25em 0.15em); }
+.fa-pull-left{
+  float: left;
+  margin-right: var(--fa-pull-margin, 0.3em); }
+.fa-pull-right{
+  float: right;
+  margin-left: var(--fa-pull-margin, 0.3em); }
+.fa-beat{
+  animation-name: fa-beat;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, ease-in-out); }
+.fa-bounce{
+  animation-name: fa-bounce;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1)); }
+.fa-fade{
+  animation-name: fa-fade;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1)); }
+.fa-beat-fade{
+  animation-name: fa-beat-fade;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1)); }
+.fa-flip{
+  animation-name: fa-flip;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, ease-in-out); }
+.fa-shake{
+  animation-name: fa-shake;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, linear); }
+.fa-spin{
+  animation-name: fa-spin;
+  animation-delay: var(--fa-animation-delay, 0s);
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 2s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, linear); }
+.fa-spin-reverse{
+  --fa-animation-direction: reverse; }
+.fa-pulse,
+.fa-spin-pulse{
+  animation-name: fa-spin;
+  animation-direction: var(--fa-animation-direction, normal);
+  animation-duration: var(--fa-animation-duration, 1s);
+  animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+  animation-timing-function: var(--fa-animation-timing, steps(8)); }
+.fa-beat,
+  .fa-bounce,
+  .fa-fade,
+  .fa-beat-fade,
+  .fa-flip,
+  .fa-pulse,
+  .fa-shake,
+  .fa-spin,
+  .fa-spin-pulse{
+    animation-delay: -1ms;
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+    transition-delay: 0s;
+    transition-duration: 0s; }
+.fa-rotate-90{
+  transform: rotate(90deg); }
+.fa-rotate-180{
+  transform: rotate(180deg); }
+.fa-rotate-270{
+  transform: rotate(270deg); }
+.fa-flip-horizontal{
+  transform: scale(-1, 1); }
+.fa-flip-vertical{
+  transform: scale(1, -1); }
+.fa-flip-both,
+.fa-flip-horizontal.fa-flip-vertical{
+  transform: scale(-1, -1); }
+.fa-rotate-by{
+  transform: rotate(var(--fa-rotate-angle, 0)); }
+.fa-stack{
+  display: inline-block;
+  height: 2em;
+  line-height: 2em;
+  position: relative;
+  vertical-align: middle;
+  width: 2.5em; }
+.fa-stack-1x,
+.fa-stack-2x{
+  left: 0;
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  z-index: var(--fa-stack-z-index, auto); }
+.fa-stack-1x{
+  line-height: inherit; }
+.fa-stack-2x{
+  font-size: 2em; }
+.fa-inverse{
+  color: var(--fa-inverse, #fff); }
+.fa-trash-alt{
+  --fa: "\f2ed"; }
+.fa-user-times{
+  --fa: "\f235"; }
+.fa-file-alt{
+  --fa: "\f15c"; }
+.fa-calendar-alt{
+  --fa: "\f073"; }
+.fa-sign-out-alt{
+  --fa: "\f2f5"; }
+.fa-address-book{
+  --fa: "\f2b9"; }
+.fa-comments{
+  --fa: "\f086"; }
+.fa-clipboard-list{
+  --fa: "\f46d"; }
+.fa-globe-africa{
+  --fa: "\f57c"; }
+.fa-circle-notch{
+  --fa: "\f1ce"; }
+.fa-table{
+  --fa: "\f0ce"; }
+.fa-users-slash{
+  --fa: "\e073"; }
+.fa-reply{
+  --fa: "\f3e5"; }
+.fa-bars{
+  --fa: "\f0c9"; }
+.fa-people-group{
+  --fa: "\e533"; }
+.fa-lightbulb{
+  --fa: "\f0eb"; }
+.fa-exclamation-circle{
+  --fa: "\f06a"; }
+.fa-flag{
+  --fa: "\f024"; }
+.fa-cloud-sun-rain{
+  --fa: "\f743"; }
+.fa-list{
+  --fa: "\f03a"; }
+.fa-lock{
+  --fa: "\f023"; }
+.fa-pen-to-square{
+  --fa: "\f044"; }
+.fa-edit{
+  --fa: "\f044"; }
+.fa-hourglass-half{
+  --fa: "\f252"; }
+.fa-microscope{
+  --fa: "\f610"; }
+.fa-users{
+  --fa: "\f0c0"; }
+.fa-angle-right{
+  --fa: "\f105"; }
+.fa-folder{
+  --fa: "\f07b"; }
+.fa-wand-magic-sparkles{
+  --fa: "\e2ca"; }
+.fa-user{
+  --fa: "\f007"; }
+.fa-key{
+  --fa: "\f084"; }
+.fa-globe{
+  --fa: "\f0ac"; }
+.fa-location-arrow{
+  --fa: "\f124"; }
+.fa-money-bill-wave{
+  --fa: "\f53a"; }
+.fa-chart-area{
+  --fa: "\f1fe"; }
+.fa-sign-in-alt{
+  --fa: "\f2f6"; }
+.fa-weight{
+  --fa: "\f496"; }
+.fa-folder-open{
+  --fa: "\f07c"; }
+.fa-microphone-lines{
+  --fa: "\f3c9"; }
+.fa-wifi{
+  --fa: "\f1eb"; }
+.fa-signature{
+  --fa: "\f5b7"; }
+.fa-map-location-dot{
+  --fa: "\f5a0"; }
+.fa-mug-hot{
+  --fa: "\f7b6"; }
+.fa-chart-bar{
+  --fa: "\f080"; }
+.fa-image{
+  --fa: "\f03e"; }
+.fa-microphone{
+  --fa: "\f130"; }
+.fa-angle-double-right{
+  --fa: "\f101"; }
+.fa-play-circle{
+  --fa: "\f144"; }
+.fa-circle-check{
+  --fa: "\f058"; }
+.fa-check-circle{
+  --fa: "\f058"; }
+.fa-user-tie{
+  --fa: "\f508"; }
+.fa-pause{
+  --fa: "\f04c"; }
+.fa-seedling{
+  --fa: "\f4d8"; }
+.fa-shield-alt{
+  --fa: "\f3ed"; }
+.fa-layer-group{
+  --fa: "\f5fd"; }
+.fa-vector-square{
+  --fa: "\f5cb"; }
+.fa-filter{
+  --fa: "\f0b0"; }
+.fa-leaf{
+  --fa: "\f06c"; }
+.fa-chart-pie{
+  --fa: "\f200"; }
+.fa-helmet-safety{
+  --fa: "\f807"; }
+.fa-chart-line{
+  --fa: "\f201"; }
+.fa-arrow-right{
+  --fa: "\f061"; }
+.fa-map-signs{
+  --fa: "\f277"; }
+.fa-pause-circle{
+  --fa: "\f28b"; }
+.fa-user-astronaut{
+  --fa: "\f4fb"; }
+.fa-wallet{
+  --fa: "\f555"; }
+.fa-circle-question{
+  --fa: "\f059"; }
+.fa-question-circle{
+  --fa: "\f059"; }
+.fa-eye{
+  --fa: "\f06e"; }
+.fa-user-slash{
+  --fa: "\f506"; }
+.fa-save{
+  --fa: "\f0c7"; }
+.fa-comment-dots{
+  --fa: "\f4ad"; }
+.fa-redo{
+  --fa: "\f01e"; }
+.fa-location-crosshairs{
+  --fa: "\f601"; }
+.fa-phone{
+  --fa: "\f095"; }
+.fa-trash{
+  --fa: "\f1f8"; }
+.fa-arrow-left{
+  --fa: "\f060"; }
+.fa-up-right-from-square{
+  --fa: "\f35d"; }
+.fa-th-large{
+  --fa: "\f009"; }
+.fa-tag{
+  --fa: "\f02b"; }
+.fa-envelope{
+  --fa: "\f0e0"; }
+.fa-paperclip{
+  --fa: "\f0c6"; }
+.fa-circle-info{
+  --fa: "\f05a"; }
+.fa-info-circle{
+  --fa: "\f05a"; }
+.fa-camera{
+  --fa: "\f030"; }
+.fa-calendar-check{
+  --fa: "\f274"; }
+.fa-check-double{
+  --fa: "\f560"; }
+.fa-undo{
+  --fa: "\f0e2"; }
+.fa-crop-alt{
+  --fa: "\f565"; }
+.fa-cog{
+  --fa: "\f013"; }
+.fa-grip-vertical{
+  --fa: "\f58e"; }
+.fa-clock{
+  --fa: "\f017"; }
+.fa-keyboard{
+  --fa: "\f11c"; }
+.fa-coins{
+  --fa: "\f51e"; }
+.fa-sliders-h{
+  --fa: "\f1de"; }
+.fa-folder-tree{
+  --fa: "\f802"; }
+.fa-flask{
+  --fa: "\f0c3"; }
+.fa-ellipsis-v{
+  --fa: "\f142"; }
+.fa-calculator{
+  --fa: "\f1ec"; }
+.fa-download{
+  --fa: "\f019"; }
+.fa-id-card{
+  --fa: "\f2c2"; }
+.fa-home{
+  --fa: "\f015"; }
+.fa-bolt{
+  --fa: "\f0e7"; }
+.fa-sun{
+  --fa: "\f185"; }
+.fa-ellipsis-h{
+  --fa: "\f141"; }
+.fa-bell{
+  --fa: "\f0f3"; }
+.fa-map-marker-alt{
+  --fa: "\f3c5"; }
+.fa-file{
+  --fa: "\f15b"; }
+.fa-arrow-down{
+  --fa: "\f063"; }
+.fa-inbox{
+  --fa: "\f01c"; }
+.fa-envelope-open-text{
+  --fa: "\f658"; }
+.fa-boxes{
+  --fa: "\f468"; }
+.fa-play{
+  --fa: "\f04b"; }
+.fa-search{
+  --fa: "\f002"; }
+.fa-chevron-down{
+  --fa: "\f078"; }
+.fa-arrow-up{
+  --fa: "\f062"; }
+.fa-list-check{
+  --fa: "\f0ae"; }
+.fa-project-diagram{
+  --fa: "\f542"; }
+.fa-plus{
+  --fa: "\2b"; }
+.fa-times{
+  --fa: "\f00d"; }
+.fa-quote-left{
+  --fa: "\f10d"; }
+.fa-tractor{
+  --fa: "\f722"; }
+.fa-ruler-combined{
+  --fa: "\f546"; }
+.fa-map{
+  --fa: "\f279"; }
+.fa-rocket{
+  --fa: "\f135"; }
+.fa-bell-slash{
+  --fa: "\f1f6"; }
+.fa-chevron-right{
+  --fa: "\f054"; }
+.fa-percent{
+  --fa: "\25"; }
+.fa-percentage{
+  --fa: "\25"; }
+.fa-face-smile{
+  --fa: "\f118"; }
+.fa-trophy{
+  --fa: "\f091"; }
+.fa-rotate{
+  --fa: "\f2f1"; }
+.fa-sync-alt{
+  --fa: "\f2f1"; }
+.fa-spinner{
+  --fa: "\f110"; }
+.fa-robot{
+  --fa: "\f544"; }
+.fa-warehouse{
+  --fa: "\f494"; }
+.fa-angle-double-left{
+  --fa: "\f100"; }
+.fa-moon{
+  --fa: "\f186"; }
+.fa-calendar{
+  --fa: "\f133"; }
+.fa-plus-circle{
+  --fa: "\f055"; }
+.fa-scale-balanced{
+  --fa: "\f24e"; }
+.fa-balance-scale{
+  --fa: "\f24e"; }
+.fa-user-plus{
+  --fa: "\f234"; }
+.fa-check{
+  --fa: "\f00c"; }
+.fa-angle-left{
+  --fa: "\f104"; }
+.fa-triangle-exclamation{
+  --fa: "\f071"; }
+.fa-exclamation-triangle{
+  --fa: "\f071"; }
+.fa-paper-plane{
+  --fa: "\f1d8"; }
+.fa-calendar-day{
+  --fa: "\f783"; }
+.fa-dice{
+  --fa: "\f522"; }
+.fa-brain{
+  --fa: "\f5dc"; }
+.fa-search-plus{
+  --fa: "\f00e"; }
+.fa-search-minus{
+  --fa: "\f010"; }
+.fa-cloud-sun{
+  --fa: "\f6c4"; }
+.fa-sticky-note{
+  --fa: "\f249"; }
+.fab,
+.fa-brands{
+  font-weight: 400; }
+.fa-linkedin-in{
+  --fa: "\f0e1"; }
+.fa-instagram{
+  --fa: "\f16d"; }
+.fa-twitter{
+  --fa: "\f099"; }
+.far,
+.fa-regular{
+  font-weight: 400; }
+.fas,
+.fa-solid{
+  font-weight: 900; }

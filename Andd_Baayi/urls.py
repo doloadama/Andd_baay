@@ -31,4 +31,7 @@ if settings.DEBUG:
         path('__preview__/404/', page_not_found_preview, name='preview_404'),
     )
 
+if getattr(settings, 'DEBUG_TOOLBAR_ENABLED', False):
+    urlpatterns.append(path('__debug__/', include('debug_toolbar.urls')))
+
 handler404 = 'baay.views.page_not_found_view'

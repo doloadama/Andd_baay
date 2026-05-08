@@ -1,0 +1,10 @@
+/* Tailwind v3 — entry point compilée vers ../tailwind.css par `npm run build:tailwind`.
+ * Voir perf-audit.md, action #2.
+ *
+ * NE PAS ÉDITER directement ../tailwind.css : c'est l'output build.
+ * Pour customiser : modifier ce fichier OU tailwind.config.js, puis `npm run build:css`.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

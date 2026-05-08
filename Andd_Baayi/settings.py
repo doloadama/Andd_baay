@@ -149,6 +149,16 @@ INSTALLED_APPS = [
     'axes',
 ]
 
+# django-debug-toolbar : audit empirique des requêtes / temps / cache en dev.
+# Strictement hors Vercel (jamais en prod) ; conditionné par DEBUG + import disponible.
+DEBUG_TOOLBAR_ENABLED = DEBUG and not IS_VERCEL
+if DEBUG_TOOLBAR_ENABLED:
+    try:
+        import debug_toolbar  # noqa: F401
+        INSTALLED_APPS.append('debug_toolbar')
+    except ImportError:
+        DEBUG_TOOLBAR_ENABLED = False
+
 SITE_ID = 1
 
 MIDDLEWARE = [
@@ -171,6 +181,31 @@ MIDDLEWARE = [
     # Response header so /static/js/sw.js can use navigator.serviceWorker.register(..., { scope: '/' })
     'baay.middleware.service_worker_scope.ServiceWorkerAllowedMiddleware',
 ]
+
+# debug-toolbar middleware : doit être inséré aussi tôt que possible mais après
+# les middlewares qui modifient la réponse (whitenoise, gzip…). Voir docs.
+if DEBUG_TOOLBAR_ENABLED:
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index('django.middleware.common.CommonMiddleware'),
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    )
+    INTERNAL_IPS = ['127.0.0.1', 'localhost']
+    DEBUG_TOOLBAR_CONFIG = {
+        # Le toolbar ne s'affiche pas sur les requêtes HTMX (sinon il pollue les fragments).
+        # On utilise plutôt le panneau "History" pour analyser les requêtes asynchrones.
+        'SHOW_TOOLBAR_CALLBACK': 'Andd_Baayi.settings.show_toolbar_callback',
+    }
+
+
+def show_toolbar_callback(request):
+    """N'affiche le toolbar que pour les requêtes HTML interactives (pas HTMX/AJAX)."""
+    if not DEBUG_TOOLBAR_ENABLED:
+        return False
+    if request.headers.get('HX-Request') == 'true':
+        return False
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return False
+    return request.META.get('REMOTE_ADDR') in (INTERNAL_IPS if 'INTERNAL_IPS' in globals() else ['127.0.0.1'])
 
 # CSP (Content Security Policy)
 # Report-only can be enabled in env without breaking the UI: CSP_REPORT_ONLY=True

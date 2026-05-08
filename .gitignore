@@ -37,3 +37,9 @@ structure.txt
 _smoke_*.py
 
 .vercel
+
+# Node (build tooling : Tailwind + Font Awesome subset). Voir perf-audit.md actions #2/#3.
+# Les outputs (baay/static/css/tailwind.css, fa-subset.css, webfonts/*.woff2) SONT committés
+# pour éviter d'imposer un build Node sur Vercel.
+node_modules/
+# package-lock.json est volontairement committé pour des installs reproductibles.

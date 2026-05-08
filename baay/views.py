@@ -114,6 +114,7 @@ from baay.permissions import (
     roles_assignables_par,
 )
 from baay.services import (
+    calculer_kpis_financiers_globaux,
     calculer_kpis_financiers_projet,
     check_budget_status,
     check_projet_produit_budget_status,
@@ -3845,15 +3846,11 @@ def dashboard_partial_kpis(request):
     }
 
     if can_view:
-        total_rec = Decimal('0')
-        total_cout = Decimal('0')
-        for projet in projets_qs.only('id'):
-            try:
-                pk = calculer_kpis_financiers_projet(projet.id)
-                total_rec += pk.get('total_recettes') or Decimal('0')
-                total_cout += pk.get('total_couts') or Decimal('0')
-            except Exception:
-                pass
+        # Agrégat global en 3 requêtes SQL fixes (évite le N+1 — voir services.py).
+        projet_ids = list(projets_qs.values_list('id', flat=True))
+        agg = calculer_kpis_financiers_globaux(projet_ids)
+        total_rec = agg['total_recettes']
+        total_cout = agg['total_couts']
         benefice = total_rec - total_cout
         roi = round((float(benefice) / float(total_cout)) * 100, 1) if total_cout else None
         kpis = {

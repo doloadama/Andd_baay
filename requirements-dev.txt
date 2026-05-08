@@ -1,3 +1,7 @@
 -r requirements.txt
 pytest>=8.0.0
 pytest-django>=4.8.0
+
+# Performance auditing (dev only — jamais inclus dans requirements-vercel.txt).
+# Active automatiquement si DEBUG=True et hors Vercel. Voir Andd_Baayi/settings.py.
+django-debug-toolbar>=4.4.0

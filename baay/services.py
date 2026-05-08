@@ -77,6 +77,34 @@ def total_recettes_projet(projet_id):
     return agg["t"] or Decimal("0")
 
 
+def calculer_kpis_financiers_globaux(projet_ids) -> dict:
+    """KPIs financiers agrégés sur un ensemble de projets — 3 requêtes SQL fixes.
+
+    Évite le N+1 quand le dashboard / une vue récap a besoin du total des recettes
+    et des coûts sur tous les projets accessibles. Pour le détail par projet
+    (cout/unité, ROI individuel, etc.), utiliser calculer_kpis_financiers_projet.
+    """
+    if not projet_ids:
+        return {
+            "total_recettes": Decimal("0"),
+            "total_couts": Decimal("0"),
+        }
+    inv_expr = investissement_montant_expr()
+    inv_total = Investissement.objects.filter(projet_id__in=projet_ids).aggregate(
+        t=Coalesce(Sum(inv_expr), Value(Decimal("0")))
+    )["t"]
+    dep_total = Depense.objects.filter(projet_id__in=projet_ids).aggregate(
+        t=Coalesce(Sum("montant"), Value(Decimal("0")))
+    )["t"]
+    rec_total = Recette.objects.filter(projet_id__in=projet_ids).aggregate(
+        t=Coalesce(Sum("montant_total"), Value(Decimal("0")))
+    )["t"]
+    return {
+        "total_recettes": rec_total or Decimal("0"),
+        "total_couts": (inv_total or Decimal("0")) + (dep_total or Decimal("0")),
+    }
+
+
 def _safe_decimal(value) -> Decimal:
     if value is None:
         return Decimal("0")
