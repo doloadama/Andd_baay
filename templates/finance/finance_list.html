@@ -404,64 +404,98 @@
         </div>
     </details>
 
-    <!-- ── ROI Calculator Widget (Alpine.js) ── -->
+    <!-- ── ROI Calculator Widget (Alpine.js, audit a11y + responsive) ── -->
     {% if kpis_data %}
     {{ kpis_data|json_script:"finance-kpis-data" }}
     <section
         class="finance-ft-card"
         x-data="roiCalculator(JSON.parse(document.getElementById('finance-kpis-data').textContent))"
-        aria-label="Simulateur ROI"
+        aria-labelledby="finance-roi-heading"
     >
         <div class="finance-ft-card__head">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);flex-shrink:0;"><path d="M3 17l4-8 4 4 4-6 4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <h2 class="finance-ft-card__title">Simulateur ROI — impact de la prochaine saisie</h2>
+            <h2 id="finance-roi-heading" class="finance-ft-card__title">Simulateur ROI — impact de la prochaine saisie</h2>
         </div>
         <div class="finance-ft-card__body">
             <div class="roi-widget">
+                <!-- Contrôles -->
                 <div class="roi-widget__controls">
                     <div class="roi-widget__field">
                         <label class="finance-ft-field-label" for="roiMontant">Montant à saisir (FCFA)</label>
                         <input
                             id="roiMontant"
                             type="number"
+                            inputmode="numeric"
                             min="0"
                             step="100"
                             class="roi-widget__input"
                             x-model.number="montantSaisi"
                             placeholder="0"
+                            aria-describedby="roi-montant-hint"
                         >
                     </div>
-                    <div class="roi-widget__field">
-                        <label class="finance-ft-field-label">Type d'opération</label>
-                        <div class="roi-widget__toggle-group">
-                            <label class="roi-widget__toggle-opt" :class="typeOperation === 'depense' ? 'active' : ''">
-                                <input type="radio" name="roiType" value="depense" x-model="typeOperation">
-                                <i class="fas fa-arrow-down"></i> Dépense
+
+                    <fieldset class="roi-widget__fieldset">
+                        <legend class="roi-widget__field-legend">Type d'opération</legend>
+                        <div class="roi-widget__toggle-group" role="radiogroup" aria-label="Type d'opération">
+                            <label class="roi-widget__toggle-opt"
+                                   :class="typeOperation === 'depense' ? 'active' : ''">
+                                <input type="radio" name="roiType" value="depense" x-model="typeOperation" aria-label="Dépense">
+                                <i class="fas fa-arrow-down" aria-hidden="true"></i>
+                                <span>Dépense</span>
                             </label>
-                            <label class="roi-widget__toggle-opt" :class="typeOperation === 'recette' ? 'active' : ''">
-                                <input type="radio" name="roiType" value="recette" x-model="typeOperation">
-                                <i class="fas fa-arrow-up"></i> Recette
+                            <label class="roi-widget__toggle-opt"
+                                   :class="typeOperation === 'recette' ? 'active' : ''">
+                                <input type="radio" name="roiType" value="recette" x-model="typeOperation" aria-label="Recette">
+                                <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                                <span>Recette</span>
                             </label>
                         </div>
-                    </div>
+                    </fieldset>
                 </div>
-                <div class="roi-widget__results">
-                    <div class="roi-widget__kpi">
-                        <span class="roi-widget__kpi-label">Bénéfice net projeté</span>
-                        <strong class="roi-widget__kpi-value" :class="beneficeNet >= 0 ? 'roi-positive' : 'roi-negative'" x-text="beneficeLabel"></strong>
-                    </div>
+
+                <!-- Résultats : ROI projeté en hero, puis 3 KPIs supports. aria-live annonce les changements. -->
+                <div class="roi-widget__results" aria-live="polite" aria-atomic="false">
                     <div class="roi-widget__kpi roi-widget__kpi--main">
                         <span class="roi-widget__kpi-label">ROI projeté</span>
-                        <strong class="roi-widget__kpi-value roi-widget__kpi-roi" :class="roiColorClass" x-text="roiLabel"></strong>
+                        <strong class="roi-widget__kpi-value roi-widget__kpi-roi"
+                                :class="roiColorClass"
+                                x-text="roiLabel"></strong>
+                        <span class="roi-widget__kpi-delta"
+                              :class="roiDeltaClass"
+                              x-show="roiDeltaLabel !== ''"
+                              x-text="roiDeltaLabel"
+                              x-cloak></span>
+                    </div>
+
+                    <div class="roi-widget__kpi">
+                        <span class="roi-widget__kpi-label">Bénéfice net projeté</span>
+                        <strong class="roi-widget__kpi-value"
+                                :class="beneficeNet >= 0 ? 'roi-positive' : 'roi-negative'"
+                                x-text="beneficeLabel"></strong>
                     </div>
                     <div class="roi-widget__kpi">
                         <span class="roi-widget__kpi-label">Total recettes</span>
-                        <strong class="roi-widget__kpi-value roi-neutral" x-text="Math.round(_previewRecettes()).toLocaleString('fr-FR') + ' FCFA'"></strong>
+                        <strong class="roi-widget__kpi-value roi-neutral"
+                                x-text="recettesLabel"></strong>
                     </div>
                     <div class="roi-widget__kpi">
                         <span class="roi-widget__kpi-label">Total coûts</span>
-                        <strong class="roi-widget__kpi-value roi-neutral" x-text="Math.round(_previewCouts()).toLocaleString('fr-FR') + ' FCFA'"></strong>
+                        <strong class="roi-widget__kpi-value roi-neutral"
+                                x-text="coutsLabel"></strong>
                     </div>
+                </div>
+
+                <!-- Bouton de réinitialisation, désactivé si rien à effacer. -->
+                <div class="roi-widget__footer">
+                    <button type="button"
+                            class="roi-widget__reset"
+                            @click="reset()"
+                            :disabled="!montantSaisi"
+                            aria-label="Réinitialiser la simulation">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+                        Réinitialiser
+                    </button>
                 </div>
             </div>
         </div>

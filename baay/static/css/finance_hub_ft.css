@@ -1339,99 +1339,167 @@ html.dark-mode .finance-ft-pagination a {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ROI Calculator Widget (Alpine.js — Phase 2)
+   ROI Calculator Widget (Alpine.js — refonte responsive + a11y)
+   Voir perf-audit.md pour le contexte. Audit : ROI projeté = hero card,
+   layout grid 2-cols (controls | results) qui s'empile sous 768px.
 ═══════════════════════════════════════════════════════════════════════════ */
 .roi-widget {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) 1fr;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 768px) {
+    .roi-widget { grid-template-columns: 1fr; }
 }
 
+/* ── Colonne contrôles ── */
 .roi-widget__controls {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    flex: 0 0 auto;
-    min-width: 240px;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
 }
 
 .roi-widget__field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    min-width: 180px;
+    gap: 8px;
+    min-width: 0;
+}
+
+.roi-widget__fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.roi-widget__field-legend {
+    font-size: 0.72rem;
+    color: var(--fh-text3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0;
 }
 
 .roi-widget__input {
-    padding: 8px 12px;
+    padding: 10px 14px;
     border: 1px solid var(--fh-border);
     border-radius: 8px;
     background: var(--fh-surface2);
     color: var(--fh-text1);
-    font-size: 0.92rem;
-    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
     width: 100%;
     outline: none;
-    transition: border-color .15s;
+    transition: border-color .15s, box-shadow .15s;
+    min-height: 44px;
 }
-.roi-widget__input:focus { border-color: var(--green-500); }
+.roi-widget__input:hover {
+    border-color: color-mix(in srgb, var(--green-500) 50%, var(--fh-border));
+}
+.roi-widget__input:focus-visible {
+    border-color: var(--green-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-500) 22%, transparent);
+}
 
+/* ── Toggle Dépense / Recette ── */
 .roi-widget__toggle-group {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
+
 .roi-widget__toggle-opt {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
     border: 1px solid var(--fh-border);
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    background: transparent;
+    background: var(--fh-surface2);
     color: var(--fh-text2);
-    transition: background .15s, color .15s, border-color .15s;
+    transition: background .15s, color .15s, border-color .15s, transform .1s, box-shadow .15s;
     user-select: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 44px;
+    position: relative;
 }
-.roi-widget__toggle-opt input[type="radio"] { display: none; }
+.roi-widget__toggle-opt:hover {
+    border-color: color-mix(in srgb, var(--green-500) 40%, var(--fh-border));
+    color: var(--fh-text1);
+}
+.roi-widget__toggle-opt:active { transform: scale(0.98); }
+.roi-widget__toggle-opt:focus-within {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-500) 25%, transparent);
+}
 .roi-widget__toggle-opt.active {
     background: var(--green-500);
     color: #fff;
     border-color: var(--green-500);
 }
-
-/* Tactile : promouvoir le toggle ROI à 44×44 (label non couvert par mobile.css). */
-@media (hover: none) and (pointer: coarse) {
-    .roi-widget__toggle-opt {
-        min-height: 44px;
-        padding: 10px 14px;
-    }
+.roi-widget__toggle-opt.active:hover {
+    background: color-mix(in srgb, var(--green-500) 88%, black);
 }
 
+/* Visually-hidden : retire visuellement mais conserve dans le focus order
+   (vs display:none qui retire du DOM accessible). */
+.roi-widget__toggle-opt input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── Résultats : 3 cols sous le ROI hero (span all) ── */
 .roi-widget__results {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    flex: 1 1 280px;
+    min-width: 0;
 }
-@media (max-width: 480px) {
+.roi-widget__results > .roi-widget__kpi--main {
+    grid-column: 1 / -1;
+}
+@media (max-width: 600px) {
     .roi-widget__results { grid-template-columns: 1fr; }
+    .roi-widget__results > .roi-widget__kpi--main { grid-column: 1; }
 }
 
+/* ── Cartes KPI ── */
 .roi-widget__kpi {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 12px 14px;
+    gap: 6px;
+    padding: 14px 16px;
     border-radius: 10px;
     background: var(--fh-surface2);
     border: 1px solid var(--fh-border);
+    min-width: 0;
 }
+
 .roi-widget__kpi--main {
+    padding: 18px 22px;
     border: 2px solid var(--green-500);
-    background: rgba(29, 158, 117, 0.06);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--green-500) 10%, var(--fh-surface2)) 0%, var(--fh-surface2) 75%);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--green-500) 18%, transparent);
+    gap: 8px;
 }
 
 .roi-widget__kpi-label {
@@ -1441,50 +1509,100 @@ html.dark-mode .finance-ft-pagination a {
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
+.roi-widget__kpi--main .roi-widget__kpi-label {
+    color: var(--green-700);
+    font-size: 0.78rem;
+}
+html.dark-mode .roi-widget__kpi--main .roi-widget__kpi-label {
+    color: var(--green-300);
+}
+
 .roi-widget__kpi-value {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    font-family: 'DM Mono', monospace;
-    line-height: 1;
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     transition: color .2s;
 }
-.roi-widget__kpi-roi { font-size: 1.5rem; }
 
-.roi-positive { color: var(--sahara-success, #16a34a); }
-.roi-negative { color: #dc2626; }
+.roi-widget__kpi-roi {
+    font-size: clamp(1.6rem, 1.2rem + 1vw, 2rem);
+    line-height: 1.05;
+}
+
+.roi-widget__kpi-delta {
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--fh-text3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.roi-widget__kpi-delta--positive { color: var(--green-500); }
+.roi-widget__kpi-delta--negative { color: var(--fh-danger); }
+
+/* Couleurs sémantiques des valeurs (sans coupler à --sahara-*). */
+.roi-positive { color: var(--green-500); }
+html.dark-mode .roi-positive { color: var(--green-300); }
+.roi-negative { color: var(--fh-danger); }
 .roi-neutral  { color: var(--fh-text1); }
 
-/* Mobile responsiveness: avoid overflow, stack cleanly */
-@media (max-width: 575px) {
-    .roi-widget {
-        flex-direction: column;
-        align-items: stretch;
-    }
+/* Pulse subtil à la mise à jour d'une valeur (signal visuel). */
+@keyframes roi-pulse-bg {
+    0%   { background-color: color-mix(in srgb, var(--green-500) 18%, var(--fh-surface2)); }
+    100% { background-color: var(--fh-surface2); }
+}
+.roi-widget__kpi--pulsing { animation: roi-pulse-bg 0.45s ease-out; }
 
-    .roi-widget__controls {
-        flex: 1 1 100%;
-        min-width: 0;
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-    }
+/* ── Footer du widget : bouton réinitialiser ── */
+.roi-widget__footer {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
 
-    .roi-widget__field {
-        min-width: 0;
-        width: 100%;
-    }
+.roi-widget__reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--fh-border);
+    background: transparent;
+    color: var(--fh-text2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    min-height: 44px;
+    min-width: 44px;
+}
+.roi-widget__reset:hover:not(:disabled) {
+    border-color: var(--fh-text3);
+    color: var(--fh-text1);
+}
+.roi-widget__reset:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-500) 25%, transparent);
+    border-color: var(--green-500);
+    outline: none;
+}
+.roi-widget__reset:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 
-    .roi-widget__toggle-group {
-        flex-wrap: wrap;
-        width: 100%;
-        max-width: 100%;
-        flex-direction: column;
+/* Reduced motion : coupe toutes les animations/transitions du widget. */
+@media (prefers-reduced-motion: reduce) {
+    .roi-widget__input,
+    .roi-widget__toggle-opt,
+    .roi-widget__kpi-value,
+    .roi-widget__reset {
+        transition: none;
     }
-
-    .roi-widget__toggle-opt {
-        flex: 1 1 auto;
-        width: 100%;
-        justify-content: center;
-        max-width: 100%;
-    }
+    .roi-widget__kpi--pulsing { animation: none; }
 }
