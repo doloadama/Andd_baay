@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load l10n %}
+{% load money %}
 {% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
 {% block extra_head %}
@@ -80,7 +81,7 @@
             <div>
                 <span class="pd-qstat__label">Investissements</span>
                 {% if can_view_investissements %}
-                <strong class="pd-qstat__value">{% if investissement_total_fcfa is not None %}{{ investissement_total_fcfa|floatformat:0 }}{% else %}0{% endif %}&nbsp;FCFA</strong>
+                <strong class="pd-qstat__value">{% if investissement_total_fcfa is not None %}{{ investissement_total_fcfa|fcfa }}{% else %}0{% endif %}&nbsp;FCFA</strong>
                 <span class="pd-qstat__hint">{{ investissements.count }} ligne{% if investissements.count > 1 %}s{% endif %}</span>
                 {% else %}
                 <strong class="pd-qstat__value" title="Les montants ne sont pas affichés pour votre profil">—</strong>
@@ -372,15 +373,15 @@
                 </div>
                 <div class="pd-invest-mobile__row">
                     <span class="pd-invest-mobile__label">Coût / ha</span>
-                    <span>{{ inv.cout_par_hectare }}&nbsp;FCFA</span>
+                    <span>{{ inv.cout_par_hectare|fcfa }}&nbsp;FCFA</span>
                 </div>
                 <div class="pd-invest-mobile__row">
                     <span class="pd-invest-mobile__label">Autres frais</span>
-                    <span>{{ inv.autres_frais|default:0 }}&nbsp;FCFA</span>
+                    <span>{{ inv.autres_frais|default:0|fcfa }}&nbsp;FCFA</span>
                 </div>
                 <div class="pd-invest-mobile__row">
                     <span class="pd-invest-mobile__label">Montant total</span>
-                    <span class="fw-bold">{{ inv.calculer_investissement_total|floatformat:0 }}&nbsp;FCFA</span>
+                    <span class="fw-bold">{{ inv.calculer_investissement_total|fcfa }}&nbsp;FCFA</span>
                 </div>
             </article>
             {% endfor %}
@@ -403,9 +404,9 @@
                             <tr>
                                 <td>{{ inv.libelle_affichage }}</td>
                                 <td>{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}<span class="text-muted">Général</span>{% endif %}</td>
-                                <td class="text-end fw-bold">{{ inv.cout_par_hectare }} <span class="text-muted small">FCFA</span></td>
-                                <td class="text-end fw-bold">{{ inv.autres_frais|default:0 }} <span class="text-muted small">FCFA</span></td>
-                                <td class="text-end fw-bold">{{ inv.calculer_investissement_total|floatformat:0 }} <span class="text-muted small">FCFA</span></td>
+                                <td class="text-end fw-bold">{{ inv.cout_par_hectare|fcfa }} <span class="text-muted small">FCFA</span></td>
+                                <td class="text-end fw-bold">{{ inv.autres_frais|default:0|fcfa }} <span class="text-muted small">FCFA</span></td>
+                                <td class="text-end fw-bold">{{ inv.calculer_investissement_total|fcfa }} <span class="text-muted small">FCFA</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>

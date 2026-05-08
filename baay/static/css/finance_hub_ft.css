@@ -1366,7 +1366,7 @@ html.dark-mode .finance-ft-pagination a {
     padding: 8px 12px;
     border: 1px solid var(--fh-border);
     border-radius: 8px;
-    background: var(--fh-bg);
+    background: var(--fh-surface2);
     color: var(--fh-text1);
     font-size: 0.92rem;
     font-family: 'DM Mono', monospace;
@@ -1426,7 +1426,7 @@ html.dark-mode .finance-ft-pagination a {
     gap: 4px;
     padding: 12px 14px;
     border-radius: 10px;
-    background: var(--fh-bg);
+    background: var(--fh-surface2);
     border: 1px solid var(--fh-border);
 }
 .roi-widget__kpi--main {
@@ -1453,3 +1453,38 @@ html.dark-mode .finance-ft-pagination a {
 .roi-positive { color: var(--sahara-success, #16a34a); }
 .roi-negative { color: #dc2626; }
 .roi-neutral  { color: var(--fh-text1); }
+
+/* Mobile responsiveness: avoid overflow, stack cleanly */
+@media (max-width: 575px) {
+    .roi-widget {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .roi-widget__controls {
+        flex: 1 1 100%;
+        min-width: 0;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .roi-widget__field {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .roi-widget__toggle-group {
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 100%;
+        flex-direction: column;
+    }
+
+    .roi-widget__toggle-opt {
+        flex: 1 1 auto;
+        width: 100%;
+        justify-content: center;
+        max-width: 100%;
+    }
+}

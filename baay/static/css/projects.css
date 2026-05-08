@@ -339,6 +339,13 @@
     border-collapse: collapse;
 }
 
+.projects-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg-secondary);
+}
+
 .projects-table thead {
     background: var(--bg-secondary);
 }
@@ -555,6 +562,36 @@ button.status-badge {
     background: rgba(29, 158, 117, 0.08);
     border-color: rgba(29, 158, 117, 0.18);
     color: var(--accent-dark);
+}
+
+.action-link:focus-visible {
+    outline: none;
+    border-color: rgba(29, 158, 117, 0.55);
+    box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.14);
+    background: rgba(29, 158, 117, 0.08);
+    color: var(--accent-dark);
+}
+
+.projects-table tbody tr:focus-within .action-link {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.projects-table .action-link {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.projects-table tbody tr:hover .action-link {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (hover: none) {
+    .projects-table .action-link {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 
 .action-menu-trigger {

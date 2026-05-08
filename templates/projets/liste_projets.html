@@ -16,14 +16,14 @@
             <span class="projects-kicker">Gestion agricole</span>
             <h1 class="projects-title">Mes projets</h1>
             <p class="projects-subtitle">
-                Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide a filtrer et plus simple a piloter.
+                Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide à filtrer et plus simple à piloter.
             </p>
             <div class="projects-hero-actions">
                 <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
                     <i class="fas fa-plus"></i> Nouveau projet
                 </a>
                 <button type="button" class="btn-modern btn-secondary-surface" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i> Rafraichir
+                    <i class="fas fa-sync-alt"></i> Rafraîchir
                 </button>
             </div>
         </div>
@@ -79,7 +79,7 @@
                     <i class="fas fa-keyboard"></i>
                 </button>
 
-                <div class="selection-pill" id="projectsSelectionMeta">0 selectionne</div>
+                <div class="selection-pill" id="projectsSelectionMeta">0 sélectionné</div>
 
                 <button type="submit" class="btn-delete-selection" id="deleteBtn">
                     <i class="fas fa-trash-alt"></i>
@@ -96,7 +96,7 @@
                         <thead>
                             <tr>
                                 <th class="checkbox-col">
-                                    <input type="checkbox" id="selectAll" aria-label="Tout selectionner">
+                                    <input type="checkbox" id="selectAll" aria-label="Tout sélectionner">
                                 </th>
                                 <th class="sortable" data-sort="name">Projet</th>
                                 <th class="sortable" data-sort="status">Statut</th>
@@ -269,9 +269,9 @@
         <section class="empty-state">
             <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
             <h2 class="empty-state-title">Aucun projet pour le moment</h2>
-            <p class="empty-state-text">Creez votre premier projet agricole pour commencer a suivre vos cultures.</p>
+            <p class="empty-state-text">Créez votre premier projet agricole pour commencer à suivre vos cultures.</p>
             <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-                <i class="fas fa-plus"></i> Creer mon premier projet
+                <i class="fas fa-plus"></i> Créer mon premier projet
             </a>
         </section>
         {% endif %}
@@ -279,13 +279,13 @@
 
     <div class="context-menu" id="contextMenu">
         <a href="#" class="context-menu-item" id="ctxView">
-            <i class="fas fa-eye"></i> Voir details
+            <i class="fas fa-eye"></i> Voir détails
         </a>
         <a href="#" class="context-menu-item" id="ctxEdit">
             <i class="fas fa-edit"></i> Modifier
         </a>
         <a href="#" class="context-menu-item" id="ctxPredict">
-            <i class="fas fa-robot"></i> Prediction IA
+            <i class="fas fa-robot"></i> Prédiction IA
         </a>
         <div class="context-menu-divider"></div>
         <button type="button" class="context-menu-item" id="ctxStatus">

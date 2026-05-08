@@ -665,13 +665,16 @@
     }
     
     .status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 0.72rem;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        transition: all 0.3s ease;
+        letter-spacing: 0.06em;
+        transition: all 0.2s ease;
         cursor: pointer;
     }
     
