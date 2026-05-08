@@ -471,6 +471,13 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     border-collapse: collapse;
 }
 
+.finance-ft-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--fh-surface);
+}
+
 .finance-ft-table th {
     text-align: left;
     padding: 11px 20px;
@@ -609,6 +616,24 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 
 .finance-ft-table tbody tr:hover .finance-ft-actions__inner {
     opacity: 1;
+}
+
+/* Accessibilité : rendre les actions visibles au clavier (tab) */
+.finance-ft-table tbody tr:focus-within .finance-ft-actions__inner {
+    opacity: 1;
+}
+
+/* Sur devices sans hover (touch), garder les actions visibles */
+@media (hover: none) {
+    .finance-ft-actions__inner {
+        opacity: 1;
+    }
+}
+
+/* Focus ring explicite sur les boutons d'action */
+.finance-ft-btn--icon:focus-visible {
+    outline: 2px solid var(--green-500);
+    outline-offset: 2px;
 }
 
 /* ---------- Form grid ---------- */

@@ -1,54 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<style>
-    .role-dash { padding:2.5rem 0; }
-    .role-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
-    .role-header h1 { font-size:1.7rem; font-weight:700; margin:0; color:var(--text-main); }
-    .role-header p { margin:.3rem 0 0; color:var(--text-muted); }
-    .role-badge { display:inline-block; background:#dbeafe; color:#1e40af; padding:.25rem .8rem; border-radius:999px; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.5rem; }
-    .ferme-switch { background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:.5rem .75rem; }
-    .ferme-switch select { border:none; background:transparent; color:var(--text-main); font-weight:600; outline:none; }
-
-    .kpi-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.75rem; }
-    .kpi { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1.1rem 1.2rem; }
-    .kpi .label { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); }
-    .kpi .value { font-size:1.8rem; font-weight:700; color:var(--text-main); margin-top:.2rem; }
-    .kpi .sub { font-size:.78rem; color:var(--text-muted); margin-top:.2rem; }
-    .kpi.k1 { border-left:4px solid #10b981; }
-    .kpi.k2 { border-left:4px solid #3b82f6; }
-    .kpi.k3 { border-left:4px solid #f59e0b; }
-
-    .panels { display:grid; grid-template-columns: 1.5fr 1fr; gap:1.25rem; }
-    @media (max-width:980px){ .panels { grid-template-columns:1fr; } }
-    .panel { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1.25rem 1.4rem; }
-    .panel h2 { font-size:1.05rem; font-weight:700; margin:0 0 1rem; color:var(--text-main); display:flex; align-items:center; gap:.5rem; }
-    .panel h2 .more { font-size:.8rem; font-weight:500; margin-left:auto; }
-
-    .culture-card { padding:.85rem 0; border-bottom:1px solid var(--border-color); }
-    .culture-card:last-child { border-bottom:none; }
-    .culture-head { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; }
-    .culture-name { font-weight:600; color:var(--text-main); margin:0; text-decoration:none; }
-    .culture-name:hover { color:var(--accent); }
-    .culture-meta { font-size:.82rem; color:var(--text-muted); }
-    .progress-track { height:8px; background:var(--bg-secondary); border-radius:999px; overflow:hidden; margin-top:.55rem; }
-    .progress-track > span { display:block; height:100%; background:linear-gradient(90deg, #10b981, #3b82f6); }
-    .progression-label { font-size:.75rem; color:var(--text-muted); margin-top:.2rem; display:flex; justify-content:space-between; }
-    .badge-prev { background:#ede9fe; color:#5b21b6; padding:.2rem .55rem; border-radius:999px; font-size:.7rem; font-weight:600; }
-
-    .recolte-line { display:flex; justify-content:space-between; align-items:center; padding:.55rem 0; border-bottom:1px dashed var(--border-color); font-size:.9rem; }
-    .recolte-line:last-child { border-bottom:none; }
-
-    .tache-line { display:flex; gap:.65rem; align-items:center; padding:.55rem 0; border-bottom:1px dashed var(--border-color); font-size:.88rem; }
-    .tache-line:last-child { border-bottom:none; }
-    .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
-    .dot-a_faire { background:#f59e0b; } .dot-en_cours { background:#3b82f6; } .dot-terminee { background:#10b981; } .dot-annulee { background:#9ca3af; }
-    .empty { text-align:center; color:var(--text-muted); padding:1.5rem; font-size:.9rem; }
-</style>
+<link rel="stylesheet" href="{% static 'css/dashboard_roles.css' %}">
 
 <div class="container role-dash">
     <div class="role-header">
         <div>
-            <span class="role-badge"><i class="fas fa-microscope me-1"></i>Technicien</span>
+            <span class="role-badge role-badge--technicien"><i class="fas fa-microscope me-1"></i>Technicien</span>
             <h1>Évolution des cultures · {{ ferme.nom }}</h1>
             <p>Suivi du cycle des projets, prévisions de récolte et tâches du jour.</p>
         </div>

@@ -17,7 +17,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from baay.forms import FinanceDepenseForm, FinanceRecetteForm
-from baay.models import Investissement, Projet, ProjetProduit, Recette
+from baay.models import Depense, Investissement, Projet, ProjetProduit, Recette
 from baay.permissions import (
     peut_acceder_menu_finance,
     peut_modifier_investissement,
@@ -123,7 +123,7 @@ MONTH_OPTIONS_FR = [
 ]
 
 
-def _finance_surface_reference_json(profile):
+def _finance_surface_reference(profile) -> dict:
     """
     Par projet modifiable : superficie projet + ha par ProjetProduit (comme hectaresPourLigne
     sur la fiche projet / ajouter investissement).
@@ -140,7 +140,7 @@ def _finance_surface_reference_json(profile):
             s = pp.superficie_allouee
             pps[str(pp.pk)] = float(s) if s is not None else None
         out[str(p.pk)] = {"ha": ha, "pps": pps}
-    return json.dumps(out)
+    return out
 
 
 def _finance_hub_extra_context(request):
@@ -148,7 +148,7 @@ def _finance_hub_extra_context(request):
     pairs = list(projets_modifiables_depenses_qs(profile).values_list("pk", "superficie"))
     modify_ids = {pk for pk, _ in pairs}
     return {
-        "finance_surface_reference_json": _finance_surface_reference_json(profile),
+        "finance_surface_reference": _finance_surface_reference(profile),
         "finance_modify_project_ids": modify_ids,
         "month_options": MONTH_OPTIONS_FR,
     }
@@ -261,27 +261,42 @@ def _finance_hub_template_context(
     }
 
 
-def _build_kpis_json(request):
-    """Calcule les KPIs financiers agrégés pour initialiser le widget Alpine ROI."""
-    from baay.permissions import projets_avec_vue_depenses_qs
+def _build_kpis_data(request) -> dict:
+    """
+    Calcule les KPIs financiers agrégés pour initialiser le widget Alpine ROI.
+
+    Important : on évite un N+1 (1 calcul/Projet). On agrège directement sur les projets visibles.
+    Sémantique alignée sur `calculer_kpis_financiers_projet()` :
+    - Total recettes = Somme `Recette.montant_total`
+    - Total coûts    = Somme (lignes `Investissement` via `investissement_montant_expr()`) + Somme `Depense.montant`
+    """
     profile = request.user.profile
     projets = projets_avec_vue_depenses_qs(profile)
-    total_rec = Decimal("0")
-    total_cout = Decimal("0")
-    # projets_avec_vue_depenses_qs() utilise select_related("ferme").
-    # Ne pas combiner select_related + only("id") (FieldError sur Projet.ferme).
-    for projet_id in projets.values_list("id", flat=True):
-        try:
-            kp = calculer_kpis_financiers_projet(projet_id)
-            total_rec += kp.get("total_recettes") or Decimal("0")
-            total_cout += kp.get("total_couts") or Decimal("0")
-        except Exception:
-            logger.exception("Erreur calcul KPIs financiers (projet_id=%s)", projet_id)
-    return json.dumps({
+
+    total_rec = (
+        Recette.objects.filter(projet__in=projets)
+        .aggregate(t=Coalesce(Sum("montant_total"), Value(Decimal("0"))))
+        .get("t")
+        or Decimal("0")
+    )
+    total_lignes_inv = (
+        Investissement.objects.filter(projet__in=projets)
+        .aggregate(t=Coalesce(Sum(investissement_montant_expr()), Value(Decimal("0"))))
+        .get("t")
+        or Decimal("0")
+    )
+    total_depenses_fiche = (
+        Depense.objects.filter(projet__in=projets)
+        .aggregate(t=Coalesce(Sum("montant"), Value(Decimal("0"))))
+        .get("t")
+        or Decimal("0")
+    )
+
+    return {
         "totalRecettes": float(total_rec),
-        "totalCouts": float(total_cout),
+        "totalCouts": float(total_lignes_inv + total_depenses_fiche),
         "typeOperation": "depense",
-    })
+    }
 
 
 @method_decorator(login_required, name="dispatch")
@@ -302,7 +317,7 @@ class FinanceHubView(View):
             culture_partial_produits_depense=[],
             culture_partial_produits_recette=[],
         )
-        context["kpis_json"] = _build_kpis_json(request)
+        context["kpis_data"] = _build_kpis_data(request)
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
@@ -319,7 +334,7 @@ class FinanceHubView(View):
                         request.POST.get("recette-projet")
                     ),
                 )
-                ctx["kpis_json"] = _build_kpis_json(request)
+                ctx["kpis_data"] = _build_kpis_data(request)
                 return render(request, self.template_name, ctx, status=400)
 
             projet = form_recette.cleaned_data["projet"]
@@ -358,7 +373,7 @@ class FinanceHubView(View):
                 ),
                 culture_partial_produits_recette=[],
             )
-            ctx["kpis_json"] = _build_kpis_json(request)
+            ctx["kpis_data"] = _build_kpis_data(request)
             return render(request, self.template_name, ctx, status=400)
 
         projet = form_depense.cleaned_data["projet"]

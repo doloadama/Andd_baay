@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load money %}
 {% block title %}Hub Finance — dépenses et recettes | Andd Baay{% endblock %}
 
 {% block meta_description %}
@@ -56,7 +57,17 @@
             <h2 id="finance-filters-heading" class="finance-ft-card__title">Filtres</h2>
         </div>
         <div class="finance-ft-card__body">
-            <form id="finance-filters-form" method="get" action="{% url 'finance_hub' %}">
+            <form
+                id="finance-filters-form"
+                method="get"
+                action="{% url 'finance_hub' %}"
+                hx-get="{% url 'finance_hub' %}"
+                hx-include="#finance-filters-form"
+                hx-target="#finance-results"
+                hx-select="#finance-results"
+                hx-push-url="true"
+                hx-trigger="change, input delay:350ms"
+            >
                 <div class="finance-ft-filter-grid">
                     <div>
                         <label class="finance-ft-field-label" for="filt-projet">Projet</label>
@@ -106,6 +117,7 @@
         </div>
     </section>
 
+    <div id="finance-results">
     <!-- Tableau -->
     <section class="finance-ft-card" aria-labelledby="finance-table-heading">
         <div class="finance-ft-card__head finance-ft-card__head--split">
@@ -142,7 +154,7 @@
                                 </td>
                                 <td><span class="finance-ft-pill finance-ft-pill--categorie">{{ d.get_categorie_display }}</span></td>
                                 <td class="text-end">
-                                    <span class="finance-ft-mono finance-ft-amount-main">{{ d.calculer_investissement_total|floatformat:0 }}</span>
+                                    <span class="finance-ft-mono finance-ft-amount-main">{{ d.calculer_investissement_total|fcfa }}</span>
                                     <span class="finance-ft-amount-suffix">FCFA</span>
                                 </td>
                                 <td class="finance-ft-actions">
@@ -182,7 +194,7 @@
                             <span class="finance-ft-dep-mobile-sep" aria-hidden="true">·</span>
                             <span class="finance-ft-pill finance-ft-pill--categorie finance-ft-pill--compact">{{ d.get_categorie_display }}</span>
                         </div>
-                        <div style="margin-top:10px;font-family:'DM Mono',monospace;font-weight:500;color:var(--green-500);">{{ d.calculer_investissement_total|floatformat:0 }} <span style="font-size:11px;color:var(--fh-text3);">FCFA</span></div>
+                        <div style="margin-top:10px;font-family:'DM Mono',monospace;font-weight:500;color:var(--green-500);">{{ d.calculer_investissement_total|fcfa }} <span style="font-size:11px;color:var(--fh-text3);">FCFA</span></div>
                     </article>
                 {% endfor %}
             </div>
@@ -243,9 +255,9 @@
                                     </span>
                                 </td>
                                 <td class="text-end"><span class="finance-ft-mono">{{ r.quantite|floatformat:2 }}</span> {{ r.get_unite_display }}</td>
-                                <td class="text-end"><span class="finance-ft-mono">{{ r.prix_unitaire|floatformat:0 }}</span> <span class="finance-ft-amount-suffix">FCFA</span></td>
+                                <td class="text-end"><span class="finance-ft-mono">{{ r.prix_unitaire|fcfa }}</span> <span class="finance-ft-amount-suffix">FCFA</span></td>
                                 <td class="text-end">
-                                    <span class="finance-ft-mono finance-ft-amount-main">{{ r.montant_total|floatformat:0 }}</span>
+                                    <span class="finance-ft-mono finance-ft-amount-main">{{ r.montant_total|fcfa }}</span>
                                     <span class="finance-ft-amount-suffix">FCFA</span>
                                 </td>
                                 <td class="finance-ft-actions">
@@ -278,7 +290,7 @@
                             <span class="finance-ft-dep-mobile-sep" aria-hidden="true">·</span>
                             <span class="finance-ft-pill finance-ft-pill--compact finance-ft-pill--muted">{{ r.quantite|floatformat:2 }} {{ r.get_unite_display }}</span>
                         </div>
-                        <div style="margin-top:10px;font-family:'DM Mono',monospace;font-weight:500;color:var(--green-500);">{{ r.montant_total|floatformat:0 }} <span style="font-size:11px;color:var(--fh-text3);">FCFA</span></div>
+                        <div style="margin-top:10px;font-family:'DM Mono',monospace;font-weight:500;color:var(--green-500);">{{ r.montant_total|fcfa }} <span style="font-size:11px;color:var(--fh-text3);">FCFA</span></div>
                     </article>
                 {% endfor %}
             </div>
@@ -393,10 +405,11 @@
     </details>
 
     <!-- ── ROI Calculator Widget (Alpine.js) ── -->
-    {% if kpis_json %}
+    {% if kpis_data %}
+    {{ kpis_data|json_script:"finance-kpis-data" }}
     <section
         class="finance-ft-card"
-        x-data="roiCalculator({{ kpis_json|safe }})"
+        x-data="roiCalculator(JSON.parse(document.getElementById('finance-kpis-data').textContent))"
         aria-label="Simulateur ROI"
     >
         <div class="finance-ft-card__head">
@@ -537,10 +550,12 @@
         </div>
     </details>
 </div>
+    </div>
 
+{{ finance_surface_reference|json_script:"finance-surface-reference" }}
 <script>
 (function () {
-    var surfaceRef = {{ finance_surface_reference_json|safe }};
+    var surfaceRef = JSON.parse(document.getElementById('finance-surface-reference').textContent);
     function hectaresPourLigne() {
         var projSel = document.getElementById('id_finance_depense_projet');
         var ppSel = document.getElementById('id_projet_produit');

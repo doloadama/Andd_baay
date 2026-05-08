@@ -380,7 +380,9 @@ else:
 # InvalidCursorName (« cursor "_django_curs_…" does not exist »). On les désactive pour PostgreSQL.
 for _alias, _cfg in DATABASES.items():
     if _cfg.get("ENGINE") == "django.db.backends.postgresql":
-        _cfg.setdefault("DISABLE_SERVER_SIDE_CURSORS", True)
+        # `dj_database_url.parse()` may set this explicitly to False; override to True
+        # to avoid InvalidCursorName with PgBouncer transaction pooling (Supabase :6543).
+        _cfg["DISABLE_SERVER_SIDE_CURSORS"] = True
 
 # Cache Django — backend locmem par défaut (Axes, etc.)
 CACHES = {

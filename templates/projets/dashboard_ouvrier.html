@@ -1,42 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<style>
-    .ouvrier-dash { padding:2.5rem 0; max-width:900px; margin:0 auto; }
-    .ouvrier-header { margin-bottom:2rem; text-align:center; }
-    .ouvrier-header .role-badge { display:inline-block; background:#fef3c7; color:#92400e; padding:.3rem 1rem; border-radius:999px; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.75rem; }
-    .ouvrier-header h1 { font-size:1.9rem; font-weight:700; color:var(--text-main); margin:0 0 .35rem; }
-    .ouvrier-header p { color:var(--text-muted); margin:0; }
-
-    .summary-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:.85rem; margin-bottom:2rem; }
-    .summary-card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:1rem; text-align:center; }
-    .summary-card .num { font-size:2rem; font-weight:700; color:var(--text-main); margin:.1rem 0; line-height:1; }
-    .summary-card .lbl { font-size:.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
-    .summary-card.afaire { border-left:4px solid #f59e0b; }
-    .summary-card.encours { border-left:4px solid #3b82f6; }
-    .summary-card.terminees { border-left:4px solid #10b981; }
-    .summary-card.retard { border-left:4px solid #ef4444; }
-
-    .section-title { font-size:1.1rem; font-weight:700; color:var(--text-main); margin:1.5rem 0 .85rem; display:flex; align-items:center; gap:.5rem; }
-    .section-title .count { background:var(--accent-subtle); color:var(--accent-dark); padding:.15rem .55rem; border-radius:999px; font-size:.75rem; font-weight:600; }
-
-    .tache-card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:1rem 1.15rem; margin-bottom:.7rem; display:flex; gap:1rem; align-items:flex-start; transition:transform .12s ease, border-color .12s ease; text-decoration:none; color:inherit; }
-    .tache-card:hover { transform:translateX(2px); border-color:var(--accent); color:inherit; }
-    .tache-card .left { flex:1; min-width:0; }
-    .tache-card .titre { font-weight:600; color:var(--text-main); margin:0; font-size:1rem; }
-    .tache-card .meta { font-size:.85rem; color:var(--text-muted); margin-top:.25rem; }
-    .tache-card .meta .ferme { font-weight:500; }
-    .tache-card .right { text-align:right; flex:0 0 auto; }
-    .badge-prio { font-size:.7rem; padding:.2rem .55rem; border-radius:999px; font-weight:600; text-transform:uppercase; }
-    .prio-basse { background:#e5e7eb; color:#374151; }
-    .prio-normale { background:#dbeafe; color:#1e40af; }
-    .prio-haute { background:#fed7aa; color:#9a3412; }
-    .prio-urgente { background:#fee2e2; color:#991b1b; }
-    .echeance { font-size:.78rem; color:var(--text-muted); margin-top:.3rem; }
-    .echeance.retard { color:#dc2626; font-weight:600; }
-
-    .empty { text-align:center; color:var(--text-muted); padding:2rem; background:var(--card-bg); border:1px dashed var(--border-color); border-radius:14px; }
-    .empty i { font-size:2rem; color:var(--accent); margin-bottom:.5rem; }
-</style>
+<link rel="stylesheet" href="{% static 'css/dashboard_roles.css' %}">
 
 <div class="container ouvrier-dash">
     <div class="ouvrier-header">

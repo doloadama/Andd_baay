@@ -1,3 +1,4 @@
+{% load money %}
 <div class="finance-ft-metrics">
     <div class="finance-ft-metric">
         <div class="finance-ft-metric__ico finance-ft-metric__ico--amber" aria-hidden="true">
@@ -9,7 +10,7 @@
         </div>
         <div>
             <span class="finance-ft-metric__lbl">Dépenses (filtré)</span>
-            <span class="finance-ft-metric__val">{{ total_filtre|floatformat:0 }} <span class="finance-ft-metric__suffix">FCFA</span></span>
+            <span class="finance-ft-metric__val">{{ total_filtre|fcfa }} <span class="finance-ft-metric__suffix">FCFA</span></span>
         </div>
     </div>
     <div class="finance-ft-metric">
@@ -31,7 +32,7 @@
         </div>
         <div>
             <span class="finance-ft-metric__lbl">Recettes (filtré)</span>
-            <span class="finance-ft-metric__val">{{ total_recettes_filtre|floatformat:0 }} <span class="finance-ft-metric__suffix">FCFA</span></span>
+            <span class="finance-ft-metric__val">{{ total_recettes_filtre|fcfa }} <span class="finance-ft-metric__suffix">FCFA</span></span>
         </div>
     </div>
     <div class="finance-ft-metric">

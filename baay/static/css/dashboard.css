@@ -662,7 +662,13 @@
         background: rgba(29, 158, 117, 0.1); 
         color: var(--tech-green); 
         border: 1px solid var(--tech-green);
-        animation: neonPulse 2s infinite ease-in-out;
+    }
+
+    /* Keep motion subtle; respect reduced-motion preferences */
+    @media (prefers-reduced-motion: no-preference) {
+        .status-badge.en_cours {
+            animation: neonPulse 6s infinite ease-in-out;
+        }
     }
     .status-badge.en_pause { background: rgba(239, 159, 39, 0.1); color: var(--terroir-ocre); border: 1px solid var(--terroir-ocre); }
     .status-badge.fini { background: rgba(255, 215, 0, 0.1); color: var(--sun-yellow); border: 1px solid var(--sun-yellow); }
@@ -731,6 +737,18 @@
     
     .project-item:hover .mini-p-actions {
         opacity: 1;
+    }
+
+    /* Accessibilité: actions visibles au clavier */
+    .project-item:focus-within .mini-p-actions {
+        opacity: 1;
+    }
+
+    /* Sur devices sans hover (touch), garder les actions visibles */
+    @media (hover: none) {
+        .mini-p-actions {
+            opacity: 1;
+        }
     }
     
     .action-btn:hover {

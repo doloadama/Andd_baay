@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load l10n %}
+{% load money %}
 
 {% block title %}Dashboard | Andd Baay{% endblock %}
 
@@ -50,7 +51,7 @@
 <section class="cockpit-quick-strip cockpit-quick-strip--primary" id="cockpitQuickStrip" aria-label="Indicateurs stratégiques">
     <article class="cockpit-qcard cockpit-q-revenue">
         <span class="cq-kicker">Bénéfice net (périmètre financier)</span>
-        <strong class="cq-value" id="cqBenefice">{% if qs.show_financial_kpis %}{{ qs.benefice_net_total|floatformat:0 }} FCFA{% else %}—{% endif %}</strong>
+        <strong class="cq-value" id="cqBenefice">{% if qs.show_financial_kpis %}{{ qs.benefice_net_total|fcfa }} FCFA{% else %}—{% endif %}</strong>
         <p class="cq-hint">{% if qs.show_financial_kpis %}Recettes − coûts{% else %}Visible selon vos droits sur les fermes{% endif %}</p>
     </article>
     <article class="cockpit-qcard cockpit-q-roi">
@@ -121,7 +122,7 @@
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement-ferme">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
-        <div class="dash-stat-value" id="kpiInvestissementFerme">{{ investissement_total|floatformat:0 }}</div>
+        <div class="dash-stat-value" id="kpiInvestissementFerme">{{ investissement_total|fcfa }}</div>
         <div class="dash-stat-label">CFA investis</div>
     </div>
     {% endif %}
@@ -148,7 +149,7 @@
     <div class="dash-stat-card bento-tile tile-kpi" data-tile-id="kpi-investissement">
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-stat-icon green"><i class="fas fa-coins"></i></div>
-        <div class="dash-stat-value" id="kpiInvestissement">{{ investissement_total|floatformat:0 }}</div>
+        <div class="dash-stat-value" id="kpiInvestissement">{{ investissement_total|fcfa }}</div>
         <div class="dash-stat-label">CFA investis</div>
     </div>
     {% endif %}
