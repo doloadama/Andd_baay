@@ -26,24 +26,27 @@
 
     <header class="finance-ft-hero projects-finance-hero">
         <div class="finance-ft-hero__left">
-            <div class="finance-ft-badge-pill">
+            <div class="finance-ft-badge-pill d-none d-sm-flex">
                 <i class="finance-ft-dot" aria-hidden="true"></i>
                 Gestion agricole
             </div>
             <h1>Mes projets</h1>
-            <p class="finance-ft-hero__sub">
+            <p class="finance-ft-hero__sub d-none d-md-block">
                 Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide à filtrer et plus simple à piloter.
+            </p>
+            <p class="finance-ft-hero__sub d-md-none d-sm-block d-none">
+                Gérez vos parcelles efficacement.
             </p>
             <div class="projects-hero-actions">
                 <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
-                    <i class="fas fa-plus"></i> Nouveau projet
+                    <i class="fas fa-plus"></i> <span class="btn-text">Nouveau projet</span>
                 </a>
-                <button type="button" class="btn-modern btn-secondary-surface" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i> Rafraîchir
+                <button type="button" class="btn-modern btn-secondary-surface d-none d-sm-flex" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> <span class="btn-text">Rafraîchir</span>
                 </button>
             </div>
         </div>
-        <div class="finance-ft-metrics projects-finance-metrics">
+        <div class="finance-ft-metrics projects-finance-metrics d-none d-md-grid">
             <article class="finance-ft-metric">
                 <span class="finance-ft-metric__ico finance-ft-metric__ico--mint" aria-hidden="true"><i class="fas fa-eye"></i></span>
                 <span>

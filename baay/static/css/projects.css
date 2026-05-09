@@ -1215,6 +1215,58 @@ button.status-badge {
     }
 }
 
+/* Hero mobile adaptations */
+@media (max-width: 767.98px) {
+    .projects-finance-hero {
+        padding: 18px 16px;
+        gap: 16px;
+    }
+
+    .finance-ft-hero__left h1 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    .finance-ft-hero__sub {
+        font-size: 0.875rem;
+        margin-bottom: 16px;
+    }
+
+    .projects-hero-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .projects-hero-actions .btn-modern {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    .projects-hero-actions .btn-modern .btn-text {
+        display: inline;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .projects-finance-hero {
+        padding: 16px 14px;
+    }
+
+    .finance-ft-hero__left h1 {
+        font-size: 1.35rem;
+    }
+
+    .projects-hero-actions .btn-modern {
+        padding: 10px 14px;
+    }
+
+    .projects-hero-actions .btn-modern i {
+        font-size: 0.9rem;
+    }
+}
+
 /* Extra small screens - additional adjustments */
 @media (max-width: 480px) {
     .projects-hero-stats-bar {
