@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block content %}
@@ -42,7 +43,7 @@
             <h2 id="ferme-form-heading" class="finance-ft-card__title">Informations de la ferme</h2>
         </div>
         <div class="finance-ft-card__body">
-            <form method="post" enctype="multipart/form-data" id="ferme-create-form" class="ferme-ft-form" novalidate>
+            <form method="post" id="ferme-create-form" class="ferme-ft-form" novalidate>
                 {% csrf_token %}
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger mb-3" role="alert">{{ form.non_field_errors }}</div>
@@ -118,14 +119,36 @@
                     </div>
 
                     <div class="finance-ft-span2">
-                        <label class="finance-ft-field-label" for="{{ form.image_couverture.id_for_label }}">{{ form.image_couverture.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-                        {{ form.image_couverture }}
+                        <label class="finance-ft-field-label">{{ form.image_couverture.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        <div class="cloudinary-upload-container">
+                            <button type="button" class="finance-ft-btn finance-ft-btn--ghost" id="upload-couverture-btn">
+                                <i class="fas fa-cloud-upload-alt"></i> Choisir une image
+                            </button>
+                            <div id="couverture-preview" class="cloudinary-preview" style="display:none;">
+                                <img id="couverture-preview-img" src="" alt="Aperçu" style="max-width:200px;max-height:150px;margin-top:10px;border-radius:8px;">
+                                <button type="button" class="finance-ft-btn finance-ft-btn--ghost finance-ft-btn--sm" id="remove-couverture-btn" style="margin-left:10px;">
+                                    <i class="fas fa-times"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="image_couverture" id="id_ferme_image_couverture" value="">
                         {% if form.image_couverture.errors %}<div class="text-danger small mt-1">{{ form.image_couverture.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="finance-ft-span2">
-                        <label class="finance-ft-field-label" for="{{ form.image_infrastructure.id_for_label }}">{{ form.image_infrastructure.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-                        {{ form.image_infrastructure }}
+                        <label class="finance-ft-field-label">{{ form.image_infrastructure.label }} <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                        <div class="cloudinary-upload-container">
+                            <button type="button" class="finance-ft-btn finance-ft-btn--ghost" id="upload-infrastructure-btn">
+                                <i class="fas fa-cloud-upload-alt"></i> Choisir une image
+                            </button>
+                            <div id="infrastructure-preview" class="cloudinary-preview" style="display:none;">
+                                <img id="infrastructure-preview-img" src="" alt="Aperçu" style="max-width:200px;max-height:150px;margin-top:10px;border-radius:8px;">
+                                <button type="button" class="finance-ft-btn finance-ft-btn--ghost finance-ft-btn--sm" id="remove-infrastructure-btn" style="margin-left:10px;">
+                                    <i class="fas fa-times"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="image_infrastructure" id="id_ferme_image_infrastructure" value="">
                         {% if form.image_infrastructure.errors %}<div class="text-danger small mt-1">{{ form.image_infrastructure.errors.0 }}</div>{% endif %}
                     </div>
                 </div>
@@ -177,6 +200,102 @@ document.addEventListener('DOMContentLoaded', function() {
 
         paysSelect.addEventListener('change', filterLocalites);
         filterLocalites();
+    }
+
+    // Cloudinary Direct Upload for image_couverture
+    const uploadCouvertureBtn = document.getElementById('upload-couverture-btn');
+    if (uploadCouvertureBtn && typeof cloudinary !== 'undefined') {
+        const couvertureWidget = cloudinary.createUploadWidget({
+            cloudName: '{{ CLOUDINARY_CLOUD_NAME|default:"" }}',
+            uploadPreset: '{{ CLOUDINARY_UPLOAD_PRESET|default:"" }}',
+            folder: 'dev/fermes',
+            maxFileSize: 5000000,
+            sources: ['local', 'url', 'camera'],
+            multiple: false,
+            cropping: false,
+            styles: {
+                palette: {
+                    window: '#ffffff',
+                    sourceBg: '#f4f4f5',
+                    windowBorder: '#90a0b3',
+                    tabIcon: '#0078ff',
+                    inactiveTabIcon: '#69778a',
+                    menuIcons: '#5a616a',
+                    link: '#0078ff',
+                    action: '#339933',
+                    inProgress: '#0078ff',
+                    complete: '#339933',
+                    error: '#cc0000',
+                    textDark: '#000000',
+                    textLight: '#ffffff'
+                }
+            }
+        }, (error, result) => {
+            if (!error && result && result.event === 'success') {
+                const publicId = result.info.public_id;
+                const url = result.info.secure_url;
+                document.getElementById('id_ferme_image_couverture').value = publicId;
+                document.getElementById('couverture-preview-img').src = url;
+                document.getElementById('couverture-preview').style.display = 'block';
+                uploadCouvertureBtn.style.display = 'none';
+            }
+        });
+
+        uploadCouvertureBtn.addEventListener('click', () => couvertureWidget.open());
+
+        document.getElementById('remove-couverture-btn').addEventListener('click', () => {
+            document.getElementById('id_ferme_image_couverture').value = '';
+            document.getElementById('couverture-preview').style.display = 'none';
+            uploadCouvertureBtn.style.display = 'inline-block';
+        });
+    }
+
+    // Cloudinary Direct Upload for image_infrastructure
+    const uploadInfrastructureBtn = document.getElementById('upload-infrastructure-btn');
+    if (uploadInfrastructureBtn && typeof cloudinary !== 'undefined') {
+        const infrastructureWidget = cloudinary.createUploadWidget({
+            cloudName: '{{ CLOUDINARY_CLOUD_NAME|default:"" }}',
+            uploadPreset: '{{ CLOUDINARY_UPLOAD_PRESET|default:"" }}',
+            folder: 'dev/fermes/infrastructures',
+            maxFileSize: 5000000,
+            sources: ['local', 'url', 'camera'],
+            multiple: false,
+            cropping: false,
+            styles: {
+                palette: {
+                    window: '#ffffff',
+                    sourceBg: '#f4f4f5',
+                    windowBorder: '#90a0b3',
+                    tabIcon: '#0078ff',
+                    inactiveTabIcon: '#69778a',
+                    menuIcons: '#5a616a',
+                    link: '#0078ff',
+                    action: '#339933',
+                    inProgress: '#0078ff',
+                    complete: '#339933',
+                    error: '#cc0000',
+                    textDark: '#000000',
+                    textLight: '#ffffff'
+                }
+            }
+        }, (error, result) => {
+            if (!error && result && result.event === 'success') {
+                const publicId = result.info.public_id;
+                const url = result.info.secure_url;
+                document.getElementById('id_ferme_image_infrastructure').value = publicId;
+                document.getElementById('infrastructure-preview-img').src = url;
+                document.getElementById('infrastructure-preview').style.display = 'block';
+                uploadInfrastructureBtn.style.display = 'none';
+            }
+        });
+
+        uploadInfrastructureBtn.addEventListener('click', () => infrastructureWidget.open());
+
+        document.getElementById('remove-infrastructure-btn').addEventListener('click', () => {
+            document.getElementById('id_ferme_image_infrastructure').value = '';
+            document.getElementById('infrastructure-preview').style.display = 'none';
+            uploadInfrastructureBtn.style.display = 'inline-block';
+        });
     }
 });
 </script>

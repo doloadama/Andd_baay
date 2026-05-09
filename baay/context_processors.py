@@ -39,3 +39,14 @@ def auth_backgrounds(request):
     """
     from baay.services import get_auth_background_urls
     return get_auth_background_urls()
+
+
+def cloudinary_config(request):
+    """
+    Injecte la configuration Cloudinary pour le widget d'upload direct.
+    """
+    from django.conf import settings
+    return {
+        'CLOUDINARY_CLOUD_NAME': getattr(settings, 'CLOUDINARY_CLOUD_NAME', ''),
+        'CLOUDINARY_UPLOAD_PRESET': getattr(settings, 'CLOUDINARY_UPLOAD_PRESET', ''),
+    }

@@ -32,6 +32,10 @@ CLOUDINARY_MEDIA_PREFIX = (
     or ("prod" if os.getenv("ENV", "").lower() == "production" else "dev")
 )
 
+# Cloudinary configuration for direct upload widget
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "").strip()
+CLOUDINARY_UPLOAD_PRESET = os.getenv("CLOUDINARY_UPLOAD_PRESET", "").strip()
+
 _srcset_w = os.getenv("CLOUDINARY_SRCSET_WIDTHS", "320,480,640,960").strip()
 CLOUDINARY_SRCSET_WIDTHS = tuple(
     int(x.strip()) for x in _srcset_w.split(",") if x.strip().isdigit()
@@ -283,6 +287,7 @@ TEMPLATES = [
                 'baay.context_processors.exploitation_section',
                 'baay.context_processors.finance_section',
                 'baay.context_processors.auth_backgrounds',
+                'baay.context_processors.cloudinary_config',
             ],
         },
     },
