@@ -446,6 +446,17 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Available languages
+LANGUAGES = [
+    ('fr', 'Français'),
+    ('en', 'English'),
+]
+
+# Locale paths for translations
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

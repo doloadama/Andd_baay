@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+{% load money %}
+
+{% block title %}Performance | Andd Baay{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+<link rel="stylesheet" href="{% static 'css/performance.css' %}">
+
+<div class="dashboard-page">
+    <!-- Header -->
+    <header class="dashboard-header-modern db-header-cockpit cockpit-topbar animate__animated animate__fadeInDown">
+        <div class="cockpit-topbar__main">
+            <p class="dash-subtitle">Analyse des performances</p>
+            <h1>{% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Performance globale{% endif %}</h1>
+            <div class="cockpit-topbar__meta">
+                <span><i class="fas fa-warehouse" aria-hidden="true"></i> {{ fermes.count }} ferme{{ fermes.count|pluralize }}</span>
+                <span><i class="fas fa-layer-group" aria-hidden="true"></i> {{ projets_count }} projet{{ projets_count|pluralize }}</span>
+            </div>
+        </div>
+        <div class="db-actions cockpit-topbar__actions">
+            {% if fermes.count > 1 %}
+            <form method="get" class="d-inline">
+                <select name="ferme" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Toutes les fermes</option>
+                    {% for ferme in fermes %}
+                    <option value="{{ ferme.id }}" {% if selected_ferme.id == ferme.id %}selected{% endif %}>{{ ferme.nom }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- KPIs Performance -->
+    <section class="cockpit-quick-strip cockpit-quick-strip--primary" aria-label="Indicateurs de performance">
+        <article class="cockpit-qcard cockpit-q-revenue">
+            <div class="cq-icon"><i class="fas fa-boxes"></i></div>
+            <span class="cq-kicker">Rendement total</span>
+            <strong class="cq-value">{{ rendement_total|floatformat:0 }} <small>kg</small></strong>
+            <p class="cq-hint">Production estimée</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-roi">
+            <div class="cq-icon"><i class="fas fa-map"></i></div>
+            <span class="cq-kicker">Superficie cultivée</span>
+            <strong class="cq-value">{{ superficie_totale|floatformat:0 }} <small>ha</small></strong>
+            <p class="cq-hint">Hectares utilisés</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-completion">
+            <div class="cq-icon"><i class="fas fa-chart-line"></i></div>
+            <span class="cq-kicker">Rendement moyen</span>
+            <strong class="cq-value">{{ rendement_moyen|floatformat:0 }} <small>kg/ha</small></strong>
+            <p class="cq-hint">Par hectare cultivé</p>
+        </article>
+    </section>
+
+    <!-- Performance par culture -->
+    <section class="performance-section">
+        <h2 class="section-title"><i class="fas fa-seedling"></i> Performance par culture</h2>
+        {% if cultures_data %}
+        <div class="table-responsive">
+            <table class="table table-hover performance-table">
+                <thead>
+                    <tr>
+                        <th>Culture</th>
+                        <th class="text-end">Superficie</th>
+                        <th class="text-end">Rendement total</th>
+                        <th class="text-end">Rendement/ha</th>
+                        <th class="text-end">Projets</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for culture in cultures_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ culture.culture.nom }}</strong>
+                            {% if culture.culture.categorie %}
+                            <span class="badge bg-secondary">{{ culture.culture.categorie }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ culture.superficie|floatformat:1 }} ha</td>
+                        <td class="text-end">{{ culture.rendement_total|floatformat:0 }} kg</td>
+                        <td class="text-end">
+                            <span class="{% if culture.rendement_par_ha > rendement_moyen %}text-success{% else %}text-warning{% endif %}">
+                                {{ culture.rendement_par_ha|floatformat:1 }} kg/ha
+                            </span>
+                        </td>
+                        <td class="text-end">{{ culture.projets_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🌱</div>
+            <h4>Aucune donnée de culture</h4>
+            <p>Créez des projets avec des cultures pour voir les performances.</p>
+            <a href="{% url 'creer_projet' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau projet
+            </a>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Performance par ferme -->
+    <section class="performance-section">
+        <h2 class="section-title"><i class="fas fa-warehouse"></i> Performance par ferme</h2>
+        {% if fermes_performance %}
+        <div class="row">
+            {% for ferme_perf in fermes_performance %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="ferme-card">
+                    <div class="ferme-card-header">
+                        <h5>{{ ferme_perf.ferme.nom }}</h5>
+                        {% if ferme_perf.ferme.localite %}
+                        <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ ferme_perf.ferme.localite.nom }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="ferme-card-body">
+                        <div class="ferme-metric">
+                            <span class="metric-label">Taux d'utilisation</span>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar {% if ferme_perf.taux_utilisation > 80 %}bg-success{% elif ferme_perf.taux_utilisation > 50 %}bg-warning{% else %}bg-info{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ ferme_perf.taux_utilisation }}%"
+                                     aria-valuenow="{{ ferme_perf.taux_utilisation }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ ferme_perf.taux_utilisation }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ferme-stats">
+                            <div class="ferme-stat">
+                                <span class="stat-value">{{ ferme_perf.superficie_utilisee|floatformat:1 }}</span>
+                                <span class="stat-label">ha utilisés</span>
+                            </div>
+                            <div class="ferme-stat">
+                                <span class="stat-value">{{ ferme_perf.rendement_total|floatformat:0 }}</span>
+                                <span class="stat-label">kg produits</span>
+                            </div>
+                            <div class="ferme-stat">
+                                <span class="stat-value">{{ ferme_perf.projets_actifs }}</span>
+                                <span class="stat-label">projets actifs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🏭</div>
+            <h4>Aucune ferme</h4>
+            <p>Créez une ferme pour commencer à suivre vos performances.</p>
+            <a href="{% url 'creer_ferme' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle ferme
+            </a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

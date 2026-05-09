@@ -1,7 +1,8 @@
 {% load static %}
+{% load i18n %}
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ request.LANGUAGE_CODE|default:'fr' }}">
 
 <head>
     <meta charset="UTF-8" />
@@ -49,6 +50,8 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-agri-pages.css' %}">
+    <link rel="stylesheet" href="{% static 'css/language-switcher.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navbar-responsive.css' %}">
     {% include 'includes/tailwind_htmx_alpine_head.html' %}
 
     {# Base inline CSS extrait — chargé après mobile-agri-pages.css pour préserver l'ordre de cascade. Voir perf-audit.md action #1. #}
@@ -164,9 +167,9 @@
     </div>
     {% endif %}
 
-    <!-- Navbar -->
+    <!-- Navbar Minimal -->
     <header class="navbar-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-floating animate__animated animate__fadeInDown" aria-label="Navigation principale">
+        <nav class="navbar navbar-expand-lg navbar-minimal navbar-floating animate__animated animate__fadeInDown" aria-label="Navigation principale">
             <div class="container-fluid">
                 <a class="navbar-brand tw-inline-flex tw-items-center tw-touch-manipulation tw-rounded-xl tw-px-1" href="{% url 'home' %}" aria-label="Andd Baay — Accueil">
                     {% include 'includes/brand_wordmark.html' with variant='nav' %}
@@ -187,20 +190,59 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav navbar-nav-premium ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0">
                         {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                                href="{% url 'dashboard' %}" data-pjax{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
-                                <i class="fas fa-chart-pie" aria-hidden="true"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item tw-relative nav-exploitation-dropdown"
-                            x-data="{
-                                open: {% if exploitation_section_active %}true{% else %}false{% endif %}
-                            }"
+                        <!-- Navigation principale -->
+                        <li class="nav-item tw-relative nav-dashboard-dropdown"
+                            x-data="{ open: false }"
                             @click.outside="open = false"
                             @keydown.escape.window="open = false">
                             <button type="button"
-                                class="nav-link-modern nav-exploitation-trigger tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if exploitation_section_active %}active{% endif %}"
+                                class="nav-link-modern tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if request.resolver_match and request.resolver_match.url_name in 'dashboard performance activites' %}active{% endif %}"
+                                id="nav-dashboard-trigger"
+                                :aria-expanded="open ? 'true' : 'false'"
+                                aria-haspopup="true"
+                                aria-controls="nav-dashboard-menu"
+                                @click.prevent="open = !open">
+                                <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                                <span>Tableau de bord</span>
+                                <i class="fas fa-chevron-down tw-text-[0.65rem] tw-opacity-75 tw-transition-transform tw-duration-200" :class="{'tw-rotate-180': open}" aria-hidden="true"></i>
+                            </button>
+                            <ul id="nav-dashboard-menu"
+                                class="nav-exploitation-panel list-unstyled"
+                                role="menu"
+                                x-show="open"
+                                x-cloak
+                                x-transition:enter="tw-transition-all tw-ease-out tw-duration-200"
+                                x-transition:enter-start="tw-opacity-0 tw--translate-y-2"
+                                x-transition:enter-end="tw-opacity-100 tw-translate-y-0"
+                                x-transition:leave="tw-transition-all tw-ease-in tw-duration-150"
+                                x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
+                                x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
+                                        <i class="fas fa-chart-pie" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Vue d'ensemble
+                                    </a>
+                                </li>
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name == 'performance' %}active{% endif %}" href="{% url 'performance' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name == 'performance' %} aria-current="page"{% endif %}>
+                                        <i class="fas fa-chart-line" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Performance
+                                    </a>
+                                </li>
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name == 'activites' %}active{% endif %}" href="{% url 'activites' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name == 'activites' %} aria-current="page"{% endif %}>
+                                        <i class="fas fa-list-check" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Activités
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item tw-relative nav-exploitation-dropdown"
+                            x-data="{ open: {% if exploitation_section_active or finance_section_active %}true{% else %}false{% endif %} }"
+                            @click.outside="open = false"
+                            @keydown.escape.window="open = false">
+                            <button type="button"
+                                class="nav-link-modern nav-exploitation-trigger tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if exploitation_section_active or finance_section_active %}active{% endif %}"
                                 id="nav-exploitation-trigger"
                                 :aria-expanded="open ? 'true' : 'false'"
                                 aria-haspopup="true"
@@ -230,77 +272,45 @@
                                 <li role="none">
                                     <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                                         <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
-                                        Projets en cours
+                                        Projets
                                     </a>
                                 </li>
                                 <li role="none">
                                     <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'liste_semis' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
                                         <i class="fas fa-seedling" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
-                                        Suivi des semis
+                                        Semis
                                     </a>
                                 </li>
-                            </ul>
-                        </li>
-                        {% if show_finance_nav %}
-                        <li class="nav-item tw-relative nav-finance-dropdown"
-                            x-data="{
-                                open: {% if finance_section_active %}true{% else %}false{% endif %}
-                            }"
-                            @click.outside="open = false"
-                            @keydown.escape.window="open = false">
-                            <button type="button"
-                                class="nav-link-modern nav-exploitation-trigger tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if finance_section_active %}active{% endif %}"
-                                id="nav-finance-trigger"
-                                :aria-expanded="open ? 'true' : 'false'"
-                                aria-haspopup="true"
-                                aria-controls="nav-finance-menu"
-                                @click.prevent="open = !open">
-                                <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
-                                <span>Finance</span>
-                                <i class="fas fa-chevron-down tw-text-[0.65rem] tw-opacity-75 tw-transition-transform tw-duration-200" :class="{'tw-rotate-180': open}" aria-hidden="true"></i>
-                            </button>
-                            <ul id="nav-finance-menu"
-                                class="nav-exploitation-panel list-unstyled"
-                                role="menu"
-                                x-show="open"
-                                x-cloak
-                                x-transition:enter="tw-transition-all tw-ease-out tw-duration-200"
-                                x-transition:enter-start="tw-opacity-0 tw--translate-y-2"
-                                x-transition:enter-end="tw-opacity-100 tw-translate-y-0"
-                                x-transition:leave="tw-transition-all tw-ease-in tw-duration-150"
-                                x-transition:leave-start="tw-opacity-100 tw-translate-y-0"
-                                x-transition:leave-end="tw-opacity-0 tw--translate-y-1">
+                                <li role="none">
+                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'taches_liste' %}" data-pjax @click="open = false"{% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
+                                        <i class="fas fa-list-check" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
+                                        Tâches
+                                    </a>
+                                </li>
+                                {% if show_finance_nav %}
+                                <li role="none"><hr class="dropdown-divider my-1 mx-2" style="opacity:0.3;"></li>
                                 <li role="none">
                                     <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'finance_hub' %}active{% endif %}" href="{% url 'finance_hub' %}" data-pjax @click="open = false"{% if request.resolver_match.url_name == 'finance_hub' %} aria-current="page"{% endif %}>
                                         <i class="fas fa-wallet" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
-                                        Hub Finance
+                                        <strong>Hub Finance</strong>
                                     </a>
                                 </li>
-                                <li role="none">
-                                    <a role="menuitem" class="nav-exploitation-sublink {% if request.resolver_match.url_name == 'liste_projets' %}active{% endif %}" href="{% url 'liste_projets' %}" data-pjax @click="open = false"{% if request.resolver_match.url_name == 'liste_projets' %} aria-current="page"{% endif %}>
-                                        <i class="fas fa-folder-open" style="width:1.25rem;text-align:center" aria-hidden="true"></i>
-                                        Projets &amp; budgets
-                                    </a>
-                                </li>
+                                {% endif %}
                             </ul>
                         </li>
-                        {% endif %}
                         <li class="nav-item">
-                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}"
-                                href="{% url 'taches_liste' %}" data-pjax{% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-                                <i class="fas fa-list-check" aria-hidden="true"></i> Tâches
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link-modern tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
+                            <a class="nav-link-modern nav-link-messagerie tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
                                 href="{% url 'messagerie_inbox' %}" data-pjax
                                 data-drawer-toggle="messagerie"{% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-                                <i class="fas fa-envelope" aria-hidden="true"></i> Messagerie
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
+                                <span class="nav-label-full">Messagerie</span>
+                                <span class="nav-label-short"></span>
                             </a>
                         </li>
                         <li class="nav-item me-lg-1">
-                            <a class="btn-baay btn-baay-primary navbar-cta-new py-2 px-3 tw-inline-flex tw-items-center tw-touch-manipulation" href="{% url 'creer_projet' %}">
-                                <i class="fas fa-plus" aria-hidden="true"></i> Nouveau
+                            <a class="btn-baay btn-baay-primary navbar-cta-new py-2 px-3 tw-inline-flex tw-items-center tw-touch-manipulation" href="{% url 'creer_projet' %}" title="Nouveau projet">
+                                <i class="fas fa-plus" aria-hidden="true"></i>
+                                <span class="cta-label">Nouveau</span>
                             </a>
                         </li>
                         <li class="nav-item nav-navbar-divider" aria-hidden="true"></li>
@@ -335,6 +345,36 @@
                                     </div>
                                 </div>
                             </div>
+                        </li>
+                        <li class="nav-item nav-navbar-divider" aria-hidden="true"></li>
+                        <!-- Language Switcher -->
+                        <li class="nav-item dropdown language-switcher">
+                            <button class="nav-link-modern dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{% if request.LANGUAGE_CODE == 'fr' %}Changer de langue{% else %}Change language{% endif %}">
+                                <span class="lang-flag">{% if request.LANGUAGE_CODE == 'fr' %}🇫🇷{% else %}🇬🇧{% endif %}</span>
+                                <span class="lang-code">{{ request.LANGUAGE_CODE|upper }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end lang-dropdown-menu" aria-labelledby="languageDropdown">
+                                <li>
+                                    <form action="{% url 'set_language' %}" method="post" class="lang-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="language" value="fr">
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="dropdown-item {% if request.LANGUAGE_CODE == 'fr' %}active{% endif %}">
+                                            <span class="lang-flag">🇫🇷</span> Français
+                                        </button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form action="{% url 'set_language' %}" method="post" class="lang-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="language" value="en">
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="dropdown-item {% if request.LANGUAGE_CODE == 'en' %}active{% endif %}">
+                                            <span class="lang-flag">🇬🇧</span> English
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="user-avatar dropdown-toggle text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

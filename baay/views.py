@@ -4051,3 +4051,189 @@ def historique_sol_ferme(request, ferme_id):
         'suggestion': suggestion,
         'is_proprietaire': is_proprietaire,
     })
+
+
+@login_required
+def performance(request):
+    """
+    Vue Performance - Métriques de production et rendements agricoles.
+    Affiche les rendements par culture, utilisation des superficies,
+    et comparatifs de performance entre fermes.
+    """
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+
+    # Fermes accessibles
+    user_fermes = fermes_accessibles_qs(utilisateur).distinct().order_by('nom')
+
+    # Filtrage par ferme optionnel
+    selected_ferme_id = request.GET.get('ferme')
+    selected_ferme = None
+    if selected_ferme_id:
+        try:
+            selected_ferme = user_fermes.get(id=selected_ferme_id)
+        except Ferme.DoesNotExist:
+            pass
+
+    # Projets pour calcul des rendements
+    projets_qs = projets_accessibles_qs(utilisateur).select_related(
+        'culture', 'ferme', 'ferme__localite'
+    ).prefetch_related('projet_produits__produit')
+
+    if selected_ferme:
+        projets_qs = projets_qs.filter(ferme=selected_ferme)
+
+    # Calcul des métriques de performance
+    rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+    superficie_totale = projets_qs.aggregate(Sum('superficie'))['superficie__sum'] or 0
+    rendement_moyen = rendement_total / superficie_totale if superficie_totale > 0 else 0
+
+    # Rendements par culture
+    cultures_data = []
+    cultures = ProduitAgricole.objects.filter(
+        projet__in=projets_qs
+    ).distinct()
+
+    for culture in cultures:
+        projets_culture = projets_qs.filter(culture=culture)
+        sup_culture = projets_culture.aggregate(Sum('superficie'))['superficie__sum'] or 0
+        rend_culture = projets_culture.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+        rendement_par_ha = rend_culture / sup_culture if sup_culture > 0 else 0
+
+        cultures_data.append({
+            'culture': culture,
+            'superficie': sup_culture,
+            'rendement_total': rend_culture,
+            'rendement_par_ha': round(rendement_par_ha, 1),
+            'projets_count': projets_culture.count(),
+        })
+
+    # Données par ferme pour comparaison
+    fermes_performance = []
+    for ferme in user_fermes:
+        f_projets = projets_qs.filter(ferme=ferme) if not selected_ferme else projets_qs
+        if selected_ferme and ferme.id != selected_ferme.id:
+            continue
+
+        f_superficie = f_projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
+        f_rendement = f_projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
+        f_utilisation = 0
+
+        if ferme.superficie_totale:
+            f_utilisation = round((f_superficie / ferme.superficie_totale) * 100, 1)
+
+        fermes_performance.append({
+            'ferme': ferme,
+            'superficie_utilisee': f_superficie,
+            'rendement_total': f_rendement,
+            'taux_utilisation': f_utilisation,
+            'projets_actifs': f_projets.filter(statut='en_cours').count(),
+        })
+
+    context = {
+        'utilisateur': utilisateur,
+        'fermes': user_fermes,
+        'selected_ferme': selected_ferme,
+        'rendement_total': rendement_total,
+        'superficie_totale': superficie_totale,
+        'rendement_moyen': round(rendement_moyen, 1),
+        'cultures_data': cultures_data,
+        'fermes_performance': fermes_performance,
+        'projets_count': projets_qs.count(),
+    }
+
+    return render(request, 'projets/performance.html', context)
+
+
+@login_required
+def activites(request):
+    """
+    Vue Activités - Flux des tâches, alertes et notifications récentes.
+    Dashboard opérationnel pour le suivi des activités quotidiennes.
+    """
+    try:
+        utilisateur = request.user.profile
+    except Profile.DoesNotExist:
+        utilisateur = Profile.objects.create(user=request.user)
+
+    # Fermes accessibles
+    user_fermes = fermes_accessibles_qs(utilisateur).distinct()
+
+    # Filtrage par ferme optionnel
+    selected_ferme_id = request.GET.get('ferme')
+    selected_ferme = None
+    if selected_ferme_id:
+        try:
+            selected_ferme = user_fermes.get(id=selected_ferme_id)
+        except Ferme.DoesNotExist:
+            pass
+
+    # Projets pour les tâches
+    projets_qs = projets_accessibles_qs(utilisateur).prefetch_related('taches')
+    if selected_ferme:
+        projets_qs = projets_qs.filter(ferme=selected_ferme)
+
+    # Tâches récentes et critiques
+    from django.utils import timezone
+    from datetime import timedelta
+
+    taches_qs = Tache.objects.filter(
+        projet__in=projets_qs
+    ).exclude(statut__in=['terminee', 'annulee']).select_related('projet')
+
+    # Tâches en retard
+    taches_retard = taches_qs.filter(
+        date_echeance__lt=timezone.now()
+    ).order_by('date_echeance')[:10]
+
+    # Tâches à venir (7 prochains jours)
+    date_limite = timezone.now() + timedelta(days=7)
+    taches_urgentes = taches_qs.filter(
+        date_echeance__gte=timezone.now(),
+        date_echeance__lte=date_limite
+    ).order_by('date_echeance')[:10]
+
+    # Statistiques des tâches
+    stats_taches = {
+        'total': taches_qs.count(),
+        'en_retard': taches_qs.filter(date_echeance__lt=timezone.now()).count(),
+        'a_venir': taches_qs.filter(date_echeance__gte=timezone.now(), date_echeance__lte=date_limite).count(),
+        'en_cours': taches_qs.filter(statut='en_cours').count(),
+    }
+
+    # Messages récents non lus
+    recent_messages = []
+    try:
+        recent_messages = Message.objects.filter(
+            conversation__participations__utilisateur=utilisateur
+        ).exclude(
+            expediteur=utilisateur
+        ).order_by('-date_envoi')[:5]
+    except:
+        pass
+
+    # Alertes projets (projets en pause ou avec budget dépassé)
+    alertes_projets = []
+    projets_alertes = projets_qs.filter(statut='en_pause')
+    for projet in projets_alertes[:5]:
+        alertes_projets.append({
+            'type': 'pause',
+            'projet': projet,
+            'message': f"Projet en pause : {projet.nom}",
+        })
+
+    context = {
+        'utilisateur': utilisateur,
+        'fermes': user_fermes,
+        'selected_ferme': selected_ferme,
+        'taches_retard': taches_retard,
+        'taches_urgentes': taches_urgentes,
+        'stats_taches': stats_taches,
+        'recent_messages': recent_messages,
+        'alertes_projets': alertes_projets,
+        'projets_count': projets_qs.count(),
+    }
+
+    return render(request, 'projets/activites.html', context)

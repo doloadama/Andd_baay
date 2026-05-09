@@ -12,6 +12,8 @@ from .views import (
     dashboard_partial_kpis,
     dashboard_partial_messages,
     dashboard_partial_alertes,
+    performance,
+    activites,
 )
 
 urlpatterns = [
@@ -22,6 +24,8 @@ urlpatterns = [
     path("dashboard/partial/kpis/", dashboard_partial_kpis, name="dashboard_partial_kpis"),
     path("dashboard/partial/messages/", dashboard_partial_messages, name="dashboard_partial_messages"),
     path("dashboard/partial/alertes/", dashboard_partial_alertes, name="dashboard_partial_alertes"),
+    path("performance/", performance, name="performance"),
+    path("activites/", activites, name="activites"),
     path("onboarding/", onboarding_wizard_view, name="onboarding"),
     path("onboarding/terminer/", onboarding_complete_view, name="onboarding_complete"),
     path("profil/", profil_view, name="profil"),

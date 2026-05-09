@@ -1,0 +1,354 @@
+/* ============================================================
+   Navbar Responsive - Adaptive Navigation
+   S'adapte automatiquement selon la taille d'écran
+   ============================================================ */
+
+/* ============================================================
+   DESKTOP LARGE (>1200px) - Tous les menus visibles
+   ============================================================ */
+@media (min-width: 1200px) {
+    .navbar-nav-premium {
+        gap: 0.5rem;
+    }
+    
+    /* Labels complets */
+    .nav-link-modern .nav-label-short {
+        display: none;
+    }
+    
+    .nav-link-modern .nav-label-full {
+        display: inline;
+    }
+    
+    /* Bouton Nouveau avec texte */
+    .navbar-cta-new .cta-label {
+        display: inline;
+    }
+    
+    /* Dropdowns avec leurs labels complets */
+    .nav-exploitation-trigger span,
+    .nav-finance-trigger span {
+        display: inline;
+    }
+}
+
+/* ============================================================
+   DESKTOP MOYEN (992px - 1199px) - Compaction automatique
+   ============================================================ */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .navbar-nav-premium {
+        gap: 0.25rem;
+    }
+    
+    /* Réduire le padding des liens */
+    .nav-link-modern {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Labels raccourcis */
+    .nav-link-modern .nav-label-short {
+        display: inline;
+    }
+    
+    .nav-link-modern .nav-label-full {
+        display: none;
+    }
+    
+    /* Spécifiques raccourcis */
+    .nav-link-dashboard .nav-label-short::after {
+        content: "Dash";
+    }
+    
+    .nav-link-taches .nav-label-short::after {
+        content: "Todo";
+    }
+    
+    .nav-link-messagerie .nav-label-short::after {
+        content: "Msg";
+    }
+    
+    /* Dropdowns - labels raccourcis */
+    .nav-exploitation-trigger span::after {
+        content: "Exploit";
+    }
+    
+    .nav-finance-trigger span::after {
+        content: "Fin";
+    }
+    
+    /* Bouton Nouveau - icône seule */
+    .navbar-cta-new {
+        padding: 0.5rem !important;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .navbar-cta-new .cta-label {
+        display: none;
+    }
+    
+    /* Compactage des dropdowns de la navbar */
+    .nav-exploitation-panel,
+    .nav-finance-panel {
+        min-width: 180px;
+    }
+    
+    /* Réduire les icônes */
+    .nav-link-modern i,
+    .nav-exploitation-trigger i,
+    .nav-finance-trigger i {
+        font-size: 0.9rem;
+    }
+    
+    /* Language switcher compact */
+    .language-switcher .dropdown-toggle {
+        padding: 4px 8px;
+    }
+    
+    .language-switcher .lang-code {
+        font-size: 0.7rem;
+    }
+    
+    /* User avatar - nom caché si trop long */
+    .user-avatar-name {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* ============================================================
+   TABLETTE (768px - 991px) - Compaction maximale
+   ============================================================ */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .navbar-expand-lg .navbar-nav {
+        flex-direction: row;
+        flex-wrap: nowrap;
+    }
+    
+    /* Icônes seules pour certains items */
+    .nav-link-modern .nav-label-full,
+    .nav-link-modern .nav-label-short {
+        display: none;
+    }
+    
+    .nav-link-modern {
+        padding: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Dropdowns avec icône + chevron uniquement */
+    .nav-exploitation-trigger span,
+    .nav-finance-trigger span {
+        display: none;
+    }
+    
+    /* Bouton Nouveau compact */
+    .navbar-cta-new {
+        width: 36px;
+        height: 36px;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .navbar-cta-new .cta-label {
+        display: none;
+    }
+    
+    /* Navbar collapse plus tôt */
+    .navbar-expand-lg .navbar-collapse {
+        display: none !important;
+    }
+    
+    .navbar-expand-lg .navbar-collapse.show {
+        display: flex !important;
+        flex-basis: 100%;
+        flex-grow: 1;
+    }
+    
+    /* Items en ligne avec scroll horizontal si nécessaire */
+    .navbar-nav-premium {
+        flex-direction: row !important;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        gap: 0.25rem;
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-nav-premium::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Réorganiser l'ordre visuel */
+    .navbar-nav-premium .nav-item {
+        flex-shrink: 0;
+    }
+    
+    /* Language et User plus compacts */
+    .language-switcher .dropdown-toggle {
+        padding: 6px;
+    }
+    
+    .language-switcher .lang-code {
+        display: none;
+    }
+    
+    .user-avatar {
+        padding: 0.25rem;
+    }
+    
+    .user-avatar-name {
+        display: none;
+    }
+}
+
+/* ============================================================
+   MOBILE (< 768px) - Menu hamburger
+   ============================================================ */
+@media (max-width: 767.98px) {
+    /* Navbar standard Bootstrap collapse */
+    .navbar-expand-lg .navbar-nav {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .nav-link-modern {
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Restaurer les labels en mobile (menu vertical) */
+    .nav-link-modern .nav-label-full {
+        display: inline !important;
+    }
+    
+    .nav-link-modern .nav-label-short {
+        display: none !important;
+    }
+    
+    /* Dropdowns en mode mobile - pleine largeur */
+    .nav-exploitation-panel,
+    .nav-finance-panel {
+        position: static !important;
+        box-shadow: none;
+        border: none;
+        background: rgba(0,0,0,0.03);
+        padding: 0.5rem 0;
+    }
+    
+    .nav-exploitation-trigger span,
+    .nav-finance-trigger span {
+        display: inline !important;
+    }
+    
+    /* Bouton Nouveau avec texte en mobile */
+    .navbar-cta-new {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .navbar-cta-new .cta-label {
+        display: inline !important;
+    }
+    
+    /* Notifications en pleine largeur */
+    .nav-notif-dropdown-menu {
+        position: fixed !important;
+        top: 70px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+    }
+    
+    /* Language switcher en mobile */
+    .lang-dropdown-menu {
+        position: static !important;
+        box-shadow: none;
+    }
+    
+    /* Divider visuel entre groupes */
+    .nav-navbar-divider {
+        display: none;
+    }
+}
+
+/* ============================================================
+   TRÈS PETIT ÉCRAN (< 380px) - Ultra compact
+   ============================================================ */
+@media (max-width: 379.98px) {
+    /* Cacher le logo texte, garder juste l'icône si possible */
+    .navbar-brand svg,
+    .navbar-brand img {
+        max-width: 120px;
+    }
+    
+    /* Mobile header plus compact */
+    .navbar {
+        padding: 0.5rem;
+    }
+}
+
+/* ============================================================
+   UTILITAIRES RESPONSIVE
+   ============================================================ */
+
+/* Classe pour masquer un élément sur desktop moyen */
+.hide-md-lg {
+    display: none;
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .hide-md-lg {
+        display: none !important;
+    }
+    
+    .show-md-lg {
+        display: block !important;
+    }
+}
+
+/* Classe pour forcer l'affichage icône seule */
+.icon-only {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem !important;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.icon-only span,
+.icon-only .nav-label-full,
+.icon-only .nav-label-short {
+    display: none !important;
+}
+
+/* Classe pour labels tronqués */
+.truncate-label {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Animation smooth pour les transitions */
+.navbar-nav-premium,
+.nav-link-modern,
+.navbar-cta-new,
+.language-switcher .dropdown-toggle {
+    transition: all 0.2s ease;
+}

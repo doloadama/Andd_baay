@@ -1,0 +1,149 @@
+/* ============================================================
+   Language Switcher Component
+   Dropdown FR/EN avec drapeaux dans la navbar
+   ============================================================ */
+
+.language-switcher {
+    position: relative;
+}
+
+.language-switcher .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(29, 158, 117, 0.08);
+    border: 1px solid rgba(29, 158, 117, 0.2);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.language-switcher .dropdown-toggle:hover {
+    background: rgba(29, 158, 117, 0.15);
+    border-color: rgba(29, 158, 117, 0.3);
+}
+
+.language-switcher .dropdown-toggle::after {
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: middle;
+    content: "";
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
+    color: var(--text-muted);
+}
+
+.lang-flag {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.lang-code {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent, #1D9E75);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* Dropdown menu */
+.lang-dropdown-menu {
+    min-width: 150px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: var(--card-bg, #fff);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    margin-top: 8px;
+}
+
+.dark-mode .lang-dropdown-menu {
+    background: var(--card-bg-dark, #1e293b);
+    border-color: rgba(248, 250, 252, 0.08);
+}
+
+.lang-dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    transition: all 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.lang-dropdown-menu .dropdown-item:hover {
+    background: rgba(29, 158, 117, 0.08);
+}
+
+.lang-dropdown-menu .dropdown-item.active {
+    background: rgba(29, 158, 117, 0.12);
+    color: var(--accent, #1D9E75);
+    font-weight: 600;
+}
+
+.lang-form {
+    margin: 0;
+    padding: 0;
+}
+
+/* Divider entre les langues */
+.lang-dropdown-menu li + li {
+    margin-top: 2px;
+}
+
+/* Mobile responsive */
+@media (max-width: 991.98px) {
+    .language-switcher .dropdown-toggle {
+        padding: 8px 12px;
+        min-height: 44px;
+    }
+    
+    .lang-dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        padding: 4px 0;
+    }
+    
+    .dark-mode .lang-dropdown-menu {
+        background: transparent;
+    }
+    
+    .lang-dropdown-menu .dropdown-item {
+        padding: 12px 16px;
+    }
+}
+
+/* Animation subtile */
+.language-switcher .dropdown-toggle:active {
+    transform: scale(0.98);
+}
+
+.lang-dropdown-menu {
+    animation: langDropdownFade 0.15s ease-out;
+}
+
+@keyframes langDropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

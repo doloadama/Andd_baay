@@ -1,0 +1,133 @@
+# English translations for Andd Baay
+# Copyright (C) 2025
+# This file is distributed under the same license as the Andd Baay package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Andd Baay 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/base.html:26
+msgid "Andd Baay | L'agriculture de demain"
+msgstr "Andd Baay | Agriculture of tomorrow"
+
+#: templates/base.html:13
+msgid "Andd Baay - Plateforme Agricole Intelligente. Gérez vos cultures et prédisez vos rendements."
+msgstr "Andd Baay - Smart Agriculture Platform. Manage your crops and predict your yields."
+
+#: templates/base.html:17
+msgid "La plateforme intelligente pour gérer vos cultures, prédire vos rendements et optimiser chaque récolte."
+msgstr "The intelligent platform to manage your crops, predict your yields and optimize every harvest."
+
+#: templates/base.html:193 templates/base.html:343
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: templates/base.html:210
+msgid "Exploitation"
+msgstr "Farm Management"
+
+#: templates/base.html:227
+msgid "Mes fermes"
+msgstr "My Farms"
+
+#: templates/base.html:233
+msgid "Projets en cours"
+msgstr "Current Projects"
+
+#: templates/base.html:239
+msgid "Suivi des semis"
+msgstr "Seeding Tracking"
+
+#: templates/base.html:258
+msgid "Finance"
+msgstr "Finance"
+
+#: templates/base.html:288
+msgid "Tâches"
+msgstr "Tasks"
+
+#: templates/base.html:298
+msgid "Messagerie"
+msgstr "Messaging"
+
+#: templates/base.html:303
+msgid "Nouveau"
+msgstr "New"
+
+#: templates/base.html:314 templates/base.html:328
+msgid "Notifications"
+msgstr "Notifications"
+
+#: templates/base.html:315
+msgid "Tout effacer"
+msgstr "Clear all"
+
+#: templates/base.html:319
+msgid "Messages"
+msgstr "Messages"
+
+#: templates/base.html:322
+msgid "Système"
+msgstr "System"
+
+#: templates/base.html:327
+msgid "Aucune notification"
+msgstr "No notifications"
+
+#: templates/base.html:334
+msgid "Pas de notification système pour l'instant."
+msgstr "No system notifications at the moment."
+
+#: templates/base.html:343
+msgid "Changer de langue"
+msgstr "Change language"
+
+#: templates/base.html:354
+msgid "Français"
+msgstr "French"
+
+#: templates/base.html:364
+msgid "English"
+msgstr "English"
+
+#: templates/base.html:350
+msgid "Mon Profil"
+msgstr "My Profile"
+
+#: templates/base.html:355
+msgid "Guide utilisateur"
+msgstr "User Guide"
+
+#: templates/base.html:361
+msgid "Déconnexion"
+msgstr "Logout"
+
+#: templates/auth/login.html
+msgid "Connexion"
+msgstr "Login"
+
+#: templates/auth/login.html
+msgid "Se connecter"
+msgstr "Sign in"
+
+#: templates/auth/login.html
+msgid "Continuer avec Google"
+msgstr "Continue with Google"
+
+#: templates/auth/register.html
+msgid "Inscription"
+msgstr "Sign up"
+
+#: templates/auth/register.html
+msgid "Créer un compte"
+msgstr "Create account"

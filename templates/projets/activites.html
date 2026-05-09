@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}Activités | Andd Baay{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+<link rel="stylesheet" href="{% static 'css/activites.css' %}">
+
+<div class="dashboard-page">
+    <!-- Header -->
+    <header class="dashboard-header-modern db-header-cockpit cockpit-topbar animate__animated animate__fadeInDown">
+        <div class="cockpit-topbar__main">
+            <p class="dash-subtitle">Centre d'activités</p>
+            <h1>{% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Toutes les activités{% endif %}</h1>
+            <div class="cockpit-topbar__meta">
+                <span><i class="fas fa-list-check" aria-hidden="true"></i> {{ stats_taches.total }} tâche{{ stats_taches.total|pluralize }}</span>
+                <span class="{% if stats_taches.en_retard > 0 %}text-danger{% endif %}">
+                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i> {{ stats_taches.en_retard }} en retard
+                </span>
+            </div>
+        </div>
+        <div class="db-actions cockpit-topbar__actions">
+            {% if fermes.count > 1 %}
+            <form method="get" class="d-inline">
+                <select name="ferme" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Toutes les fermes</option>
+                    {% for ferme in fermes %}
+                    <option value="{{ ferme.id }}" {% if selected_ferme.id == ferme.id %}selected{% endif %}>{{ ferme.nom }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+            <a href="{% url 'taches_liste' %}" class="btn btn-sm btn-outline-primary ms-2">
+                <i class="fas fa-list"></i> Liste complète
+            </a>
+        </div>
+    </header>
+
+    <!-- Stats des tâches -->
+    <section class="cockpit-quick-strip cockpit-quick-strip--primary" aria-label="Statistiques des tâches">
+        <article class="cockpit-qcard cockpit-q-revenue">
+            <div class="cq-icon"><i class="fas fa-list-check"></i></div>
+            <span class="cq-kicker">Tâches actives</span>
+            <strong class="cq-value">{{ stats_taches.total }}</strong>
+            <p class="cq-hint">En cours et planifiées</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-alert">
+            <div class="cq-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <span class="cq-kicker">En retard</span>
+            <strong class="cq-value {% if stats_taches.en_retard > 0 %}text-danger{% endif %}">{{ stats_taches.en_retard }}</strong>
+            <p class="cq-hint">Échéances dépassées</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-roi">
+            <div class="cq-icon"><i class="fas fa-calendar-day"></i></div>
+            <span class="cq-kicker">Cette semaine</span>
+            <strong class="cq-value">{{ stats_taches.a_venir }}</strong>
+            <p class="cq-hint">Dans les 7 jours</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-completion">
+            <div class="cq-icon"><i class="fas fa-spinner"></i></div>
+            <span class="cq-kicker">En cours</span>
+            <strong class="cq-value">{{ stats_taches.en_cours }}</strong>
+            <p class="cq-hint">Actuellement actives</p>
+        </article>
+    </section>
+
+    <div class="row">
+        <!-- Tâches en retard -->
+        <div class="col-lg-6 mb-4">
+            <section class="activite-section">
+                <h2 class="section-title text-danger">
+                    <i class="fas fa-exclamation-circle"></i> Tâches en retard
+                    {% if taches_retard.count > 0 %}
+                    <span class="badge bg-danger">{{ taches_retard.count }}</span>
+                    {% endif %}
+                </h2>
+                {% if taches_retard %}
+                <div class="activite-list">
+                    {% for tache in taches_retard %}
+                    <div class="activite-item activite-item--urgent">
+                        <div class="activite-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="activite-content">
+                            <h5>{{ tache.titre }}</h5>
+                            <p class="activite-meta">
+                                <span class="projet-badge">{{ tache.projet.nom }}</span>
+                                <span class="echeance-badge text-danger">
+                                    <i class="fas fa-clock"></i> {{ tache.date_echeance|date:"d/m/Y" }}
+                                </span>
+                            </p>
+                            {% if tache.description %}
+                            <p class="activite-description">{{ tache.description|truncatechars:100 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="activite-actions">
+                            <a href="{% url 'detail_projet' tache.projet.id %}" class="btn btn-sm btn-outline-primary">
+                                Voir
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state-small">
+                    <p class="text-muted"><i class="fas fa-check-circle text-success"></i> Aucune tâche en retard !</p>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+
+        <!-- Tâches à venir -->
+        <div class="col-lg-6 mb-4">
+            <section class="activite-section">
+                <h2 class="section-title">
+                    <i class="fas fa-calendar-alt"></i> Tâches à venir (7 jours)
+                </h2>
+                {% if taches_urgentes %}
+                <div class="activite-list">
+                    {% for tache in taches_urgentes %}
+                    <div class="activite-item">
+                        <div class="activite-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="activite-content">
+                            <h5>{{ tache.titre }}</h5>
+                            <p class="activite-meta">
+                                <span class="projet-badge">{{ tache.projet.nom }}</span>
+                                <span class="echeance-badge">
+                                    <i class="fas fa-clock"></i> {{ tache.date_echeance|date:"d/m/Y" }}
+                                </span>
+                            </p>
+                            {% if tache.description %}
+                            <p class="activite-description">{{ tache.description|truncatechars:100 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="activite-actions">
+                            <a href="{% url 'detail_projet' tache.projet.id %}" class="btn btn-sm btn-outline-primary">
+                                Voir
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state-small">
+                    <p class="text-muted"><i class="fas fa-info-circle"></i> Aucune tâche prévue cette semaine.</p>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+
+    <!-- Alertes projets -->
+    {% if alertes_projets %}
+    <section class="activite-section">
+        <h2 class="section-title">
+            <i class="fas fa-bell"></i> Alertes projets
+            <span class="badge bg-warning">{{ alertes_projets|length }}</span>
+        </h2>
+        <div class="alerte-list">
+            {% for alerte in alertes_projets %}
+            <div class="alerte-item alerte-item--{{ alerte.type }}">
+                <div class="alerte-icon">
+                    <i class="fas fa-pause-circle"></i>
+                </div>
+                <div class="alerte-content">
+                    <p>{{ alerte.message }}</p>
+                </div>
+                <div class="alerte-actions">
+                    <a href="{% url 'detail_projet' alerte.projet.id %}" class="btn btn-sm btn-warning">
+                        Reprendre
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Messages récents -->
+    {% if recent_messages %}
+    <section class="activite-section">
+        <h2 class="section-title">
+            <i class="fas fa-envelope"></i> Messages récents
+        </h2>
+        <div class="message-list">
+            {% for message in recent_messages %}
+            <div class="message-item">
+                <div class="message-avatar">
+                    {{ message.expediteur.user.first_name|make_list|first|default:message.expediteur.user.username|make_list|first|upper }}
+                </div>
+                <div class="message-content">
+                    <h6>{{ message.expediteur.user.get_full_name|default:message.expediteur.user.username }}</h6>
+                    <p>{{ message.contenu|truncatechars:80 }}</p>
+                    <small class="text-muted">{{ message.date_envoi|date:"d/m/Y H:i" }}</small>
+                </div>
+                <div class="message-actions">
+                    <a href="{% url 'messagerie_conversation' message.conversation.id %}" class="btn btn-sm btn-outline-primary">
+                        Répondre
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'messagerie_inbox' %}" class="btn btn-outline-primary">
+                <i class="fas fa-envelope"></i> Voir tous les messages
+            </a>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
