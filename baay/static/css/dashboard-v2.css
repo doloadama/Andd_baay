@@ -1,0 +1,369 @@
+/* ============================================================
+   Dashboard v2 — Cockpit Redesign Overrides
+   Load after dashboard.css and dashboard_cockpit.css
+   ============================================================ */
+
+/* ---------- Live Badge (pulsing dot) ---------- */
+.badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(29, 158, 117, 0.12);
+    border: 1px solid rgba(29, 158, 117, 0.25);
+    color: var(--cockpit-recette, #1D9E75);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.badge-live::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+/* ---------- KPI Cards Redesign ---------- */
+.cockpit-qcard {
+    position: relative;
+    border-radius: 16px;
+    padding: 1.1rem 1.15rem;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: var(--card-bg);
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+body.dark-mode .cockpit-qcard {
+    border-color: rgba(248, 250, 252, 0.08);
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.85));
+}
+
+/* Top colored bar */
+.cockpit-qcard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 4px 4px 0 0;
+}
+
+.cockpit-q-revenue::before { background: linear-gradient(90deg, #1D9E75, #5DCAA5); }
+.cockpit-q-roi::before { background: linear-gradient(90deg, #EF9F27, #fbbf24); }
+.cockpit-q-alert::before { background: linear-gradient(90deg, #dc2626, #f87171); }
+.cockpit-q-completion::before { background: linear-gradient(90deg, #5DCAA5, #1D9E75); }
+
+/* Icon circle inside KPI cards */
+.cockpit-qcard .cq-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.cockpit-q-revenue .cq-icon {
+    background: rgba(29, 158, 117, 0.12);
+    color: #1D9E75;
+}
+.cockpit-q-roi .cq-icon {
+    background: rgba(239, 159, 39, 0.14);
+    color: #c2410c;
+}
+.cockpit-q-alert .cq-icon {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+}
+.cockpit-q-completion .cq-icon {
+    background: rgba(93, 202, 165, 0.14);
+    color: #15803d;
+}
+
+/* Trend badge */
+.cq-trend {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.cq-trend--up {
+    background: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+}
+
+.cq-trend--stable {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.cq-trend--down {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+}
+
+/* KPI value styling */
+.cockpit-qcard .cq-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.15;
+    margin: 4px 0;
+}
+
+body.dark-mode .cockpit-qcard .cq-value {
+    color: #f8fafc;
+}
+
+/* ---------- Tile-KPI Redesign (Metrics grid) ---------- */
+.cockpit-grid > .tile-kpi {
+    position: relative;
+    border-radius: 18px;
+    padding: 20px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    background: var(--card-bg);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+.cockpit-grid > .tile-kpi::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+}
+
+/* Colored top bars per metric type */
+[data-tile-id="kpi-projects"]::before,
+[data-tile-id="kpi-fermes"]::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+[data-tile-id="kpi-superficie"]::before,
+[data-tile-id="kpi-utilisation"]::before { background: linear-gradient(90deg, #10b981, #34d399); }
+
+[data-tile-id="kpi-rendement"]::before,
+[data-tile-id="kpi-rendement-global"]::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+[data-tile-id="kpi-en-cours"]::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+[data-tile-id="kpi-completion"]::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+[data-tile-id="kpi-membres"]::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+
+[data-tile-id="kpi-investissement"]::before,
+[data-tile-id="kpi-investissement-ferme"]::before { background: linear-gradient(90deg, #1D9E75, #5DCAA5); }
+
+/* Icon circles with category colors */
+.cockpit-grid > .tile-kpi .dash-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    font-size: 1.05rem;
+    color: #fff;
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.orange {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.accent,
+.cockpit-grid > .tile-kpi .dash-stat-icon.green {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.cockpit-grid > .tile-kpi .dash-stat-icon.teal {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+/* ---------- Completion card with inline progress bar ---------- */
+[data-tile-id="kpi-completion"] .tile-completion-progress {
+    margin-top: 10px;
+}
+
+.tile-completion-track {
+    width: 100%;
+    height: 5px;
+    background: var(--bg-tertiary);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.tile-completion-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    transition: width 0.6s ease;
+}
+
+/* ---------- Empty State Redesign ---------- */
+.empty-state-v2 {
+    padding: 48px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.empty-state-visual {
+    position: relative;
+    display: inline-flex;
+    margin-bottom: 4px;
+}
+
+.empty-state-visual .empty-state-icon {
+    font-size: 52px;
+    color: var(--text-muted);
+    opacity: 0.45;
+}
+
+.empty-state-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--accent, #1D9E75);
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.3);
+}
+
+.empty-state-title-v2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.empty-state-text-v2 {
+    max-width: 360px;
+    margin: 0 auto;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.empty-state-cta {
+    margin-top: 8px;
+    padding: 10px 22px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.3);
+    transition: all 0.2s ease;
+}
+
+.empty-state-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(29, 158, 117, 0.4);
+}
+
+/* ---------- Chart section: financial line full-width ---------- */
+.tile-chart-finance-full {
+    grid-column: 1 / -1 !important;
+    grid-row: span 2;
+}
+
+/* ---------- Topbar refinements ---------- */
+.cockpit-topbar__meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cockpit-topbar__meta span + span::before {
+    content: '·';
+    margin-right: 2px;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+/* CTA green shadow */
+.cockpit-topbar__cta {
+    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
+    transition: all 0.2s ease;
+}
+
+.cockpit-topbar__cta:hover {
+    box-shadow: 0 6px 20px rgba(29, 158, 117, 0.45);
+    transform: translateY(-1px);
+}
+
+/* ---------- Section header Live badge integration ---------- */
+.dash-section-header .badge-live {
+    margin-left: auto;
+    margin-right: 12px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 767.98px) {
+    .cockpit-qcard {
+        padding: 12px 10px;
+        min-height: 86px;
+    }
+
+    .cockpit-qcard .cq-value {
+        font-size: 1.25rem;
+    }
+
+    .cq-trend {
+        top: 10px;
+        right: 10px;
+        padding: 2px 6px;
+        font-size: 0.65rem;
+    }
+
+    .cockpit-grid > .tile-kpi {
+        padding: 14px 12px;
+        min-height: 100px;
+    }
+
+    .cockpit-grid > .tile-kpi .dash-stat-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+    }
+}

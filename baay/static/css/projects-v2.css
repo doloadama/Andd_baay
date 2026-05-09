@@ -1,0 +1,464 @@
+/* ============================================================
+   Projects Page v2 — Redesign Overrides & Additions
+   Load after projects.css and finance_hub_ft.css
+   ============================================================ */
+
+/* ---------- Hero Stats Bar ---------- */
+.projects-hero-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 0;
+    padding: 14px 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.projects-hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px;
+    text-align: center;
+}
+
+.projects-hero-stat__value {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.projects-hero-stat__label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+
+/* ---------- Filter Chips with Colored Dots ---------- */
+.filter-chip {
+    gap: 8px;
+    padding: 9px 16px;
+    font-size: 0.8rem;
+}
+
+.filter-chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.filter-chip-dot--all {
+    background: var(--text-muted);
+}
+
+.filter-chip-dot--en_cours {
+    background: #3b82f6;
+}
+
+.filter-chip-dot--en_pause {
+    background: var(--terroir-ocre, #e2725b);
+}
+
+.filter-chip-dot--fini {
+    background: var(--accent, #1d9e75);
+}
+
+.filter-chip.is-active[data-filter="en_cours"] {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #2563eb;
+}
+
+.filter-chip.is-active[data-filter="en_pause"] {
+    background: rgba(226, 114, 91, 0.12);
+    border-color: rgba(226, 114, 91, 0.3);
+    color: #c45a3e;
+}
+
+.filter-chip.is-active[data-filter="fini"] {
+    background: rgba(29, 158, 117, 0.14);
+    border-color: rgba(29, 158, 117, 0.3);
+    color: var(--accent-dark);
+}
+
+/* ---------- Larger Search ---------- */
+.toolbar-search {
+    max-width: 520px;
+    min-width: 280px;
+}
+
+.toolbar-search input {
+    padding: 15px 84px 15px 46px;
+    font-size: 1rem;
+    border-radius: 18px;
+}
+
+.search-icon {
+    left: 18px;
+    font-size: 1rem;
+}
+
+/* ---------- 3-View Toggle ---------- */
+.view-toggle button {
+    width: 42px;
+    height: 42px;
+    font-size: 0.95rem;
+}
+
+/* ---------- Project Card Redesign ---------- */
+.project-card {
+    position: relative;
+    padding: 20px;
+    gap: 12px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--tech-green));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.project-card:hover::before {
+    opacity: 1;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(29, 158, 117, 0.3);
+    box-shadow: 0 20px 40px rgba(29, 158, 117, 0.1), 0 8px 16px rgba(15, 23, 42, 0.06);
+}
+
+.project-card-status-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 2;
+}
+
+.project-card-status-badge--en_cours {
+    background: rgba(59, 130, 246, 0.14);
+    border: 1px solid rgba(59, 130, 246, 0.24);
+    color: #2563eb;
+}
+
+.project-card-status-badge--en_pause {
+    background: rgba(226, 114, 91, 0.14);
+    border: 1px solid rgba(226, 114, 91, 0.24);
+    color: #c45a3e;
+}
+
+.project-card-status-badge--fini {
+    background: rgba(29, 158, 117, 0.14);
+    border: 1px solid rgba(29, 158, 117, 0.24);
+    color: var(--accent-dark);
+}
+
+.project-card-status-badge--cloture {
+    background: rgba(156, 163, 175, 0.14);
+    border: 1px solid rgba(156, 163, 175, 0.24);
+    color: #6b7280;
+}
+
+.project-card-checkbox {
+    top: auto;
+    bottom: 16px;
+    left: 16px;
+    width: 20px;
+    height: 20px;
+}
+
+.project-card-body {
+    gap: 12px;
+    padding-top: 32px;
+}
+
+.project-card-top {
+    padding-left: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.project-card-title {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.project-card-culture {
+    gap: 8px;
+    font-size: 0.86rem;
+}
+
+.project-card-culture-emoji {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.project-card-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.project-card-stat-label {
+    font-size: 0.68rem;
+}
+
+.project-card-stat-value {
+    font-size: 0.92rem;
+}
+
+.project-card-progress {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.progress-bar--en_cours {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.progress-bar--en_pause {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.progress-bar--fini {
+    background: linear-gradient(90deg, var(--accent), var(--tech-green));
+}
+
+.progress-bar--cloture {
+    background: linear-gradient(90deg, #9ca3af, #6b7280);
+}
+
+/* ---------- List View ---------- */
+.projects-list-shell {
+    display: none;
+}
+
+.projects-list-shell.is-active {
+    display: block;
+}
+
+.projects-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.project-list-item {
+    display: grid;
+    grid-template-columns: 44px 1fr auto 120px 100px 140px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    transition: all 0.2s ease;
+}
+
+.project-list-item:hover {
+    background: rgba(29, 158, 117, 0.04);
+    border-color: rgba(29, 158, 117, 0.2);
+    transform: translateX(4px);
+}
+
+.project-list-item.is-selected {
+    background: rgba(29, 158, 117, 0.06);
+    border-color: rgba(29, 158, 117, 0.3);
+}
+
+.project-list-item__main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.project-list-item__name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.project-list-item__culture {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.project-list-item__status {
+    justify-self: center;
+}
+
+.project-list-item__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.project-list-item__progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.project-list-item__progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.4s ease;
+}
+
+.project-list-item__meta {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* ---------- Empty State Redesign ---------- */
+.empty-state {
+    padding: 64px 24px;
+    background: var(--card-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-card);
+    text-align: center;
+}
+
+.empty-state-visual {
+    position: relative;
+    display: inline-flex;
+    margin-bottom: 20px;
+}
+
+.empty-state-visual .fa-folder-open {
+    font-size: 56px;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.empty-state-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.3);
+}
+
+.empty-state-title {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.empty-state-text {
+    max-width: 440px;
+    margin: 0 auto 28px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.empty-state-hints {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    max-width: 520px;
+    margin: 0 auto 28px;
+}
+
+.empty-state-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.empty-state-hint i {
+    font-size: 1.3rem;
+    color: var(--accent);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+    .projects-hero-stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .project-list-item {
+        grid-template-columns: 36px 1fr auto;
+        gap: 10px;
+    }
+
+    .project-list-item__progress,
+    .project-list-item__meta:nth-child(n+3) {
+        display: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .projects-hero-stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .project-card-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .project-list-item {
+        grid-template-columns: 1fr auto;
+    }
+
+    .project-list-item__checkbox {
+        grid-column: 1;
+    }
+
+    .project-list-item__main {
+        grid-column: 1 / -1;
+    }
+}

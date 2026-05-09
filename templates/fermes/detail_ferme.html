@@ -8,7 +8,7 @@
         </div>
         {% if is_proprietaire %}
         <div class="d-flex gap-2">
-            <a href="{% url 'modifier_ferme' ferme.id %}" class="btn btn-outline-light btn-sm">
+            <a href="{% url 'modifier_ferme' ferme.id %}" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-edit me-1"></i> Modifier
             </a>
             <a href="{% url 'supprimer_ferme' ferme.id %}" class="btn btn-outline-danger btn-sm">

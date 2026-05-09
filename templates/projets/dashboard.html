@@ -8,6 +8,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/farm-cards.css' %}">
 
 <div class="dashboard-page">
@@ -51,24 +52,37 @@
 {% with qs=cockpit.quick_stats %}
 <section class="cockpit-quick-strip cockpit-quick-strip--primary" id="cockpitQuickStrip" aria-label="Indicateurs stratégiques">
     <article class="cockpit-qcard cockpit-q-revenue">
+        <div class="cq-icon"><i class="fas fa-coins"></i></div>
+        <span class="cq-trend cq-trend--up"><i class="fas fa-arrow-up"></i> ↑</span>
         <span class="cq-kicker">Bénéfice net (périmètre financier)</span>
         <strong class="cq-value" id="cqBenefice">{% if qs.show_financial_kpis %}{{ qs.benefice_net_total|fcfa }} FCFA{% else %}—{% endif %}</strong>
         <p class="cq-hint">{% if qs.show_financial_kpis %}Recettes − coûts{% else %}Visible selon vos droits sur les fermes{% endif %}</p>
     </article>
     <article class="cockpit-qcard cockpit-q-roi">
+        <div class="cq-icon"><i class="fas fa-percentage"></i></div>
+        <span class="cq-trend cq-trend--stable"><i class="fas fa-check"></i> ✓</span>
         <span class="cq-kicker">ROI synthétique</span>
         <strong class="cq-value" id="cqRoi">{% if qs.show_financial_kpis %}{% if qs.roi_moyen_pct is not None %}{{ qs.roi_moyen_pct|floatformat:1 }}%{% else %}—{% endif %}{% else %}—{% endif %}</strong>
         <p class="cq-hint">Bénéfice / coûts totaux</p>
     </article>
     <article class="cockpit-qcard cockpit-q-alert">
+        <div class="cq-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <span class="cq-trend cq-trend--down"><i class="fas fa-exclamation"></i> !</span>
         <span class="cq-kicker">Tâches critiques en retard</span>
         <strong class="cq-value" id="cqTachesCrit">{{ qs.taches_critiques_retard }}</strong>
         <p class="cq-hint">Priorité haute / urgente</p>
     </article>
     <article class="cockpit-qcard cockpit-q-completion">
+        <div class="cq-icon"><i class="fas fa-check-circle"></i></div>
+        <span class="cq-trend cq-trend--up"><i class="fas fa-arrow-up"></i> ↑</span>
         <span class="cq-kicker">Complétion projets</span>
         <strong class="cq-value" id="cqCompletion">{{ completion_rate }}%</strong>
         <p class="cq-hint">Fini ou clôturé / total filtré</p>
+        <div class="tile-completion-progress">
+            <div class="tile-completion-track">
+                <div class="tile-completion-bar" style="width: {{ completion_rate }}%;"></div>
+            </div>
+        </div>
     </article>
 </section>
 {% endwith %}
@@ -189,7 +203,7 @@
         <div class="tile-handle"><i class="fas fa-grip-vertical"></i></div>
         <div class="dash-section-header">
             <h3 class="dash-section-title"><i class="fas fa-chart-line"></i> Performance financière</h3>
-            <span class="bento-badge-live">Live</span>
+            <span class="badge-live">Live</span>
         </div>
         <div class="dash-section-body bento-htmx-target"
              hx-get="{% url 'dashboard_partial_kpis' %}{% if selected_ferme %}?ferme={{ selected_ferme.id }}{% endif %}"
@@ -323,10 +337,16 @@
                 <canvas id="rendementChart" style="display:none;"></canvas>
             </div>
             {% else %}
-            <div class="empty-state">
-                <div class="empty-state-icon"><i class="fas fa-chart-bar"></i></div>
-                <h4 class="empty-state-title">Aucune donnée</h4>
-                <p class="empty-state-text">Créez des projets pour voir les analyses.</p>
+            <div class="empty-state empty-state-v2">
+                <div class="empty-state-visual">
+                    <i class="fas fa-chart-bar empty-state-icon"></i>
+                    <span class="empty-state-badge">🌱</span>
+                </div>
+                <h4 class="empty-state-title-v2">Aucune donnée</h4>
+                <p class="empty-state-text-v2">Créez des projets pour voir les analyses de rendement.</p>
+                <a href="{% url 'creer_projet' %}" class="empty-state-cta">
+                    <i class="fas fa-plus"></i> Nouveau projet
+                </a>
             </div>
             {% endif %}
         </div>
@@ -354,9 +374,13 @@
                 <canvas id="statusChart" style="display:none;"></canvas>
             </div>
             {% else %}
-            <div class="empty-state empty-state-padded">
-                <div class="empty-state-icon"><i class="fas fa-chart-pie"></i></div>
-                <p class="empty-state-text">Pas de données disponibles.</p>
+            <div class="empty-state empty-state-v2">
+                <div class="empty-state-visual">
+                    <i class="fas fa-chart-pie empty-state-icon"></i>
+                    <span class="empty-state-badge">🌱</span>
+                </div>
+                <h4 class="empty-state-title-v2">Pas de données</h4>
+                <p class="empty-state-text-v2">Créez des projets pour voir la répartition par statut.</p>
             </div>
             {% endif %}
         </div>
@@ -434,9 +458,13 @@
                 <canvas id="cultureChart" style="display:none;"></canvas>
             </div>
             {% else %}
-            <div class="empty-state empty-state-padded">
-                <div class="empty-state-icon"><i class="fas fa-seedling"></i></div>
-                <p class="empty-state-text">Pas de données disponibles.</p>
+            <div class="empty-state empty-state-v2">
+                <div class="empty-state-visual">
+                    <i class="fas fa-seedling empty-state-icon"></i>
+                    <span class="empty-state-badge">🌱</span>
+                </div>
+                <h4 class="empty-state-title-v2">Pas de données</h4>
+                <p class="empty-state-text-v2">Créez des projets pour voir la répartition des cultures.</p>
             </div>
             {% endif %}
         </div>
@@ -578,12 +606,14 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state">
-                <div class="cockpit-empty-illu" aria-hidden="true"></div>
-                <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
-                <h4>Aucun projet actif</h4>
-                <p>{% if selected_ferme %}Cette ferme n'a pas encore de projet. Créez une campagne pour voir le cockpit complet.{% else %}Commencez par créer votre premier projet agricole — les graphiques et indicateurs s'activeront automatiquement.{% endif %}</p>
-                <a href="{% if selected_ferme %}{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}{% else %}{% url 'creer_projet' %}{% endif %}" class="btn-baay btn-baay-primary mt-3">
+            <div class="empty-state empty-state-v2">
+                <div class="empty-state-visual">
+                    <i class="fas fa-folder-open empty-state-icon"></i>
+                    <span class="empty-state-badge">🌱</span>
+                </div>
+                <h4 class="empty-state-title-v2">Aucun projet actif</h4>
+                <p class="empty-state-text-v2">{% if selected_ferme %}Cette ferme n'a pas encore de projet. Créez une campagne pour voir le cockpit complet.{% else %}Commencez par créer votre premier projet agricole — les graphiques et indicateurs s'activeront automatiquement.{% endif %}</p>
+                <a href="{% if selected_ferme %}{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}{% else %}{% url 'creer_projet' %}{% endif %}" class="empty-state-cta">
                     <i class="fas fa-plus"></i> Créer un projet
                 </a>
             </div>

@@ -87,7 +87,7 @@ function bindSelection() {
     const selectAll = document.getElementById('selectAll');
 
     selectAll?.addEventListener('change', () => {
-        document.querySelectorAll('#projectsTable tr[data-id]').forEach((row) => {
+        document.querySelectorAll('#projectsTable tr[data-id], .project-list-item[data-id]').forEach((row) => {
             const visible = row.style.display !== 'none';
             const checkbox = row.querySelector('.project-checkbox');
             if (!checkbox || !visible) return;
@@ -95,12 +95,13 @@ function bindSelection() {
             setSelected(row.dataset.id, selectAll.checked);
         });
         syncCardSelections();
+        syncListSelections();
         updateSelectionUi();
     });
 
     document.querySelectorAll('.project-checkbox').forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
-            const row = checkbox.closest('tr[data-id]');
+            const row = checkbox.closest('tr[data-id]') || checkbox.closest('.project-list-item[data-id]');
             if (!row) return;
             setSelected(row.dataset.id, checkbox.checked);
             syncCardSelections();
@@ -184,9 +185,10 @@ function sortRows() {
 
     rows.forEach((row) => tbody.appendChild(row));
     reorderGridCardsToMatchTable();
+    reorderListItemsToMatchTable();
 }
 
-/** Keep card order in sync with the table after sort (mobile shows cards only). */
+/** Keep card order in sync with the table after sort. */
 function reorderGridCardsToMatchTable() {
     const tbody = document.getElementById('projectsTable');
     const grid = document.querySelector('#gridView .projects-grid');
@@ -206,6 +208,26 @@ function reorderGridCardsToMatchTable() {
     grid.appendChild(fragment);
 }
 
+/** Keep list view order in sync with the table after sort. */
+function reorderListItemsToMatchTable() {
+    const tbody = document.getElementById('projectsTable');
+    const list = document.querySelector('#listView .projects-list-view');
+    if (!tbody || !list) return;
+
+    const order = Array.from(tbody.querySelectorAll('tr[data-id]')).map((r) => r.dataset.id);
+    const fragment = document.createDocumentFragment();
+    const byId = new Map();
+    list.querySelectorAll('.project-list-item[data-id]').forEach((item) => byId.set(item.dataset.id, item));
+    order.forEach((id) => {
+        const item = byId.get(id);
+        if (item) fragment.appendChild(item);
+    });
+    byId.forEach((item) => {
+        if (!fragment.contains(item)) fragment.appendChild(item);
+    });
+    list.appendChild(fragment);
+}
+
 function bindViewToggle() {
     document.querySelectorAll('.view-toggle button').forEach((button) => {
         button.addEventListener('click', () => setView(button.dataset.view || 'table'));
@@ -219,7 +241,8 @@ function applyProjectsViewportView() {
 
 function setView(view) {
     const isMobile = window.matchMedia('(max-width: 767.98px)').matches;
-    const resolved = isMobile ? 'grid' : (view === 'grid' ? 'grid' : 'table');
+    const validViews = ['table', 'list', 'grid'];
+    const resolved = isMobile ? 'grid' : (validViews.includes(view) ? view : 'table');
     projectsState.currentView = resolved;
 
     document.querySelectorAll('.view-toggle button').forEach((button) => {
@@ -227,6 +250,7 @@ function setView(view) {
     });
 
     document.getElementById('tableView')?.classList.toggle('is-active', projectsState.currentView === 'table');
+    document.getElementById('listView')?.classList.toggle('is-active', projectsState.currentView === 'list');
     document.getElementById('gridView')?.classList.toggle('is-active', projectsState.currentView === 'grid');
 
     if (!isMobile) {
@@ -239,6 +263,13 @@ function bindCardsAndRows() {
         row.addEventListener('dblclick', (event) => {
             if (event.target.closest('a, button, input, .quick-actions-menu')) return;
             window.location.href = row.dataset.detailUrl;
+        });
+    });
+
+    document.querySelectorAll('.project-list-item[data-id]').forEach((item) => {
+        item.addEventListener('dblclick', (event) => {
+            if (event.target.closest('a, button, input')) return;
+            window.location.href = item.dataset.detailUrl;
         });
     });
 
@@ -450,6 +481,11 @@ function filterProjects() {
         card.style.display = matches ? '' : 'none';
     });
 
+    document.querySelectorAll('.project-list-item[data-id]').forEach((item) => {
+        const matches = projectMatches(item.dataset, query, filter);
+        item.style.display = matches ? '' : 'none';
+    });
+
     updateSummary();
     updateSelectionUi();
 }
@@ -470,11 +506,16 @@ function projectMatches(dataset, query, filter) {
 function updateSummary() {
     const visible = projectsState.visibleProjects;
     const active = visible.filter((project) => project.status === 'en_cours').length;
+    const finished = visible.filter((project) => project.status === 'fini' || project.status === 'cloture').length;
     const area = visible.reduce((sum, project) => sum + project.superficie, 0);
 
     setText('projectsVisibleCount', visible.length.toLocaleString('fr-FR'));
     setText('projectsActiveCount', active.toLocaleString('fr-FR'));
     setText('projectsAreaCount', `${area.toLocaleString('fr-FR')} ha`);
+
+    setText('projectsEnCoursCount', active.toLocaleString('fr-FR'));
+    setText('projectsTerminesCount', finished.toLocaleString('fr-FR'));
+    setText('projectsSurfaceTotal', `${area.toLocaleString('fr-FR')} ha`);
 }
 
 function setSelected(id, selected) {
@@ -503,9 +544,19 @@ function syncCardSelections() {
     });
 }
 
+function syncListSelections() {
+    document.querySelectorAll('.project-list-item[data-id]').forEach((item) => {
+        const isSelected = projectsState.selectedIds.has(item.dataset.id);
+        item.classList.toggle('is-selected', isSelected);
+        const checkbox = item.querySelector('.project-checkbox');
+        if (checkbox) checkbox.checked = isSelected;
+    });
+}
+
 function updateSelectionUi() {
     syncRowSelections();
     syncCardSelections();
+    syncListSelections();
 
     const count = projectsState.selectedIds.size;
     const deleteBtn = document.getElementById('deleteBtn');

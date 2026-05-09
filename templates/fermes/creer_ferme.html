@@ -202,13 +202,15 @@ document.addEventListener('DOMContentLoaded', function() {
         filterLocalites();
     }
 
-    // Cloudinary Direct Upload for image_couverture
-    const uploadCouvertureBtn = document.getElementById('upload-couverture-btn');
-    if (uploadCouvertureBtn && typeof cloudinary !== 'undefined') {
-        const couvertureWidget = cloudinary.createUploadWidget({
+    // Cloudinary Direct Upload helper
+    function setupCloudinaryUpload(buttonId, previewId, previewImgId, removeBtnId, hiddenInputId, folder) {
+        const uploadBtn = document.getElementById(buttonId);
+        if (!uploadBtn || typeof cloudinary === 'undefined') return;
+
+        const widget = cloudinary.createUploadWidget({
             cloudName: '{{ CLOUDINARY_CLOUD_NAME|default:"" }}',
             uploadPreset: '{{ CLOUDINARY_UPLOAD_PRESET|default:"" }}',
-            folder: 'dev/fermes',
+            folder: folder,
             maxFileSize: 5000000,
             sources: ['local', 'url', 'camera'],
             multiple: false,
@@ -232,71 +234,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, (error, result) => {
             if (!error && result && result.event === 'success') {
-                const publicId = result.info.public_id;
-                const url = result.info.secure_url;
-                document.getElementById('id_ferme_image_couverture').value = publicId;
-                document.getElementById('couverture-preview-img').src = url;
-                document.getElementById('couverture-preview').style.display = 'block';
-                uploadCouvertureBtn.style.display = 'none';
+                document.getElementById(hiddenInputId).value = result.info.public_id;
+                document.getElementById(previewImgId).src = result.info.secure_url;
+                document.getElementById(previewId).style.display = 'block';
+                uploadBtn.style.display = 'none';
             }
         });
 
-        uploadCouvertureBtn.addEventListener('click', () => couvertureWidget.open());
-
-        document.getElementById('remove-couverture-btn').addEventListener('click', () => {
-            document.getElementById('id_ferme_image_couverture').value = '';
-            document.getElementById('couverture-preview').style.display = 'none';
-            uploadCouvertureBtn.style.display = 'inline-block';
+        uploadBtn.addEventListener('click', () => widget.open());
+        document.getElementById(removeBtnId).addEventListener('click', () => {
+            document.getElementById(hiddenInputId).value = '';
+            document.getElementById(previewId).style.display = 'none';
+            uploadBtn.style.display = 'inline-block';
         });
     }
 
-    // Cloudinary Direct Upload for image_infrastructure
-    const uploadInfrastructureBtn = document.getElementById('upload-infrastructure-btn');
-    if (uploadInfrastructureBtn && typeof cloudinary !== 'undefined') {
-        const infrastructureWidget = cloudinary.createUploadWidget({
-            cloudName: '{{ CLOUDINARY_CLOUD_NAME|default:"" }}',
-            uploadPreset: '{{ CLOUDINARY_UPLOAD_PRESET|default:"" }}',
-            folder: 'dev/fermes/infrastructures',
-            maxFileSize: 5000000,
-            sources: ['local', 'url', 'camera'],
-            multiple: false,
-            cropping: false,
-            styles: {
-                palette: {
-                    window: '#ffffff',
-                    sourceBg: '#f4f4f5',
-                    windowBorder: '#90a0b3',
-                    tabIcon: '#0078ff',
-                    inactiveTabIcon: '#69778a',
-                    menuIcons: '#5a616a',
-                    link: '#0078ff',
-                    action: '#339933',
-                    inProgress: '#0078ff',
-                    complete: '#339933',
-                    error: '#cc0000',
-                    textDark: '#000000',
-                    textLight: '#ffffff'
-                }
-            }
-        }, (error, result) => {
-            if (!error && result && result.event === 'success') {
-                const publicId = result.info.public_id;
-                const url = result.info.secure_url;
-                document.getElementById('id_ferme_image_infrastructure').value = publicId;
-                document.getElementById('infrastructure-preview-img').src = url;
-                document.getElementById('infrastructure-preview').style.display = 'block';
-                uploadInfrastructureBtn.style.display = 'none';
-            }
-        });
-
-        uploadInfrastructureBtn.addEventListener('click', () => infrastructureWidget.open());
-
-        document.getElementById('remove-infrastructure-btn').addEventListener('click', () => {
-            document.getElementById('id_ferme_image_infrastructure').value = '';
-            document.getElementById('infrastructure-preview').style.display = 'none';
-            uploadInfrastructureBtn.style.display = 'inline-block';
-        });
-    }
+    setupCloudinaryUpload('upload-couverture-btn', 'couverture-preview', 'couverture-preview-img', 'remove-couverture-btn', 'id_ferme_image_couverture', 'dev/fermes');
+    setupCloudinaryUpload('upload-infrastructure-btn', 'infrastructure-preview', 'infrastructure-preview-img', 'remove-infrastructure-btn', 'id_ferme_image_infrastructure', 'dev/fermes/infrastructures');
 });
 </script>
 <script src="{% static 'js/gps-button.js' %}"></script>

@@ -8,14 +8,30 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/finance_hub_ft.css' %}">
 <link rel="stylesheet" href="{% static 'css/projects.css' %}">
+<link rel="stylesheet" href="{% static 'css/projects-v2.css' %}">
 
-<section class="projects-shell" data-projects-page>
-    <header class="projects-hero">
-        <div class="projects-hero-copy">
-            <span class="projects-kicker">Gestion agricole</span>
-            <h1 class="projects-title">Mes projets</h1>
-            <p class="projects-subtitle">
+<section class="projects-shell finance-ft-root" data-projects-page>
+    <script>
+    (function () {
+        var html = document.documentElement;
+        function sync() {
+            html.setAttribute('data-theme', html.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        sync();
+        new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['class'] });
+    })();
+    </script>
+
+    <header class="finance-ft-hero projects-finance-hero">
+        <div class="finance-ft-hero__left">
+            <div class="finance-ft-badge-pill">
+                <i class="finance-ft-dot" aria-hidden="true"></i>
+                Gestion agricole
+            </div>
+            <h1>Mes projets</h1>
+            <p class="finance-ft-hero__sub">
                 Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide à filtrer et plus simple à piloter.
             </p>
             <div class="projects-hero-actions">
@@ -27,24 +43,52 @@
                 </button>
             </div>
         </div>
-        <div class="projects-hero-stats">
-            <article class="hero-stat-card">
-                <span class="hero-stat-label">Visibles</span>
-                <strong class="hero-stat-value" id="projectsVisibleCount">0</strong>
-                <span class="hero-stat-meta">dans la vue courante</span>
+        <div class="finance-ft-metrics projects-finance-metrics">
+            <article class="finance-ft-metric">
+                <span class="finance-ft-metric__ico finance-ft-metric__ico--mint" aria-hidden="true"><i class="fas fa-eye"></i></span>
+                <span>
+                    <span class="finance-ft-metric__lbl">Visibles</span>
+                    <strong class="finance-ft-metric__val" id="projectsVisibleCount">0</strong>
+                    <span class="finance-ft-metric__suffix">vue courante</span>
+                </span>
             </article>
-            <article class="hero-stat-card">
-                <span class="hero-stat-label">Actifs</span>
-                <strong class="hero-stat-value" id="projectsActiveCount">0</strong>
-                <span class="hero-stat-meta">projets en cours</span>
+            <article class="finance-ft-metric">
+                <span class="finance-ft-metric__ico finance-ft-metric__ico--mint" aria-hidden="true"><i class="fas fa-seedling"></i></span>
+                <span>
+                    <span class="finance-ft-metric__lbl">Actifs</span>
+                    <strong class="finance-ft-metric__val" id="projectsActiveCount">0</strong>
+                    <span class="finance-ft-metric__suffix">en cours</span>
+                </span>
             </article>
-            <article class="hero-stat-card">
-                <span class="hero-stat-label">Surface</span>
-                <strong class="hero-stat-value" id="projectsAreaCount">0 ha</strong>
-                <span class="hero-stat-meta">sur la selection visible</span>
+            <article class="finance-ft-metric">
+                <span class="finance-ft-metric__ico finance-ft-metric__ico--amber" aria-hidden="true"><i class="fas fa-ruler-combined"></i></span>
+                <span>
+                    <span class="finance-ft-metric__lbl">Surface</span>
+                    <strong class="finance-ft-metric__val" id="projectsAreaCount">0 ha</strong>
+                    <span class="finance-ft-metric__suffix">sélection visible</span>
+                </span>
             </article>
         </div>
     </header>
+
+    <div class="projects-hero-stats-bar" aria-label="Statistiques projets">
+        <div class="projects-hero-stat">
+            <span class="projects-hero-stat__value" id="projectsTotalCount">{{ projets|length }}</span>
+            <span class="projects-hero-stat__label">Total projets</span>
+        </div>
+        <div class="projects-hero-stat">
+            <span class="projects-hero-stat__value" id="projectsEnCoursCount">0</span>
+            <span class="projects-hero-stat__label">En cours</span>
+        </div>
+        <div class="projects-hero-stat">
+            <span class="projects-hero-stat__value" id="projectsTerminesCount">0</span>
+            <span class="projects-hero-stat__label">Terminés</span>
+        </div>
+        <div class="projects-hero-stat">
+            <span class="projects-hero-stat__value" id="projectsSurfaceTotal">0 ha</span>
+            <span class="projects-hero-stat__label">Surface totale</span>
+        </div>
+    </div>
 
     <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
         {% csrf_token %}
@@ -60,15 +104,26 @@
 
             <div class="toolbar-controls">
                 <div class="filter-chips" id="filterChips">
-                    <button type="button" class="filter-chip is-active" data-filter="all">Tous</button>
-                    <button type="button" class="filter-chip" data-filter="en_cours">En cours</button>
-                    <button type="button" class="filter-chip" data-filter="en_pause">En pause</button>
-                    <button type="button" class="filter-chip" data-filter="fini">Terminés</button>
+                    <button type="button" class="filter-chip is-active" data-filter="all">
+                        <span class="filter-chip-dot filter-chip-dot--all"></span>Tous
+                    </button>
+                    <button type="button" class="filter-chip" data-filter="en_cours">
+                        <span class="filter-chip-dot filter-chip-dot--en_cours"></span>En cours
+                    </button>
+                    <button type="button" class="filter-chip" data-filter="en_pause">
+                        <span class="filter-chip-dot filter-chip-dot--en_pause"></span>En pause
+                    </button>
+                    <button type="button" class="filter-chip" data-filter="fini">
+                        <span class="filter-chip-dot filter-chip-dot--fini"></span>Terminés
+                    </button>
                 </div>
 
                 <div class="view-toggle" aria-label="Changer de vue">
                     <button type="button" class="is-active" data-view="table" title="Vue tableau">
                         <i class="fas fa-list"></i>
+                    </button>
+                    <button type="button" data-view="list" title="Vue liste">
+                        <i class="fas fa-th-list"></i>
                     </button>
                     <button type="button" data-view="grid" title="Vue cartes">
                         <i class="fas fa-th-large"></i>
@@ -208,13 +263,16 @@
                         data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
                         data-detail-url="{% url 'detail_projet' projet.id %}"
                         data-edit-url="{% url 'modifier_projet' projet.id %}">
+                        <span class="project-card-status-badge project-card-status-badge--{{ projet.statut }}">
+                            {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
+                        </span>
                         <button type="button" class="project-card-checkbox" data-card-checkbox="{{ projet.id }}" aria-label="Selectionner {{ projet.nom }}"></button>
                         <button type="button" class="project-card-body" data-quick-view="{{ projet.id }}">
                             <div class="project-card-top">
                                 <div>
                                     <h2 class="project-card-title">{{ projet.nom }}</h2>
                                     <div class="project-card-culture">
-                                        <i class="fas fa-seedling"></i>
+                                        <span class="project-card-culture-emoji">🌾</span>
                                         {% for pp in projet.projet_produits.all %}
                                             {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
                                         {% empty %}
@@ -222,9 +280,16 @@
                                         {% endfor %}
                                     </div>
                                 </div>
-                                <span class="status-badge status-{{ projet.statut }}">
-                                    {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
-                                </span>
+                            </div>
+
+                            <div class="project-card-progress">
+                                <div class="progress-track">
+                                    <div class="progress-bar progress-bar--{{ projet.statut }}" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                                </div>
+                                <div class="project-inline-meta">
+                                    <span>Progression</span>
+                                    <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                                </div>
                             </div>
 
                             <div class="project-card-stats">
@@ -233,18 +298,12 @@
                                     <strong class="project-card-stat-value">{{ projet.superficie }} ha</strong>
                                 </div>
                                 <div class="project-card-stat">
-                                    <span class="project-card-stat-label">Lancement</span>
-                                    <strong class="project-card-stat-value">{{ projet.date_lancement|date:"d/m/Y" }}</strong>
+                                    <span class="project-card-stat-label">Produits</span>
+                                    <strong class="project-card-stat-value">{{ projet.projet_produits.count|default:"0" }}</strong>
                                 </div>
-                            </div>
-
-                            <div class="project-card-progress">
-                                <div class="progress-track">
-                                    <div class="progress-bar" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
-                                </div>
-                                <div class="project-inline-meta">
-                                    <span>Progression</span>
-                                    <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
+                                <div class="project-card-stat">
+                                    <span class="project-card-stat-label">Rendement</span>
+                                    <strong class="project-card-stat-value">{% if projet.rendement_total_final %}{{ projet.rendement_total_final }} kg{% else %}—{% endif %}</strong>
                                 </div>
                             </div>
                         </button>
@@ -264,12 +323,80 @@
                     {% endfor %}
                 </div>
             </div>
+
+            <div class="projects-list-shell" id="listView">
+                <div class="projects-list-view">
+                    {% for projet in projets %}
+                    <div
+                        class="project-list-item"
+                        data-id="{{ projet.id }}"
+                        data-name="{{ projet.nom|lower }}"
+                        data-culture="{{ projet.culture.nom|lower|default:'' }}"
+                        data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
+                        data-superficie="{{ projet.superficie }}"
+                        data-status="{{ projet.statut }}"
+                        data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
+                        data-detail-url="{% url 'detail_projet' projet.id %}">
+                        <div class="project-list-item__checkbox">
+                            <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" aria-label="Selectionner {{ projet.nom }}">
+                        </div>
+                        <div class="project-list-item__main">
+                            <span class="project-list-item__name">{{ projet.nom }}</span>
+                            <span class="project-list-item__culture">
+                                <span class="project-card-culture-emoji">🌾</span>
+                                {% for pp in projet.projet_produits.all %}
+                                    {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    {{ projet.culture.nom|default:"N/A" }}
+                                {% endfor %}
+                            </span>
+                        </div>
+                        <div class="project-list-item__status">
+                            <span class="status-badge status-{{ projet.statut }}">
+                                {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
+                            </span>
+                        </div>
+                        <div class="project-list-item__progress">
+                            <div class="project-list-item__progress-track">
+                                <div class="project-list-item__progress-bar progress-bar--{{ projet.statut }}" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="project-list-item__meta">{{ projet.superficie }} ha</div>
+                        <div class="project-list-item__meta">
+                            <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier"><i class="fas fa-edit"></i></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </section>
         {% else %}
         <section class="empty-state">
-            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+            <div class="empty-state-visual">
+                <i class="fas fa-folder-open"></i>
+                <span class="empty-state-badge">🌱</span>
+            </div>
             <h2 class="empty-state-title">Aucun projet pour le moment</h2>
             <p class="empty-state-text">Créez votre premier projet agricole pour commencer à suivre vos cultures.</p>
+            <div class="empty-state-hints">
+                <div class="empty-state-hint">
+                    <i class="fas fa-seedling"></i>
+                    <span>Suivi cultures</span>
+                </div>
+                <div class="empty-state-hint">
+                    <i class="fas fa-robot"></i>
+                    <span>Prédictions IA</span>
+                </div>
+                <div class="empty-state-hint">
+                    <i class="fas fa-users"></i>
+                    <span>Gestion équipe</span>
+                </div>
+                <div class="empty-state-hint">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </div>
+            </div>
             <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
                 <i class="fas fa-plus"></i> Créer mon premier projet
             </a>
