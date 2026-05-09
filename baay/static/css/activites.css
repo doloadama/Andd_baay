@@ -274,3 +274,111 @@
     display: flex;
     align-items: center;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 767.98px) {
+    .activite-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Activité items - layout vertical sur mobile */
+    .activite-item,
+    .alerte-item,
+    .message-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+    }
+
+    .activite-icon,
+    .alerte-icon,
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+
+    .activite-content,
+    .alerte-content,
+    .message-content {
+        width: 100%;
+    }
+
+    .activite-content h5,
+    .message-content h6 {
+        font-size: 0.9375rem;
+    }
+
+    .activite-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .projet-badge {
+        font-size: 0.7rem;
+    }
+
+    .activite-description {
+        font-size: 0.8125rem;
+    }
+
+    .activite-actions,
+    .alerte-actions,
+    .message-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .activite-actions .btn,
+    .alerte-actions .btn,
+    .message-actions .btn {
+        font-size: 0.8125rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Alerte items */
+    .alerte-item {
+        background: rgba(234, 179, 8, 0.08);
+    }
+
+    /* Message items */
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 0.875rem;
+    }
+
+    .message-content p {
+        font-size: 0.8125rem;
+    }
+
+    /* Empty state */
+    .empty-state-small {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Très petits écrans */
+@media (max-width: 360px) {
+    .activite-item,
+    .alerte-item,
+    .message-item {
+        padding: 0.75rem;
+    }
+
+    .activite-content h5,
+    .message-content h6 {
+        font-size: 0.875rem;
+    }
+}

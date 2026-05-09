@@ -180,9 +180,9 @@
                         <i class="fas fa-moon icon-moon" aria-hidden="true"></i>
                         <i class="fas fa-sun icon-sun" aria-hidden="true"></i>
                     </button>
-                    <button class="navbar-toggler-modern" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
-                        aria-label="Afficher la navigation">
+                    <button class="navbar-toggler-modern" type="button"
+                        onclick="document.getElementById('mobileMenuDrawer').classList.add('open')"
+                        aria-label="Afficher le menu">
                         <i class="fas fa-bars" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -1152,6 +1152,123 @@
         });
     });
     </script>
+
+    {% if user.is_authenticated %}
+    <!-- ============================================================
+         BOTTOM NAVIGATION BAR - Mobile Only
+         ============================================================ -->
+    <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <div class="mobile-nav-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <span class="mobile-nav-label">Accueil</span>
+        </a>
+        <a href="{% url 'performance' %}" class="mobile-nav-item {% if request.resolver_match and request.resolver_match.url_name == 'performance' %}active{% endif %}">
+            <div class="mobile-nav-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <span class="mobile-nav-label">Perf.</span>
+        </a>
+        <a href="{% url 'creer_projet' %}" class="mobile-nav-item mobile-nav-fab {% if request.resolver_match and request.resolver_match.url_name == 'creer_projet' %}active{% endif %}">
+            <div class="mobile-nav-fab-bg">
+                <i class="fas fa-plus"></i>
+            </div>
+        </a>
+        <a href="{% url 'activites' %}" class="mobile-nav-item {% if request.resolver_match and request.resolver_match.url_name == 'activites' %}active{% endif %}">
+            <div class="mobile-nav-icon">
+                <i class="fas fa-list-check"></i>
+            </div>
+            <span class="mobile-nav-label">Activités</span>
+        </a>
+        <a href="{% url 'logout' %}" class="mobile-nav-item mobile-nav-logout">
+            <div class="mobile-nav-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <span class="mobile-nav-label">Quitter</span>
+        </a>
+    </nav>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobileMenuDrawer" class="mobile-drawer" aria-hidden="true">
+        <div class="mobile-drawer-overlay" onclick="document.getElementById('mobileMenuDrawer').classList.remove('open')"></div>
+        <div class="mobile-drawer-content">
+            <div class="mobile-drawer-header">
+                <div class="mobile-drawer-brand">
+                    <span class="brand-icon">🌿</span>
+                    <span class="brand-text">Andd Baay</span>
+                </div>
+                <button type="button" class="mobile-drawer-close" onclick="document.getElementById('mobileMenuDrawer').classList.remove('open')" aria-label="Fermer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mobile-drawer-body">
+                <nav class="mobile-drawer-nav" aria-label="Menu complet">
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Tableau de bord</h6>
+                        <a href="{% url 'dashboard' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Vue d'ensemble</span>
+                        </a>
+                        <a href="{% url 'performance' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'performance' %}active{% endif %}">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Performance</span>
+                        </a>
+                        <a href="{% url 'activites' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'activites' %}active{% endif %}">
+                            <i class="fas fa-list-check"></i>
+                            <span>Activités</span>
+                        </a>
+                    </div>
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Exploitation</h6>
+                        <a href="{% url 'liste_fermes' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-warehouse"></i>
+                            <span>Mes fermes</span>
+                        </a>
+                        <a href="{% url 'liste_projets' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-folder-open"></i>
+                            <span>Projets</span>
+                        </a>
+                        <a href="{% url 'taches_liste' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-tasks"></i>
+                            <span>Tâches</span>
+                        </a>
+                        <a href="{% url 'liste_semis' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-seedling"></i>
+                            <span>Semis</span>
+                        </a>
+                    </div>
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Communication</h6>
+                        <a href="{% url 'messagerie_inbox' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-envelope"></i>
+                            <span>Messagerie</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+            <div class="mobile-drawer-footer">
+                <div class="mobile-drawer-user">
+                    <div class="mobile-drawer-avatar">
+                        {{ user.first_name|make_list|first|default:user.username|make_list|first|upper }}
+                    </div>
+                    <div class="mobile-drawer-user-info">
+                        <strong>{{ user.get_full_name|default:user.username }}</strong>
+                        <small>{{ user.email }}</small>
+                    </div>
+                </div>
+                <div class="mobile-drawer-actions">
+                    <a href="{% url 'parametres_utilisateur' %}" class="mobile-drawer-action-btn">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    <a href="{% url 'logout' %}" class="mobile-drawer-action-btn text-danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </body>
 
 </html>

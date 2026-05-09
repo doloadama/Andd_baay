@@ -150,15 +150,15 @@
         <i class="fas fa-th-large" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
         Vue d'ensemble
     </h2>
-    <div class="row g-3">
+    <div class="row g-2 g-md-3">
         {% if selected_ferme %}
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-sm-6 col-md-3">
             <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                 <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ projets.count }}</div>
                 <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Projets</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-sm-6 col-md-3">
             <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                 <div style="font-size: 2rem; font-weight: 700; color: #eab308;">{{ ferme_utilisation }}%</div>
                 <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Utilisation</div>
@@ -232,53 +232,6 @@
 <!-- Dashboard Logic -->
 <script src="{% static 'js/weather-theme.js' %}" defer></script>
 {% endblock %}
-                <div class="filter-group">
-                    <label class="filter-label">Ferme</label>
-                    <select class="filter-select" name="ferme" id="filterFerme">
-                        <option value="">Toutes les fermes</option>
-                        {% for f in fermes %}
-                        <option value="{{ f.id }}" {% if selected_ferme.id == f.id %}selected{% endif %}>{{ f.nom }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Statut</label>
-                    <select class="filter-select" name="statut" id="filterStatut">
-                        <option value="">Tous</option>
-                        <option value="en_cours">En cours</option>
-                        <option value="en_pause">En pause</option>
-                        <option value="fini">Fini</option>
-                        <option value="cloture">Clôturé</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Culture</label>
-                    <select class="filter-select" name="culture" id="filterCulture">
-                        <option value="">Toutes</option>
-                        {% for culture in cultures %}
-                        <option value="{{ culture.id }}">{{ culture.nom }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Date début</label>
-                    <input type="date" class="filter-input" name="date_from" id="filterDateFrom">
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Date fin</label>
-                    <input type="date" class="filter-input" name="date_to" id="filterDateTo">
-                </div>
-                <div class="filter-actions">
-                    <button type="submit" class="filter-btn"><i class="fas fa-search"></i> Filtrer</button>
-                    <button type="button" class="filter-btn secondary" id="resetFilters" title="Réinitialiser (R)"><i class="fas fa-times"></i></button>
-                    <button type="button" class="filter-btn outline" id="exportData" title="Exporter (E)">
-                        <i class="fas fa-download"></i> Export
-                    </button>
-                </div>
-            </form>
-            <div class="active-filters hidden" id="activeFilters"></div>
-        </div>
-    </div>
 
     <!-- Farm Cards Overview -->
     <div class="dash-section span-4" data-tile-id="farm-cards" id="farmCardsSection" {% if selected_ferme or not fermes_data %}style="display:none"{% endif %}>

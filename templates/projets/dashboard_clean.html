@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+{% load money %}
+
+{% block title %}Dashboard | Andd Baay{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+
+<div class="dashboard-page">
+    <!-- Header -->
+    <header class="dashboard-header-modern db-header-cockpit cockpit-topbar animate__animated animate__fadeInDown">
+        <div class="cockpit-topbar__main">
+            <p class="dash-subtitle">Cockpit stratégique</p>
+            <h1>{% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Bonjour, {{ user.first_name|default:user.username }}{% endif %}</h1>
+            <div class="cockpit-topbar__meta">
+                <span><i class="fas fa-warehouse" aria-hidden="true"></i> {% if selected_ferme %}{{ selected_ferme.localite.nom|default:"Ferme sélectionnée" }}{% else %}{{ nombre_fermes }} ferme{{ nombre_fermes|pluralize }}{% endif %}</span>
+                <span><i class="fas fa-layer-group" aria-hidden="true"></i> {{ projets.count }} projet{{ projets.count|pluralize }}</span>
+                <span><i class="far fa-calendar-alt" aria-hidden="true"></i> {% now "j F Y" %}</span>
+            </div>
+        </div>
+        <div class="cockpit-weather" id="weatherWidget" role="status" aria-live="polite"
+             data-weather-ferme="{{ dashboard_weather_ferme_id|default:'' }}">
+            <div class="cw-inner">
+                <i class="fas fa-cloud-sun fa-lg" aria-hidden="true"></i>
+                <span id="weatherSummary">Météo locale…</span>
+            </div>
+        </div>
+        <div class="db-actions cockpit-topbar__actions">
+            <div class="refresh-indicator" id="refreshIndicator">
+                <i class="fas fa-sync-alt refresh-icon"></i>
+                <span id="lastUpdated">Mis à jour: {% now "H:i" %}</span>
+            </div>
+            <button class="theme-toggle" id="dashboardThemeShortcut" title="Changer le thème (T)">
+                <i class="fas fa-moon"></i>
+            </button>
+            {% if selected_ferme %}
+            <a href="{% url 'creer_projet' %}?ferme={{ selected_ferme.id }}" class="btn-baay btn-baay-primary cockpit-topbar__cta">
+                <i class="fas fa-plus"></i> Projet
+            </a>
+            {% else %}
+            <a href="{% url 'creer_projet' %}" class="btn-baay btn-baay-primary cockpit-topbar__cta">
+                <i class="fas fa-plus"></i> Projet
+            </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- 4 KPI Cards essentiels -->
+    {% with qs=cockpit.quick_stats %}
+    <section class="cockpit-quick-strip cockpit-quick-strip--primary" id="cockpitQuickStrip" aria-label="Indicateurs stratégiques">
+        <article class="cockpit-qcard cockpit-q-revenue">
+            <div class="cq-icon"><i class="fas fa-coins"></i></div>
+            <span class="cq-trend cq-trend--up"><i class="fas fa-arrow-up"></i> ↑</span>
+            <span class="cq-kicker">Bénéfice net</span>
+            <strong class="cq-value" id="cqBenefice">{% if qs.show_financial_kpis %}{{ qs.benefice_net_total|fcfa }} FCFA{% else %}—{% endif %}</strong>
+            <p class="cq-hint">{% if qs.show_financial_kpis %}Recettes − coûts{% else %}Visible selon droits{% endif %}</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-roi">
+            <div class="cq-icon"><i class="fas fa-percentage"></i></div>
+            <span class="cq-trend cq-trend--stable"><i class="fas fa-check"></i> ✓</span>
+            <span class="cq-kicker">ROI synthétique</span>
+            <strong class="cq-value" id="cqRoi">{% if qs.show_financial_kpis %}{% if qs.roi_moyen_pct is not None %}{{ qs.roi_moyen_pct|floatformat:1 }}%{% else %}—{% endif %}{% else %}—{% endif %}</strong>
+            <p class="cq-hint">Bénéfice / coûts</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-alert">
+            <div class="cq-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <span class="cq-trend cq-trend--down"><i class="fas fa-exclamation"></i> !</span>
+            <span class="cq-kicker">Tâches critiques</span>
+            <strong class="cq-value" id="cqTachesCrit">{{ qs.taches_critiques_retard }}</strong>
+            <p class="cq-hint">En retard / urgente</p>
+        </article>
+        <article class="cockpit-qcard cockpit-q-completion">
+            <div class="cq-icon"><i class="fas fa-check-circle"></i></div>
+            <span class="cq-trend cq-trend--up"><i class="fas fa-arrow-up"></i> ↑</span>
+            <span class="cq-kicker">Complétion projets</span>
+            <strong class="cq-value" id="cqCompletion">{{ completion_rate }}%</strong>
+            <p class="cq-hint">Fini / total</p>
+            <div class="tile-completion-progress">
+                <div class="tile-completion-track">
+                    <div class="tile-completion-bar" style="width: {{ completion_rate }}%;"></div>
+                </div>
+            </div>
+        </article>
+    </section>
+    {% endwith %}
+
+    <!-- Navigation rapide vers les pages spécialisées -->
+    <section class="dashboard-quick-links animate__animated animate__fadeInUp" style="margin: 1.5rem 0;">
+        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main, #0f172a);">
+            <i class="fas fa-compass" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
+            Navigation rapide
+        </h2>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{% url 'performance' %}" class="text-decoration-none">
+                    <div class="quick-link-card" style="background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05)); border: 1px solid rgba(29, 158, 117, 0.2); border-radius: 12px; padding: 1.25rem; transition: all 0.2s ease; height: 100%;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent, #1D9E75), #5DCAA5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main, #0f172a);">Performance</h5>
+                                <p style="margin: 0; font-size: 0.875rem; color: var(--text-muted, #64748b);">Rendements et analyses</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'activites' %}" class="text-decoration-none">
+                    <div class="quick-link-card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05)); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 1.25rem; transition: all 0.2s ease; height: 100%;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #eab308, #fbbf24); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                <i class="fas fa-list-check"></i>
+                            </div>
+                            <div>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main, #0f172a);">Activités</h5>
+                                <p style="margin: 0; font-size: 0.875rem; color: var(--text-muted, #64748b);">Tâches et alertes</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% if show_finance_nav %}
+            <div class="col-md-4">
+                <a href="{% url 'finance_hub' %}" class="text-decoration-none">
+                    <div class="quick-link-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05)); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 1.25rem; transition: all 0.2s ease; height: 100%;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #818cf8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main, #0f172a);">Finance</h5>
+                                <p style="margin: 0; font-size: 0.875rem; color: var(--text-muted, #64748b);">KPIs financiers</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Stats Grid simplifié -->
+    <section class="dashboard-summary" style="margin: 2rem 0;">
+        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main, #0f172a);">
+            <i class="fas fa-th-large" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
+            Vue d'ensemble
+        </h2>
+        <div class="row g-2 g-md-3">
+            {% if selected_ferme %}
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ projets.count }}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Projets</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #eab308;">{{ ferme_utilisation }}%</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Utilisation</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #6366f1;">{{ projets_en_cours }}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Actifs</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #22c55e;">{{ completion_rate }}%</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Complétion</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ nombre_fermes }}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Fermes</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #eab308;">{{ projets.count }}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Projets</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #6366f1;">{{ projets_en_cours }}</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Actifs</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-3">
+                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #22c55e;">{{ completion_rate }}%</div>
+                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Complétion</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Actions rapides -->
+    <section class="dashboard-actions" style="margin: 2rem 0;">
+        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main, #0f172a);">
+            <i class="fas fa-bolt" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
+            Actions rapides
+        </h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'creer_projet' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau projet
+            </a>
+            <a href="{% url 'liste_fermes' %}" class="btn btn-outline-primary">
+                <i class="fas fa-warehouse"></i> Mes fermes
+            </a>
+            <a href="{% url 'liste_projets' %}" class="btn btn-outline-primary">
+                <i class="fas fa-folder-open"></i> Tous les projets
+            </a>
+            <a href="{% url 'taches_liste' %}" class="btn btn-outline-primary">
+                <i class="fas fa-list-check"></i> Mes tâches
+            </a>
+        </div>
+    </section>
+
+</div><!-- End dashboard-page -->
+
+<!-- Dashboard Logic -->
+<script src="{% static 'js/weather-theme.js' %}" defer></script>
+{% endblock %}

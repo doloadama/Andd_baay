@@ -160,3 +160,70 @@
     color: var(--text-muted, #64748b);
     margin-bottom: 1.5rem;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 767.98px) {
+    .performance-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Table scrollable horizontalement */
+    .table-responsive {
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #e2e8f0);
+    }
+
+    .performance-table th,
+    .performance-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .performance-table th:first-child,
+    .performance-table td:first-child {
+        min-width: 120px;
+    }
+
+    /* Ferme cards - 1 colonne */
+    .ferme-card {
+        margin-bottom: 1rem;
+    }
+
+    .ferme-card-header {
+        padding: 0.875rem 1rem;
+    }
+
+    .ferme-card-header h5 {
+        font-size: 1rem;
+    }
+
+    .ferme-card-body {
+        padding: 1rem;
+    }
+
+    .ferme-stats {
+        gap: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 2rem 1rem;
+    }
+
+    .empty-icon {
+        font-size: 2.5rem;
+    }
+}

@@ -1756,3 +1756,89 @@ body.dark-mode .context-menu-item:hover {
     background: rgba(93, 202, 165, 0.15);
     color: #5dcaa5;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE - Dashboard Simplifié
+   ============================================================ */
+
+/* Quick links cards - mobile adjustments */
+@media (max-width: 767.98px) {
+    .dashboard-quick-links {
+        margin: 1rem 0 !important;
+    }
+
+    .quick-link-card {
+        padding: 1rem !important;
+    }
+
+    .quick-link-card > div {
+        gap: 0.75rem !important;
+    }
+
+    .quick-link-card > div > div:first-child {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1rem !important;
+    }
+
+    .quick-link-card h5 {
+        font-size: 0.9375rem !important;
+    }
+
+    .quick-link-card p {
+        font-size: 0.8125rem !important;
+    }
+
+    /* Summary cards - smaller padding */
+    .summary-card {
+        padding: 1rem !important;
+    }
+
+    .summary-card > div:first-child {
+        font-size: 1.5rem !important;
+    }
+
+    .summary-card > div:last-child {
+        font-size: 0.8125rem !important;
+    }
+
+    /* Dashboard actions - full width buttons */
+    .dashboard-actions .d-flex.flex-wrap.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+
+    .dashboard-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Section titles - smaller */
+    .dashboard-quick-links h2,
+    .dashboard-summary h2,
+    .dashboard-actions h2 {
+        font-size: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    .quick-link-card {
+        padding: 0.75rem !important;
+    }
+
+    .quick-link-card > div > div:first-child {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .summary-card {
+        padding: 0.75rem !important;
+        border-radius: 8px !important;
+    }
+
+    .summary-card > div:first-child {
+        font-size: 1.25rem !important;
+    }
+}
