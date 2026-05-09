@@ -444,14 +444,25 @@
 @media (max-width: 767.98px) {
     .projects-hero-stats-bar {
         grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        padding: 10px 12px;
+    }
+
+    .projects-hero-stat__value {
+        font-size: 1.1rem;
+    }
+
+    .projects-hero-stat__label {
+        font-size: 0.65rem;
     }
 
     .project-card-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 
     .project-list-item {
         grid-template-columns: 1fr auto;
+        padding: 12px;
     }
 
     .project-list-item__checkbox {
@@ -460,5 +471,103 @@
 
     .project-list-item__main {
         grid-column: 1 / -1;
+    }
+
+    /* Empty state mobile adjustments */
+    .empty-state {
+        padding: 48px 20px;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+    }
+
+    .empty-state-text {
+        font-size: 0.875rem;
+    }
+
+    .empty-state-hints {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .empty-state-hint {
+        padding: 12px;
+        font-size: 0.75rem;
+    }
+
+    .empty-state-visual .fa-folder-open {
+        font-size: 48px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .projects-hero-stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        padding: 8px 10px;
+    }
+
+    .projects-hero-stat {
+        padding: 6px 4px;
+    }
+
+    .projects-hero-stat__value {
+        font-size: 1rem;
+    }
+
+    .projects-hero-stat__label {
+        font-size: 0.6rem;
+        letter-spacing: 0.04em;
+    }
+
+    .project-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .project-card-title {
+        font-size: 1rem;
+    }
+
+    .project-card-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .project-card-stat-value {
+        font-size: 0.875rem;
+    }
+
+    .project-list-item {
+        padding: 10px;
+        border-radius: 12px;
+    }
+
+    .project-list-item__name {
+        font-size: 0.9rem;
+    }
+
+    .project-list-item__culture {
+        font-size: 0.75rem;
+    }
+
+    /* Filter chips scrollable */
+    .filter-chips {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 4px;
+    }
+
+    .filter-chips::-webkit-scrollbar {
+        display: none;
+    }
+
+    .filter-chip {
+        flex-shrink: 0;
+        padding: 8px 12px;
+        font-size: 0.8rem;
     }
 }

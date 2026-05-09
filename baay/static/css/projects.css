@@ -1088,3 +1088,183 @@ button.status-badge {
         padding-bottom: calc(12px + env(safe-area-inset-bottom));
     }
 }
+
+/* ============================================================
+   MOBILE IMPROVEMENTS - Additional responsive styles
+   ============================================================ */
+
+@media (max-width: 767.98px) {
+    /* Hero stats bar - 2 columns on mobile */
+    .projects-hero-stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .projects-hero-stat__value {
+        font-size: 1.1rem;
+    }
+
+    .projects-hero-stat__label {
+        font-size: 0.65rem;
+    }
+
+    /* Table view - horizontal scroll container */
+    .projects-table-shell {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -14px;
+        padding: 0 14px;
+    }
+
+    .projects-table {
+        min-width: 700px;
+    }
+
+    .projects-table table {
+        font-size: 0.875rem;
+    }
+
+    .projects-table th,
+    .projects-table td {
+        padding: 12px 8px;
+    }
+
+    .projects-table .checkbox-col {
+        width: 36px;
+        min-width: 36px;
+    }
+
+    .projects-table .actions-col {
+        width: 140px;
+        min-width: 140px;
+    }
+
+    /* Project name cell - truncate on mobile */
+    .project-name-cell {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Grid view - single column, more compact */
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .project-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .project-card-title {
+        font-size: 1rem;
+    }
+
+    .project-card-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .project-card-stat-label {
+        font-size: 0.65rem;
+    }
+
+    .project-card-stat-value {
+        font-size: 0.875rem;
+    }
+
+    /* Empty state - more compact on mobile */
+    .empty-state {
+        padding: 40px 20px;
+        margin: 0 -14px;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+    }
+
+    .empty-state-text {
+        font-size: 0.875rem;
+    }
+
+    .empty-state-hints {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .empty-state-hint {
+        padding: 12px 8px;
+        font-size: 0.75rem;
+    }
+
+    /* Finance hero metrics - stack vertically */
+    .projects-finance-metrics {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .finance-ft-metric {
+        padding: 10px 12px;
+    }
+
+    .finance-ft-metric__val {
+        font-size: 1.1rem;
+    }
+}
+
+/* Extra small screens - additional adjustments */
+@media (max-width: 480px) {
+    .projects-hero-stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        padding: 10px 12px;
+    }
+
+    .projects-hero-stat {
+        padding: 8px 4px;
+    }
+
+    .projects-hero-stat__value {
+        font-size: 1rem;
+    }
+
+    .projects-hero-stat__label {
+        font-size: 0.6rem;
+    }
+
+    /* Filter chips - smaller on very small screens */
+    .filter-chip {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    /* Project cards - even more compact */
+    .project-card {
+        padding: 14px;
+    }
+
+    .project-card-status-badge {
+        font-size: 0.6rem;
+        padding: 4px 8px;
+    }
+
+    /* Table even more compact */
+    .projects-table {
+        min-width: 600px;
+    }
+
+    .projects-table th,
+    .projects-table td {
+        padding: 10px 6px;
+        font-size: 0.8125rem;
+    }
+
+    /* Action links - smaller touch targets but still accessible */
+    .action-link {
+        width: 40px;
+        height: 40px;
+    }
+}
