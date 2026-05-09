@@ -428,6 +428,124 @@ def cockpit_payload(projets_filtrés_qs, roi_projets_qs) -> dict[str, Any]:
     }
 
 
+def _taux_avancement_temporel_fast(projet: Projet) -> float:
+    """
+    Approximation fidèle du calcul de `Projet._taux_avancement_temporel` sans requêtes DB.
+    """
+    today = timezone.localdate()
+    if projet.statut in ("fini", Projet.STATUT_CLOTURE):
+        return 100.0
+    start = projet.date_lancement
+    if not start:
+        return 0.0
+    end = projet.date_fin
+    if end and end > start:
+        denom_days = (end - start).days or 1
+        if today >= end:
+            return 100.0
+        elapsed = (min(today, end) - start).days
+        return max(0.0, min(100.0, (elapsed / denom_days) * 100.0))
+    elapsed = (today - start).days
+    return max(0.0, min(100.0, (elapsed / 365.0) * 100.0))
+
+
+def avancement_pour_api_fast(
+    projet: Projet, *, tasks_total: int = 0, tasks_done: int = 0
+) -> dict[str, Any]:
+    """
+    Avancement pour UI (anneaux/barres) sans `aggregate()` par projet.
+
+    `tasks_total`/`tasks_done` doivent venir d'annotations (Count sur `taches`).
+    """
+    time_pct = _taux_avancement_temporel_fast(projet)
+    if projet.statut == "en_pause":
+        time_pct = min(time_pct, 75.0)
+
+    has_tasks = tasks_total > 0
+    tasks_pct: float | None
+    if has_tasks:
+        tasks_pct = max(0.0, min(100.0, (tasks_done / tasks_total) * 100.0))
+    else:
+        tasks_pct = None
+
+    if projet.statut in ("fini", Projet.STATUT_CLOTURE):
+        auto_f = 100.0
+    else:
+        auto_f = (time_pct + tasks_pct) / 2.0 if tasks_pct is not None else time_pct
+        auto_f = max(0.0, min(100.0, auto_f))
+
+    manual = getattr(projet, "taux_avancement_personnalise", None)
+    if manual is not None:
+        combined = int(max(0, min(100, manual)))
+        out = {
+            "taux_avancement": combined,
+            "progress_tasks_pct": None if tasks_pct is None else round(tasks_pct, 1),
+            "progress_time_pct": round(time_pct, 1),
+            "taux_avancement_source": "personnalise",
+            "has_project_tasks": has_tasks,
+            "tasks_total": int(tasks_total or 0),
+            "tasks_done": int(tasks_done or 0),
+            "taux_avancement_calcule": int(max(0, min(100, round(auto_f)))),
+        }
+        return out
+
+    return {
+        "taux_avancement": int(max(0, min(100, round(auto_f)))),
+        "progress_tasks_pct": None if tasks_pct is None else round(tasks_pct, 1),
+        "progress_time_pct": round(time_pct, 1),
+        "taux_avancement_source": "calcule",
+        "has_project_tasks": has_tasks,
+        "tasks_total": int(tasks_total or 0),
+        "tasks_done": int(tasks_done or 0),
+    }
+
+
+def mobile_project_kpis_payload_fast(
+    projet: Projet,
+    *,
+    include_financial: bool = True,
+    financial_kpis: dict[str, Any] | None = None,
+    tasks_total: int = 0,
+    tasks_done: int = 0,
+) -> dict[str, Any]:
+    """
+    Variante performante de `mobile_project_kpis_payload` pour les listes API:
+    - pas de requête tâches par projet
+    - KPIs financiers optionnels (pré-calculés via `calculer_kpis_financiers_par_projet`)
+    """
+    out: dict[str, Any] = {**avancement_pour_api_fast(projet, tasks_total=tasks_total, tasks_done=tasks_done)}
+    if not include_financial:
+        out.update(
+            {
+                "total_recettes": None,
+                "total_depenses": None,
+                "total_depenses_lignes_investissement": None,
+                "total_depenses_fiche_simple": None,
+                "total_investissements": None,
+                "total_couts": None,
+                "benefice_net": None,
+                "roi_pct": None,
+            }
+        )
+        return out
+
+    k = financial_kpis or calculer_kpis_financiers_projet(projet.id)
+    roi = k.get("roi_pct")
+    out.update(
+        {
+            "total_recettes": _fdec(k.get("total_recettes")),
+            "total_depenses": _fdec(k.get("total_depenses")),
+            "total_depenses_lignes_investissement": _fdec(k.get("total_depenses_lignes_investissement")),
+            "total_depenses_fiche_simple": _fdec(k.get("total_depenses_fiche_simple")),
+            "total_investissements": _fdec(k.get("total_investissements")),
+            "total_couts": _fdec(k.get("total_couts")),
+            "benefice_net": _fdec(k.get("benefice_net")),
+            "roi_pct": None if roi is None else round(_fdec(roi), 2),
+        }
+    )
+    return out
+
+
 def mobile_project_kpis_payload(
     projet: Projet, *, include_financial: bool = True
 ) -> dict[str, Any]:

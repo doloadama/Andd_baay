@@ -121,6 +121,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         follow-up profile lookup race-loses against a profile deletion.
         """
         from .models import Message, Profile, ParticipationConversation, bump_participation_last_read
+        from django.db.models import Count, Q
         try:
             profile = Profile.objects.get(user_id=user_id)
             msg = Message.objects.filter(conversation_id=conv_id, id=message_id).first()
@@ -130,14 +131,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return None
             msg.lu_par.add(profile)
             bump_participation_last_read(conv_id, profile.id, msg.date_envoi)
-            m = Message.objects.select_related('conversation').prefetch_related(
-                'lu_par',
-                Prefetch(
-                    'conversation__participations',
-                    ParticipationConversation.objects.select_related('profile'),
-                ),
-            ).get(pk=msg.pk)
-            return (str(m.id), profile.id, m.lecture_statut)
+            # Compute sender-side delivery status without re-fetching the message graph.
+            # We use ParticipationConversation.last_read_at as the source of truth:
+            # - envoye: nobody has read past message timestamp
+            # - recu_partiel: some have
+            # - recu: all recipients have
+            agg = ParticipationConversation.objects.filter(conversation_id=conv_id).exclude(
+                profile_id=msg.expediteur_id
+            ).aggregate(
+                total=Count("id"),
+                read=Count("id", filter=Q(last_read_at__gte=msg.date_envoi)),
+            )
+            total = agg.get("total") or 0
+            read = agg.get("read") or 0
+            if total <= 0:
+                lecture_statut = "recu"
+            elif read >= total:
+                lecture_statut = "recu"
+            elif read > 0:
+                lecture_statut = "recu_partiel"
+            else:
+                lecture_statut = "envoye"
+            return (str(msg.id), profile.id, lecture_statut)
         except Profile.DoesNotExist:
             return None
 

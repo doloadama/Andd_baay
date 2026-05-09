@@ -48,9 +48,42 @@
 
     /* Radii */
     --radius-card: 22px;
+    --radius-lg: var(--radius-card);
     --radius-pill: 40px;
     --radius-input: 12px;
     --radius-sm: 10px;
+    --radius-xs: 6px;
+    --radius-md: 16px;
+    --radius-tight: 14px;
+    --radius-panel: 32px;
+    --radius-lg-ui: 18px;
+    --radius-xl: 28px;
+
+    /* Bootstrap 5 — keep components rounded (overrides vendor defaults after bootstrap.min.css) */
+    --bs-border-radius: 0.75rem;
+    --bs-border-radius-sm: 0.5rem;
+    --bs-border-radius-lg: 1rem;
+    --bs-border-radius-xl: 1.25rem;
+    --bs-border-radius-xxl: 1.75rem;
+    --bs-border-radius-2xl: 2rem;
+    --bs-border-radius-pill: 50rem;
+
+    /* Bootstrap 5 — component-level radii (cards, modals, lists, …) */
+    --bs-card-border-radius: var(--radius-card);
+    --bs-card-inner-border-radius: calc(var(--radius-card) - 1px);
+    --bs-modal-border-radius: var(--radius-card);
+    --bs-dropdown-border-radius: var(--radius-input);
+    --bs-accordion-border-radius: var(--radius-input);
+    --bs-toast-border-radius: var(--radius-input);
+    --bs-popover-border-radius: var(--radius-input);
+    --bs-tooltip-border-radius: var(--radius-xs);
+    --bs-list-group-border-radius: var(--radius-input);
+    --bs-pagination-border-radius: var(--radius-input);
+    --bs-pagination-border-radius-sm: var(--radius-xs);
+    --bs-progress-border-radius: 999px;
+    --bs-offcanvas-border-radius: var(--radius-card);
+    --bs-badge-border-radius: var(--radius-input);
+    --bs-nav-tabs-border-radius: var(--radius-input);
 
     /* Transitions */
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);

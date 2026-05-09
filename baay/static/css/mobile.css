@@ -208,6 +208,24 @@
     background: rgba(29, 158, 117, 0.12);
 }
 
+/* Déconnexion — même gabarit que les autres onglets, teinte danger pour repérage rapide */
+.bottom-nav .bottom-nav-logout {
+    color: var(--danger, #ef4444);
+}
+.bottom-nav .bottom-nav-logout:hover,
+.bottom-nav .bottom-nav-logout:focus {
+    color: #fff;
+    background: rgba(239, 68, 68, 0.22);
+}
+.dark-mode .bottom-nav .bottom-nav-logout {
+    color: #f87171;
+}
+.dark-mode .bottom-nav .bottom-nav-logout:hover,
+.dark-mode .bottom-nav .bottom-nav-logout:focus {
+    color: #fff;
+    background: rgba(239, 68, 68, 0.28);
+}
+
 .bottom-nav .bottom-nav-new {
     color: #fff;
     background: var(--accent);
@@ -448,7 +466,7 @@
         padding: 0 !important;
     }
     .msg-shell .msg-card {
-        border-radius: 0 !important;
+        border-radius: var(--radius-card) var(--radius-card) 0 0 !important;
         border: none !important;
         box-shadow: none !important;
         min-height: calc(100vh - 60px - 74px) !important;

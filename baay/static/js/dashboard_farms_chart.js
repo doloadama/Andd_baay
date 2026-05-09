@@ -97,6 +97,11 @@ function initFarmUtilizationChart() {
     },
   });
 
+  // Hide skeleton when chart loads
+  if (typeof hideChartSkeleton === 'function') {
+    hideChartSkeleton('farmUtilizationChart');
+  }
+
   window.addEventListener("themeChanged", function () {
     if (!window.farmUtilizationChart) return;
     const newDark = document.body.classList.contains("dark-mode");

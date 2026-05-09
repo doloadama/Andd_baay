@@ -67,7 +67,7 @@
     .step-num {
         width: 30px; height: 30px; min-width: 30px;
         background: rgba(163, 230, 53, 0.15); border: 1px solid rgba(163, 230, 53, 0.35);
-        border-radius: 8px; display: flex; align-items: center; justify-content: center;
+        border-radius: var(--radius-input); display: flex; align-items: center; justify-content: center;
         color: #a3e635; font-family: var(--font-display); font-weight: 800; font-size: 0.8rem;
     }
 
@@ -100,7 +100,7 @@
     .form-check-input { width: 1.15rem; height: 1.15rem; border: 2px solid var(--border-color); background-color: var(--bg-main); }
     .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
 
-    .password-strength .progress { height: 6px; border-radius: 3px; background: var(--border-color); overflow: hidden; }
+    .password-strength .progress { height: 6px; border-radius: var(--radius-xs); background: var(--border-color); overflow: hidden; }
 
     /* Phone group: indicatif + numero */
     .phone-grid { display: grid; grid-template-columns: 140px 1fr; gap: 10px; }
@@ -115,7 +115,7 @@
     /* Password generator button */
     .btn-genpass {
         background: rgba(163, 230, 53, 0.12); border: 1px solid rgba(163, 230, 53, 0.35);
-        color: var(--accent); padding: 0 12px; border-radius: 8px; cursor: pointer;
+        color: var(--accent); padding: 0 12px; border-radius: var(--radius-input); cursor: pointer;
         font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
         margin-left: auto;
     }
@@ -265,7 +265,7 @@
             </div>
 
             {% if form.errors %}
-            <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+            <div class="alert alert-danger" role="alert" style="border-radius: var(--radius-input); font-size: 0.9rem;">
                 <ul class="mb-0 ps-3">
                     {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
                     {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}

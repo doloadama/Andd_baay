@@ -648,7 +648,8 @@ UNFOLD = {
     "SHOW_BACK_BUTTON": True,
     "ENVIRONMENT_TITLE_PREFIX": "baay.unfold_callbacks.unfold_environment_title_prefix",
     "ENVIRONMENT": "baay.unfold_callbacks.unfold_environment_badge",
-    "BORDER_RADIUS": "16px",
+    # Align with app design tokens (--radius-card ≈ 22px)
+    "BORDER_RADIUS": "22px",
     "COLORS": {
         "primary": {
             "50": "#ecf9f4",

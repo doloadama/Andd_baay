@@ -370,7 +370,7 @@
     top: 10px;
     bottom: 10px;
     width: 3px;
-    border-radius: 0 3px 3px 0;
+    border-radius: 99px;
     background: linear-gradient(180deg, var(--accent, var(--brand-primary)), var(--info));
     opacity: 0.7;
     transition: opacity 0.18s ease;
@@ -585,7 +585,7 @@
 }
 
 .finance-pagination .page-link {
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border-color, rgba(0,0,0,0.08));
     padding: 7px 14px;
     font-size: 0.84rem;
@@ -658,7 +658,7 @@
 @media (max-width: 768px) {
     .finance-hero {
         padding: 20px 18px;
-        border-radius: 0;
+        border-radius: var(--radius-card, 22px) var(--radius-card, 22px) 0 0;
         border-left: none;
         border-right: none;
     }

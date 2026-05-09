@@ -1,0 +1,19 @@
+/**
+ * Project-wide rounding — load after base-inline.css.
+ * Bootstrap tokens live in base.css :root; this file covers Leaflet and other vendor UI.
+ */
+
+.leaflet-popup-content-wrapper {
+    border-radius: var(--radius-input) !important;
+}
+
+.leaflet-bar,
+.leaflet-bar a,
+.leaflet-control-layers-expanded,
+.leaflet-control-layers-list {
+    border-radius: var(--radius-input) !important;
+}
+
+.leaflet-tooltip {
+    border-radius: var(--radius-xs) !important;
+}

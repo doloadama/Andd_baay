@@ -5,8 +5,9 @@
 {% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{# Leaflet vendor local — images/ chargées automatiquement depuis baay/static/vendor/images/ via .leaflet-default-icon-path. Voir perf-audit.md. #}
+<link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
+<script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/projet-detail-modern.css' %}" />
 {% endblock %}
 
@@ -444,32 +445,39 @@
         var latitude = {{ map_latitude }};
         var longitude = {{ map_longitude }};
 
-        var isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
-        var map = L.map('map', {
-            preferCanvas: true,
-            zoomControl: !isMobile,
-            scrollWheelZoom: false,
-            tap: true,
-        }).setView([latitude, longitude], isMobile ? 12 : 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            updateWhenIdle: true,
-            keepBuffer: isMobile ? 2 : 4,
-        }).addTo(map);
+        function initMapOnce() {
+            var mapEl = document.getElementById('map');
+            if (!mapEl || mapEl.__baayMapInited) return;
+            mapEl.__baayMapInited = true;
 
-        var marker = L.marker([latitude, longitude]).addTo(map);
-        marker.bindPopup("<div style='font-family: var(--font-display);'><b>{{ projet.localite.nom }}</b><br>Superficie: {{ projet.superficie }} ha</div>").openPopup();
+            var isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+            var map = L.map('map', {
+                preferCanvas: true,
+                zoomControl: !isMobile,
+                scrollWheelZoom: false,
+                tap: true,
+            }).setView([latitude, longitude], isMobile ? 12 : 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                updateWhenIdle: true,
+                keepBuffer: isMobile ? 2 : 4,
+            }).addTo(map);
 
-        function relayoutMap() {
-            setTimeout(function () {
-                map.invalidateSize();
-            }, 150);
+            var marker = L.marker([latitude, longitude]).addTo(map);
+            marker.bindPopup("<div style='font-family: var(--font-display);'><b>{{ projet.localite.nom }}</b><br>Superficie: {{ projet.superficie }} ha</div>").openPopup();
+
+            function relayoutMap() {
+                setTimeout(function () { map.invalidateSize(); }, 150);
+            }
+            window.addEventListener("resize", relayoutMap);
+            window.addEventListener("orientationchange", relayoutMap);
         }
-        window.addEventListener("resize", relayoutMap);
-        window.addEventListener("orientationchange", relayoutMap);
 
-        var meteoCard = document.getElementById('projetMeteoCard');
-        if (meteoCard && meteoCard.dataset.weatherUrl) {
+        function loadMeteoOnce() {
+            var meteoCard = document.getElementById('projetMeteoCard');
+            if (!meteoCard || meteoCard.__baayMeteoLoaded || !meteoCard.dataset.weatherUrl) return;
+            meteoCard.__baayMeteoLoaded = true;
+
             var meteoBody = meteoCard.querySelector('[data-meteo-body]');
             var messages = {
                 coords_absentes: 'Ajoutez la latitude et la longitude de la ferme pour afficher la météo en temps réel.',
@@ -480,6 +488,7 @@
                 http_401: 'Clé OpenWeatherMap invalide.',
                 http_429: 'Quota OpenWeather dépassé. Réessayez plus tard.'
             };
+
             fetch(meteoCard.dataset.weatherUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
                 .then(function (r) { return r.json().then(function (j) { return { okHttp: r.ok, status: r.status, json: j }; }); })
                 .then(function (res) {
@@ -533,6 +542,24 @@
                     if (meteoBody) meteoBody.innerHTML = '<p class="text-muted small mb-0">Impossible de charger la météo (réseau).</p>';
                 });
         }
+
+        // Déclenchement paresseux: améliore le TTI sur mobile (Leaflet + appels météo).
+        var mapEl = document.getElementById('map');
+        var meteoCard = document.getElementById('projetMeteoCard');
+        if ('IntersectionObserver' in window) {
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    if (e.target === mapEl) initMapOnce();
+                    if (e.target === meteoCard) loadMeteoOnce();
+                });
+            }, { rootMargin: '200px 0px' });
+            if (mapEl) io.observe(mapEl);
+            if (meteoCard) io.observe(meteoCard);
+        } else {
+            initMapOnce();
+            loadMeteoOnce();
+        }
     });
 </script>
 
@@ -543,8 +570,9 @@
                 cb();
                 return;
             }
+            {# Chart.js vendor local — même version que le dashboard (chartjs-4.4.0). Voir perf-audit.md. #}
             var s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            s.src = '{% static "vendor/chartjs-4.4.0.umd.min.js" %}';
             s.async = true;
             s.onload = cb;
             document.head.appendChild(s);

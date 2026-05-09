@@ -1,0 +1,39 @@
+/**
+ * Andd Baay — Django Unfold chrome (loads after unfold/css/styles.css).
+ * Uses Unfold CSS variables (--color-*, --border-radius) from UNFOLD settings.
+ */
+
+html body {
+    accent-color: var(--color-primary-600);
+}
+
+/* Accessible focus — keyboard / assistive tech */
+#main :focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+}
+
+#main :focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Softer panel separation in dark mode (reduce harsh white borders on graphs/cards) */
+.dark #main .border-base-200 {
+    border-color: color-mix(in srgb, var(--color-base-700) 92%, var(--color-base-600));
+}
+
+/* Dashboard / KPI typography — slight editorial tightening without extra fonts */
+#main h1,
+#main h2,
+#main .text-font-important-light,
+#main .text-font-important-dark {
+    letter-spacing: -0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #main * {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

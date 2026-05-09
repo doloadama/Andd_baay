@@ -260,7 +260,7 @@
     width: 40px;
     height: 40px;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
@@ -432,7 +432,7 @@
 
 .project-name-cell.editable {
     cursor: text;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     padding: 2px 4px;
 }
 
@@ -702,7 +702,7 @@ button.status-badge {
     width: 22px;
     height: 22px;
     border: 2px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     background: var(--bg-tertiary);
     cursor: pointer;
 }
@@ -947,7 +947,7 @@ button.status-badge {
 .shortcut-key {
     padding: 2px 8px;
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     color: var(--accent-dark);
     font-family: monospace;
     font-weight: 700;

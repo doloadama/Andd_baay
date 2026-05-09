@@ -10,7 +10,7 @@
 .role-badge--manager { background: var(--accent-subtle); color: var(--accent-dark); }
 .role-badge--technicien { background:#dbeafe; color:#1e40af; }
 
-.ferme-switch { background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:.5rem .75rem; }
+.ferme-switch { background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:.5rem .75rem; }
 .ferme-switch select { border:none; background:transparent; color:var(--text-main); font-weight:600; outline:none; padding-right:1.5rem; }
 
 .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.75rem; }

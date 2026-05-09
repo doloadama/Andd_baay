@@ -13,17 +13,17 @@
         display: inline-flex; align-items: center; gap: 8px;
         color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600;
         margin-bottom: 14px; padding: 8px 4px;
-        border-radius: 10px; transition: color 0.15s ease, background 0.15s ease;
+        border-radius: var(--radius-sm); transition: color 0.15s ease, background 0.15s ease;
     }
     .nc-back:hover { color: var(--accent-dark); background: rgba(34, 197, 94, 0.08); }
     .nc-card {
-        border-radius: 22px !important;
+        border-radius: var(--radius-card) !important;
         border: 1px solid rgba(15, 23, 42, 0.06) !important;
         box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
         overflow: hidden;
     }
     @media (max-width: 767.98px) {
-        .nc-card { border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+        .nc-card { border-radius: var(--radius-card) var(--radius-card) 0 0 !important; border-left: none !important; border-right: none !important; }
     }
     .nc-card-header {
         padding: 18px 20px;
@@ -48,7 +48,7 @@
     .nc-search-wrap input {
         width: 100%;
         padding: 11px 12px 11px 40px;
-        border-radius: 12px;
+        border-radius: var(--radius-input);
         border: 1px solid transparent;
         background: var(--bg-main, #f8fafc);
         font-size: 0.9rem;
@@ -88,7 +88,7 @@
         margin-bottom: 4px;
     }
     .nc-list::-webkit-scrollbar { width: 5px; }
-    .nc-list::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 10px; }
+    .nc-list::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: var(--radius-sm); }
     .nc-membre-item {
         display: none;
         margin: 0;
@@ -97,7 +97,7 @@
     .nc-membre-label {
         display: flex; align-items: center; gap: 12px;
         padding: 12px 14px;
-        border-radius: 14px;
+        border-radius: var(--radius-tight);
         border: 1px solid var(--border-glass);
         background: var(--card-bg-solid);
         cursor: pointer;

@@ -9,8 +9,10 @@ def _bool_env(name: str, default: str = "False") -> bool:
 
 class ContentSecurityPolicyMiddleware:
     """
-    Adds a CSP header that matches our current frontend stack (Bootstrap + Tailwind CDN,
-    HTMX + Alpine via self-hosted vendor files, Chart.js via self-hosted vendor files).
+    CSP header aligné sur la stack frontend après vendorisation (perf-audit.md) :
+    Bootstrap, Chart.js, ApexCharts, HTMX, Alpine, Font Awesome et Leaflet sont
+    tous servis en local depuis /static/. Le seul tiers HTTPS restant est Google
+    Fonts (CSS) + l'outillage Figma MCP en dev.
     """
 
     def __init__(self, get_response):
@@ -22,8 +24,8 @@ class ContentSecurityPolicyMiddleware:
         if response.has_header("Content-Security-Policy") or response.has_header("Content-Security-Policy-Report-Only"):
             return response
 
-        # NOTE: We still have Tailwind CDN + inline styles across templates; and Alpine's default build needs unsafe-eval.
-        # This policy is "strict" in the sense of blocking objects, restricting sources, and locking down base/frame.
+        # Alpine et certains widgets inline ont besoin de 'unsafe-inline' / 'unsafe-eval'.
+        # Pour les supprimer, il faudra migrer vers une nonce/hash (CSP_INCLUDE_NONCE prévu plus bas).
         policy = {
             "default-src": ["'self'"],
             "base-uri": ["'self'"],
@@ -31,12 +33,15 @@ class ContentSecurityPolicyMiddleware:
             "frame-ancestors": ["'none'"],
             "img-src": ["'self'", "data:", "https:"],
             "font-src": ["'self'", "https:", "data:"],
-            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            "style-src": [
+                "'self'",
+                "'unsafe-inline'",
+                "https://fonts.googleapis.com",
+            ],
             "script-src": [
                 "'self'",
                 "'unsafe-inline'",
                 "'unsafe-eval'",
-                "https://cdn.tailwindcss.com",
                 # Allow Figma HTML-to-Design capture (dev / internal tooling)
                 "https://mcp.figma.com",
             ],

@@ -105,6 +105,108 @@ def calculer_kpis_financiers_globaux(projet_ids) -> dict:
     }
 
 
+def calculer_kpis_financiers_par_projet(projet_ids) -> dict[str, dict]:
+    """
+    KPIs financiers calculés *en masse* par projet (évite le N+1).
+
+    Retour:
+      { "<projet_id>": { total_recettes, total_depenses, total_depenses_lignes_investissement,
+                        total_depenses_fiche_simple, total_investissements, total_couts,
+                        benefice_net, roi_pct } }
+
+    Note: cette version n'inclut pas les champs coûteux/non essentiels au dashboard
+    (quantité récoltée, coût de revient/unité, prédictions prévisionnelles).
+    """
+    if not projet_ids:
+        return {}
+
+    inv_expr = investissement_montant_expr()
+    inv_rows = (
+        Investissement.objects.filter(projet_id__in=projet_ids)
+        .values("projet_id")
+        .annotate(
+            total_lignes_investissement=Coalesce(Sum(inv_expr), Value(Decimal("0"))),
+            total_investissements=Coalesce(
+                Sum(inv_expr, filter=Q(categorie="materiel")),
+                Value(Decimal("0")),
+            ),
+            total_depenses_lignes_investissement=Coalesce(
+                Sum(inv_expr, filter=~Q(categorie="materiel")),
+                Value(Decimal("0")),
+            ),
+        )
+    )
+    dep_rows = (
+        Depense.objects.filter(projet_id__in=projet_ids)
+        .values("projet_id")
+        .annotate(total_depenses_fiche_simple=Coalesce(Sum("montant"), Value(Decimal("0"))))
+    )
+    rec_rows = (
+        Recette.objects.filter(projet_id__in=projet_ids)
+        .values("projet_id")
+        .annotate(total_recettes=Coalesce(Sum("montant_total"), Value(Decimal("0"))))
+    )
+
+    out: dict[str, dict] = {
+        str(pid): {
+            "total_recettes": Decimal("0"),
+            "total_depenses": Decimal("0"),
+            "total_depenses_lignes_investissement": Decimal("0"),
+            "total_depenses_fiche_simple": Decimal("0"),
+            "total_investissements": Decimal("0"),
+            "total_couts": Decimal("0"),
+            "benefice_net": Decimal("0"),
+            "roi_pct": None,
+        }
+        for pid in projet_ids
+    }
+
+    for r in inv_rows:
+        k = str(r["projet_id"])
+        block = out.get(k)
+        if block is None:
+            continue
+        block["total_investissements"] = r["total_investissements"] or Decimal("0")
+        block["total_depenses_lignes_investissement"] = (
+            r["total_depenses_lignes_investissement"] or Decimal("0")
+        )
+        block["_total_lignes_investissement_fcfa"] = (
+            r["total_lignes_investissement"] or Decimal("0")
+        )
+
+    for r in dep_rows:
+        k = str(r["projet_id"])
+        block = out.get(k)
+        if block is None:
+            continue
+        block["total_depenses_fiche_simple"] = r["total_depenses_fiche_simple"] or Decimal("0")
+
+    for r in rec_rows:
+        k = str(r["projet_id"])
+        block = out.get(k)
+        if block is None:
+            continue
+        block["total_recettes"] = r["total_recettes"] or Decimal("0")
+
+    for k, block in out.items():
+        total_lignes_inv = block.pop("_total_lignes_investissement_fcfa", Decimal("0")) or Decimal("0")
+        dep_fiche = block["total_depenses_fiche_simple"] or Decimal("0")
+        dep_lignes = block["total_depenses_lignes_investissement"] or Decimal("0")
+        rec = block["total_recettes"] or Decimal("0")
+
+        total_depenses = dep_lignes + dep_fiche
+        total_couts = total_lignes_inv + dep_fiche
+        benefice = rec - total_couts
+        roi = (benefice / total_couts * Decimal("100")) if total_couts else None
+
+        block["total_depenses"] = total_depenses
+        block["total_couts"] = total_couts
+        block["benefice_net"] = benefice
+        block["roi_pct"] = roi
+
+    return out
+
+
 def _safe_decimal(value) -> Decimal:
     if value is None:
         return Decimal("0")
@@ -432,7 +534,12 @@ def get_prevision_affichee_projet(projet):
     """
     if projet is None or not projet.pk:
         return None
-    rows = list(projet.previsions.order_by("-date_prediction"))
+    # Utilise le prefetch cache si disponible (évite une requête par projet sur les listes).
+    pref = getattr(projet, "_prefetched_objects_cache", None) or {}
+    if "previsions" in pref:
+        rows = sorted(list(pref.get("previsions") or []), key=lambda r: r.date_prediction, reverse=True)
+    else:
+        rows = list(projet.previsions.order_by("-date_prediction"))
     if not rows:
         return None
     if len(rows) == 1:

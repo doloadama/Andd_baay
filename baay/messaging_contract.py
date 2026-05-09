@@ -20,9 +20,57 @@ def _build_reply_preview(reply_to):
     return contenu or None
 
 
+def _message_read_status_from_prefetch(message):
+    """
+    Compute read-status without triggering extra DB queries.
+
+    Requirements for no extra queries:
+    - `message.conversation.participations` prefetched
+    - `message.lu_par` prefetched
+
+    Falls back to safe defaults if relations are missing (best-effort payload).
+    """
+    try:
+        # Prefetched objects are stored in `_prefetched_objects_cache`.
+        conv_cache = getattr(message.conversation, "_prefetched_objects_cache", None) or {}
+        msg_cache = getattr(message, "_prefetched_objects_cache", None) or {}
+
+        participations = list(conv_cache.get("participations") or [])
+        lu_par = list(msg_cache.get("lu_par") or [])
+    except Exception:
+        participations = []
+        lu_par = []
+
+    expediteur_id = getattr(message, "expediteur_id", None)
+    if expediteur_id is None:
+        return False, None, ""
+
+    recipients = [p for p in participations if getattr(p, "profile_id", None) != expediteur_id]
+    if not recipients:
+        # No recipients (self chat / misconfigured participants): treat as delivered.
+        return True, "recu", "Reçu"
+
+    lu_ids = {getattr(p, "id", None) for p in lu_par if getattr(p, "id", None) is not None}
+
+    read_flags = []
+    for p in recipients:
+        ts = getattr(p, "last_read_at", None)
+        par_lu = bool(ts is not None and ts >= message.date_envoi)
+        if not par_lu and getattr(p, "profile_id", None) in lu_ids:
+            par_lu = True
+        read_flags.append(par_lu)
+
+    if all(read_flags):
+        return True, "recu", "Reçu"
+    if any(read_flags):
+        return False, "recu_partiel", "Reçu (partiel)"
+    return False, "envoye", "Envoyé"
+
+
 def build_message_event_v1(message):
     reply_to = message.reply_to
     sender_user = message.expediteur.user
+    is_lu_par_tous, lecture_statut, lecture_statut_label = _message_read_status_from_prefetch(message)
     return {
         "type": "chat_message_v1",
         "event_version": "v1",
@@ -40,9 +88,9 @@ def build_message_event_v1(message):
         "reply_preview": _build_reply_preview(reply_to),
         "piece_jointe_url": message.piece_jointe.url if message.piece_jointe else None,
         "piece_jointe_name": os.path.basename(message.piece_jointe.name) if message.piece_jointe else None,
-        "is_lu_par_tous": bool(message.is_lu_par_tous()),
-        "lecture_statut": message.lecture_statut,
-        "lecture_statut_label": message.lecture_statut_label,
+        "is_lu_par_tous": bool(is_lu_par_tous),
+        "lecture_statut": lecture_statut,
+        "lecture_statut_label": lecture_statut_label,
     }
 
 
@@ -81,6 +129,27 @@ def build_inbox_update_event_v1(conversation_id, titre, preview, date_envoi, unr
         "date_envoi": date_envoi.strftime("%d/%m %H:%M") if date_envoi else "",
         "date_envoi_iso": date_envoi.isoformat() if date_envoi else "",
         "unread_count": int(unread_count or 0),
+        "is_online": bool(is_online),
+    }
+
+
+def build_inbox_update_event_v1_light(conversation_id, titre, preview, date_envoi, *, unread_delta=0, is_online=False):
+    """
+    Lightweight inbox update for eventual consistency.
+
+    - Does NOT include an exact unread_count (avoids DB counting on send).
+    - Includes an `unread_delta` hint for client-side badge estimates.
+    """
+    return {
+        "type": "inbox_update_v1",
+        "event_version": "v1",
+        "conversation_id": str(conversation_id),
+        "titre": titre,
+        "preview": preview,
+        "date_envoi": date_envoi.strftime("%d/%m %H:%M") if date_envoi else "",
+        "date_envoi_iso": date_envoi.isoformat() if date_envoi else "",
+        "unread_count": None,
+        "unread_delta": int(unread_delta or 0),
         "is_online": bool(is_online),
     }
 

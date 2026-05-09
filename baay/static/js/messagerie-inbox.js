@@ -7,6 +7,7 @@
     var connected = false;
     var reconnectDelayMs = 1500;
     var pollIntervalId = null;
+    var unreadEstimate = null;
 
     function getList() {
         return document.getElementById("conversationList");
@@ -34,13 +35,25 @@
 
         if (previewEl) {
             previewEl.textContent = event.preview || "Aucun message";
-            previewEl.classList.toggle("preview-unread", Number(event.unread_count) > 0);
-            previewEl.classList.toggle("text-muted", Number(event.unread_count) <= 0);
+            var hasUnread = event.unread_count != null ? Number(event.unread_count) > 0 : item.classList.contains("unread");
+            previewEl.classList.toggle("preview-unread", hasUnread);
+            previewEl.classList.toggle("text-muted", !hasUnread);
         }
         if (timeEl) timeEl.textContent = event.date_envoi || "";
         if (avatarEl) avatarEl.classList.toggle("online", Boolean(event.is_online));
 
-        var unreadCount = Number(event.unread_count || 0);
+        var currentBadgeCount = 0;
+        var existingBadge = item.querySelector(".conv-unread");
+        if (existingBadge && existingBadge.textContent) {
+            currentBadgeCount = Number(existingBadge.textContent) || 0;
+        }
+
+        var unreadCount;
+        if (event.unread_count != null) {
+            unreadCount = Number(event.unread_count || 0);
+        } else {
+            unreadCount = Math.max(0, currentBadgeCount + Number(event.unread_delta || 0));
+        }
         var badge = getOrCreateUnreadBadge(item);
         if (unreadCount > 0) {
             badge.textContent = String(unreadCount);
@@ -56,6 +69,7 @@
 
     function updateGlobalUnreadCount(nonLusTotal) {
         var total = Number(nonLusTotal || 0);
+        unreadEstimate = total;
         var displayCount = total > 9 ? "9+" : String(total);
 
         var navBadge = document.getElementById("navUnreadBadge");
@@ -117,6 +131,11 @@
             try { data = JSON.parse(e.data); } catch (_) { return; }
             if (data.type === "inbox_update_v1") {
                 updateConversationItem(data);
+                // Eventual consistency: adjust the global badge using deltas until next poll.
+                if (unreadEstimate != null && data.unread_count == null && data.unread_delta) {
+                    unreadEstimate = Math.max(0, Number(unreadEstimate) + Number(data.unread_delta || 0));
+                    updateGlobalUnreadCount(unreadEstimate);
+                }
             } else if (data.type === "unread_count_v1") {
                 updateGlobalUnreadCount(data.non_lus_total);
             }

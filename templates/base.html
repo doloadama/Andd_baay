@@ -38,7 +38,8 @@
     {# <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script> #}
 
     <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    {# Bootstrap CSS — vendor local (perf-audit.md) ; même version que le bundle JS 5.3.0 #}
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.3.0.min.css' %}" />
     {# Font Awesome subset (159 icônes utilisées) — économie ~306 KB vs CDN complet (CSS + WOFF2). Voir perf-audit.md action #3. #}
     <link rel="stylesheet" href="{% static 'css/fa-subset.css' %}">
     {# Animate.css subset (6 animations utilisées) — économie ~65 KB vs CDN complet. Voir perf-audit.md action #4. #}
@@ -52,6 +53,7 @@
 
     {# Base inline CSS extrait — chargé après mobile-agri-pages.css pour préserver l'ordre de cascade. Voir perf-audit.md action #1. #}
     <link rel="stylesheet" href="{% static 'css/base-inline.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rounded-global.css' %}">
 
     <!-- Extra head block for child templates -->
     {% block extra_head %}{% endblock %}
@@ -471,20 +473,23 @@
         </div>
     </footer>
 
-    <!-- FIX #3: chat-bubble-container div is now properly closed before scripts -->
-    <!-- Messagerie Floating Button (Replaces Chatbot temporarily) -->
-    <div class="chat-bubble-container d-none d-lg-block">
-        <a href="{% url 'messagerie_inbox' %}" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" data-drawer-toggle="messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
-            <i class="fas fa-envelope chat-icon" aria-hidden="true" style="color: white; font-size: 24px;"></i>
-            <div class="chat-notification" id="floatingNotifBadge" aria-live="polite" aria-atomic="true"></div>
-        </a>
-    </div>
+    <!-- Floating actions (desktop): centered stack -->
+    <div class="floating-actions d-none d-lg-flex" aria-label="Actions flottantes">
+        <!-- Messagerie Floating Button -->
+        <div class="chat-bubble-container">
+            <a href="{% url 'messagerie_inbox' %}" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" data-drawer-toggle="messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
+                <i class="fas fa-envelope chat-icon" aria-hidden="true" style="color: white; font-size: 24px;"></i>
+                <div class="chat-notification" id="floatingNotifBadge" aria-live="polite" aria-atomic="true"></div>
+            </a>
+        </div>
 
-    <!-- Voice Assistant Floating Mic -->
-    {% if user.is_authenticated %}
-    <button type="button" class="voice-mic-btn d-none d-lg-flex" id="voiceMicBtn" aria-label="Assistant vocal" title="Assistant vocal">
-        <i class="fas fa-microphone" id="voiceMicIcon" aria-hidden="true"></i>
-    </button>
+        <!-- Voice Assistant Floating Mic -->
+        {% if user.is_authenticated %}
+        <button type="button" class="voice-mic-btn" id="voiceMicBtn" aria-label="Assistant vocal" title="Assistant vocal">
+            <i class="fas fa-microphone" id="voiceMicIcon" aria-hidden="true"></i>
+        </button>
+        {% endif %}
+    </div>
 
     <!-- Voice Assistant Modal -->
     <div class="voice-modal-overlay" id="voiceModalOverlay" aria-hidden="true">
@@ -510,10 +515,12 @@
             <div class="voice-modal-close-hint" id="voiceModalCloseHint">Appuyez sur <kbd>Échap</kbd> ou cliquez ailleurs pour fermer</div>
         </div>
     </div>
+    {% if user.is_authenticated %}
     {% endif %}
 
     <!-- FIX #4: Removed stray \n characters from script tags -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {# Bootstrap JS (bundle Popper inclus) — vendor local, même version que le CSS CDN 5.3.0 #}
+    <script src="{% static 'vendor/bootstrap-5.3.0.bundle.min.js' %}"></script>
     <script>
         (function () {
             var navWrap = document.querySelector('.navbar-wrapper');
@@ -680,6 +687,15 @@
                     <a href="{% url 'profil' %}" class="{% if request.resolver_match and request.resolver_match.url_name == 'profil' %}active{% endif %}" aria-label="Profil"{% if request.resolver_match and request.resolver_match.url_name == 'profil' %} aria-current="page"{% endif %}>
                         <i class="fas fa-user" aria-hidden="true"></i>
                         <span>Profil</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'logout' %}"
+                       class="logout-link bottom-nav-logout"
+                       data-logout-url="{% url 'logout' %}"
+                       aria-label="Déconnexion">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                        <span>Déco</span>
                     </a>
                 </li>
             </ul>

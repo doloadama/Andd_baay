@@ -226,7 +226,8 @@
             if (rawMessageId === undefined || rawMessageId === null) return;
             var msgId = String(rawMessageId);
             var stored = messagesById.get(msgId);
-            var st = lectureStatut || "recu";
+            // Default to partial delivery when server omits status (eventual consistency).
+            var st = lectureStatut || "recu_partiel";
             if (stored) {
                 stored.lecture_statut = st;
                 stored.is_lu_par_tous = st === "recu";

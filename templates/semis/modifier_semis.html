@@ -47,7 +47,7 @@
         width: 56px;
         height: 56px;
         background: var(--accent);
-        border-radius: 12px;
+        border-radius: var(--radius-input);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -256,7 +256,7 @@
                             <img
                                 src="{{ projet_produit.image.url }}"
                                 alt="Photo — {{ projet_produit.produit.nom }}"
-                                style="width: 100%; max-height: 240px; object-fit: cover; border-radius: 14px; border: 1px solid var(--border-color);"
+                                style="width: 100%; max-height: 240px; object-fit: cover; border-radius: var(--radius-tight); border: 1px solid var(--border-color);"
                                 loading="lazy"
                                 decoding="async"
                             >

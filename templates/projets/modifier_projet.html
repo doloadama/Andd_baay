@@ -28,7 +28,7 @@
         background: var(--card-bg);
         backdrop-filter: blur(24px);
         border: 1px solid var(--border-color);
-        border-radius: 32px;
+        border-radius: var(--radius-panel);
         overflow: hidden;
         box-shadow: var(--shadow-lg);
     }
@@ -60,7 +60,7 @@
         align-items: center;
         background: var(--bg-secondary);
         border: 2px solid var(--border-color);
-        border-radius: 16px;
+        border-radius: var(--radius-md);
         transition: all 0.3s;
         overflow: hidden;
     }
@@ -106,7 +106,7 @@
         padding: 16px 32px;
         background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
         border: none;
-        border-radius: 14px;
+        border-radius: var(--radius-tight);
         color: #022c22;
         font-weight: 700;
         font-size: 1rem;
@@ -128,7 +128,7 @@
     .product-checkbox-item {
         background: var(--bg-secondary);
         border: 2px solid var(--border-color);
-        border-radius: 12px;
+        border-radius: var(--radius-input);
         padding: 16px;
         transition: all 0.3s;
         cursor: pointer;
@@ -153,7 +153,7 @@
     .rendement-section {
         background: rgba(16, 185, 129, 0.1);
         border: 2px solid rgba(16, 185, 129, 0.3);
-        border-radius: 20px;
+        border-radius: var(--radius-card);
         padding: 24px;
         margin-bottom: 32px;
     }
@@ -165,7 +165,7 @@
     
     .rendement-card {
         background: var(--bg-secondary);
-        border-radius: 12px;
+        border-radius: var(--radius-input);
         padding: 20px;
         margin-bottom: 16px;
     }
@@ -386,7 +386,7 @@
                             <p class="text-muted small mb-3">Selectionnez un ou plusieurs produits et indiquez la superficie allouee a chacun</p>
                             <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px;">
                                 {% for produit in produits %}
-                                <label class="product-checkbox-item" data-produit-id="{{ produit.id }}" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s;">
+                                <label class="product-checkbox-item" data-produit-id="{{ produit.id }}" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: var(--radius-input); padding: 16px; cursor: pointer; transition: all 0.3s;">
                                     <div class="d-flex align-items-center gap-3">
                                         <input type="checkbox"
                                                class="produit-checkbox"

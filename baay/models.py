@@ -1100,16 +1100,19 @@ def bump_participation_last_read(conversation_id, profile_id, watermark):
     """Met à jour `ParticipationConversation.last_read_at` (point de lecture conversation)."""
     if watermark is None:
         watermark = timezone.now()
-    row = ParticipationConversation.objects.filter(
+    from django.db.models import F, Value
+    from django.db.models.functions import Coalesce, Greatest
+
+    # Single-query, monotonic bump: last_read_at = max(last_read_at, watermark)
+    ParticipationConversation.objects.filter(
         conversation_id=conversation_id,
         profile_id=profile_id,
-    ).first()
-    if row is None:
-        return
-    cur = row.last_read_at
-    if cur is None or watermark > cur:
-        row.last_read_at = watermark
-        row.save(update_fields=['last_read_at'])
+    ).update(
+        last_read_at=Greatest(
+            Coalesce(F("last_read_at"), Value(watermark)),
+            Value(watermark),
+        )
+    )
 
 
 class Message(models.Model):

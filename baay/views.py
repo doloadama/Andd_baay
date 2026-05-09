@@ -58,7 +58,7 @@ from baay.forms import (
     TacheStatutForm,
 )
 from baay.messaging_contract import (
-    build_inbox_update_event_v1,
+    build_inbox_update_event_v1_light,
     build_message_event_v1,
     build_reaction_updated_event_v1,
     build_read_receipt_event_v1,
@@ -115,6 +115,7 @@ from baay.permissions import (
 )
 from baay.services import (
     calculer_kpis_financiers_globaux,
+    calculer_kpis_financiers_par_projet,
     calculer_kpis_financiers_projet,
     check_budget_status,
     check_projet_produit_budget_status,
@@ -1692,21 +1693,33 @@ def dashboard_stats_api(request):
         except Ferme.DoesNotExist:
             pass
 
-    projets = projets_accessibles_qs(utilisateur).select_related(
+    projets = (
+        projets_accessibles_qs(utilisateur)
+        .select_related(
         'culture',
         'localite',
         'ferme',
         'ferme__proprietaire__user',
         'ferme__localite',
-    ).prefetch_related(
+        )
+        .prefetch_related(
         Prefetch(
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
         ),
-        Prefetch(
-            'taches',
-            queryset=Tache.objects.exclude(statut='annulee'),
-        ),
+        )
+        .annotate(
+            tasks_total=Count(
+                "taches",
+                filter=~Q(taches__statut="annulee"),
+                distinct=True,
+            ),
+            tasks_done=Count(
+                "taches",
+                filter=Q(taches__statut="terminee"),
+                distinct=True,
+            ),
+        )
     )
     if selected_ferme:
         projets = projets.filter(ferme=selected_ferme)
@@ -1814,8 +1827,14 @@ def dashboard_stats_api(request):
         }
 
     # Projects list for DOM update
+    projets_iter = list(projets)
+    allowed_fin_ids = [
+        p.id for p in projets_iter if peut_voir_kpi_roi_projet(utilisateur, p)
+    ]
+    fin_map = calculer_kpis_financiers_par_projet(allowed_fin_ids)
+
     projets_list = []
-    for p in projets:
+    for p in projets_iter:
         row = {
             'id': str(p.id),
             'nom': p.nom,
@@ -1828,8 +1847,12 @@ def dashboard_stats_api(request):
             'ferme_nom': p.ferme.nom if p.ferme else '',
         }
         row.update(
-            dashboard_services.mobile_project_kpis_payload(
-                p, include_financial=peut_voir_kpi_roi_projet(utilisateur, p)
+            dashboard_services.mobile_project_kpis_payload_fast(
+                p,
+                include_financial=peut_voir_kpi_roi_projet(utilisateur, p),
+                financial_kpis=fin_map.get(str(p.id)),
+                tasks_total=getattr(p, "tasks_total", 0) or 0,
+                tasks_done=getattr(p, "tasks_done", 0) or 0,
             )
         )
         projets_list.append(row)
@@ -1891,22 +1914,34 @@ def dashboard_projets_api(request):
     page = int(request.GET.get('page', 1))
     per_page = int(request.GET.get('per_page', 10))
     
-    projets = projets_accessibles_qs(utilisateur).select_related(
+    projets = (
+        projets_accessibles_qs(utilisateur)
+        .select_related(
         'culture',
         'localite',
         'ferme',
         'ferme__proprietaire__user',
         'ferme__localite',
-    ).prefetch_related(
+        )
+        .prefetch_related(
         Prefetch(
             'ferme__membres',
             queryset=MembreFerme.objects.select_related('utilisateur__user'),
         ),
-        Prefetch(
-            'taches',
-            queryset=Tache.objects.exclude(statut='annulee'),
-        ),
         'previsions',
+        )
+        .annotate(
+            tasks_total=Count(
+                "taches",
+                filter=~Q(taches__statut="annulee"),
+                distinct=True,
+            ),
+            tasks_done=Count(
+                "taches",
+                filter=Q(taches__statut="terminee"),
+                distinct=True,
+            ),
+        )
     )
     
     if search:
@@ -1926,8 +1961,14 @@ def dashboard_projets_api(request):
     end = start + per_page
     projets_page = projets[start:end]
     
+    projets_page_list = list(projets_page)
+    allowed_fin_ids = [
+        p.id for p in projets_page_list if peut_voir_kpi_roi_projet(utilisateur, p)
+    ]
+    fin_map = calculer_kpis_financiers_par_projet(allowed_fin_ids)
+
     projets_data = []
-    for p in projets_page:
+    for p in projets_page_list:
         prevision = get_prevision_affichee_projet(p)
         prediction = prevision.rendement_estime_min if prevision else None
         can_fin_kpis = peut_voir_kpi_roi_projet(utilisateur, p)
@@ -1944,8 +1985,12 @@ def dashboard_projets_api(request):
             'date_lancement': p.date_lancement.strftime('%Y-%m-%d') if p.date_lancement else None,
         }
         item.update(
-            dashboard_services.mobile_project_kpis_payload(
-                p, include_financial=can_fin_kpis
+            dashboard_services.mobile_project_kpis_payload_fast(
+                p,
+                include_financial=can_fin_kpis,
+                financial_kpis=fin_map.get(str(p.id)),
+                tasks_total=getattr(p, "tasks_total", 0) or 0,
+                tasks_done=getattr(p, "tasks_done", 0) or 0,
             )
         )
         projets_data.append(item)
@@ -3047,18 +3092,11 @@ def _messagerie_mark_incoming_read(conversation, profile):
     for msg in messages_non_lus:
         msg.lu_par.add(profile)
     bump_participation_last_read(conversation.id, profile.id, max_dt)
-    part_pref = Prefetch(
-        'conversation__participations',
-        ParticipationConversation.objects.select_related('profile'),
-    )
     for msg in messages_non_lus:
-        st = Message.objects.select_related('conversation').prefetch_related(
-            'lu_par', part_pref,
-        ).get(pk=msg.pk).lecture_statut
         async_to_sync(channel_layer.group_send)(
             group_name,
             build_read_receipt_event_v1(
-                msg.id, profile.id, conversation.id, lecture_statut=st
+                msg.id, profile.id, conversation.id
             ),
         )
         _send_inbox_update(channel_layer, conversation, msg)
@@ -3146,12 +3184,20 @@ def messagerie_inbox(request):
 
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
 
-    return render(request, 'messagerie/inbox.html', {
+    resp = render(request, 'messagerie/inbox.html', {
         'conv_data': conv_data,
         'profile': profile,
         'base_template': base_template,
         'is_mini': request.GET.get('mini') == 'true',
     })
+    if settings.DEBUG:
+        try:
+            from django.db import connection
+
+            resp.headers["X-DB-Queries"] = str(len(getattr(connection, "queries", []) or []))
+        except Exception:
+            pass
+    return resp
 
 
 def _conversation_title_for_profile(conversation, profile):
@@ -3167,31 +3213,22 @@ def _send_inbox_update(channel_layer, conversation, message_obj):
     participants = list(conversation.participants.all())
     online_threshold = timezone.now() - timedelta(minutes=5)
     for participant in participants:
-        unread_count = conversation.messages.exclude(lu_par=participant).exclude(expediteur=participant).count()
         titre = _conversation_title_for_profile(conversation, participant)
         preview_sender = message_obj.expediteur.user.get_full_name() or message_obj.expediteur.user.username
         preview_content = message_obj.contenu or "Piece jointe"
         preview = f"{preview_sender}: {preview_content}"
-        event_payload = build_inbox_update_event_v1(
+        # Eventual consistency: avoid per-participant unread counts on send.
+        # Non-sender gets +1 estimate, sender gets 0.
+        unread_delta = 0 if participant.id == message_obj.expediteur_id else 1
+        event_payload = build_inbox_update_event_v1_light(
             conversation_id=conversation.id,
             titre=titre,
             preview=preview,
             date_envoi=message_obj.date_envoi,
-            unread_count=unread_count,
+            unread_delta=unread_delta,
             is_online=bool(message_obj.date_envoi and message_obj.date_envoi >= online_threshold),
         )
         async_to_sync(channel_layer.group_send)(f"inbox_{participant.id}", event_payload)
-        total_unread = Message.objects.filter(
-            conversation__participants=participant,
-        ).exclude(
-            lu_par=participant,
-        ).exclude(
-            expediteur=participant,
-        ).count()
-        async_to_sync(channel_layer.group_send)(
-            f"inbox_{participant.id}",
-            build_unread_count_event_v1(total_unread),
-        )
 
 
 @login_required
@@ -3316,7 +3353,7 @@ def conversation_detail(request, conversation_id):
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
     is_mini = request.GET.get('mini') == 'true'
 
-    return render(request, 'messagerie/conversation.html', {
+    resp = render(request, 'messagerie/conversation.html', {
         'conversation': conversation,
         'messages_list': messages_list,
         'titre': titre,
@@ -3327,6 +3364,14 @@ def conversation_detail(request, conversation_id):
         'has_older_messages': has_older_messages,
         'oldest_loaded_message_id': oldest_loaded_message_id,
     })
+    if settings.DEBUG:
+        try:
+            from django.db import connection
+
+            resp.headers["X-DB-Queries"] = str(len(getattr(connection, "queries", []) or []))
+        except Exception:
+            pass
+    return resp
 
 
 @login_required
@@ -3422,7 +3467,15 @@ def api_conversation_sync(request, conversation_id):
             return JsonResponse({'error': 'Parametre since invalide'}, status=400)
 
     messages_data = [build_message_event_v1(msg) for msg in messages_qs.order_by('date_envoi', 'id')]
-    return JsonResponse({'type': 'chat_sync_v1', 'messages': messages_data})
+    resp = JsonResponse({'type': 'chat_sync_v1', 'messages': messages_data})
+    if settings.DEBUG:
+        try:
+            from django.db import connection
+
+            resp.headers["X-DB-Queries"] = str(len(getattr(connection, "queries", []) or []))
+        except Exception:
+            pass
+    return resp
 
 
 @login_required
@@ -3479,9 +3532,24 @@ def nouvelle_conversation(request):
                 )
                 msg.lu_par.add(profile)
                 channel_layer = get_channel_layer()
+                msg_for_event = (
+                    Message.objects.select_related(
+                        "conversation",
+                        "expediteur__user",
+                        "reply_to__expediteur__user",
+                    )
+                    .prefetch_related(
+                        "lu_par",
+                        Prefetch(
+                            "conversation__participations",
+                            ParticipationConversation.objects.select_related("profile"),
+                        ),
+                    )
+                    .get(pk=msg.pk)
+                )
                 async_to_sync(channel_layer.group_send)(
                     f"conversation_{str(existante.id)}",
-                    build_message_event_v1(msg),
+                    build_message_event_v1(msg_for_event),
                 )
                 _send_inbox_update(channel_layer, existante, msg)
                 return redirect('conversation_detail', conversation_id=existante.id)
@@ -3495,9 +3563,24 @@ def nouvelle_conversation(request):
         )
         msg.lu_par.add(profile)
         channel_layer = get_channel_layer()
+        msg_for_event = (
+            Message.objects.select_related(
+                "conversation",
+                "expediteur__user",
+                "reply_to__expediteur__user",
+            )
+            .prefetch_related(
+                "lu_par",
+                Prefetch(
+                    "conversation__participations",
+                    ParticipationConversation.objects.select_related("profile"),
+                ),
+            )
+            .get(pk=msg.pk)
+        )
         async_to_sync(channel_layer.group_send)(
             f"conversation_{str(conv.id)}",
-            build_message_event_v1(msg),
+            build_message_event_v1(msg_for_event),
         )
         _send_inbox_update(channel_layer, conv, msg)
         return redirect('conversation_detail', conversation_id=conv.id)

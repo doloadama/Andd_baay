@@ -150,6 +150,54 @@ Panneaux à surveiller :
 
 ---
 
+### Vendorisation Chart.js + ApexCharts (FAIT)
+
+**Avant** :
+- `templates/projets/detail_projet.html` chargeait dynamiquement `https://cdn.jsdelivr.net/npm/chart.js` (~200 KB minifié) via un loader paresseux (idle callback).
+- `templates/admin/index.html` chargeait `https://cdn.jsdelivr.net/npm/apexcharts@3.54.1` (~540 KB minifié) en bloquant.
+- `templates/base_mini.html` chargeait Font Awesome 6.4.0 entier depuis cdnjs (~75 KB CSS + ~260 KB woff2) alors qu'on avait déjà un subset local.
+
+**Après** :
+- `templates/projets/detail_projet.html` → `{% static 'vendor/chartjs-4.4.0.umd.min.js' %}` (déjà présent dans le repo, même version que le dashboard ; le loader paresseux est conservé pour ne le charger qu'à la demande).
+- `templates/admin/index.html` → `{% static 'vendor/apexcharts-3.54.1.min.js' %}` (nouveau fichier, **540 KB** local).
+- `templates/base_mini.html` → `{% static 'css/fa-subset.css' %}` (subset local, 15.8 KB vs 75 KB CDN, fonts inclus).
+
+**Service worker** :
+- `baay/static/js/sw.js` → `CACHE_NAME` bumpé `v7` → `v8`. Précache enrichi avec `chartjs`, `chartjs-plugin-zoom`, `apexcharts`, `fa-subset.css`, `base-inline.css`, `animate-subset.css`, `tailwind.css`, `fa-solid-900.woff2`, `fa-brands-400.woff2`. L'entrée CDN Font Awesome (cdnjs) est supprimée.
+
+**CSP** :
+- `baay/middleware/csp.py` allégé. `cdn.jsdelivr.net`, `cdnjs.cloudflare.com` et `cdn.tailwindcss.com` retirés de `script-src`/`style-src`.
+
+**Cleanup obsolète** :
+- `scripts/apply_base_template_patch.py` supprimé : c'était un script one-shot d'extraction qui patchait `base.html` pour pointer vers d'anciens chemins CSS via les CDN Bootstrap/FA/Animate.css. Remplacé par les actions #1–#3 de cet audit, et plus aucun fichier ne s'y référait.
+
+**Gain** : ~810 KB de payload tiers transférés en local (charge initiale plus rapide, cache navigateur efficace, indépendance CDN, surface CSP réduite).
+
+---
+
+### Vendorisation Leaflet + nettoyage CSP final (FAIT)
+
+**Avant** : `templates/projets/detail_projet.html` chargeait Leaflet 1.9.4 depuis `https://unpkg.com` (CSS ≈ 14.8 KB + JS ≈ 147 KB + 5 PNG marker/layers). Dernière dépendance CDN tierce du repo.
+
+**Après** :
+- `baay/static/vendor/leaflet-1.9.4.min.js` (147 552 octets)
+- `baay/static/vendor/leaflet-1.9.4.min.css` (14 806 octets)
+- `baay/static/vendor/images/{marker-icon,marker-icon-2x,marker-shadow,layers,layers-2x}.png` (5 fichiers, ~6.5 KB total)
+- L'auto-détection de `L.Icon.Default.imagePath` fonctionne via `.leaflet-default-icon-path { background-image: url(images/marker-icon.png); }` du CSS, donc rien à patcher côté JS.
+
+**CSP simplifié** (`baay/middleware/csp.py`) :
+- `https://unpkg.com` retiré de `script-src` et `style-src`. Plus aucun CDN tiers de code (hors Figma MCP en dev et Google Fonts CSS).
+- `style-src` final : `'self' 'unsafe-inline' https://fonts.googleapis.com`.
+- `script-src` final : `'self' 'unsafe-inline' 'unsafe-eval' https://mcp.figma.com`.
+
+**Service worker** :
+- `CACHE_NAME` bumpé `v8` → `v9`. Précache enrichi avec `leaflet-1.9.4.min.{js,css}`.
+- Fonction `isStaticAsset` nettoyée : suppression des entrées mortes `cdn.jsdelivr.net` et `cdnjs.cloudflare.com` (plus aucune ressource servie depuis ces hôtes).
+
+**Gain** : ~169 KB de payload tiers en plus transférés en local. Le repo est désormais 100 % indépendant des CDN de code (jsdelivr, cdnjs, unpkg, tailwindcss). Surface CSP réduite à 1 seul host externe (Google Fonts CSS) + Figma en dev.
+
+---
+
 ### 5. Audit des autres views.py (au-delà du dashboard)
 
 `views.py` contient 84 appels `.objects.all/filter/get(...)` et 105 `select_related/prefetch_related`. Le ratio global est sain mais des hotspots sont probables. À auditer en priorité (charges suspectes) :

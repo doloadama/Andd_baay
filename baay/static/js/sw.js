@@ -3,7 +3,7 @@
  * Strategy: stale-while-revalidate for static assets,
  *            network-first for HTML pages.
  */
-const CACHE_NAME = 'andd-baay-v5';
+const CACHE_NAME = 'andd-baay-v9';
 
 /** Toujours mis en cache (page hors ligne + PWA). */
 const PRECACHE_CRITICAL = [
@@ -36,9 +36,19 @@ const PRECACHE_OPTIONAL = [
   '/static/js/gps-button.js',
   '/static/js/image-compress.js',
   '/static/js/sw-update.js',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+  '/static/vendor/bootstrap-5.3.0.min.css',
+  '/static/vendor/bootstrap-5.3.0.bundle.min.js',
+  '/static/vendor/chartjs-4.4.0.umd.min.js',
+  '/static/vendor/chartjs-plugin-zoom-2.0.1.min.js',
+  '/static/vendor/apexcharts-3.54.1.min.js',
+  '/static/vendor/leaflet-1.9.4.min.js',
+  '/static/vendor/leaflet-1.9.4.min.css',
+  '/static/css/fa-subset.css',
+  '/static/css/base-inline.css',
+  '/static/css/animate-subset.css',
+  '/static/css/tailwind.css',
+  '/static/webfonts/fa-solid-900.woff2',
+  '/static/webfonts/fa-brands-400.woff2',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap',
 ];
 
@@ -85,8 +95,6 @@ self.addEventListener('fetch', (event) => {
   const isStaticAsset =
     url.pathname.startsWith('/static/') ||
     url.pathname.startsWith('/media/') ||
-    url.host.includes('cdn.jsdelivr.net') ||
-    url.host.includes('cdnjs.cloudflare.com') ||
     url.host.includes('fonts.googleapis.com') ||
     url.host.includes('fonts.gstatic.com');
 

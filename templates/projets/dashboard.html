@@ -8,6 +8,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+<link rel="stylesheet" href="{% static 'css/farm-cards.css' %}">
 
 <div class="dashboard-page">
 <header class="dashboard-header-modern db-header-cockpit cockpit-topbar animate__animated animate__fadeInDown">
@@ -271,21 +272,21 @@
             <i class="fas fa-chevron-down dash-section-toggle"></i>
         </div>
         <div class="dash-section-body">
-            <div class="farm-cards-row" style="display: flex; gap: 16px; overflow-x: auto; padding: 8px 0;">
+            <div class="farm-cards-row">
                 {% for fd in fermes_data %}
-                <a href="?ferme={{ fd.ferme.id }}" class="farm-card" style="min-width: 260px; flex: 0 0 auto; background: var(--card-bg); border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; border: 1px solid var(--border-color); transition: transform .2s;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <strong style="font-size: 1.05rem; color: var(--text-main);">{{ fd.ferme.nom }}</strong>
-                        <span class="badge" style="background: rgba(20,184,166,0.15); color: #14b8a6; font-size: .75rem; padding: 2px 8px; border-radius: 6px;">{{ fd.projets_actifs }} actif{{ fd.projets_actifs|pluralize:"s" }}</span>
+                <a href="?ferme={{ fd.ferme.id }}" class="farm-card">
+                    <div class="farm-card__header">
+                        <strong class="farm-card__title">{{ fd.ferme.nom }}</strong>
+                        <span class="farm-card__badge">{{ fd.projets_actifs }} actif{{ fd.projets_actifs|pluralize:"s" }}</span>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: .85rem; color: var(--text-muted);">
-                        <div><i class="fas fa-folder" style="margin-right: 4px;"></i> {{ fd.projets_count }} projet{{ fd.projets_count|pluralize:"s" }}</div>
-                        <div><i class="fas fa-users" style="margin-right: 4px;"></i> {{ fd.membres_count }} membre{{ fd.membres_count|pluralize:"s" }}</div>
-                        <div><i class="fas fa-map" style="margin-right: 4px;"></i> {{ fd.superficie_ferme|floatformat:0 }} ha</div>
-                        <div><i class="fas fa-chart-pie" style="margin-right: 4px;"></i> {{ fd.utilisation_pct }}% utilise</div>
+                    <div class="farm-card__stats">
+                        <div class="farm-card__stat"><i class="fas fa-folder"></i> {{ fd.projets_count }} projet{{ fd.projets_count|pluralize:"s" }}</div>
+                        <div class="farm-card__stat"><i class="fas fa-users"></i> {{ fd.membres_count }} membre{{ fd.membres_count|pluralize:"s" }}</div>
+                        <div class="farm-card__stat"><i class="fas fa-map"></i> {{ fd.superficie_ferme|floatformat:0 }} ha</div>
+                        <div class="farm-card__stat"><i class="fas fa-chart-pie"></i> {{ fd.utilisation_pct }}% utilise</div>
                     </div>
-                    <div style="margin-top: 10px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;">
-                        <div class="farm-utilization-bar" data-utilization="{{ fd.utilisation_pct }}" style="width: 0%; max-width: 100%; height: 100%; background: linear-gradient(90deg, #14b8a6, #0ea5e9); border-radius: 2px;"></div>
+                    <div class="farm-card__utilization">
+                        <div class="farm-utilization-bar farm-card__bar" data-utilization="{{ fd.utilisation_pct }}"></div>
                     </div>
                 </a>
                 {% endfor %}
@@ -307,8 +308,19 @@
                 <button class="chart-btn" id="chartZoomOut" title="Zoom -"><i class="fas fa-search-minus"></i></button>
                 <button class="chart-btn" id="chartReset" title="Réinitialiser"><i class="fas fa-undo"></i></button>
             </div>
-            <div class="chart-container">
-                <canvas id="rendementChart"></canvas>
+            <div class="chart-container" data-chart-container>
+                <div class="chart-skeleton" id="chartYieldSkeleton">
+                    <div class="chart-skeleton__bars">
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                    </div>
+                </div>
+                <canvas id="rendementChart" style="display:none;"></canvas>
             </div>
             {% else %}
             <div class="empty-state">
@@ -329,8 +341,17 @@
         </div>
         <div class="dash-section-body">
             {% if projets %}
-            <div class="chart-container status-chart-container">
-                <canvas id="statusChart"></canvas>
+            <div class="chart-container status-chart-container" data-chart-container>
+                <div class="chart-skeleton chart-skeleton--pie" id="chartStatusSkeleton">
+                    <div class="chart-skeleton__circle"></div>
+                    <div class="chart-skeleton__legend">
+                        <div class="chart-skeleton__dot"></div>
+                        <div class="chart-skeleton__line"></div>
+                        <div class="chart-skeleton__dot"></div>
+                        <div class="chart-skeleton__line"></div>
+                    </div>
+                </div>
+                <canvas id="statusChart" style="display:none;"></canvas>
             </div>
             {% else %}
             <div class="empty-state empty-state-padded">
@@ -349,9 +370,19 @@
             <i class="fas fa-chevron-down dash-section-toggle"></i>
         </div>
         <div class="dash-section-body">
-            <div class="chart-container cockpit-chart-container">
-                <div class="cockpit-chart-loading is-hidden" aria-hidden="true"></div>
-                <canvas id="financeFlowChart" aria-label="Graphique recettes et dépenses"></canvas>
+            <div class="chart-container cockpit-chart-container" data-chart-container>
+                <div class="chart-skeleton" id="chartFinanceSkeleton">
+                    <div class="chart-skeleton__bars">
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                    </div>
+                </div>
+                <canvas id="financeFlowChart" aria-label="Graphique recettes et dépenses" style="display:none;"></canvas>
             </div>
         </div>
     </div>
@@ -364,9 +395,19 @@
             <i class="fas fa-chevron-down dash-section-toggle"></i>
         </div>
         <div class="dash-section-body">
-            <div class="chart-container cockpit-chart-container">
-                <div class="cockpit-chart-loading is-hidden" aria-hidden="true"></div>
-                <canvas id="investCategoryChart" aria-label="Répartition des investissements"></canvas>
+            <div class="chart-container cockpit-chart-container" data-chart-container>
+                <div class="chart-skeleton chart-skeleton--pie" id="chartInvestSkeleton">
+                    <div class="chart-skeleton__circle"></div>
+                    <div class="chart-skeleton__legend">
+                        <div class="chart-skeleton__dot"></div>
+                        <div class="chart-skeleton__line"></div>
+                        <div class="chart-skeleton__dot"></div>
+                        <div class="chart-skeleton__line"></div>
+                        <div class="chart-skeleton__dot"></div>
+                        <div class="chart-skeleton__line"></div>
+                    </div>
+                </div>
+                <canvas id="investCategoryChart" aria-label="Répartition des investissements" style="display:none;"></canvas>
             </div>
         </div>
     </div>
@@ -380,8 +421,17 @@
         </div>
         <div class="dash-section-body">
             {% if projets %}
-            <div class="chart-container">
-                <canvas id="cultureChart"></canvas>
+            <div class="chart-container" data-chart-container>
+                <div class="chart-skeleton" id="chartCultureSkeleton">
+                    <div class="chart-skeleton__bars">
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                    </div>
+                </div>
+                <canvas id="cultureChart" style="display:none;"></canvas>
             </div>
             {% else %}
             <div class="empty-state empty-state-padded">
@@ -401,8 +451,16 @@
             <i class="fas fa-chevron-down dash-section-toggle"></i>
         </div>
         <div class="dash-section-body">
-            <div class="chart-container">
-                <canvas id="farmUtilizationChart" data-farms-chart="{{ fermes_chart_data_json|escapejs }}"></canvas>
+            <div class="chart-container" data-chart-container>
+                <div class="chart-skeleton" id="chartFarmsSkeleton">
+                    <div class="chart-skeleton__bars">
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                        <div class="chart-skeleton__bar"></div>
+                    </div>
+                </div>
+                <canvas id="farmUtilizationChart" data-farms-chart="{{ fermes_chart_data_json|escapejs }}" style="display:none;"></canvas>
             </div>
         </div>
     </div>

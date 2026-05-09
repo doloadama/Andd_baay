@@ -163,7 +163,7 @@ html.dark-mode .finance-ft-root {
 .finance-ft-metric__ico {
     width: 38px;
     height: 38px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -351,7 +351,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 .finance-ft-root textarea.fh-field {
     width: 100%;
     box-sizing: border-box;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     border: 1px solid var(--fh-border);
     background: var(--fh-surface2);
     padding: 9px 12px;
@@ -408,7 +408,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     justify-content: center;
     gap: 8px;
     padding: 9px 16px;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
@@ -452,7 +452,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     width: 28px;
     height: 28px;
     padding: 0;
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     border: 1px solid var(--fh-border);
     background: var(--fh-surface);
     color: var(--fh-text2);
@@ -692,7 +692,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
     justify-content: space-between;
     gap: 16px;
     padding: 14px 16px;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     border: 1px solid var(--fh-border);
     background: var(--fh-surface2);
 }
@@ -757,7 +757,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
     /* Mobile accessibility: tap target 44×44. */
     min-height: 44px;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     color: var(--green-700);
     text-decoration: none;
     font-weight: 600;
@@ -984,7 +984,7 @@ html.dark-mode .finance-ft-pagination a {
 }
 
 .projet-form-ft-root .projet-input-shell {
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     transition: box-shadow 0.15s ease;
 }
 
@@ -1009,7 +1009,7 @@ html.dark-mode .finance-ft-pagination a {
 .projet-form-ft-root .projet-info-tip__ico {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     background: rgba(29, 158, 117, 0.15);
     color: var(--green-500);
     display: flex;
@@ -1062,7 +1062,7 @@ html.dark-mode .finance-ft-pagination a {
     width: 32px;
     height: 32px;
     background: rgba(29, 158, 117, 0.12);
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1390,7 +1390,7 @@ html.dark-mode .finance-ft-pagination a {
 .roi-widget__input {
     padding: 10px 14px;
     border: 1px solid var(--fh-border);
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     background: var(--fh-surface2);
     color: var(--fh-text1);
     font-size: 16px;
@@ -1488,7 +1488,7 @@ html.dark-mode .finance-ft-pagination a {
     flex-direction: column;
     gap: 6px;
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     background: var(--fh-surface2);
     border: 1px solid var(--fh-border);
     min-width: 0;
@@ -1571,7 +1571,7 @@ html.dark-mode .roi-positive { color: var(--green-300); }
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     border: 1px solid var(--fh-border);
     background: transparent;
     color: var(--fh-text2);

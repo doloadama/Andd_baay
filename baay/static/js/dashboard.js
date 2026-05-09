@@ -60,12 +60,20 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(autoRefresh, 5 * 60 * 1000);
     
     // ===== Search Filter with Debounce & Fuzzy =====
+    function debounce(fn, delay) {
+        let timeoutId;
+        return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
     const searchInput = document.getElementById('projectSearch');
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
+        searchInput.addEventListener('input', debounce(function() {
             searchQuery = this.value.toLowerCase().trim();
             applyFilters();
-        });
+        }, 250));
     }
 
     // ===== Filter Form =====
@@ -872,6 +880,9 @@ function buildFinanceCockpitCharts(isDark, gridColor, textColor) {
                                 }
                             }
                         }
+                    },
+                    animation: {
+                        onComplete: () => hideChartSkeleton('financeFlowChart')
                     }
                 }
             });
@@ -989,9 +1000,25 @@ function buildFinanceCockpitCharts(isDark, gridColor, textColor) {
                                 }
                             }
                         }
+                    },
+                    animation: {
+                        onComplete: () => hideChartSkeleton('investCategoryChart')
                     }
                 }
             });
+        }
+    }
+}
+
+// ===== CHART SKELETONS =====
+function hideChartSkeleton(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (canvas) {
+        canvas.style.display = 'block';
+        const container = canvas.closest('[data-chart-container]');
+        if (container) {
+            const skeleton = container.querySelector('.chart-skeleton');
+            if (skeleton) skeleton.style.display = 'none';
         }
     }
 }
@@ -1040,7 +1067,11 @@ function initCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 1000, easing: 'easeOutQuart' },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart',
+                    onComplete: () => hideChartSkeleton('rendementChart')
+                },
                 interaction: { intersect: false, mode: 'index' },
                 onClick: (event, elements) => {
                     if (elements.length > 0) {
@@ -1166,6 +1197,9 @@ function initCharts() {
                             afterLabel: () => 'Cliquez pour plus de détails'
                         }
                     }
+                },
+                animation: {
+                    onComplete: () => hideChartSkeleton('statusChart')
                 }
             }
         });
@@ -1231,6 +1265,9 @@ function initCharts() {
                             label: (context) => `Superficie: ${context.raw.toLocaleString('fr-FR')} ha`
                         }
                     }
+                },
+                animation: {
+                    onComplete: () => hideChartSkeleton('cultureChart')
                 }
             }
         });

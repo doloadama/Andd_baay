@@ -164,7 +164,8 @@
 {% block footer %}
     {{ block.super }}
     {% if dashboard_apex_json %}
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.54.1"></script>
+    {# ApexCharts vendor local — voir perf-audit.md (action #6 : suppression CDN restants). #}
+    <script src="{% static 'vendor/apexcharts-3.54.1.min.js' %}"></script>
     <script id="baay-apex-data" type="application/json">{{ dashboard_apex_json|safe }}</script>
     <script>
         (function () {
@@ -234,7 +235,7 @@
                     var fb = P.owner.fermes_bar;
                     new ApexCharts(elF, {
                         chart: { type: "bar", height: 320, toolbar: { show: false }, fontFamily: "inherit" },
-                        plotOptions: { bar: { horizontal: true, borderRadius: 6, barHeight: "55%" } },
+                        plotOptions: { bar: { horizontal: true, borderRadius: 8, barHeight: "55%" } },
                         colors: [colors[1]],
                         series: [{ name: "Montant", data: fb.data || [] }],
                         xaxis: { categories: fb.categories || [], labels: { style: { colors: fc } } },

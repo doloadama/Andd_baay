@@ -117,7 +117,7 @@
     .visual-feature i {
         width: 30px; height: 30px;
         background: rgba(163, 230, 53, 0.15);
-        border-radius: 8px;
+        border-radius: var(--radius-input);
         display: flex; align-items: center; justify-content: center;
         color: #a3e635;
         font-size: 12px;
@@ -367,7 +367,7 @@
 
             {% if messages %}
                 {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %}" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %}" role="alert" style="border-radius: var(--radius-input); font-size: 0.9rem;">
                     <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
                     {{ message }}
                 </div>
@@ -375,12 +375,12 @@
             {% endif %}
 
             {% if form.non_field_errors %}
-            <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+            <div class="alert alert-danger" role="alert" style="border-radius: var(--radius-input); font-size: 0.9rem;">
                 <i class="fas fa-exclamation-circle me-2"></i>
                 {% for err in form.non_field_errors %}{{ err }}{% endfor %}
             </div>
             {% elif form.errors %}
-            <div class="alert alert-danger" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+            <div class="alert alert-danger" role="alert" style="border-radius: var(--radius-input); font-size: 0.9rem;">
                 <i class="fas fa-exclamation-circle me-2"></i>
                 Adresse email ou mot de passe incorrect.
             </div>
