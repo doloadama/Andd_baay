@@ -1020,11 +1020,11 @@
             </div>
             <span class="mobile-nav-label">Accueil</span>
         </a>
-        <a href="{% url 'performance' %}" class="mobile-nav-item {% if request.resolver_match and request.resolver_match.url_name == 'performance' %}active{% endif %}">
+        <a href="{% url 'finance_hub' %}" class="mobile-nav-item {% if request.resolver_match and request.resolver_match.url_name == 'finance_hub' %}active{% endif %}">
             <div class="mobile-nav-icon">
-                <i class="fas fa-chart-line"></i>
+                <i class="fas fa-wallet"></i>
             </div>
-            <span class="mobile-nav-label">Perf.</span>
+            <span class="mobile-nav-label">Finance</span>
         </a>
         <a href="{% url 'creer_projet' %}" class="mobile-nav-item mobile-nav-fab {% if request.resolver_match and request.resolver_match.url_name == 'creer_projet' %}active{% endif %}">
             <div class="mobile-nav-fab-bg">
@@ -1073,6 +1073,13 @@
                         <a href="{% url 'activites' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'activites' %}active{% endif %}">
                             <i class="fas fa-list-check"></i>
                             <span>Activités</span>
+                        </a>
+                    </div>
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Finance</h6>
+                        <a href="{% url 'finance_hub' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'finance_hub' %}active{% endif %}">
+                            <i class="fas fa-wallet"></i>
+                            <span>Hub Finance</span>
                         </a>
                     </div>
                     <div class="mobile-drawer-section">
