@@ -23,17 +23,24 @@
     --border-light: #e9ecef;
     --success-bg: #e8f5e9;
     --danger-bg: #ffebee;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: clip;
 }
 
 /* Hero Section */
 .fh-hero {
     background: linear-gradient(135deg, #1e4a2e 0%, #2d5a3d 100%);
-    border-radius: 20px;
-    padding: 28px;
-    margin: 16px;
+    border-radius: clamp(14px, 3vw, 20px);
+    padding: clamp(18px, 4vw, 28px);
+    margin: clamp(8px, 2.5vw, 16px);
     color: white;
     position: relative;
     overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fh-hero::before {
@@ -76,10 +83,12 @@
 }
 
 .fh-hero__title {
-    font-size: 32px;
+    font-size: clamp(1.35rem, 4.5vw, 2rem);
     font-weight: 700;
     margin-bottom: 8px;
     color: white;
+    line-height: 1.15;
+    word-break: break-word;
 }
 
 .fh-hero__subtitle {
@@ -166,8 +175,13 @@
     .fh-quick-stats {
         grid-template-columns: repeat(2, 1fr);
     }
+    .fh-filters-bar {
+        min-width: 0;
+    }
     .fh-filter-group {
-        min-width: 160px;
+        flex: 1 1 calc(50% - 12px);
+        min-width: min(100%, 140px);
+        max-width: 100%;
     }
 }
 
@@ -264,13 +278,15 @@
 .fh-filters-bar {
     background: white;
     border-radius: 16px;
-    padding: 20px 24px;
-    margin: 16px;
+    padding: clamp(14px, 3vw, 20px) clamp(14px, 3vw, 24px);
+    margin: clamp(8px, 2.5vw, 16px);
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
     align-items: flex-end;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fh-filter-group {
@@ -337,7 +353,10 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
-    margin: 16px;
+    margin: clamp(8px, 2.5vw, 16px);
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 @media (min-width: 992px) {
@@ -370,8 +389,11 @@
 .fh-chart-card {
     background: white;
     border-radius: 16px;
-    padding: 20px;
+    padding: clamp(14px, 3vw, 20px);
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fh-chart-card__header {
@@ -406,6 +428,8 @@
 .fh-chart-wrap {
     height: 250px;
     position: relative;
+    min-height: 180px;
+    max-width: 100%;
 }
 
 /* Transactions Section */
@@ -413,7 +437,10 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
-    margin: 16px;
+    margin: clamp(8px, 2.5vw, 16px);
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 @media (min-width: 992px) {
@@ -607,9 +634,12 @@
 .fh-roi-section {
     background: white;
     border-radius: 16px;
-    padding: 24px;
-    margin: 16px;
+    padding: clamp(16px, 3vw, 24px);
+    margin: clamp(8px, 2.5vw, 16px);
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .fh-roi-section__header {
@@ -1011,7 +1041,10 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
-    margin: 20px 16px 32px;
+    margin: clamp(12px, 2.5vw, 20px) clamp(8px, 2.5vw, 16px) clamp(20px, 4vw, 32px);
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     --fh-form-surface: var(--card-bg-solid, #fff);
     --fh-form-border: var(--border-color, #e5e7eb);
     --fh-form-muted: var(--text-muted, #6b7280);
@@ -1522,13 +1555,15 @@ select.fh-form-control {
 .fh-actions-row {
     display: flex;
     gap: 12px;
-    margin: 16px;
+    margin: clamp(8px, 2.5vw, 16px);
     flex-wrap: wrap;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fh-btn--add {
     flex: 1;
-    min-width: 200px;
+    min-width: min(100%, 200px);
     background: var(--light-green);
     color: white;
     padding: 16px 24px;
