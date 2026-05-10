@@ -2,10 +2,12 @@ from django.urls import path
 
 from baay.views_finance import (
     FinanceHubView,
+    FinanceInvestissementCreateAjaxView,
     FinanceInvestissementDeleteView,
     FinanceInvestissementDuplicateView,
     FinanceProduitFilterPartialView,
     FinanceProduitSelectPartialView,
+    FinanceRecetteCreateAjaxView,
     FinanceRecetteDeleteView,
     FinanceStatsPartialView,
 )
@@ -37,5 +39,15 @@ urlpatterns = [
         "finance/recette/<uuid:pk>/supprimer/",
         FinanceRecetteDeleteView.as_view(),
         name="finance_delete_recette",
+    ),
+    path(
+        "finance/investissement/ajouter/",
+        FinanceInvestissementCreateAjaxView.as_view(),
+        name="finance_add_investissement",
+    ),
+    path(
+        "finance/recette/ajouter/",
+        FinanceRecetteCreateAjaxView.as_view(),
+        name="finance_add_recette",
     ),
 ]

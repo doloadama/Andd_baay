@@ -565,3 +565,93 @@ class FinanceRecetteDeleteView(View):
             return _redirect_finance_hub_preserving_query(request)
         messages.success(request, "Recette supprimée.")
         return _redirect_finance_hub_preserving_query(request)
+
+
+@method_decorator(login_required, name="dispatch")
+class FinanceInvestissementCreateAjaxView(View):
+    """Crée une nouvelle dépense (investissement) via AJAX depuis le hub Finance."""
+
+    def post(self, request, *args, **kwargs):
+        resp = _deny_if_no_finance_access(request)
+        if resp:
+            return JsonResponse({"success": False, "error": "Accès refusé"}, status=403)
+
+        try:
+            data = json.loads(request.body)
+            projet_id = data.get("projet")
+            projet_produit_id = data.get("projet_produit")
+            libelle = data.get("libelle", "").strip()
+            categorie = data.get("categorie", Investissement.CATEGORIE_GENERAL)
+            cout_par_hectare = Decimal(str(data.get("cout_par_hectare", 0)))
+            autres_frais = Decimal(str(data.get("autres_frais", 0)))
+            date_investissement = data.get("date_investissement")
+
+            projet = get_object_or_404(Projet, pk=projet_id)
+            if not peut_modifier_investissement(request.user.profile, projet):
+                return JsonResponse({"success": False, "error": "Permission refusée"}, status=403)
+
+            inv = Investissement.objects.create(
+                projet=projet,
+                projet_produit_id=projet_produit_id or None,
+                libelle=libelle,
+                categorie=categorie,
+                cout_par_hectare=cout_par_hectare,
+                autres_frais=autres_frais,
+                date_investissement=date_investissement or now(),
+            )
+
+            return JsonResponse({
+                "success": True,
+                "id": str(inv.id),
+                "libelle": inv.libelle_affichage(),
+                "montant": str(inv.calculer_investissement_total()),
+                "date": inv.date_investissement.strftime("%d/%m/%Y"),
+                "message": "Dépense ajoutée avec succès"
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+
+@method_decorator(login_required, name="dispatch")
+class FinanceRecetteCreateAjaxView(View):
+    """Crée une nouvelle recette (vente) via AJAX depuis le hub Finance."""
+
+    def post(self, request, *args, **kwargs):
+        resp = _deny_if_no_finance_access(request)
+        if resp:
+            return JsonResponse({"success": False, "error": "Accès refusé"}, status=403)
+
+        try:
+            data = json.loads(request.body)
+            projet_id = data.get("projet")
+            projet_produit_id = data.get("projet_produit")
+            produit = data.get("produit", "").strip()
+            quantite = Decimal(str(data.get("quantite", 0)))
+            unite = data.get("unite", Recette.UNITE_KG)
+            prix_unitaire = Decimal(str(data.get("prix_unitaire", 0)))
+            date_vente = data.get("date_vente")
+
+            projet = get_object_or_404(Projet, pk=projet_id)
+            if not peut_modifier_investissement(request.user.profile, projet):
+                return JsonResponse({"success": False, "error": "Permission refusée"}, status=403)
+
+            rec = Recette.objects.create(
+                projet=projet,
+                projet_produit_id=projet_produit_id or None,
+                produit=produit,
+                quantite=quantite,
+                unite=unite,
+                prix_unitaire=prix_unitaire,
+                date_vente=date_vente or now(),
+            )
+
+            return JsonResponse({
+                "success": True,
+                "id": str(rec.id),
+                "produit": rec.produit or (rec.projet_produit.produit.nom if rec.projet_produit else "Produit"),
+                "montant": str(rec.montant_total),
+                "date": rec.date_vente.strftime("%d/%m/%Y"),
+                "message": "Recette ajoutée avec succès"
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
