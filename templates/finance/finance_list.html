@@ -34,37 +34,51 @@
 .fh-hero {
     background: linear-gradient(135deg, #1e4a2e 0%, #2d5a3d 100%);
     border-radius: clamp(14px, 3vw, 20px);
-    padding: clamp(18px, 4vw, 28px);
+    padding: clamp(16px, 4vw, 28px);
     margin: clamp(8px, 2.5vw, 16px);
     color: white;
     position: relative;
     overflow: hidden;
     max-width: 100%;
     box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(16px, 3vw, 22px);
+    isolation: isolate;
 }
 
 .fh-hero::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    top: -35%;
+    right: -15%;
+    width: min(100vw, 380px);
+    height: min(100vw, 380px);
+    max-width: 85%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 68%);
     pointer-events: none;
+    z-index: 0;
 }
 
 .fh-hero__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(12px, 2.5vw, 18px);
+    margin-bottom: 0;
     position: relative;
     z-index: 1;
 }
 
+@media (min-width: 720px) {
+    .fh-hero__header {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+}
+
 .fh-hero__title-wrap {
-    flex: 1;
+    min-width: 0;
 }
 
 .fh-hero__badge {
@@ -92,47 +106,46 @@
 }
 
 .fh-hero__subtitle {
-    font-size: 14px;
-    opacity: 0.8;
-    max-width: 400px;
-    line-height: 1.5;
+    font-size: clamp(0.8125rem, 2.2vw, 0.9375rem);
+    opacity: 0.88;
+    max-width: min(36rem, 100%);
+    line-height: 1.55;
 }
 
 /* Mobile hero adjustments */
 @media (max-width: 576px) {
     .fh-hero {
-        padding: 20px 16px;
-        border-radius: 16px;
+        padding: clamp(14px, 4vw, 20px) clamp(12px, 3.5vw, 18px);
+        border-radius: clamp(12px, 3vw, 16px);
+        gap: 14px;
     }
     .fh-hero__header {
-        flex-direction: column;
-        gap: 16px;
-    }
-    .fh-hero__title {
-        font-size: 24px;
+        gap: 12px;
     }
     .fh-hero__subtitle {
-        font-size: 13px;
         max-width: 100%;
     }
     .fh-hero__actions {
         width: 100%;
-        justify-content: stretch;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
     .fh-hero__actions .fh-btn {
-        flex: 1;
+        flex: 1 1 auto;
+        min-width: min(100%, 140px);
         justify-content: center;
         padding: 12px 16px;
         font-size: 13px;
     }
     .fh-quick-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
-        margin-top: 16px;
+        margin-top: 0;
     }
     .fh-stat-card {
-        padding: 14px;
+        padding: clamp(10px, 2.5vw, 14px);
         gap: 10px;
+        min-width: 0;
     }
     .fh-stat-card__icon {
         width: 36px;
@@ -140,7 +153,7 @@
         font-size: 16px;
     }
     .fh-stat-card__value {
-        font-size: 16px;
+        font-size: clamp(0.8125rem, 3.2vw, 1rem);
     }
     .fh-stat-card__label {
         font-size: 9px;
@@ -188,6 +201,15 @@
 .fh-hero__actions {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+@media (max-width: 719px) {
+    .fh-hero__actions {
+        justify-content: stretch;
+    }
 }
 
 .fh-btn {
@@ -218,25 +240,29 @@
 /* Quick Stats */
 .fh-quick-stats {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-top: 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(8px, 2vw, 12px);
+    margin-top: 0;
+    position: relative;
+    z-index: 1;
+    min-width: 0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
     .fh-quick-stats {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
 .fh-stat-card {
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: clamp(12px, 2vw, 16px);
+    padding: clamp(12px, 2.5vw, 20px);
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: clamp(8px, 2vw, 14px);
+    min-width: 0;
 }
 
 .fh-stat-card__icon {
@@ -257,13 +283,20 @@
 }
 
 .fh-stat-card__value {
-    font-size: 22px;
+    font-size: clamp(0.875rem, 2.4vw + 0.4rem, 1.375rem);
     font-weight: 700;
     display: block;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (min-width: 480px) {
+    .fh-stat-card__value {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 .fh-stat-card__label {
@@ -1038,13 +1071,10 @@
 
 /* ─── Formulaires dépense / recette (tokens app + dark mode) ─── */
 .fh-forms-section {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    margin: clamp(12px, 2.5vw, 20px) clamp(8px, 2.5vw, 16px) clamp(20px, 4vw, 32px);
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
+    margin: 20px 16px 32px;
     --fh-form-surface: var(--card-bg-solid, #fff);
     --fh-form-border: var(--border-color, #e5e7eb);
     --fh-form-muted: var(--text-muted, #6b7280);
@@ -1055,11 +1085,8 @@
     --fh-form-radius-sm: var(--radius-input, 12px);
 }
 
-@media (min-width: 1200px) {
-    .fh-forms-section {
-        grid-template-columns: 1fr 1fr;
-        align-items: stretch;
-    }
+.fh-forms-section {
+    grid-template-columns: 1fr !important;
 }
 
 .dark-mode .fh-forms-section {
@@ -1429,50 +1456,72 @@ select.fh-form-control {
     border: 1px solid color-mix(in srgb, var(--fh-form-danger) 35%, transparent);
 }
 
-/* ─── Forms Drawer ─── */
-.fh-forms-drawer {
-    margin: 0 16px 20px;
-    background: var(--card-bg-solid, #fff);
-    border-radius: 0 0 var(--radius-card, 22px) var(--radius-card, 22px);
-    box-shadow: var(--shadow-md, 0 4px 16px rgba(8, 80, 65, 0.08));
-    border: 1px solid var(--border-color, #e5e7eb);
-    border-top: none;
-    overflow: hidden;
+/* ─── Formulaires sous filtres (repliables) ─── */
+.fh-forms-section--below-filters {
+    margin-top: clamp(4px, 1.5vw, 12px);
+    margin-bottom: clamp(12px, 2.5vw, 20px);
+}
+
+/* Collapsible cards - each takes full width */
+.fh-form-card--collapsible {
+    width: 100%;
+    max-width: 100%;
+}
+
+.fh-form-card__collapsible {
+    display: none;
+}
+
+.fh-form-card--collapsible.is-open .fh-form-card__collapsible {
+    display: block;
+}
+
+button.fh-form-card__header--toggle {
+    font: inherit;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    margin: 0;
+}
+
+button.fh-form-card__header--toggle:focus-visible {
+    outline: 2px solid var(--fh-form-accent);
+    outline-offset: -2px;
+}
+
+.fh-form-card--collapsible .fh-form-card__collapsible {
     max-height: 0;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: max-height 0.35s ease, opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+    transition: max-height 0.42s ease;
 }
 
-.fh-forms-drawer.is-open {
-    max-height: 2000px;
-    opacity: 1;
-    transform: translateY(0);
+.fh-form-card--collapsible.is-open .fh-form-card__collapsible {
+    max-height: 4200px;
 }
 
-.dark-mode .fh-forms-drawer {
-    background: var(--card-bg-solid, #161b13);
+.fh-form-card__chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    align-self: center;
+    color: var(--fh-form-muted);
+    transition: transform 0.22s ease;
+    font-size: 0.75rem;
 }
 
-.fh-forms-drawer__inner {
-    padding: 20px;
+.fh-form-card--collapsible.is-open .fh-form-card__chevron {
+    transform: rotate(180deg);
 }
 
-/* Mobile adjustments for drawer */
+/* Mobile adjustments for quick forms */
 @media (max-width: 576px) {
-    .fh-forms-drawer {
-        margin: 0 8px 16px;
-        border-radius: 0 0 var(--radius-card, 16px) var(--radius-card, 16px);
-    }
-    .fh-forms-drawer__inner {
-        padding: 12px;
-    }
-    .fh-form-card {
-        padding: 16px;
-    }
-    .fh-form-card__header {
-        padding: 12px 0 16px;
-        margin-bottom: 12px;
+    button.fh-form-card__header--toggle {
+        padding: 14px 16px;
+        gap: 12px;
     }
     .fh-form-card__title span {
         font-size: 15px;
@@ -1541,16 +1590,6 @@ select.fh-form-control {
     }
 }
 
-/* Drawer toggle button states */
-#btnToggleForms.is-active {
-    background: var(--accent, #1d9e75);
-    color: #fff;
-}
-
-#btnToggleForms.is-active i {
-    transform: rotate(45deg);
-}
-
 /* Action Buttons */
 .fh-actions-row {
     display: flex;
@@ -1616,10 +1655,7 @@ select.fh-form-control {
                 <p class="fh-hero__subtitle">Suivez vos dépenses et recettes agricoles. Analysez la rentabilité de vos projets en temps réel.</p>
             </div>
             <div class="fh-hero__actions">
-                <button class="fh-btn fh-btn--light" onclick="toggleFormsDrawer()" id="btnToggleForms">
-                    <i class="fas fa-plus-circle"></i> <span id="toggleText">Nouvelle transaction</span>
-                </button>
-                <button class="fh-btn fh-btn--light" onclick="window.print()">
+                <button type="button" class="fh-btn fh-btn--light" onclick="window.print()">
                     <i class="fas fa-print"></i> Imprimer
                 </button>
             </div>
@@ -1657,12 +1693,56 @@ select.fh-form-control {
         </div>
     </div>
 
-    <!-- Forms Drawer (collapsible) -->
-    <div class="fh-forms-drawer" id="formsDrawer">
-        <div class="fh-forms-drawer__inner">
-            <div class="fh-forms-section">
-                <div class="fh-form-card fh-form-card--expense">
-                    <div class="fh-form-card__header">
+    <!-- Filters Bar -->
+    <form method="get" action="{% url 'finance_hub' %}" class="fh-filters-bar">
+        <div class="fh-filter-group">
+            <label for="filt-projet">Projet</label>
+            <select name="projet" id="filt-projet" onchange="this.form.submit()">
+                <option value="">Tous les projets</option>
+                {% for p in filter_projets %}
+                    <option value="{{ p.pk }}"{% if filter_projet_id == p.pk|stringformat:"s" %} selected{% endif %}>{{ p.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="fh-filter-group">
+            <label for="filt-culture">Culture</label>
+            <select name="culture" id="filt-culture" onchange="this.form.submit()">
+                <option value="">Toutes les cultures</option>
+                {% for c in cultures %}
+                    <option value="{{ c.pk }}">{{ c.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="fh-filter-group">
+            <label for="filt-mois">Mois</label>
+            <select name="mois" id="filt-mois" onchange="this.form.submit()">
+                <option value="">Tous les mois</option>
+                {% for val, label in month_options %}
+                    <option value="{{ val }}"{% if filter_mois == val|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="fh-filter-group">
+            <label for="filt-annee">Année</label>
+            <select name="annee" id="filt-annee" onchange="this.form.submit()">
+                <option value="">2026</option>
+                {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="fh-btn fh-btn--primary">
+            <i class="fas fa-filter"></i> Filtrer
+        </button>
+        <a href="{% url 'finance_hub' %}" class="fh-btn fh-btn--ghost">
+            <i class="fas fa-undo"></i> Réinitialiser
+        </a>
+    </form>
+
+    <!-- Saisie dépense / recette (repliable, sous filtres) -->
+    <div class="fh-forms-section fh-forms-section--below-filters" id="financeQuickForms">
+                <div class="fh-form-card fh-form-card--expense fh-form-card--collapsible" id="financeCardDepense">
+                    <button type="button" class="fh-form-card__header fh-form-card__header--toggle" id="financeToggleDepense" aria-expanded="false" aria-controls="financePanelDepense" onclick="toggleFinanceQuickForm('depense')">
                         <div class="fh-form-card__icon" aria-hidden="true">
                             <i class="fas fa-arrow-down"></i>
                         </div>
@@ -1670,7 +1750,9 @@ select.fh-form-control {
                             <span>Nouvelle dépense</span>
                             <small>Investissement ou charge liée à un projet (montant = coût / ha × surface + autres frais).</small>
                         </div>
-                    </div>
+                        <span class="fh-form-card__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                    <div class="fh-form-card__collapsible" id="financePanelDepense">
                     <form id="formDepense" class="fh-form-improved" novalidate>
                         {% csrf_token %}
 
@@ -1790,10 +1872,11 @@ select.fh-form-control {
 
                         <div id="depenseAlert" class="fh-alert fh-alert--inline d-none" role="alert"></div>
                     </form>
+                    </div>
                 </div>
 
-                <div class="fh-form-card fh-form-card--income">
-                    <div class="fh-form-card__header fh-form-card__header--income">
+                <div class="fh-form-card fh-form-card--income fh-form-card--collapsible" id="financeCardRecette">
+                    <button type="button" class="fh-form-card__header fh-form-card__header--income fh-form-card__header--toggle" id="financeToggleRecette" aria-expanded="false" aria-controls="financePanelRecette" onclick="toggleFinanceQuickForm('recette')">
                         <div class="fh-form-card__icon" aria-hidden="true">
                             <i class="fas fa-arrow-up"></i>
                         </div>
@@ -1801,7 +1884,9 @@ select.fh-form-control {
                             <span>Nouvelle recette</span>
                             <small>Vente ou revenu : le total = quantité × prix unitaire (selon l'unité choisie).</small>
                         </div>
-                    </div>
+                        <span class="fh-form-card__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                    <div class="fh-form-card__collapsible" id="financePanelRecette">
                     <form id="formRecette" class="fh-form-improved" novalidate>
                         {% csrf_token %}
 
@@ -1920,56 +2005,9 @@ select.fh-form-control {
 
                         <div id="recetteAlert" class="fh-alert fh-alert--inline d-none" role="alert"></div>
                     </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Filters Bar -->
-    <form method="get" action="{% url 'finance_hub' %}" class="fh-filters-bar">
-        <div class="fh-filter-group">
-            <label for="filt-projet">Projet</label>
-            <select name="projet" id="filt-projet" onchange="this.form.submit()">
-                <option value="">Tous les projets</option>
-                {% for p in filter_projets %}
-                    <option value="{{ p.pk }}"{% if filter_projet_id == p.pk|stringformat:"s" %} selected{% endif %}>{{ p.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="fh-filter-group">
-            <label for="filt-culture">Culture</label>
-            <select name="culture" id="filt-culture" onchange="this.form.submit()">
-                <option value="">Toutes les cultures</option>
-                {% for c in cultures %}
-                    <option value="{{ c.pk }}">{{ c.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="fh-filter-group">
-            <label for="filt-mois">Mois</label>
-            <select name="mois" id="filt-mois" onchange="this.form.submit()">
-                <option value="">Tous les mois</option>
-                {% for val, label in month_options %}
-                    <option value="{{ val }}"{% if filter_mois == val|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="fh-filter-group">
-            <label for="filt-annee">Année</label>
-            <select name="annee" id="filt-annee" onchange="this.form.submit()">
-                <option value="">2026</option>
-                {% for year in years %}
-                    <option value="{{ year }}">{{ year }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit" class="fh-btn fh-btn--primary">
-            <i class="fas fa-filter"></i> Filtrer
-        </button>
-        <a href="{% url 'finance_hub' %}" class="fh-btn fh-btn--ghost">
-            <i class="fas fa-undo"></i> Réinitialiser
-        </a>
-    </form>
 
     <!-- Charts Section -->
     <div class="fh-charts-section">
@@ -2178,25 +2216,27 @@ function formatFCFA(amount) {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
 }
 
-// Toggle Forms Drawer
-function toggleFormsDrawer() {
-    const drawer = document.getElementById('formsDrawer');
-    const btn = document.getElementById('btnToggleForms');
-    const btnText = document.getElementById('toggleText');
-    const isOpen = drawer.classList.contains('is-open');
-    
-    if (isOpen) {
-        drawer.classList.remove('is-open');
-        btn.classList.remove('is-active');
-        btnText.textContent = 'Nouvelle transaction';
-    } else {
-        drawer.classList.add('is-open');
-        btn.classList.add('is-active');
-        btnText.textContent = 'Fermer';
-        // Scroll to drawer on mobile
-        if (window.innerWidth < 768) {
-            drawer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+// Accordion dépense / recette (sous filtres)
+function toggleFinanceQuickForm(which) {
+    const cardId = which === 'depense' ? 'financeCardDepense' : 'financeCardRecette';
+    const otherId = which === 'depense' ? 'financeCardRecette' : 'financeCardDepense';
+    const card = document.getElementById(cardId);
+    const other = document.getElementById(otherId);
+    if (!card) return;
+
+    const opening = !card.classList.contains('is-open');
+    if (opening && other && other.classList.contains('is-open')) {
+        other.classList.remove('is-open');
+        const ob = other.querySelector('.fh-form-card__header--toggle');
+        if (ob) ob.setAttribute('aria-expanded', 'false');
+    }
+
+    card.classList.toggle('is-open', opening);
+    const btn = card.querySelector('.fh-form-card__header--toggle');
+    if (btn) btn.setAttribute('aria-expanded', card.classList.contains('is-open') ? 'true' : 'false');
+
+    if (opening && window.matchMedia('(max-width: 719px)').matches) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
