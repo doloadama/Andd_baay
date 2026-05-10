@@ -591,6 +591,161 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* Mobile improvements for project detail */
+@media (max-width: 576px) {
+    /* Hero section */
+    .pd-hero {
+        padding: 16px;
+    }
+
+    .pd-hero__title {
+        font-size: 20px;
+    }
+
+    .pd-hero__subtitle {
+        font-size: 13px;
+    }
+
+    .pd-hero__header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .pd-actions-row {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .pd-btn {
+        flex: 1;
+        justify-content: center;
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+
+    /* Stats cards */
+    .pd-stats-row {
+        gap: 10px;
+        padding: 0 12px;
+    }
+
+    .pd-stat-card {
+        padding: 14px 12px;
+        min-width: 80px;
+    }
+
+    .pd-stat-card__value {
+        font-size: 18px;
+    }
+
+    .pd-stat-card__label {
+        font-size: 10px;
+    }
+
+    /* Content sections */
+    .pd-content {
+        padding: 12px;
+    }
+
+    .pd-section {
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .pd-section__title {
+        font-size: 15px;
+    }
+
+    /* Product items */
+    .pd-product-item {
+        padding: 12px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .pd-product-item__icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .pd-product-item__name {
+        font-size: 14px;
+    }
+
+    .pd-product-item__surface,
+    .pd-product-item__yield {
+        min-width: 70px;
+    }
+
+    /* Map and weather */
+    .pd-map-card,
+    .pd-weather-card {
+        height: 200px;
+    }
+
+    .pd-map-container {
+        height: 200px;
+    }
+
+    /* Prediction cards */
+    .pd-prediction__stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .pd-prediction__stat-value {
+        font-size: 20px;
+    }
+
+    /* Growth chart container */
+    .pd-chart-container {
+        height: 150px;
+    }
+
+    /* Info rows */
+    .pd-info-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .pd-info-row__label {
+        font-size: 12px;
+    }
+
+    .pd-info-row__value {
+        font-size: 14px;
+    }
+
+    /* Empty states */
+    .pd-empty-state {
+        padding: 30px 16px;
+    }
+
+    .pd-empty-state__icon {
+        font-size: 40px;
+    }
+
+    .pd-empty-state__text {
+        font-size: 13px;
+    }
+}
+
+/* Touch improvements */
+@media (pointer: coarse) {
+    .pd-btn,
+    .pd-product-item,
+    .pd-dropdown__toggle {
+        min-height: 44px;
+    }
+
+    .pd-product-item {
+        padding: 14px;
+    }
+}
 </style>
 {% endblock %}
 

@@ -89,6 +89,88 @@
     line-height: 1.5;
 }
 
+/* Mobile hero adjustments */
+@media (max-width: 576px) {
+    .fh-hero {
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+    .fh-hero__header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .fh-hero__title {
+        font-size: 24px;
+    }
+    .fh-hero__subtitle {
+        font-size: 13px;
+        max-width: 100%;
+    }
+    .fh-hero__actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    .fh-hero__actions .fh-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+    .fh-quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+    }
+    .fh-stat-card {
+        padding: 14px;
+        gap: 10px;
+    }
+    .fh-stat-card__icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    .fh-stat-card__value {
+        font-size: 16px;
+    }
+    .fh-stat-card__label {
+        font-size: 9px;
+    }
+}
+
+/* Mobile filters */
+@media (max-width: 576px) {
+    .fh-filters-bar {
+        padding: 16px;
+        margin: 12px 8px;
+        gap: 12px;
+    }
+    .fh-filter-group {
+        min-width: 100%;
+        flex: none;
+    }
+    .fh-filter-group select {
+        padding: 14px 36px 14px 14px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+    .fh-filters-bar .fh-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 577px) and (max-width: 767px) {
+    .fh-quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .fh-filter-group {
+        min-width: 160px;
+    }
+}
+
 .fh-hero__actions {
     display: flex;
     gap: 10px;
@@ -264,6 +346,27 @@
     }
 }
 
+/* Mobile charts */
+@media (max-width: 576px) {
+    .fh-charts-section {
+        margin: 12px 8px;
+        gap: 12px;
+    }
+    .fh-chart-card {
+        border-radius: 12px;
+    }
+    .fh-chart-card__header {
+        padding: 14px 16px;
+    }
+    .fh-chart-card__title {
+        font-size: 14px;
+    }
+    .fh-chart-wrap {
+        height: 200px;
+        padding: 0 12px 12px;
+    }
+}
+
 .fh-chart-card {
     background: white;
     border-radius: 16px;
@@ -316,6 +419,47 @@
 @media (min-width: 992px) {
     .fh-transactions {
         grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Mobile transactions */
+@media (max-width: 576px) {
+    .fh-transactions {
+        margin: 12px 8px;
+        gap: 12px;
+    }
+    .fh-transaction-card {
+        border-radius: 12px;
+    }
+    .fh-transaction-card__header {
+        padding: 14px 16px;
+    }
+    .fh-transaction-card__title {
+        font-size: 14px;
+    }
+    .fh-transaction-card__amount {
+        font-size: 15px;
+    }
+    .fh-transaction-item {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+    .fh-transaction-item__icon {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
+    .fh-transaction-item__label {
+        font-size: 13px;
+    }
+    .fh-transaction-item__date {
+        font-size: 11px;
+    }
+    .fh-transaction-item__amount {
+        font-size: 13px;
+    }
+    .fh-transaction-list {
+        max-height: 350px;
     }
 }
 
@@ -506,6 +650,65 @@
 @media (min-width: 1200px) {
     .fh-roi-grid {
         grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+}
+
+/* Mobile ROI */
+@media (max-width: 576px) {
+    .fh-roi-section {
+        margin: 12px 8px;
+        padding: 16px;
+        border-radius: 12px;
+    }
+    .fh-roi-section__title {
+        font-size: 15px;
+    }
+    .fh-roi-section__subtitle {
+        font-size: 12px;
+    }
+    .fh-roi-grid {
+        gap: 12px;
+    }
+    .fh-roi-main {
+        padding: 16px;
+    }
+    .fh-roi-main__percentage {
+        font-size: 36px;
+    }
+    .fh-roi-main__label {
+        font-size: 13px;
+    }
+    .fh-roi-card {
+        padding: 14px;
+    }
+    .fh-roi-card__value {
+        font-size: 18px;
+    }
+    .fh-roi-card__label {
+        font-size: 11px;
+    }
+    .fh-roi-inputs {
+        gap: 12px;
+    }
+    .fh-roi-input-group label {
+        font-size: 12px;
+    }
+    .fh-roi-input-group input {
+        padding: 14px 12px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+    .fh-roi-scenarios {
+        gap: 8px;
+    }
+    .fh-roi-scenario {
+        padding: 10px;
+    }
+    .fh-roi-scenario__icon {
+        font-size: 20px;
+    }
+    .fh-roi-scenario__label {
+        font-size: 11px;
     }
 }
 
@@ -1220,6 +1423,89 @@ select.fh-form-control {
 
 .fh-forms-drawer__inner {
     padding: 20px;
+}
+
+/* Mobile adjustments for drawer */
+@media (max-width: 576px) {
+    .fh-forms-drawer {
+        margin: 0 8px 16px;
+        border-radius: 0 0 var(--radius-card, 16px) var(--radius-card, 16px);
+    }
+    .fh-forms-drawer__inner {
+        padding: 12px;
+    }
+    .fh-form-card {
+        padding: 16px;
+    }
+    .fh-form-card__header {
+        padding: 12px 0 16px;
+        margin-bottom: 12px;
+    }
+    .fh-form-card__title span {
+        font-size: 15px;
+    }
+    .fh-form-card__title small {
+        font-size: 11px;
+    }
+    .fh-form-card__icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+}
+
+/* Mobile form improvements */
+@media (max-width: 576px) {
+    .fh-form-control {
+        padding: 14px 12px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+    .fh-form-control--number {
+        min-height: 48px;
+    }
+    .fh-form-group label {
+        font-size: 14px;
+    }
+    .fh-fieldset {
+        padding: 12px 0;
+        margin-bottom: 12px;
+    }
+    .fh-fieldset--panel {
+        padding: 14px 12px;
+    }
+    .fh-legend {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    .fh-form-actions {
+        gap: 10px;
+        padding-top: 16px;
+    }
+    .fh-btn--large {
+        padding: 14px 20px;
+        font-size: 15px;
+        min-height: 48px;
+    }
+    .fh-form-total {
+        padding: 14px 16px;
+        font-size: 15px;
+    }
+    .fh-form-hint {
+        font-size: 11px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (pointer: coarse) {
+    .fh-form-control,
+    .fh-form-control--number,
+    select.fh-form-control {
+        min-height: 48px;
+    }
+    .fh-btn {
+        min-height: 44px;
+    }
 }
 
 /* Drawer toggle button states */

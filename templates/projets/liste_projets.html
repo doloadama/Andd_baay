@@ -459,14 +459,132 @@
         flex-direction: row;
         flex-wrap: wrap;
     }
-    
+
     .hero-stat-card {
         flex: 1;
         min-width: 90px;
+        padding: 10px 12px;
     }
-    
+
+    .hero-stat-card__value {
+        font-size: 18px;
+    }
+
+    .hero-stat-card__label {
+        font-size: 10px;
+    }
+
     .projects-hero__desc {
         max-width: 100%;
+        font-size: 13px;
+    }
+
+    .projects-hero__title {
+        font-size: 24px;
+    }
+
+    /* Mobile filter chips */
+    .filter-chips {
+        gap: 8px;
+        padding: 0 12px;
+    }
+
+    .filter-chip {
+        padding: 8px 14px;
+        font-size: 12px;
+        min-height: 36px;
+    }
+
+    /* Mobile search */
+    .search-box {
+        margin: 0 12px 16px;
+    }
+
+    .search-box input {
+        padding: 14px 16px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+
+    /* Mobile project cards */
+    .projects-list.view-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 12px;
+    }
+
+    .project-card {
+        padding: 16px;
+    }
+
+    .project-card__header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .project-card__title {
+        font-size: 16px;
+    }
+
+    .project-card__culture {
+        font-size: 12px;
+    }
+
+    .progress-section {
+        width: 100%;
+    }
+
+    .project-card__footer {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .project-card__meta {
+        justify-content: space-between;
+    }
+
+    .project-card__actions {
+        width: 100%;
+    }
+
+    .project-card__actions .btn {
+        flex: 1;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    /* Mobile empty state */
+    .empty-state {
+        padding: 40px 20px;
+    }
+
+    .empty-state__icon {
+        font-size: 48px;
+    }
+
+    .empty-state__title {
+        font-size: 18px;
+    }
+
+    /* Mobile stats row */
+    .stats-row {
+        gap: 10px;
+        padding: 0 12px;
+    }
+
+    .stat-item {
+        padding: 14px 12px;
+        min-width: 80px;
+    }
+
+    .stat-item__value {
+        font-size: 20px;
+    }
+
+    .stat-item__label {
+        font-size: 10px;
     }
 }
 </style>
