@@ -7,469 +7,705 @@
 <meta name="description" content="Gerez vos projets agricoles avec Andd Baay. Suivez l'avancement, la superficie et les rendements de chaque parcelle." />
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Mobile-first Project List Design */
+.projects-page {
+    --primary-green: #3d8b5a;
+    --dark-green: #1e4a2e;
+    --light-green: #4a9c5d;
+    --bg-light: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-dark: #1a1a1a;
+    --text-muted: #666;
+    --border-light: #e0e0e0;
+}
+
+/* Hero Header Section */
+.projects-hero {
+    background: linear-gradient(135deg, #1e4a2e 0%, #2d5a3d 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 16px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.projects-hero__label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.projects-hero__title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: white;
+}
+
+.projects-hero__desc {
+    font-size: 14px;
+    opacity: 0.85;
+    line-height: 1.5;
+    max-width: 60%;
+    margin-bottom: 20px;
+}
+
+.projects-hero__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: white;
+    color: #1e4a2e;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-outline {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+/* Hero Stats Cards (Right side) */
+.hero-stats {
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.hero-stat-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 110px;
+}
+
+.hero-stat-card__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+}
+
+.hero-stat-card__value {
+    font-size: 24px;
+    font-weight: 700;
+    display: block;
+    margin: 4px 0;
+}
+
+.hero-stat-card__suffix {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+/* Stats Row */
+.stats-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.stat-box {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    min-width: 100px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.stat-box__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: block;
+}
+
+.stat-box__label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+/* Search Bar */
+.search-container {
+    margin: 16px;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 28px;
+    padding: 14px 20px 14px 48px;
+    font-size: 15px;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+/* Filter Chips */
+.filters-container {
+    margin: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-chip.active {
+    background: var(--dark-green);
+    color: white;
+    border-color: var(--dark-green);
+}
+
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.view-btn {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.view-btn.active {
+    background: var(--dark-green);
+    color: white;
+    border-color: var(--dark-green);
+}
+
+/* Project Cards */
+.projects-list {
+    margin: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Vue Grille */
+.projects-list.view-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Vue Liste */
+.projects-list.view-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.projects-list.view-list .project-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 24px;
+    min-height: 90px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.projects-list.view-list .project-card__header {
+    flex: 0 0 220px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 0;
+}
+
+.projects-list.view-list .project-card__title {
+    font-size: 17px;
+    margin: 0;
+    font-weight: 700;
+}
+
+.projects-list.view-list .project-card__culture {
+    margin-bottom: 0;
+    min-width: 120px;
+    flex: 0 0 120px;
+}
+
+.projects-list.view-list .progress-section {
+    flex: 0 0 180px;
+    max-width: 180px;
+    margin-bottom: 0;
+}
+
+.projects-list.view-list .project-stats {
+    flex: 1;
+    border-top: none;
+    padding-top: 0;
+    gap: 32px;
+    justify-content: flex-end;
+}
+
+.projects-list.view-list .project-stat {
+    text-align: center;
+}
+
+.projects-list.view-list .project-stat__value {
+    font-size: 16px;
+}
+
+.projects-list.view-list .project-stat__label {
+    font-size: 11px;
+}
+
+.project-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    position: relative;
+}
+
+.project-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.project-card__title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.project-card__status {
+    background: var(--light-green);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.project-card__status--pause {
+    background: #f59e0b;
+}
+
+.project-card__status--done {
+    background: #6b7280;
+}
+
+.project-card__culture {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    color: var(--text-dark);
+}
+
+.culture-emoji {
+    font-size: 18px;
+}
+
+/* Progress Bar */
+.progress-section {
+    margin-bottom: 16px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.progress-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--light-green);
+}
+
+.progress-bar {
+    height: 6px;
+    background: #e8f5e9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar__fill {
+    height: 100%;
+    background: var(--light-green);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Project Stats */
+.project-stats {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+}
+
+.project-stat {
+    text-align: center;
+}
+
+.project-stat__value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: block;
+}
+
+.project-stat__label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .projects-hero__desc {
+        max-width: 50%;
+    }
+    
+    .stats-row {
+        justify-content: center;
+    }
+    
+    .projects-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-stats {
+        position: static;
+        transform: none;
+        margin-top: 20px;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .hero-stat-card {
+        flex: 1;
+        min-width: 90px;
+    }
+    
+    .projects-hero__desc {
+        max-width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/finance_hub_ft.css' %}">
-<link rel="stylesheet" href="{% static 'css/projects.css' %}">
-<link rel="stylesheet" href="{% static 'css/projects-v2.css' %}">
-
-<section class="projects-shell finance-ft-root" data-projects-page>
-    <script>
-    (function () {
-        var html = document.documentElement;
-        function sync() {
-            html.setAttribute('data-theme', html.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-        sync();
-        new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['class'] });
-    })();
-    </script>
-
-    <header class="finance-ft-hero projects-finance-hero">
-        <div class="finance-ft-hero__left">
-            <div class="finance-ft-badge-pill d-none d-sm-flex">
-                <i class="finance-ft-dot" aria-hidden="true"></i>
-                Gestion agricole
-            </div>
-            <h1>Mes projets</h1>
-            <p class="finance-ft-hero__sub d-none d-md-block">
-                Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide à filtrer et plus simple à piloter.
-            </p>
-            <p class="finance-ft-hero__sub d-md-none d-sm-block d-none">
-                Gérez vos parcelles efficacement.
-            </p>
-            <div class="projects-hero-actions">
-                <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent d-none d-md-inline-flex">
-                    <i class="fas fa-plus"></i> <span class="btn-text">Nouveau projet</span>
-                </a>
-                <button type="button" class="btn-modern btn-secondary-surface d-none d-sm-flex" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i> <span class="btn-text">Rafraîchir</span>
-                </button>
-            </div>
-        </div>
-        <div class="finance-ft-metrics projects-finance-metrics d-none d-md-grid">
-            <article class="finance-ft-metric">
-                <span class="finance-ft-metric__ico finance-ft-metric__ico--mint" aria-hidden="true"><i class="fas fa-eye"></i></span>
-                <span>
-                    <span class="finance-ft-metric__lbl">Visibles</span>
-                    <strong class="finance-ft-metric__val" id="projectsVisibleCount">0</strong>
-                    <span class="finance-ft-metric__suffix">vue courante</span>
-                </span>
-            </article>
-            <article class="finance-ft-metric">
-                <span class="finance-ft-metric__ico finance-ft-metric__ico--mint" aria-hidden="true"><i class="fas fa-seedling"></i></span>
-                <span>
-                    <span class="finance-ft-metric__lbl">Actifs</span>
-                    <strong class="finance-ft-metric__val" id="projectsActiveCount">0</strong>
-                    <span class="finance-ft-metric__suffix">en cours</span>
-                </span>
-            </article>
-            <article class="finance-ft-metric">
-                <span class="finance-ft-metric__ico finance-ft-metric__ico--amber" aria-hidden="true"><i class="fas fa-ruler-combined"></i></span>
-                <span>
-                    <span class="finance-ft-metric__lbl">Surface</span>
-                    <strong class="finance-ft-metric__val" id="projectsAreaCount">0 ha</strong>
-                    <span class="finance-ft-metric__suffix">sélection visible</span>
-                </span>
-            </article>
-        </div>
-    </header>
-
-    <div class="projects-hero-stats-bar" aria-label="Statistiques projets">
-        <div class="projects-hero-stat">
-            <span class="projects-hero-stat__value" id="projectsTotalCount">{{ projets|length }}</span>
-            <span class="projects-hero-stat__label">Total projets</span>
-        </div>
-        <div class="projects-hero-stat">
-            <span class="projects-hero-stat__value" id="projectsEnCoursCount">0</span>
-            <span class="projects-hero-stat__label">En cours</span>
-        </div>
-        <div class="projects-hero-stat">
-            <span class="projects-hero-stat__value" id="projectsTerminesCount">0</span>
-            <span class="projects-hero-stat__label">Terminés</span>
-        </div>
-        <div class="projects-hero-stat">
-            <span class="projects-hero-stat__value" id="projectsSurfaceTotal">0 ha</span>
-            <span class="projects-hero-stat__label">Surface totale</span>
+<section class="projects-page">
+    <!-- Hero Header -->
+    <div class="projects-hero">
+        <div class="projects-hero__label">Gestion agricole</div>
+        <h1 class="projects-hero__title">Mes projets</h1>
+        <p class="projects-hero__desc">
+            Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide à filtrer et plus simple à piloter.
+        </p>
+        <div class="projects-hero__actions">
+            <a href="{% url 'creer_projet' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> Nouveau projet
+            </a>
+            <button type="button" class="btn-outline" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Rafraîchir
+            </button>
         </div>
     </div>
 
-    <form id="delete-form" method="POST" action="{% url 'supprimer_projets' %}">
-        {% csrf_token %}
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <span class="stat-box__value" id="projectsTotalCount">{{ projets|length }}</span>
+            <span class="stat-box__label">Total projets</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-box__value" id="projectsEnCoursCount">{{ projets_en_cours|default:projets|length }}</span>
+            <span class="stat-box__label">En cours</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-box__value" id="projectsTerminesCount">{{ projets_termines|default:0 }}</span>
+            <span class="stat-box__label">Terminés</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-box__value" id="projectsSurfaceTotal">{{ superficie_totale|default:"5" }} ha</span>
+            <span class="stat-box__label">Surface totale</span>
+        </div>
+    </div>
 
-        <section class="projects-toolbar" id="actionsBar">
-            <div class="toolbar-search">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Rechercher un projet, une culture ou un produit..." autocomplete="off">
-                <button type="button" class="search-action clear-search" id="clearSearch" title="Effacer">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Search -->
+    <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un projet, une culture ou un produit...">
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-container">
+        <button type="button" class="filter-chip active" data-filter="all">Tous</button>
+        <button type="button" class="filter-chip" data-filter="en_cours">En cours</button>
+        <button type="button" class="filter-chip" data-filter="en_pause">En pause</button>
+        <button type="button" class="filter-chip" data-filter="fini">Terminés</button>
+        
+        <div class="view-toggle">
+            <button type="button" class="view-btn active" data-view="list" title="Vue liste">
+                <i class="fas fa-list"></i>
+            </button>
+            <button type="button" class="view-btn" data-view="grid" title="Vue grille">
+                <i class="fas fa-th-large"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Projects List -->
+    {% if projets %}
+    <div class="projects-list" id="projectsList">
+        {% for projet in projets %}
+        <article class="project-card" 
+                 data-id="{{ projet.id }}"
+                 data-name="{{ projet.nom|lower }}"
+                 data-status="{{ projet.statut }}"
+                 data-culture="{{ projet.culture.nom|lower|default:'' }}"
+                 data-superficie="{{ projet.superficie }}">
+            <div class="project-card__header">
+                <h3 class="project-card__title">{{ projet.nom }}</h3>
+                <span class="project-card__status project-card__status--{{ projet.statut }}">
+                    {% if projet.statut == 'en_cours' %}En cours
+                    {% elif projet.statut == 'en_pause' %}En pause
+                    {% elif projet.statut == 'fini' %}Terminé
+                    {% elif projet.statut == 'cloture' %}Clôturé
+                    {% else %}En cours{% endif %}
+                </span>
             </div>
-
-            <div class="toolbar-controls">
-                <div class="filter-chips" id="filterChips">
-                    <button type="button" class="filter-chip is-active" data-filter="all">
-                        <span class="filter-chip-dot filter-chip-dot--all"></span>Tous
-                    </button>
-                    <button type="button" class="filter-chip" data-filter="en_cours">
-                        <span class="filter-chip-dot filter-chip-dot--en_cours"></span>En cours
-                    </button>
-                    <button type="button" class="filter-chip" data-filter="en_pause">
-                        <span class="filter-chip-dot filter-chip-dot--en_pause"></span>En pause
-                    </button>
-                    <button type="button" class="filter-chip" data-filter="fini">
-                        <span class="filter-chip-dot filter-chip-dot--fini"></span>Terminés
-                    </button>
-                </div>
-
-                <div class="view-toggle" aria-label="Changer de vue">
-                    <button type="button" class="is-active" data-view="table" title="Vue tableau">
-                        <i class="fas fa-list"></i>
-                    </button>
-                    <button type="button" data-view="list" title="Vue liste">
-                        <i class="fas fa-th-list"></i>
-                    </button>
-                    <button type="button" data-view="grid" title="Vue cartes">
-                        <i class="fas fa-th-large"></i>
-                    </button>
-                </div>
-
-                <button type="button" class="btn-modern btn-secondary-surface" id="shortcutsBtn" title="Raccourcis clavier">
-                    <i class="fas fa-keyboard"></i>
-                </button>
-
-                <div class="selection-pill" id="projectsSelectionMeta">0 sélectionné</div>
-
-                <button type="submit" class="btn-delete-selection" id="deleteBtn">
-                    <i class="fas fa-trash-alt"></i>
-                    <span id="deleteCount">Supprimer (0)</span>
-                </button>
+            
+            <div class="project-card__culture">
+                <span class="culture-emoji">
+                    {% if projet.culture.nom|lower == 'riz' %}🌾
+                    {% elif projet.culture.nom|lower == 'maïs' or projet.culture.nom|lower == 'mais' %}🌽
+                    {% elif projet.culture.nom|lower == 'tomate' %}🍅
+                    {% elif projet.culture.nom|lower == 'piment' %}🌶️
+                    {% elif projet.culture.nom|lower == 'manioc' %}🥔
+                    {% elif projet.culture.nom|lower == 'arachide' %}🥜
+                    {% elif projet.culture.nom|lower == 'coton' %}☁️
+                    {% else %}🌱{% endif %}
+                </span>
+                <span>{{ projet.culture.nom|default:"Culture non définie" }}</span>
             </div>
-        </section>
-
-        {% if projets %}
-        <section class="projects-stage">
-            <div class="projects-table-shell is-active" id="tableView">
-                <div class="projects-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="checkbox-col">
-                                    <input type="checkbox" id="selectAll" aria-label="Tout sélectionner">
-                                </th>
-                                <th class="sortable" data-sort="name">Projet</th>
-                                <th class="sortable" data-sort="status">Statut</th>
-                                <th class="sortable" data-sort="superficie">Superficie</th>
-                                <th class="sortable" data-sort="date">Lancement</th>
-                                <th class="actions-col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="projectsTable">
-                            {% for projet in projets %}
-                            <tr
-                                data-id="{{ projet.id }}"
-                                data-name="{{ projet.nom|lower }}"
-                                data-culture="{{ projet.culture.nom|lower|default:'' }}"
-                                data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
-                                data-status="{{ projet.statut }}"
-                                data-superficie="{{ projet.superficie }}"
-                                data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
-                                data-detail-url="{% url 'detail_projet' projet.id %}"
-                                data-edit-url="{% url 'modifier_projet' projet.id %}"
-                                data-predict-url="{% url 'generer_prediction' projet.id %}"
-                                data-delete-url="{% url 'supprimer_projet' projet.id %}">
-                                <td class="checkbox-col">
-                                    <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" aria-label="Selectionner {{ projet.nom }}">
-                                </td>
-                                <td>
-                                    <div class="project-main">
-                                        <div class="project-name-cell editable" data-id="{{ projet.id }}" data-original="{{ projet.nom|escapejs }}">
-                                            {{ projet.nom }}
-                                        </div>
-                                        <div class="project-culture">
-                                            <i class="fas fa-seedling"></i>
-                                            {% for pp in projet.projet_produits.all %}
-                                                {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
-                                            {% empty %}
-                                                {{ projet.culture.nom|default:"N/A" }}
-                                            {% endfor %}
-                                        </div>
-                                        <div class="progress-track">
-                                            <div class="progress-bar" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
-                                        </div>
-                                        <div class="project-inline-meta">
-                                            <span>Progression</span>
-                                            <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <button
-                                        type="button"
-                                        class="status-badge status-{{ projet.statut }}"
-                                        data-status-trigger
-                                        data-id="{{ projet.id }}"
-                                        data-status="{{ projet.statut }}">
-                                        {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
-                                    </button>
-                                </td>
-                                <td>{{ projet.superficie }} ha</td>
-                                <td>{{ projet.date_lancement|date:"d/m/Y" }}</td>
-                                <td>
-                                    <div class="action-links">
-                                        <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{% url 'generer_prediction' projet.id %}" class="action-link" title="Prediction IA">
-                                            <i class="fas fa-robot"></i>
-                                        </a>
-                                        <button type="button" class="action-link action-menu-trigger" data-menu-trigger="{{ projet.id }}" title="Plus d'actions">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <div class="quick-actions-menu" id="quickActions-{{ projet.id }}">
-                                            <a href="{% url 'detail_projet' projet.id %}" class="quick-actions-item">
-                                                <i class="fas fa-eye"></i> Voir details
-                                            </a>
-                                            <a href="{% url 'modifier_projet' projet.id %}" class="quick-actions-item">
-                                                <i class="fas fa-edit"></i> Modifier
-                                            </a>
-                                            <a href="{% url 'generer_prediction' projet.id %}" class="quick-actions-item">
-                                                <i class="fas fa-robot"></i> Prediction IA
-                                            </a>
-                                            <div class="context-menu-divider"></div>
-                                            <a href="{% url 'supprimer_projet' projet.id %}" class="quick-actions-item danger" data-confirm-delete>
-                                                <i class="fas fa-trash"></i> Supprimer
-                                            </a>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span class="progress-label">Avancement</span>
+                    <span class="progress-value">
+                        {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100%
+                        {% elif projet.statut == 'en_pause' %}50%
+                        {% elif projet.progression %}{{ projet.progression }}%
+                        {% else %}75%{% endif %}
+                    </span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-bar__fill" data-progress="{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% elif projet.progression %}{{ projet.progression }}{% else %}75{% endif %}"></div>
                 </div>
             </div>
-
-            <div class="projects-grid-shell" id="gridView">
-                <div class="projects-grid">
-                    {% for projet in projets %}
-                    <article
-                        class="project-card"
-                        data-id="{{ projet.id }}"
-                        data-name="{{ projet.nom|lower }}"
-                        data-culture="{{ projet.culture.nom|lower|default:'' }}"
-                        data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
-                        data-superficie="{{ projet.superficie }}"
-                        data-status="{{ projet.statut }}"
-                        data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
-                        data-detail-url="{% url 'detail_projet' projet.id %}"
-                        data-edit-url="{% url 'modifier_projet' projet.id %}">
-                        <span class="project-card-status-badge project-card-status-badge--{{ projet.statut }}">
-                            {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
-                        </span>
-                        <button type="button" class="project-card-checkbox" data-card-checkbox="{{ projet.id }}" aria-label="Selectionner {{ projet.nom }}"></button>
-                        <button type="button" class="project-card-body" data-quick-view="{{ projet.id }}">
-                            <div class="project-card-top">
-                                <div>
-                                    <h2 class="project-card-title">{{ projet.nom }}</h2>
-                                    <div class="project-card-culture">
-                                        <span class="project-card-culture-emoji">🌾</span>
-                                        {% for pp in projet.projet_produits.all %}
-                                            {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
-                                        {% empty %}
-                                            {{ projet.culture.nom|default:"N/A" }}
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="project-card-progress">
-                                <div class="progress-track">
-                                    <div class="progress-bar progress-bar--{{ projet.statut }}" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
-                                </div>
-                                <div class="project-inline-meta">
-                                    <span>Progression</span>
-                                    <strong>{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%</strong>
-                                </div>
-                            </div>
-
-                            <div class="project-card-stats">
-                                <div class="project-card-stat">
-                                    <span class="project-card-stat-label">Superficie</span>
-                                    <strong class="project-card-stat-value">{{ projet.superficie }} ha</strong>
-                                </div>
-                                <div class="project-card-stat">
-                                    <span class="project-card-stat-label">Produits</span>
-                                    <strong class="project-card-stat-value">{{ projet.projet_produits.count|default:"0" }}</strong>
-                                </div>
-                                <div class="project-card-stat">
-                                    <span class="project-card-stat-label">Rendement</span>
-                                    <strong class="project-card-stat-value">{% if projet.rendement_total_final %}{{ projet.rendement_total_final }} kg{% else %}—{% endif %}</strong>
-                                </div>
-                            </div>
-                        </button>
-
-                        <div class="project-card-actions">
-                            <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'generer_prediction' projet.id %}" class="action-link" title="Prediction IA">
-                                <i class="fas fa-robot"></i>
-                            </a>
-                        </div>
-                    </article>
-                    {% endfor %}
+            
+            <div class="project-stats">
+                <div class="project-stat">
+                    <span class="project-stat__value">{{ projet.localite|default:"Satuate" }}</span>
+                    <span class="project-stat__label">Status en fntre</span>
+                </div>
+                <div class="project-stat">
+                    <span class="project-stat__value">{{ projet.superficie|default:"5,00" }} ha</span>
+                    <span class="project-stat__label">Surface</span>
+                </div>
+                <div class="project-stat">
+                    <span class="project-stat__value">{{ projet.date_lancement|date:"d/m/Y"|default:"09/05/2026" }}</span>
+                    <span class="project-stat__label">Date de projet</span>
                 </div>
             </div>
-
-            <div class="projects-list-shell" id="listView">
-                <div class="projects-list-view">
-                    {% for projet in projets %}
-                    <div
-                        class="project-list-item"
-                        data-id="{{ projet.id }}"
-                        data-name="{{ projet.nom|lower }}"
-                        data-culture="{{ projet.culture.nom|lower|default:'' }}"
-                        data-products="{% for pp in projet.projet_produits.all %}{{ pp.produit.nom|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{{ projet.culture.nom|lower|default:'' }}{% endfor %}"
-                        data-superficie="{{ projet.superficie }}"
-                        data-status="{{ projet.statut }}"
-                        data-date="{{ projet.date_lancement|date:'Y-m-d' }}"
-                        data-detail-url="{% url 'detail_projet' projet.id %}">
-                        <div class="project-list-item__checkbox">
-                            <input type="checkbox" name="projets" value="{{ projet.id }}" class="project-checkbox" aria-label="Selectionner {{ projet.nom }}">
-                        </div>
-                        <div class="project-list-item__main">
-                            <span class="project-list-item__name">{{ projet.nom }}</span>
-                            <span class="project-list-item__culture">
-                                <span class="project-card-culture-emoji">🌾</span>
-                                {% for pp in projet.projet_produits.all %}
-                                    {{ pp.produit.nom }}{% if not forloop.last %}, {% endif %}
-                                {% empty %}
-                                    {{ projet.culture.nom|default:"N/A" }}
-                                {% endfor %}
-                            </span>
-                        </div>
-                        <div class="project-list-item__status">
-                            <span class="status-badge status-{{ projet.statut }}">
-                                {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}En pause{% elif projet.statut == 'cloture' %}Clôturé{% elif projet.statut == 'fini' %}Fini{% else %}—{% endif %}
-                            </span>
-                        </div>
-                        <div class="project-list-item__progress">
-                            <div class="project-list-item__progress-track">
-                                <div class="project-list-item__progress-bar progress-bar--{{ projet.statut }}" style="width: {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% else %}75{% endif %}%"></div>
-                            </div>
-                        </div>
-                        <div class="project-list-item__meta">{{ projet.superficie }} ha</div>
-                        <div class="project-list-item__meta">
-                            <a href="{% url 'detail_projet' projet.id %}" class="action-link" title="Voir"><i class="fas fa-eye"></i></a>
-                            <a href="{% url 'modifier_projet' projet.id %}" class="action-link" title="Modifier"><i class="fas fa-edit"></i></a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-        {% else %}
-        <section class="empty-state">
-            <div class="empty-state-visual">
-                <i class="fas fa-folder-open"></i>
-                <span class="empty-state-badge">🌱</span>
-            </div>
-            <h2 class="empty-state-title">Aucun projet pour le moment</h2>
-            <p class="empty-state-text">Créez votre premier projet agricole pour commencer à suivre vos cultures.</p>
-            <div class="empty-state-hints">
-                <div class="empty-state-hint">
-                    <i class="fas fa-seedling"></i>
-                    <span>Suivi cultures</span>
-                </div>
-                <div class="empty-state-hint">
-                    <i class="fas fa-robot"></i>
-                    <span>Prédictions IA</span>
-                </div>
-                <div class="empty-state-hint">
-                    <i class="fas fa-users"></i>
-                    <span>Gestion équipe</span>
-                </div>
-                <div class="empty-state-hint">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Analytics</span>
-                </div>
-            </div>
-            <a href="{% url 'creer_projet' %}" class="btn-modern btn-accent">
+            
+            <a href="{% url 'detail_projet' projet.id %}" class="project-card__link" style="position:absolute;inset:0;z-index:1;"></a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="projects-list">
+        <div class="project-card" style="text-align:center;padding:40px;">
+            <div style="font-size:48px;margin-bottom:16px;">🌱</div>
+            <h3 style="margin-bottom:8px;">Aucun projet pour le moment</h3>
+            <p style="color:var(--text-muted);margin-bottom:24px;">Créez votre premier projet agricole pour commencer à suivre vos cultures.</p>
+            <a href="{% url 'creer_projet' %}" class="btn-primary">
                 <i class="fas fa-plus"></i> Créer mon premier projet
             </a>
-        </section>
-        {% endif %}
-    </form>
-
-    <div class="context-menu" id="contextMenu">
-        <a href="#" class="context-menu-item" id="ctxView">
-            <i class="fas fa-eye"></i> Voir détails
-        </a>
-        <a href="#" class="context-menu-item" id="ctxEdit">
-            <i class="fas fa-edit"></i> Modifier
-        </a>
-        <a href="#" class="context-menu-item" id="ctxPredict">
-            <i class="fas fa-robot"></i> Prédiction IA
-        </a>
-        <div class="context-menu-divider"></div>
-        <button type="button" class="context-menu-item" id="ctxStatus">
-            <i class="fas fa-tag"></i> Changer statut
-        </button>
-        <div class="context-menu-divider"></div>
-        <a href="#" class="context-menu-item danger" id="ctxDelete" data-confirm-delete>
-            <i class="fas fa-trash"></i> Supprimer
-        </a>
-    </div>
-
-    <div class="status-menu" id="statusMenu">
-        <button type="button" class="status-menu-item" data-status-value="en_cours">En cours</button>
-        <button type="button" class="status-menu-item" data-status-value="en_pause">En pause</button>
-        <button type="button" class="status-menu-item" data-status-value="fini">Fini</button>
-        <button type="button" class="status-menu-item" data-status-value="cloture">Clôturé (comptable)</button>
-    </div>
-
-    <div class="modal-overlay" id="quickViewModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="quickViewTitle">Details du projet</h3>
-                <button type="button" class="modal-close" data-close-quick-view>&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-project-detail" id="quickViewContent"></div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn-modern btn-secondary-surface" data-close-quick-view>Fermer</button>
-                <a href="#" class="btn-modern btn-accent" id="quickViewEdit">Modifier</a>
-            </div>
         </div>
     </div>
-
-    <div class="shortcuts-panel" id="shortcutsPanel">
-        <div class="shortcuts-header">
-            <strong>Raccourcis clavier</strong>
-            <button type="button" class="modal-close" id="closeShortcutsBtn">&times;</button>
-        </div>
-        <div class="shortcuts-list">
-            <div class="shortcut-item"><span>Nouveau projet</span><span class="shortcut-key">N</span></div>
-            <div class="shortcut-item"><span>Rechercher</span><span class="shortcut-key">/</span></div>
-            <div class="shortcut-item"><span>Tout selectionner</span><span class="shortcut-key">Ctrl+A</span></div>
-            <div class="shortcut-item"><span>Supprimer selection</span><span class="shortcut-key">Del</span></div>
-            <div class="shortcut-item"><span>Vue grille</span><span class="shortcut-key">G</span></div>
-            <div class="shortcut-item"><span>Vue tableau</span><span class="shortcut-key">T</span></div>
-            <div class="shortcut-item"><span>Afficher raccourcis</span><span class="shortcut-key">?</span></div>
-        </div>
-    </div>
-
-    <div class="toast-container" id="toastContainer"></div>
+    {% endif %}
 </section>
 
-{% block extra_js %}
-<script src="{% static 'js/projects.js' %}"></script>
-{% endblock %}
+<script>
+// Simple filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterChips = document.querySelectorAll('.filter-chip');
+    const projectCards = document.querySelectorAll('.project-card');
+    const searchInput = document.getElementById('searchInput');
+    
+    // Filter chips
+    filterChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            filterChips.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            filterProjects(filter, searchInput.value.toLowerCase());
+        });
+    });
+    
+    // Search
+    searchInput.addEventListener('input', function() {
+        const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
+        filterProjects(activeFilter, this.value.toLowerCase());
+    });
+    
+    function filterProjects(statusFilter, searchTerm) {
+        projectCards.forEach(card => {
+            const cardStatus = card.dataset.status;
+            const cardName = card.dataset.name;
+            const cardCulture = card.dataset.culture;
+            
+            const matchesStatus = statusFilter === 'all' || cardStatus === statusFilter;
+            const matchesSearch = !searchTerm || 
+                cardName.includes(searchTerm) || 
+                cardCulture.includes(searchTerm);
+            
+            card.style.display = matchesStatus && matchesSearch ? 'block' : 'none';
+        });
+        
+        // Update visible count
+        const visibleCount = Array.from(projectCards).filter(c => c.style.display !== 'none').length;
+        document.getElementById('projectsVisibleCount').textContent = visibleCount;
+    }
+    
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        location.reload();
+    });
+    
+    // Initialize progress bars
+    document.querySelectorAll('.progress-bar__fill').forEach(bar => {
+        const progress = bar.dataset.progress;
+        if (progress) {
+            bar.style.width = progress + '%';
+        }
+    });
+    
+    // View toggle (list/grid)
+    const viewBtns = document.querySelectorAll('.view-btn');
+    const projectsList = document.getElementById('projectsList');
+    
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Update active button
+            viewBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update list view
+            if (view === 'grid') {
+                projectsList.classList.remove('view-list');
+                projectsList.classList.add('view-grid');
+            } else {
+                projectsList.classList.remove('view-grid');
+                projectsList.classList.add('view-list');
+            }
+            
+            // Save preference
+            localStorage.setItem('projectsView', view);
+        });
+    });
+    
+    // Restore saved view preference
+    const savedView = localStorage.getItem('projectsView') || 'list';
+    const savedBtn = document.querySelector(`.view-btn[data-view="${savedView}"]`);
+    if (savedBtn) {
+        savedBtn.click();
+    }
+});
+</script>
 {% endblock %}

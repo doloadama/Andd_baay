@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andd Baay - Présentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .slide {
+            width: 297mm;
+            height: 210mm;
+            padding: 40px 60px;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slide:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Slide 1 - Cover */
+        .slide-cover {
+            background: linear-gradient(135deg, #6b9080 0%, #7dae8e 50%, #a4c3b2 100%);
+            color: white;
+            text-align: center;
+            justify-content: center;
+        }
+        
+        .slide-cover h1 {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .slide-cover .tagline {
+            font-size: 28px;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 40px;
+        }
+        
+        .slide-cover .subtitle {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        /* Content slides */
+        .slide-content h2 {
+            font-size: 42px;
+            color: #5f7a6e;
+            margin-bottom: 30px;
+            border-bottom: 4px solid #a4c3b2;
+            padding-bottom: 15px;
+        }
+        
+        .slide-content h3 {
+            font-size: 24px;
+            color: #6b9080;
+            margin: 20px 0 15px;
+        }
+        
+        .slide-content p {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #444;
+        }
+        
+        .slide-content ul {
+            font-size: 18px;
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .slide-content li {
+            margin-bottom: 12px;
+        }
+        
+        /* Problem slide */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .problem-card {
+            background: #fdf6f0;
+            border-left: 5px solid #d4a373;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        
+        .problem-card h4 {
+            color: #b07d62;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .problem-card p {
+            font-size: 16px;
+            color: #555;
+        }
+        
+        /* Solution slide */
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .solution-card {
+            background: #f0f6f3;
+            border-left: 5px solid #90c6a2;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        
+        .solution-card h4 {
+            color: #5f7a6e;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .solution-card p {
+            font-size: 16px;
+            color: #555;
+        }
+        
+        /* Market slide */
+        .market-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin: 30px 0;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 30px;
+            background: #f0f6f3;
+            border-radius: 12px;
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: #5f7a6e;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* Competition table */
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        .comp-table th {
+            background: #6b9080;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .comp-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comp-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        /* Advantages slide */
+        .advantage-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .advantage-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .advantage-number {
+            width: 40px;
+            height: 40px;
+            background: #6b9080;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .advantage-text h4 {
+            color: #5f7a6e;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .advantage-text p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Footer */
+        .slide-number {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .logo-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 30px;
+            font-size: 14px;
+            color: #6b9080;
+            font-weight: 600;
+        }
+        
+        /* Two column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .highlight-box {
+            background: #6b9080;
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+        
+        .highlight-box h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .slide {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SLIDE 1: Cover -->
+<div class="slide slide-cover">
+    <h1>Andd Baay</h1>
+    <p class="tagline">Plateforme collaborative de gestion agricole</p>
+    <p class="subtitle">Messagerie temps réel, workflows hiérarchisés et IA prédictive pour les exploitations sahéliennes</p>
+</div>
+
+<!-- SLIDE 2: Le Problème -->
+<div class="slide slide-content">
+    <h2>Le Problème</h2>
+    <p style="font-size: 22px; margin-bottom: 30px;">Les exploitations sahéliennes font face à un manque d'outils numériques adaptés :</p>
+    
+    <div class="problem-grid">
+        <div class="problem-card">
+            <h4>Gestion dispersée</h4>
+            <p>Données sur papier, Excel ou mémoire. Pas de centralisation des informations sur les cultures, semis et tâches.</p>
+        </div>
+        <div class="problem-card">
+            <h4>Communication chaotique</h4>
+            <p>Groupes WhatsApp sans traçabilité, informations perdues, pas de contexte lié aux projets agricoles.</p>
+        </div>
+        <div class="problem-card">
+            <h4>Décisions sans données</h4>
+            <p>Absence de prévisions fiables pour anticiper les rendements et optimiser les choix de culture.</p>
+        </div>
+    </div>
+    
+    <div class="highlight-box">
+        <h3>Conséquence</h3>
+        <p style="font-size: 18px;">Perte de productivité, mauvaise coordination des équipes et décisions agronomiques sous-optimales.</p>
+    </div>
+    <span class="slide-number">2/7</span>
+    <span class="logo-footer">Andd Baay</span>
+</div>
+
+<!-- SLIDE 3: La Solution -->
+<div class="slide slide-content">
+    <h2>Notre Solution</h2>
+    <p style="font-size: 22px; margin-bottom: 25px;">Andd Baay centralise la gestion des exploitations dans un outil unique et collaboratif :</p>
+    
+    <div class="solution-grid">
+        <div class="solution-card">
+            <h4>Organisation hiérarchisée</h4>
+            <p>Gestion des fermes avec codes d'accès, projets agricoles, semis et tâches assignées selon les rôles (propriétaire → ouvrier).</p>
+        </div>
+        <div class="solution-card">
+            <h4>Messagerie temps réel</h4>
+            <p>Conversations privées et groupées, pièces jointes, accusés de lecture, notifications instantanées — remplaçant WhatsApp.</p>
+        </div>
+        <div class="solution-card">
+            <h4>Intelligence agronomique</h4>
+            <p>Prévisions de rendement basées sur Scikit-learn et règles métier (cycle culture, besoins eau, historique sols NPK).</p>
+        </div>
+        <div class="solution-card">
+            <h4>Accessibilité mobile</h4>
+            <p>PWA installable sur tous smartphones, fonctionnement offline, synchronisation différée pour zones à faible connectivité.</p>
+        </div>
+    </div>
+    
+    <div class="highlight-box" style="background: #7dae8e;">
+        <p style="font-size: 20px; text-align: center;">Web + Mobile | Email/Google OAuth | PWA installable</p>
+    </div>
+    <span class="slide-number">3/7</span>
+    <span class="logo-footer">Andd Baay</span>
+</div>
+
+<!-- SLIDE 4: Marché Cible -->
+<div class="slide slide-content">
+    <h2>Marché Cible</h2>
+    
+    <div class="market-stats">
+        <div class="stat-box">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Pays du Sahel ciblés</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">30-50 ha</div>
+            <div class="stat-label">Taille moyenne cible</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">500K+</div>
+            <div class="stat-label">Exploitations adressables</div>
+        </div>
+    </div>
+    
+    <div class="two-col" style="margin-top: 30px;">
+        <div>
+            <h3>Géographie prioritaire</h3>
+            <ul style="font-size: 18px;">
+                <li>Sénégal, Mali, Burkina Faso</li>
+                <li>Niger, Tchad, Guinée</li>
+                <li>Côte d'Ivoire, Ghana</li>
+            </ul>
+        </div>
+        <div>
+            <h3>Profils clients</h3>
+            <ul style="font-size: 18px;">
+                <li>Exploitations familiales structurées</li>
+                <li>Coopératives agricoles</li>
+                <li>Entreprises agricoles avec équipes hiérarchisées</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="highlight-box">
+        <p style="font-size: 18px;"><strong>Segment prioritaire :</strong> Fermes avec connexion internet (même intermittente) mais utilisant encore Excel, papier ou WhatsApp pour la coordination.</p>
+    </div>
+    <span class="slide-number">4/7</span>
+    <span class="logo-footer">Andd Baay</span>
+</div>
+
+<!-- SLIDE 5: Concurrence -->
+<div class="slide slide-content">
+    <h2>Panorama Concurrentiel</h2>
+    
+    <table class="comp-table">
+        <tr>
+            <th>Entreprise</th>
+            <th>Pays</th>
+            <th>Positionnement</th>
+            <th>Différence Andd Baay</th>
+        </tr>
+        <tr>
+            <td><strong>Shambapro</strong></td>
+            <td>Ghana</td>
+            <td>Gestion ferme et finances</td>
+            <td>Focus finances, pas de messagerie temps réel</td>
+        </tr>
+        <tr>
+            <td><strong>Complete Farmer</strong></td>
+            <td>Ghana</td>
+            <td>Marketplace agriculteurs-acheteurs</td>
+            <td>Focus marchés, moins sur gestion interne équipe</td>
+        </tr>
+        <tr>
+            <td><strong>Apollo Agriculture</strong></td>
+            <td>Kenya</td>
+            <td>Financement + intrants + conseil</td>
+            <td>Modèle crédit/prêt, pas gestion collaborative</td>
+        </tr>
+        <tr>
+            <td><strong>Thrive Agric</strong></td>
+            <td>Nigeria</td>
+            <td>Crowdfunding + accès intrants</td>
+            <td>Modèle d'investissement, pas outil quotidien</td>
+        </tr>
+        <tr>
+            <td><strong>FarmERP</strong></td>
+            <td>Inde/Afrique</td>
+            <td>ERP cloud grandes exploitations</td>
+            <td>Cible grandes agribusiness, complexité supérieure</td>
+        </tr>
+        <tr>
+            <td><strong>AgriPredict</strong></td>
+            <td>Zambie</td>
+            <td>IA détection maladies</td>
+            <td>Focus surveillance cultures, pas collaboration équipe</td>
+        </tr>
+    </table>
+    
+    <div class="highlight-box" style="background: #d4a373;">
+        <p style="font-size: 18px; text-align: center;"><strong>Aucun concurrent ne combine gestion hiérarchisée + messagerie temps réel + IA prédictive dans une interface collaborative.</strong></p>
+    </div>
+    <span class="slide-number">5/7</span>
+    <span class="logo-footer">Andd Baay</span>
+</div>
+
+<!-- SLIDE 6: Avantages Concurrentiels -->
+<div class="slide slide-content">
+    <h2>Nos Avantages Concurrentiels</h2>
+    
+    <div class="advantage-list">
+        <div class="advantage-item">
+            <div class="advantage-number">1</div>
+            <div class="advantage-text">
+                <h4>Messagerie temps réel intégrée</h4>
+                <p>WebSocket natif avec accusés de lecture, pièces jointes, réponses threadées — directement dans le contexte des projets agricoles.</p>
+            </div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-number">2</div>
+            <div class="advantage-text">
+                <h4>Hiérarchie de rôles stricte</h4>
+                <p>Permissions granulaires reflétant la réalité organisationnelle sahélienne (propriétaire → manager → technicien → ouvrier).</p>
+            </div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-number">3</div>
+            <div class="advantage-text">
+                <h4>IA prédictive métier</h4>
+                <p>Scikit-learn + règles agronomiques locales (cycle culture, besoins eau, historique sols NPK) avec indice de confiance.</p>
+            </div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-number">4</div>
+            <div class="advantage-text">
+                <h4>PWA mobile-first offline</h4>
+                <p>Compatible feature phones et smartphones bas de gamme, synchronisation différée pour connectivité intermittente.</p>
+            </div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-number">5</div>
+            <div class="advantage-text">
+                <h4>Onboarding par code d'accès</h4>
+                <p>Rejoindre une ferme en 10 secondes, optimisé pour les ouvriers sans adresse email professionnelle.</p>
+            </div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-number">6</div>
+            <div class="advantage-text">
+                <h4>Soil Ledger intégré</h4>
+                <p>Suivi historique pH et NPK des parcelles pour guider la rotation des cultures — données rares dans les ERP généralistes.</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">6/7</span>
+    <span class="logo-footer">Andd Baay</span>
+</div>
+
+<!-- SLIDE 7: Synthèse -->
+<div class="slide slide-content">
+    <h2>Synthèse</h2>
+    
+    <div class="two-col">
+        <div>
+            <h3>Ce que nous sommes</h3>
+            <p style="font-size: 20px;">Une <strong>SaaS agricole</strong> combinant gestion de projet, messagerie collaborative et intelligence artificielle — conçue spécifiquement pour la coordination d'équipe sur le terrain.</p>
+            
+            <h3 style="margin-top: 30px;">Notre promesse</h3>
+            <p style="font-size: 20px;">Transformer la <strong>coordination chaotique</strong> des exploitations sahéliennes en <strong>workflows structurés</strong> et data-driven.</p>
+        </div>
+        <div>
+            <h3>Stack technique</h3>
+            <ul style="font-size: 16px;">
+                <li><strong>Backend :</strong> Django 5, Django REST, Channels/WebSocket</li>
+                <li><strong>Frontend :</strong> Django Templates, Bootstrap 5, PWA</li>
+                <li><strong>IA :</strong> Scikit-learn, règles métier agronomiques</li>
+                <li><strong>Déploiement :</strong> Docker, Render, Vercel</li>
+            </ul>
+            
+            <h3 style="margin-top: 25px;">Prochaines étapes</h3>
+            <ul style="font-size: 16px;">
+                <li>Déploiement pilote avec 3-5 exploitations</li>
+                <li>Itération sur le modèle de pricing</li>
+                <li>Levée de fonds seed</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="highlight-box" style="margin-top: 40px; text-align: center;">
+        <h3 style="color: #fff; margin-bottom: 10px;">Andd Baay</h3>
+        <p style="font-size: 24px;">La première plateforme de <strong>collaboration agricole</strong> conçue pour le Sahel</p>
+    </div>
+    <span class="slide-number">7/7</span>
+    <span class="logo-footer">Andd Baay</span>
+</div>
+
+</body>
+</html>

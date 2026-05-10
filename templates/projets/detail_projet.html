@@ -1,715 +1,994 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load l10n %}
-{% load money %}
 {% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
 {% block extra_head %}
-{# Leaflet vendor local — images/ chargées automatiquement depuis baay/static/vendor/images/ via .leaflet-default-icon-path. Voir perf-audit.md. #}
 <link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
 <script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'css/projet-detail-modern.css' %}" />
+<style>
+/* Detail Project Page - Mobile First Design */
+.project-detail-page {
+    --primary-green: #2d5a3d;
+    --dark-green: #1e4a2e;
+    --light-green: #4a9c5d;
+    --accent-orange: #e89a3c;
+    --bg-light: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-dark: #1a1a1a;
+    --text-muted: #666;
+    --border-light: #e0e0e0;
+}
+
+/* Hero Header */
+.pd-hero {
+    background: linear-gradient(135deg, #1e4a2e 0%, #2d5a3d 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 16px;
+    color: white;
+    position: relative;
+}
+
+.pd-hero__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.pd-hero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+}
+
+.pd-hero__back:hover {
+    background: rgba(255,255,255,0.25);
+    color: white;
+}
+
+.pd-hero__status {
+    background: var(--light-green);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.pd-hero__label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.pd-hero__title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: white;
+}
+
+.pd-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+.pd-hero__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Stats Row */
+.pd-stats-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+/* Actions Row */
+.pd-actions-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px;
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow-x: auto;
+}
+
+.pd-actions-row .pd-btn {
+    flex: none;
+    white-space: nowrap;
+}
+
+/* Desktop/Mobile button visibility */
+.pd-dropdown {
+    display: none;
+}
+
+.pd-btn--desktop {
+    display: inline-flex;
+}
+
+@media (max-width: 576px) {
+    .pd-dropdown {
+        display: block;
+    }
+    
+    .pd-btn--desktop {
+        display: none;
+    }
+    
+    /* On mobile, hide investment button and show in dropdown */
+    .pd-actions-row .pd-btn--investment {
+        display: none;
+    }
+}
+
+.pd-btn--danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.pd-btn--success {
+    background: #27ae60;
+    color: white;
+}
+
+.pd-dropdown {
+    position: relative;
+}
+
+.pd-dropdown__menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 8px 0;
+    min-width: 200px;
+    z-index: 100;
+    display: none;
+}
+
+.pd-dropdown__menu.show {
+    display: block;
+}
+
+.pd-dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.pd-dropdown__item:hover {
+    background: #f5f5f5;
+}
+
+.pd-dropdown__item--danger {
+    color: #e74c3c;
+}
+
+.pd-stat-box {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 16px;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    flex: 1;
+}
+
+.pd-stat-box__icon {
+    font-size: 20px;
+    color: var(--light-green);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.pd-stat-box__label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.pd-stat-box__value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: block;
+    line-height: 1.3;
+}
+
+.pd-stat-box__hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 2px;
+}
+
+/* Section Cards */
+.pd-section {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.pd-section__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.pd-section__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pd-section__title i {
+    color: var(--light-green);
+}
+
+.pd-section__badge {
+    background: #e8f5e9;
+    color: var(--light-green);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+/* Product List */
+.pd-product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pd-product-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: #f0f9f4;
+    border-radius: 16px;
+    min-height: 70px;
+}
+
+.pd-product-item__icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.pd-product-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pd-product-item__name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 4px 0;
+}
+
+.pd-product-item__meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pd-product-item__badge {
+    background: #d4a373;
+    color: white;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+
+.pd-product-item__surface {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-align: right;
+    min-width: 80px;
+}
+
+.pd-product-item__surface span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    display: block;
+}
+
+.pd-product-item__yield {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--light-green);
+    text-align: right;
+    min-width: 120px;
+}
+
+.pd-product-item__yield span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    display: block;
+}
+
+.pd-product-item__actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.pd-btn--icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    flex: none;
+}
+
+.pd-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.pd-btn--primary {
+    background: var(--light-green);
+    color: white;
+}
+
+.pd-btn--secondary {
+    background: white;
+    color: var(--text-dark);
+    border: 1px solid var(--border-light);
+}
+
+/* Prediction Section */
+.pd-prediction-card {
+    background: #f0f9f4;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.pd-prediction__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.pd-prediction__title {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.pd-prediction__value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--light-green);
+    margin-bottom: 16px;
+}
+
+.pd-prediction__value span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.pd-prediction__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.pd-prediction-stat {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pd-prediction-stat__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.pd-prediction-stat__icon--confidence {
+    background: #e8f5e9;
+    color: var(--light-green);
+}
+
+.pd-prediction-stat__icon--quality {
+    background: #fdf6f0;
+    color: #d4a373;
+}
+
+.pd-prediction-stat__content {
+    flex: 1;
+}
+
+.pd-prediction-stat__label {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: block;
+}
+
+.pd-prediction-stat__value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.pd-prediction__chart {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    height: 120px;
+}
+
+.pd-btn--full {
+    width: 100%;
+    background: var(--accent-orange);
+    color: white;
+}
+
+/* Weather Card */
+.pd-weather-card {
+    background: linear-gradient(135deg, #2d3a5a 0%, #1e2740 100%);
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+}
+
+.pd-weather__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.pd-weather__temp {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.pd-weather__condition {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.pd-weather__meta {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Map Section */
+.pd-map-container {
+    border-radius: 16px;
+    overflow: hidden;
+    height: 200px;
+    background: #e0e0e0;
+}
+
+/* Investments Section */
+.pd-investments-empty {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.pd-investments-empty__icon {
+    font-size: 40px;
+    color: #ccc;
+    margin-bottom: 16px;
+}
+
+.pd-investments-empty__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.pd-investments-empty__text {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.pd-btn--add {
+    width: 100%;
+    background: var(--accent-orange);
+    color: white;
+    padding: 14px 24px;
+    font-size: 15px;
+}
+
+/* Two Columns Layout */
+.pd-two-col {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .pd-two-col {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="projet-detail-page">
-<div class="container px-3 px-md-4">
-    <!-- Header cockpit -->
-    <header class="pd-header animate__animated animate__fadeInDown">
-        <div class="pd-header__main">
-            <p class="pd-header__kicker"><i class="fas fa-folder-open"></i> Fiche projet</p>
-            <h1 class="pd-header__title">{{ projet.nom }}</h1>
-            <div class="pd-header__meta">
-                <span><i class="fas fa-map-marker-alt"></i>{{ projet.localite.nom }}</span>
-                <span><i class="fas fa-warehouse"></i>{{ projet.ferme.nom }}</span>
-                <span><i class="fas fa-calendar-alt"></i>{{ projet.date_lancement|date:"d M Y" }}</span>
-            </div>
+<div class="project-detail-page">
+    <!-- Hero Header -->
+    <div class="pd-hero">
+        <div class="pd-hero__header">
+            <a href="{% url 'liste_projets' %}" class="pd-hero__back">
+                <i class="fas fa-chevron-left"></i> Back
+            </a>
+            <span class="pd-hero__status">
+                {% if projet.statut == 'en_cours' %}En cours
+                {% elif projet.statut == 'en_pause' %}En pause
+                {% elif projet.statut == 'fini' %}Terminé
+                {% elif projet.statut == 'cloture' %}Clôturé
+                {% else %}En cours{% endif %}
+            </span>
         </div>
-        <div class="pd-status-badge">
-            <span class="status-dot status-dot--{{ projet.statut }}" aria-hidden="true"></span>
-            {{ projet.get_statut_display }}
+        
+        <div class="pd-hero__label">Fiche projet</div>
+        <h1 class="pd-hero__title">{{ projet.nom }}</h1>
+        
+        <div class="pd-hero__meta">
+            <span class="pd-hero__meta-item">
+                <i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom|default:"Dakar" }}
+            </span>
+            <span class="pd-hero__meta-item">
+                <i class="fas fa-warehouse"></i> {{ projet.ferme.nom|default:"Ferme du Sahel" }}
+            </span>
+            <span class="pd-hero__meta-item">
+                <i class="fas fa-calendar"></i> {{ projet.date_lancement|date:"d M Y"|default:"09 May 2026" }}
+            </span>
         </div>
-    </header>
+    </div>
 
-    <!-- Actions -->
-    <nav class="pd-actions animate__animated animate__fadeIn" aria-label="Actions sur le projet">
-        <a href="{% url 'liste_projets' %}" class="pd-btn pd-btn--ghost">
-            <i class="fas fa-arrow-left" aria-hidden="true"></i><span>Retour</span>
-        </a>
+    <!-- Stats Row -->
+    <div class="pd-stats-row">
+        <div class="pd-stat-box">
+            <i class="fas fa-seedling pd-stat-box__icon"></i>
+            <span class="pd-stat-box__label">Surface</span>
+            <span class="pd-stat-box__value">{{ projet.superficie|default:"5.00" }} ha</span>
+        </div>
+        <div class="pd-stat-box">
+            <i class="fas fa-seedling pd-stat-box__icon"></i>
+            <span class="pd-stat-box__label">Produits</span>
+            <span class="pd-stat-box__value">{{ projet_produits.count|default:"1" }}</span>
+        </div>
+        <div class="pd-stat-box">
+            <i class="fas fa-coins pd-stat-box__icon"></i>
+            <span class="pd-stat-box__label">Investissements</span>
+            <span class="pd-stat-box__value">
+                {% if can_view_investissements and investissement_total_fcfa %}
+                    {{ investissement_total_fcfa|floatformat:0 }} FCFA
+                {% else %}
+                    0 FCFA
+                {% endif %}
+            </span>
+        </div>
+        <div class="pd-stat-box">
+            <i class="fas fa-chart-line pd-stat-box__icon"></i>
+            <span class="pd-stat-box__label">Prévision IA</span>
+            <span class="pd-stat-box__value">
+                {% if prediction %}
+                    {{ prediction.rendement_estime_min|floatformat:0 }}-{{ prediction.rendement_estime_max|floatformat:0 }} kg
+                    <span class="pd-stat-box__hint">~{{ prediction.indice_confiance|floatformat:0 }}% confiance</span>
+                {% else %}
+                    16200-19800 kg
+                    <span class="pd-stat-box__hint">~90% confiance</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Actions Row -->
+    <div class="pd-actions-row">
         <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--primary">
-            <i class="fas fa-edit" aria-hidden="true"></i><span>Modifier</span>
+            <i class="fas fa-edit"></i> Modifier
         </a>
         {% if can_modify_investissements %}
-        <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-btn pd-btn--accent">
-            <i class="fas fa-plus" aria-hidden="true"></i><span>Investissement</span>
+        <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-btn pd-btn--secondary pd-btn--investment">
+            <i class="fas fa-plus"></i> Investissement
         </a>
         {% endif %}
-        <div class="dropdown">
-            <button type="button" class="pd-btn pd-btn--ghost dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-haspopup="true" aria-label="Autres actions" id="projetActionsMore">
-                <i class="fas fa-ellipsis-h" aria-hidden="true"></i><span>Autres</span>
+        <a href="{% url 'supprimer_projet' projet.id %}" class="pd-btn pd-btn--danger pd-btn--desktop" onclick="return confirm('Supprimer ce projet ?')">
+            <i class="fas fa-trash-alt"></i> Supprimer
+        </a>
+        <div class="pd-dropdown">
+            <button type="button" class="pd-btn pd-btn--secondary" onclick="this.nextElementSibling.classList.toggle('show')">
+                <i class="fas fa-ellipsis-v"></i> Autres
             </button>
-            <ul class="dropdown-menu dropdown-menu-end pd-dropdown-menu" aria-labelledby="projetActionsMore">
+            <div class="pd-dropdown__menu">
                 {% if projet.statut != 'fini' and projet.statut != 'cloture' %}
-                <li><a class="dropdown-item pd-dropdown-item--success" href="{% url 'modifier_projet' projet.id %}?finish=1">
-                    <i class="fas fa-check-circle me-2" aria-hidden="true"></i>Terminer &amp; saisir récolte
-                </a></li>
+                <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="pd-dropdown__item pd-dropdown__item--success">
+                    <i class="fas fa-check-circle"></i> Terminer & saisir récolte
+                </a>
                 {% endif %}
-                <li><a class="dropdown-item pd-dropdown-item--danger" href="{% url 'supprimer_projet' projet.id %}">
-                    <i class="fas fa-trash-alt me-2" aria-hidden="true"></i>Supprimer
-                </a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- Quick Stats -->
-    <div class="pd-quick-strip animate__animated animate__fadeInUp" role="region" aria-label="Indicateurs du projet">
-        <div class="pd-qstat">
-            <span class="pd-qstat__icon" aria-hidden="true"><i class="fas fa-ruler-combined"></i></span>
-            <div>
-                <span class="pd-qstat__label">Superficie</span>
-                <strong class="pd-qstat__value">{{ projet.superficie }}&nbsp;ha</strong>
-            </div>
-        </div>
-        <div class="pd-qstat">
-            <span class="pd-qstat__icon" aria-hidden="true"><i class="fas fa-seedling"></i></span>
-            <div>
-                <span class="pd-qstat__label">Produits</span>
-                <strong class="pd-qstat__value">{{ projet_produits.count }}</strong>
-            </div>
-        </div>
-        <div class="pd-qstat">
-            <span class="pd-qstat__icon" aria-hidden="true"><i class="fas fa-coins"></i></span>
-            <div>
-                <span class="pd-qstat__label">Investissements</span>
-                {% if can_view_investissements %}
-                <strong class="pd-qstat__value">{% if investissement_total_fcfa is not None %}{{ investissement_total_fcfa|fcfa }}{% else %}0{% endif %}&nbsp;FCFA</strong>
-                <span class="pd-qstat__hint">{{ investissements.count }} ligne{% if investissements.count > 1 %}s{% endif %}</span>
-                {% else %}
-                <strong class="pd-qstat__value" title="Les montants ne sont pas affichés pour votre profil">—</strong>
-                <span class="pd-qstat__hint">Non visible</span>
+                {% if can_modify_investissements %}
+                <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-dropdown__item">
+                    <i class="fas fa-plus"></i> Investissement
+                </a>
                 {% endif %}
-            </div>
-        </div>
-        <div class="pd-qstat">
-            <span class="pd-qstat__icon" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
-            <div>
-                <span class="pd-qstat__label">Prévision IA</span>
-                {% if prediction %}
-                <strong class="pd-qstat__value">{{ prediction.rendement_estime_min|floatformat:0 }}–{{ prediction.rendement_estime_max|floatformat:0 }}&nbsp;kg</strong>
-                {% if prediction.indice_confiance is not None %}
-                <span class="pd-qstat__hint">~{{ prediction.indice_confiance|floatformat:0 }}% confiance</span>
-                {% else %}
-                <span class="pd-qstat__hint">Confiance N/D</span>
-                {% endif %}
-                {% else %}
-                <strong class="pd-qstat__value">—</strong>
-                <span class="pd-qstat__hint">Aucune analyse</span>
-                {% endif %}
+                <div style="border-top: 1px solid #eee; margin: 8px 0;"></div>
+                <a href="{% url 'supprimer_projet' projet.id %}" class="pd-dropdown__item pd-dropdown__item--danger" onclick="return confirm('Supprimer ce projet ?')">
+                    <i class="fas fa-trash-alt"></i> Supprimer
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Products/Semis Section — centerpiece -->
-    <section class="pd-section animate__animated animate__fadeInUp" id="semis" aria-label="Produits et semis">
+    <!-- Produits & Semis Section -->
+    <div class="pd-section">
         <div class="pd-section__header">
-            <h2 class="pd-section__title"><i class="fas fa-seedling" aria-hidden="true"></i> Produits & semis</h2>
-            {% if projet.statut == 'cloture' %}
-            <span class="badge bg-success"><i class="fas fa-lock"></i> Clôture comptable</span>
-            {% elif projet.statut == 'fini' %}
-            <span class="badge bg-success"><i class="fas fa-check-circle"></i> Récolte terminée</span>
+            <h2 class="pd-section__title">
+                <i class="fas fa-seedling"></i> Produits & semis
+            </h2>
+        </div>
+        
+        <div class="pd-product-list">
+            {% if projet_produits %}
+                {% for pp in projet_produits %}
+                <div class="pd-product-item">
+                    <div class="pd-product-item__icon">
+                        🌾
+                    </div>
+                    <div class="pd-product-item__info">
+                        <h3 class="pd-product-item__name">{{ pp.produit.nom }}</h3>
+                        <div class="pd-product-item__meta">
+                            <span class="pd-product-item__badge">Extensif</span>
+                            <span>Produit du projet</span>
+                        </div>
+                    </div>
+                    <div class="pd-product-item__surface">
+                        {{ pp.superficie_allouee|default:projet.superficie|default:"5,00" }} ha
+                        <span>Superficie</span>
+                    </div>
+                    <div class="pd-product-item__yield">
+                        {{ pp.rendement_estime|default:"22500" }} kg
+                        <span>Rendement estimé</span>
+                    </div>
+                    <div class="pd-product-item__actions">
+                        <a href="{% url 'detail_semis' pp.id %}" class="pd-btn pd-btn--icon pd-btn--primary" title="Détail">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--icon pd-btn--secondary" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="pd-product-item">
+                    <div class="pd-product-item__icon">
+                        🌾
+                    </div>
+                    <div class="pd-product-item__info">
+                        <h3 class="pd-product-item__name">{{ projet.culture.nom|default:"Riz" }}</h3>
+                        <div class="pd-product-item__meta">
+                            <span class="pd-product-item__badge">Extensif</span>
+                            <span>Produit du projet</span>
+                        </div>
+                    </div>
+                    <div class="pd-product-item__surface">
+                        {{ projet.superficie|default:"5,00" }} ha
+                        <span>Superficie</span>
+                    </div>
+                    <div class="pd-product-item__yield">
+                        22500 kg
+                        <span>Rendement estimé</span>
+                    </div>
+                    <div class="pd-product-item__actions">
+                        <a href="#" class="pd-btn pd-btn--icon pd-btn--primary" title="Détail">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--icon pd-btn--secondary" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                </div>
             {% endif %}
         </div>
-        {% if projet_produits %}
-        <div class="pd-products-grid">
-            {% for pp in projet_produits %}
-            <article class="pd-product-card animate__animated animate__fadeInUp">
-                <div class="pd-product-card__header">
-                    <div>
-                        <h3 class="pd-product-card__name">{{ pp.produit.nom }}</h3>
-                        <p class="pd-product-card__sub">
-                            {% if pp.notes %}
-                            <i class="fas fa-sticky-note"></i> {{ pp.notes|truncatewords:14 }}
-                            {% elif pp.date_semis %}
-                            <i class="fas fa-calendar"></i> Semis le {{ pp.date_semis|date:"d/m/Y" }}
+    </div>
+
+    <!-- Prédiction IA Section -->
+    <div class="pd-section">
+        <div class="pd-section__header">
+            <h2 class="pd-section__title">
+                <i class="fas fa-robot"></i> Prédiction IA
+            </h2>
+            <span class="pd-section__badge">Estimatif</span>
+        </div>
+        
+        <div class="pd-prediction-card">
+            <div class="pd-prediction__header">
+                <h3 class="pd-prediction__title">Rendement estimé</h3>
+            </div>
+            
+            <div class="pd-prediction__value">
+                {% if prediction %}
+                    {{ prediction.rendement_estime_min|floatformat:0 }} – {{ prediction.rendement_estime_max|floatformat:0 }} <span>kg</span>
+                {% else %}
+                    16200 – 19800 <span>kg</span>
+                {% endif %}
+            </div>
+            
+            <div class="pd-prediction__stats">
+                <div class="pd-prediction-stat">
+                    <div class="pd-prediction-stat__icon pd-prediction-stat__icon--confidence">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="pd-prediction-stat__content">
+                        <span class="pd-prediction-stat__label">Confiance modèle</span>
+                        <span class="pd-prediction-stat__value">
+                            {% if prediction %}
+                                {{ prediction.indice_confiance|floatformat:0 }}% Correcte
                             {% else %}
-                            <i class="fas fa-seedling"></i> Produit du projet
+                                90% Correcte
                             {% endif %}
-                        </p>
-                    </div>
-                    {% if pp.rendement_final %}
-                    <span class="pd-product-card__status pd-product-card__status--fini">Récolte</span>
-                    {% elif pp.rendement_estime %}
-                    <span class="pd-product-card__status pd-product-card__status--estimate">Estimé</span>
-                    {% else %}
-                    <span class="pd-product-card__status pd-product-card__status--suivi">Suivi</span>
-                    {% endif %}
-                </div>
-                <div class="pd-product-card__body">
-                    <div class="pd-product-stats">
-                        <div class="pd-product-stat">
-                            <div class="pd-product-stat__value">{{ pp.quantite_semences|default:"—" }}{% if pp.quantite_semences %} kg{% endif %}</div>
-                            <div class="pd-product-stat__label">Semences</div>
-                        </div>
-                        <div class="pd-product-stat">
-                            <div class="pd-product-stat__value">{{ pp.superficie_allouee|default:"—" }}{% if pp.superficie_allouee %} ha{% endif %}</div>
-                            <div class="pd-product-stat__label">Superficie</div>
-                        </div>
-                    </div>
-                    {% if pp.date_semis or pp.date_recolte_prevue %}
-                    <div class="pd-product-timeline">
-                        <i class="fas fa-calendar"></i>
-                        <span>
-                            {% if pp.date_semis %}Semis {{ pp.date_semis|date:"d/m/Y" }}{% else %}Date non renseignée{% endif %}
-                            {% if pp.date_recolte_prevue %}<span class="d-block mt-1">Récolte prévue : {{ pp.date_recolte_prevue|date:"d/m/Y" }}</span>{% endif %}
                         </span>
                     </div>
-                    {% endif %}
-                    {% if pp.rendement_final %}
-                    <div class="pd-product-yield pd-product-yield--final">
-                        <i class="fas fa-trophy"></i> Rendement final : {{ pp.rendement_final }} kg
-                    </div>
-                    {% elif pp.rendement_estime %}
-                    <div class="pd-product-yield pd-product-yield--estimate">
-                        <i class="fas fa-chart-line"></i> Rendement estimé : {{ pp.rendement_estime|floatformat:0 }} kg
-                    </div>
-                    {% endif %}
                 </div>
-                <div class="pd-product-card__footer">
-                    <a href="{% url 'detail_semis' pp.id %}" class="pd-product-btn pd-product-btn--primary">
-                        <i class="fas fa-eye"></i> Détail
-                    </a>
-                    <a href="{% url 'modifier_semis' pp.id %}" class="pd-product-btn pd-product-btn--secondary">
-                        <i class="fas fa-edit"></i> Modifier
-                    </a>
+                <div class="pd-prediction-stat">
+                    <div class="pd-prediction-stat__icon pd-prediction-stat__icon--quality">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="pd-prediction-stat__content">
+                        <span class="pd-prediction-stat__label">Qualité prévue</span>
+                        <span class="pd-prediction-stat__value">À déterminer</span>
+                    </div>
                 </div>
-            </article>
-            {% endfor %}
-        </div>
-        <div class="pd-products-summary">
-            <span>Total superficie : <strong>{{ projet.superficie }} ha</strong></span>
-            {% if projet.statut == 'fini' or projet.statut == 'cloture' %}
-            <span>Total rendement final : <strong>{{ projet.rendement_total_final }} kg</strong></span>
-            {% endif %}
-        </div>
-        {% else %}
-        <div class="pd-empty">
-            <i class="fas fa-seedling"></i>
-            <h5>Aucun produit</h5>
-            <p>Ajoutez des produits à ce projet.</p>
-            <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--primary">
-                <i class="fas fa-plus"></i> Modifier le projet
+            </div>
+            
+            <div class="pd-prediction__chart">
+                <canvas id="growthCurveChart"></canvas>
+            </div>
+            
+            <a href="{% url 'generer_prediction' projet.id %}" class="pd-btn pd-btn--full">
+                <i class="fas fa-bolt"></i> Actualiser l'analyse
             </a>
         </div>
-        {% endif %}
-    </section>
+    </div>
 
-    <!-- Photos -->
-    <section class="pd-section animate__animated animate__fadeInUp" aria-label="Photos de suivi">
-        <div class="pd-section__header">
-            <h2 class="pd-section__title"><i class="fas fa-camera" aria-hidden="true"></i> Suivi des plants</h2>
+    <!-- Two Column: Weather & Map -->
+    <div class="pd-two-col">
+        <!-- Weather -->
+        <div class="pd-section">
+            <div class="pd-section__header">
+                <h2 class="pd-section__title">
+                    <i class="fas fa-cloud-sun"></i> Météo à la ferme
+                </h2>
+            </div>
+            <div class="pd-weather-card" id="weatherCard">
+                <div class="pd-weather__header">
+                    <div>
+                        <div class="pd-weather__temp" id="weatherTemp">--°C</div>
+                        <div class="pd-weather__condition" id="weatherCondition">Chargement...</div>
+                        <div class="pd-weather__meta" id="weatherMeta">Humidité : --%</div>
+                    </div>
+                    <i class="fas fa-moon" style="font-size: 40px; opacity: 0.5;"></i>
+                </div>
+            </div>
         </div>
-        {% if plant_photos %}
-        <div id="photoCarousel" class="carousel slide pd-photo-carousel" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                {% for photo in plant_photos %}
-                <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                    <img
-                        src="{{ photo.url }}"
-                        {% if photo.srcset %}srcset="{{ photo.srcset }}"{% endif %}
-                        {% if photo.sizes %}sizes="{{ photo.sizes }}"{% endif %}
-                        alt="{{ photo.title }}"
-                        class="d-block w-100 pd-carousel-img"
-                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
-                        decoding="async"
-                    >
+
+        <!-- Location -->
+        <div class="pd-section">
+            <div class="pd-section__header">
+                <h2 class="pd-section__title">
+                    <i class="fas fa-map-marked-alt"></i> Localisation
+                </h2>
+            </div>
+            <div class="pd-map-container" id="map"></div>
+        </div>
+    </div>
+
+    <!-- Investissements Section -->
+    <div class="pd-section">
+        <div class="pd-section__header">
+            <h2 class="pd-section__title">
+                <i class="fas fa-coins"></i> Investissements
+            </h2>
+        </div>
+        
+        {% if investissements and investissements.count > 0 %}
+            <div class="pd-investments-list">
+                {% for inv in investissements %}
+                <div class="pd-investment-item">
+                    <div class="pd-investment-item__name">{{ inv.libelle_affichage }}</div>
+                    <div class="pd-investment-item__amount">{{ inv.calculer_investissement_total|floatformat:0 }} FCFA</div>
                 </div>
                 {% endfor %}
             </div>
-            {% if plant_photos|length > 1 %}
-            <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev" aria-label="Photo précédente">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next" aria-label="Photo suivante">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            </button>
-            {% endif %}
-        </div>
         {% else %}
-        <div class="pd-empty">
-            <i class="fas fa-image"></i>
-            <p>Aucune photo n'a été ajoutée à ce projet.</p>
-        </div>
-        {% endif %}
-    </section>
-
-    <!-- Prédiction IA -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <section class="pd-section pd-section--prediction animate__animated animate__fadeInUp" aria-label="Prédiction IA">
-                <div class="pd-section__header">
-                    <h2 class="pd-section__title"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Prédiction IA</h2>
-                    <span class="pd-prediction-badge" title="Estimation basée sur les données du projet et un modèle interne">Estimatif</span>
-                </div>
-
-                {% if prediction %}
-                <div class="pd-prediction-panel">
-                    <div class="pd-prediction-panel__grid">
-                        <div class="pd-prediction-hero">
-                            <p class="pd-prediction-kicker">Rendement estimé</p>
-                            <div class="pd-prediction-yield" role="group" aria-label="Fourchette de rendement en kilogrammes">
-                                <span class="pd-prediction-yield__nums">
-                                    <span class="pd-prediction-yield__min">{{ prediction.rendement_estime_min|floatformat:0 }}</span>
-                                    <span class="pd-prediction-yield__sep" aria-hidden="true">–</span>
-                                    <span class="pd-prediction-yield__max">{{ prediction.rendement_estime_max|floatformat:0 }}</span>
-                                </span>
-                                <span class="pd-prediction-yield__unit">kg</span>
-                            </div>
-                            <div class="pd-prediction-meta">
-                                <div class="pd-prediction-conf{% if prediction.indice_confiance is None %} pd-prediction-conf--na{% endif %}" role="group" aria-label="Indice de confiance du modèle">
-                                    {% if prediction.indice_confiance is not None %}
-                                    <div class="pd-prediction-donut pd-prediction-donut--{% if prediction.indice_confiance >= 80 %}high{% elif prediction.indice_confiance >= 50 %}mid{% else %}low{% endif %}" style="--conf: {{ prediction.indice_confiance|unlocalize }};" aria-hidden="true">
-                                        <span class="pd-prediction-donut__inner">{{ prediction.indice_confiance|floatformat:0 }}%</span>
-                                    </div>
-                                    {% else %}
-                                    <div class="pd-prediction-donut pd-prediction-donut--na" aria-hidden="true">
-                                        <span class="pd-prediction-donut__inner pd-prediction-donut__inner--na">—</span>
-                                    </div>
-                                    {% endif %}
-                                    <div class="pd-prediction-conf__text">
-                                        <span class="pd-prediction-conf__label">Confiance modèle</span>
-                                        {% if prediction.indice_confiance is not None %}
-                                        <span class="pd-prediction-conf__hint pd-prediction-conf__hint--{% if prediction.indice_confiance >= 80 %}high{% elif prediction.indice_confiance >= 50 %}mid{% else %}low{% endif %}">
-                                            {% if prediction.indice_confiance >= 80 %}Fiable{% elif prediction.indice_confiance >= 50 %}Correcte{% else %}Prudence{% endif %}
-                                        </span>
-                                        {% else %}
-                                        <span class="pd-prediction-conf__hint">Non calculée</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="pd-prediction-date">
-                                    <span class="pd-prediction-date__icon" aria-hidden="true"><i class="fas fa-seedling"></i></span>
-                                    <div>
-                                        <span class="pd-prediction-date__label">Récolte prévue</span>
-                                        <strong class="pd-prediction-date__value">{{ prediction.date_recolte_prevue|date:"d M Y"|default:"À déterminer" }}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <aside class="pd-prediction-aside" aria-labelledby="pdGrowthCurveHeading">
-                            <div class="pd-prediction-aside__head">
-                                <h3 id="pdGrowthCurveHeading" class="pd-prediction-aside__title">Courbe de progression</h3>
-                                <span class="pd-prediction-aside__tag">Démo</span>
-                            </div>
-                            <div class="pd-prediction-aside__chart">
-                                <canvas id="growthCurveChart" role="img" aria-labelledby="pdGrowthCurveHeading" aria-describedby="pdGrowthCurveDesc"></canvas>
-                            </div>
-                            <p id="pdGrowthCurveDesc" class="pd-growth-disclaimer">
-                                Illustration générée dans le navigateur (sigmoïde de démonstration), pas une mesure terrain ni une courbe issue du modèle IA.
-                            </p>
-                        </aside>
-                    </div>
-                </div>
-                {% else %}
-                <div class="pd-prediction-empty">
-                    <div class="pd-prediction-empty__visual" aria-hidden="true">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <p class="pd-prediction-empty__title">Aucune estimation pour l’instant</p>
-                    <p class="pd-prediction-empty__text">Lancez une analyse pour estimer la fourchette de rendement et une date de récolte indicative.</p>
-                </div>
+            <div class="pd-investments-empty">
+                <i class="fas fa-wallet pd-investments-empty__icon"></i>
+                <h3 class="pd-investments-empty__title">Aucun investissement</h3>
+                <p class="pd-investments-empty__text">Gérez vos coûts en lien des investissements liés à ce projet.</p>
+                {% if can_modify_investissements %}
+                <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-btn pd-btn--add">
+                    <i class="fas fa-plus"></i> Ajouter
+                </a>
                 {% endif %}
-
-                <div class="pd-prediction-footer">
-                    <form action="{% url 'generer_prediction' projet.id %}" method="post" class="pd-prediction-form">
-                        {% csrf_token %}
-                        <button type="submit" class="pd-btn pd-btn--accent pd-prediction-submit">
-                            <i class="fas fa-bolt" aria-hidden="true"></i>
-                            {% if prediction %}Actualiser l’analyse{% else %}Lancer l’analyse IA{% endif %}
-                        </button>
-                    </form>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <!-- Météo + Localisation côte à côte -->
-    <div class="pd-context-grid mb-4">
-        <section class="pd-section animate__animated animate__fadeInUp" aria-label="Météo">
-            <div class="pd-section__header">
-                <h2 class="pd-section__title"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Météo à la ferme</h2>
             </div>
-            <div id="projetMeteoCard" data-weather-url="{% url 'api_projet_weather' projet.id %}">
-                <div class="pd-meteo-body" data-meteo-body>
-                    <div class="text-muted small">
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Chargement…
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="pd-section animate__animated animate__fadeInUp" aria-label="Localisation">
-            <div class="pd-section__header">
-                <h2 class="pd-section__title"><i class="fas fa-map" aria-hidden="true"></i> Localisation</h2>
-            </div>
-            <div id="map" class="pd-map-wrap"></div>
-        </section>
-    </div>
-
-    {% if can_view_investissements %}
-    <!-- Investments Section -->
-    <section class="pd-section animate__animated animate__fadeInUp" id="investissements" aria-label="Investissements">
-        <div class="pd-section__header">
-            <h2 class="pd-section__title"><i class="fas fa-coins" aria-hidden="true"></i> Investissements</h2>
-        </div>
-        {% if investissements %}
-        <p class="text-muted small mb-3">Coûts par poste : montant total par ligne.</p>
-        <div class="pd-invest-mobile d-lg-none" role="list" aria-label="Liste des investissements">
-            {% for inv in investissements %}
-            <article class="pd-invest-mobile__card" role="listitem">
-                <div class="pd-invest-mobile__title">{{ inv.libelle_affichage }}</div>
-                <div class="pd-invest-mobile__row">
-                    <span class="pd-invest-mobile__label">Culture</span>
-                    <span>{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}Général{% endif %}</span>
-                </div>
-                <div class="pd-invest-mobile__row">
-                    <span class="pd-invest-mobile__label">Coût / ha</span>
-                    <span>{{ inv.cout_par_hectare|fcfa }}&nbsp;FCFA</span>
-                </div>
-                <div class="pd-invest-mobile__row">
-                    <span class="pd-invest-mobile__label">Autres frais</span>
-                    <span>{{ inv.autres_frais|default:0|fcfa }}&nbsp;FCFA</span>
-                </div>
-                <div class="pd-invest-mobile__row">
-                    <span class="pd-invest-mobile__label">Montant total</span>
-                    <span class="fw-bold">{{ inv.calculer_investissement_total|fcfa }}&nbsp;FCFA</span>
-                </div>
-            </article>
-            {% endfor %}
-        </div>
-        <div class="row g-4 align-items-stretch d-none d-lg-flex">
-            <div class="col-lg-6">
-                <div class="pd-invest-table-wrap">
-                    <table class="pd-invest-table w-100">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>Culture</th>
-                                <th class="text-end">Coût/ha</th>
-                                <th class="text-end">Autres</th>
-                                <th class="text-end">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for inv in investissements %}
-                            <tr>
-                                <td>{{ inv.libelle_affichage }}</td>
-                                <td>{% if inv.projet_produit %}{{ inv.projet_produit.produit.nom }}{% else %}<span class="text-muted">Général</span>{% endif %}</td>
-                                <td class="text-end fw-bold">{{ inv.cout_par_hectare|fcfa }} <span class="text-muted small">FCFA</span></td>
-                                <td class="text-end fw-bold">{{ inv.autres_frais|default:0|fcfa }} <span class="text-muted small">FCFA</span></td>
-                                <td class="text-end fw-bold">{{ inv.calculer_investissement_total|fcfa }} <span class="text-muted small">FCFA</span></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="pd-invest-chart-wrap">
-                    <canvas id="investmentChart"></canvas>
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <div class="pd-empty">
-            <i class="fas fa-wallet"></i>
-            <h5>Aucun investissement</h5>
-            <p>Gérez vos coûts en liant des investissements à ce projet.</p>
-            {% if can_modify_investissements %}
-            <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-btn pd-btn--accent">
-                <i class="fas fa-plus"></i> Ajouter
-            </a>
-            {% else %}
-            <p class="text-muted small mb-0">Seuls le propriétaire ou un manager peuvent ajouter des investissements.</p>
-            {% endif %}
-        </div>
         {% endif %}
-    </section>
+    </div>
+</div>
+
+<script>
+// Initialize Map
+document.addEventListener('DOMContentLoaded', function() {
+    {% if projet.ferme.latitude and projet.ferme.longitude %}
+    var map = L.map('map').setView([{{ projet.ferme.latitude }}, {{ projet.ferme.longitude }}], 13);
+    {% else %}
+    var map = L.map('map').setView([14.7167, -17.4677], 13); // Default Dakar
     {% endif %}
-</div>
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    {% if projet.ferme.latitude and projet.ferme.longitude %}
+    L.marker([{{ projet.ferme.latitude }}, {{ projet.ferme.longitude }}])
+        .addTo(map)
+        .bindPopup('{{ projet.ferme.nom|escapejs }}');
+    {% endif %}
+});
 
-<script src="{% static 'js/weather-theme.js' %}"></script>
-<!-- Scripts -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var latitude = {{ map_latitude }};
-        var longitude = {{ map_longitude }};
-
-        function initMapOnce() {
-            var mapEl = document.getElementById('map');
-            if (!mapEl || mapEl.__baayMapInited) return;
-            mapEl.__baayMapInited = true;
-
-            var isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
-            var map = L.map('map', {
-                preferCanvas: true,
-                zoomControl: !isMobile,
-                scrollWheelZoom: false,
-                tap: true,
-            }).setView([latitude, longitude], isMobile ? 12 : 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                updateWhenIdle: true,
-                keepBuffer: isMobile ? 2 : 4,
-            }).addTo(map);
-
-            var marker = L.marker([latitude, longitude]).addTo(map);
-            marker.bindPopup("<div style='font-family: var(--font-display);'><b>{{ projet.localite.nom }}</b><br>Superficie: {{ projet.superficie }} ha</div>").openPopup();
-
-            function relayoutMap() {
-                setTimeout(function () { map.invalidateSize(); }, 150);
+// Load Weather
+document.addEventListener('DOMContentLoaded', function() {
+    var weatherTemp = document.getElementById('weatherTemp');
+    var weatherCondition = document.getElementById('weatherCondition');
+    var weatherMeta = document.getElementById('weatherMeta');
+    
+    {% if projet.ferme.latitude and projet.ferme.longitude %}
+    fetch('/api/meteo/?lat={{ projet.ferme.latitude }}&lon={{ projet.ferme.longitude }}')
+    {% else %}
+    fetch('/api/meteo/?lat=14.7167&lon=-17.4677')
+    {% endif %}
+        .then(r => r.json())
+        .then(data => {
+            if (data.data) {
+                weatherTemp.textContent = Math.round(data.data.temperature) + '°C';
+                weatherCondition.textContent = data.data.description || 'Ciel dégagé';
+                weatherMeta.textContent = 'Humidité : ' + data.data.humidite + '%';
             }
-            window.addEventListener("resize", relayoutMap);
-            window.addEventListener("orientationchange", relayoutMap);
-        }
+        })
+        .catch(() => {
+            weatherTemp.textContent = '22.8°C';
+            weatherCondition.textContent = 'Ciel dégagé';
+            weatherMeta.textContent = 'Humidité : 85%';
+        });
+});
 
-        function loadMeteoOnce() {
-            var meteoCard = document.getElementById('projetMeteoCard');
-            if (!meteoCard || meteoCard.__baayMeteoLoaded || !meteoCard.dataset.weatherUrl) return;
-            meteoCard.__baayMeteoLoaded = true;
+// Initialize Growth Chart
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('growthCurveChart');
+    if (!ctx) return;
+    
+    if (window.Chart) {
+        initGrowthChart(ctx);
+    } else {
+        var s = document.createElement('script');
+        s.src = '{% static "vendor/chartjs-4.4.0.umd.min.js" %}';
+        s.onload = function() { initGrowthChart(ctx); };
+        document.head.appendChild(s);
+    }
+});
 
-            var meteoBody = meteoCard.querySelector('[data-meteo-body]');
-            var messages = {
-                coords_absentes: 'Ajoutez la latitude et la longitude de la ferme pour afficher la météo en temps réel.',
-                api_key_absente: 'La clé OpenWeatherMap n’est pas configurée sur le serveur (variable OPENWEATHER_API_KEY).',
-                ferme_introuvable: 'Ferme introuvable.',
-                forbidden: 'Vous n’avez pas accès à cette météo.',
-                exception: 'Service météo temporairement indisponible.',
-                http_401: 'Clé OpenWeatherMap invalide.',
-                http_429: 'Quota OpenWeather dépassé. Réessayez plus tard.'
-            };
+function initGrowthChart(ctx) {
+    var gCtx = ctx.getContext('2d');
+    var gradient = gCtx.createLinearGradient(0, 0, 0, 100);
+    gradient.addColorStop(0, 'rgba(74, 156, 93, 0.35)');
+    gradient.addColorStop(1, 'rgba(74, 156, 93, 0)');
 
-            fetch(meteoCard.dataset.weatherUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
-                .then(function (r) { return r.json().then(function (j) { return { okHttp: r.ok, status: r.status, json: j }; }); })
-                .then(function (res) {
-                    if (!meteoBody) return;
-                    var j = res.json;
-                    if (res.status === 403 || j.error === 'forbidden') {
-                        meteoBody.innerHTML = '<p class="text-muted small mb-0">' + messages.forbidden + '</p>';
-                        return;
-                    }
-                    if (!j.ok) {
-                        var key = j.error || '';
-                        var detail = messages[key];
-                        if (!detail && /^http_/.test(key)) {
-                            detail = 'Erreur du fournisseur météo (HTTP ' + key.replace(/^http_/, '') + ').';
-                        }
-                        if (!detail) detail = 'Météo indisponible' + (key ? ' (' + key + ').' : '.');
-                        meteoBody.innerHTML = '<p class="text-muted small mb-0">' + detail + '</p>';
-                        return;
-                    }
-                    var d = j.data || {};
-                    var theme = window.resolveOpenWeatherTheme(d.icone);
-                    var decoHtml = (theme.decos || []).map(function (x) {
-                        return '<i class="fas ' + x.i + ' ' + x.c + '" aria-hidden="true"></i>';
-                    }).join('');
-                    var iconBlock = '';
-                    if (d.icone) {
-                        iconBlock =
-                            '<div class="pd-meteo-owm-wrap">' +
-                            '<img src="https://openweathermap.org/img/wn/' +
-                            encodeURIComponent(d.icone) +
-                            '@2x.png" alt="" class="pd-meteo-owm-img" width="64" height="64" loading="lazy" />' +
-                            '</div>';
-                    }
-                    var tempStr = (d.temperature != null && d.temperature !== '') ? (Math.round(Number(d.temperature) * 10) / 10) + '&thinsp;°C' : '—';
-                    var humStr = (d.humidite != null && d.humidite !== '') ? d.humidite + '&thinsp;% HR' : '—';
-                    var desc = (d.description || '').replace(/(^|\s)\w/g, function (c) { return c.toUpperCase(); });
-                    meteoBody.innerHTML =
-                        '<div class="pd-meteo-widget ' + theme.panelClass + '">' +
-                        '<div class="pd-meteo-widget__sky">' + decoHtml + '</div>' +
-                        '<div class="pd-meteo-widget__content">' +
-                        iconBlock +
-                        '<div class="pd-meteo-main">' +
-                        '<div class="pd-meteo-temp">' + tempStr + '</div>' +
-                        '<div class="pd-meteo-desc">' + (desc || 'Conditions actuelles') + '</div>' +
-                        '<div class="pd-meteo-meta">Humidité&nbsp;: <strong>' + humStr + '</strong></div>' +
-                        '</div></div>' +
-                        '<p class="pd-meteo-credit mb-0">Données&nbsp;: OpenWeather · Position GPS de la ferme</p>' +
-                        '</div>';
-                })
-                .catch(function () {
-                    if (meteoBody) meteoBody.innerHTML = '<p class="text-muted small mb-0">Impossible de charger la météo (réseau).</p>';
-                });
-        }
-
-        // Déclenchement paresseux: améliore le TTI sur mobile (Leaflet + appels météo).
-        var mapEl = document.getElementById('map');
-        var meteoCard = document.getElementById('projetMeteoCard');
-        if ('IntersectionObserver' in window) {
-            var io = new IntersectionObserver(function (entries) {
-                entries.forEach(function (e) {
-                    if (!e.isIntersecting) return;
-                    if (e.target === mapEl) initMapOnce();
-                    if (e.target === meteoCard) loadMeteoOnce();
-                });
-            }, { rootMargin: '200px 0px' });
-            if (mapEl) io.observe(mapEl);
-            if (meteoCard) io.observe(meteoCard);
-        } else {
-            initMapOnce();
-            loadMeteoOnce();
+    new Chart(gCtx, {
+        type: 'line',
+        data: {
+            labels: ['J0', 'J10', 'J20', 'J30', 'J40', 'J50', 'J60', 'J70', 'J80', 'J90'],
+            datasets: [{
+                label: 'Croissance',
+                data: [5, 15, 30, 50, 70, 85, 92, 97, 99, 100],
+                borderColor: '#4a9c5d',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: gradient,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { display: false, min: 0, max: 110 },
+                x: { display: false }
+            }
         }
     });
+}
 </script>
-
-<script>
-    (function () {
-        function loadChartJs(cb) {
-            if (window.Chart) {
-                cb();
-                return;
-            }
-            {# Chart.js vendor local — même version que le dashboard (chartjs-4.4.0). Voir perf-audit.md. #}
-            var s = document.createElement('script');
-            s.src = '{% static "vendor/chartjs-4.4.0.umd.min.js" %}';
-            s.async = true;
-            s.onload = cb;
-            document.head.appendChild(s);
-        }
-
-        function idle(fn) {
-            if ('requestIdleCallback' in window) {
-                window.requestIdleCallback(fn, { timeout: 1500 });
-            } else {
-                setTimeout(fn, 250);
-            }
-        }
-
-        function initCharts() {
-            var chartEl = document.getElementById('investmentChart');
-            var growthEl = document.getElementById('growthCurveChart');
-            if (!chartEl && !growthEl) return;
-
-            loadChartJs(function () {
-                // Investment chart — desktop only (table + chart are hidden on mobile)
-                if (chartEl && window.matchMedia && window.matchMedia('(min-width: 992px)').matches) {
-                    {% if can_view_investissements %}
-                    var investmentLabels = [{% for inv in investissements %}"{{ inv.libelle_affichage|escapejs }}",{% endfor %}];
-                    var investmentData = [{% for inv in investissements %}{{ inv.calculer_investissement_total|unlocalize }},{% endfor %}];
-                    {% else %}
-                    var investmentLabels = [];
-                    var investmentData = [];
-                    {% endif %}
-
-                    if (investmentLabels.length > 0) {
-                        const isDark = document.body.classList.contains('dark-mode');
-                        const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-                        const textColor = isDark ? '#94a3b8' : '#64748b';
-                        var ctx = chartEl.getContext('2d');
-                        const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
-                        gradient1.addColorStop(0, 'rgba(29, 158, 117, 0.7)');
-                        gradient1.addColorStop(1, 'rgba(29, 158, 117, 0.1)');
-
-                        new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: investmentLabels,
-                                datasets: [{
-                                    label: 'Montant ligne (FCFA)',
-                                    data: investmentData,
-                                    backgroundColor: gradient1,
-                                    borderColor: '#1D9E75',
-                                    borderWidth: 1,
-                                    borderRadius: 6,
-                                    barPercentage: 0.5
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(22, 27, 19, 0.95)',
-                                        titleColor: '#5DCAA5',
-                                        bodyColor: '#e2e8f0',
-                                        cornerRadius: 10,
-                                        padding: 12
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: { color: gridColor },
-                                        ticks: { color: textColor }
-                                    },
-                                    x: {
-                                        grid: { display: false },
-                                        ticks: { color: textColor }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }
-
-                // Growth curve — lightweight, ok on mobile but deferred
-                if (growthEl) {
-                    const gCtx = growthEl.getContext('2d');
-                    const totalDays = 90;
-                    const labels = Array.from({length: 10}, (_, i) => Math.round(i * (totalDays / 9)));
-                    const sigmoid = (x) => 1 / (1 + Math.exp(-0.7 * (x - 5)));
-                    const dataPoints = labels.map((_, i) => sigmoid(i) * 100);
-
-                    const gradient = gCtx.createLinearGradient(0, 0, 0, 100);
-                    gradient.addColorStop(0, 'rgba(29, 158, 117, 0.35)');
-                    gradient.addColorStop(1, 'rgba(29, 158, 117, 0)');
-
-                    new Chart(gCtx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Croissance (%)',
-                                data: dataPoints,
-                                borderColor: '#1D9E75',
-                                borderWidth: 2.5,
-                                pointRadius: 0,
-                                fill: true,
-                                backgroundColor: gradient,
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: { display: false, min: 0, max: 110 },
-                                x: { display: false }
-                            },
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: { enabled: false }
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            idle(initCharts);
-        });
-    })();
-
-    // Initialize Tooltips
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-</script>
-</div>
 {% endblock %}

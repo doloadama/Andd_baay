@@ -151,6 +151,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'channels',
     'axes',
+    'django_celery_beat',  # Scheduler pour l'Agent IA de rapports
 ]
 
 # django-debug-toolbar : audit empirique des requêtes / temps / cache en dev.
@@ -360,6 +361,16 @@ if IS_VERCEL:
     CELERY_BROKER_URL = 'memory://'
     CELERY_RESULT_BACKEND = 'cache+memory://'
     CELERY_TASK_ALWAYS_EAGER = True
+
+# Celery Beat Schedule - Tâches périodiques
+CELERY_BEAT_SCHEDULE = {
+    'weekly-ai-report': {
+        'task': 'baay.tasks.weekly_report.generate_weekly_report',
+        'schedule': timedelta(days=7),  # Tous les 7 jours
+        # Alternative: crontab pour un jour précis
+        # 'schedule': crontab(hour=8, minute=0, day_of_week=0),  # Dimanche 8h
+    },
+}
 
 # Django-Axes — brute force protection
 AXES_ENABLED = os.getenv('AXES_ENABLED', 'True').lower() in ('1', 'true', 'yes')

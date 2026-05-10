@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport Hebdomadaire Andd Baay</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #1D9E75;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #1D9E75;
+            font-size: 24pt;
+            margin-bottom: 5px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 14pt;
+        }
+        
+        .period-badge {
+            background: #1D9E75;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .ia-analysis {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .ia-analysis h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 24pt;
+            font-weight: bold;
+            color: white;
+            margin-right: 15px;
+        }
+        
+        .score-high { background: #28a745; }
+        .score-medium { background: #ffc107; color: #333; }
+        .score-low { background: #dc3545; }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #1D9E75;
+        }
+        
+        .metric-label {
+            font-size: 10pt;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .financial-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .financial-section h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        
+        .alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .observations {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .observations li {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .recommendations {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recommendations li {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 9pt;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Rapport Hebdomadaire</h1>
+        <div class="subtitle">Plateforme Andd Baay - Gestion Agricole Collaborative</div>
+        <div class="period-badge">
+            {{ start_date|date:"d/m/Y" }} - {{ end_date|date:"d/m/Y" }}
+        </div>
+    </div>
+    
+    <!-- Analyse IA -->
+    <div class="ia-analysis">
+        <h2>🤖 Analyse de l'Agent IA</h2>
+        <div style="display: flex; align-items: center;">
+            <div class="score-badge {% if insights.score_activite >= 7 %}score-high{% elif insights.score_activite >= 4 %}score-medium{% else %}score-low{% endif %}">
+                {{ insights.score_activite }}/10
+            </div>
+            <div>
+                <strong>Tendance:</strong> 
+                {% if insights.tendance == "positive" %}
+                    <span style="color: #28a745;">📈 Positive</span>
+                {% elif insights.tendance == "negative" %}
+                    <span style="color: #dc3545;">📉 Négative</span>
+                {% else %}
+                    <span style="color: #6c757d;">➡️ Neutre</span>
+                {% endif %}
+                <br>
+                <em>{{ insights.summary_ia }}</em>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Métriques principales -->
+    <h3>📈 Métriques de la Semaine</h3>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value">{{ data.new_projects|length }}</div>
+            <div class="metric-label">Nouveaux Projets</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ data.new_farms|length }}</div>
+            <div class="metric-label">Nouvelles Fermes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ data.new_users_count }}</div>
+            <div class="metric-label">Nouveaux Utilisateurs</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ data.investissements.count }}</div>
+            <div class="metric-label">Investissements</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ data.recettes.count }}</div>
+            <div class="metric-label">Recettes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ data.messages_count }}</div>
+            <div class="metric-label">Messages</div>
+        </div>
+    </div>
+    
+    <!-- Bilan Financier -->
+    <div class="financial-section">
+        <h3>💰 Bilan Financier</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 10px;"><strong>Total Investissements:</strong></td>
+                <td style="padding: 10px; text-align: right;">{{ data.financial_summary.investissements|floatformat:0 }} FCFA</td>
+            </tr>
+            <tr style="background: #fff;">
+                <td style="padding: 10px;"><strong>Total Recettes:</strong></td>
+                <td style="padding: 10px; text-align: right; color: #28a745;">{{ data.financial_summary.recettes|floatformat:0 }} FCFA</td>
+            </tr>
+            <tr style="border-top: 2px solid #856404;">
+                <td style="padding: 10px;"><strong>Balance:</strong></td>
+                <td style="padding: 10px; text-align: right; font-size: 1.2em; {% if data.financial_summary.balance >= 0 %}color: #28a745;{% else %}color: #dc3545;{% endif %}">
+                    {{ data.financial_summary.balance|floatformat:0 }} FCFA
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Observations -->
+    {% if insights.observations %}
+    <h3>🔍 Observations</h3>
+    <ul class="observations">
+        {% for obs in insights.observations %}
+        <li>{{ obs }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <!-- Recommandations -->
+    {% if insights.recommandations %}
+    <h3>💡 Recommandations</h3>
+    <ul class="recommendations">
+        {% for rec in insights.recommandations %}
+        <li>{{ rec }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <!-- Alertes -->
+    {% if insights.alertes %}
+    <h3>⚠️ Alertes</h3>
+    {% for alert in insights.alertes %}
+    <div class="alert">{{ alert }}</div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="footer">
+        <span class="ai-badge">🤖 Généré par IA</span>
+        <br><br>
+        Rapport généré le {{ generated_at|date:"d/m/Y à H:i" }}<br>
+        Andd Baay - Gestion Agricole Collaborative
+    </div>
+</body>
+</html>
