@@ -25,7 +25,7 @@ services:
           name: andd-baay-redis
           property: connectionString
       - key: ALLOWED_HOSTS
-        value: "localhost,127.0.0.1,.onrender.com"
+        value: "andd-baay.onrender.com,.onrender.com,localhost,127.0.0.1"
 
 databases:
   - name: andd-baay-db
