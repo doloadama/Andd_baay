@@ -1,7 +1,39 @@
 services:
   - type: web
     name: andd-baay
-    env: python
-    buildCommand: "pip install -r requirements.txt && DJANGO_SECRET_KEY=build-time-only python manage.py collectstatic --noinput"
-    startCommand: "gunicorn Andd_Baayi.wsgi:application --bind 0.0.0.0:$PORT"
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: |
+      daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application
     staticPublishPath: staticfiles
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ENV
+        value: "production"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: andd-baay-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: andd-baay-redis
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: "localhost,127.0.0.1,.onrender.com"
+
+databases:
+  - name: andd-baay-db
+    databaseName: andd_baay
+    user: andd_baay
+    plan: free
+
+redis:
+  - name: andd-baay-redis
+    plan: free
+    ipAllowList: []
