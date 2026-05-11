@@ -2,7 +2,14 @@
 
 /* ========== CSS VARIABLES ========== */
 :root {
-    /* Brand Colors */
+    /* Brand Colors - Palette officielle Andd Baay */
+    --brand-primary: #1D9E75;
+    --brand-deep: #085041;
+    --brand-night: #04342C;
+    --brand-pale: #9FE1CB;
+    --brand-light: #5DCAA5;
+    --brand-bg: #E1F5EE;
+    --brand-accent: #EF9F27;
     --neon-green: #1D9E75;
     --tech-green: #1D9E75;
     --safran-ocre: #EF9F27;
@@ -144,7 +151,7 @@ body {
 button, input, select, textarea { font-family: inherit; }
 
 :focus-visible {
-    outline: 3px solid rgba(163, 230, 53, 0.5);
+    outline: 3px solid rgba(29, 158, 117, 0.5);
     outline-offset: 3px;
 }
 
@@ -217,23 +224,23 @@ button, input, select, textarea { font-family: inherit; }
 }
 
 .btn-baay-primary {
-    background: linear-gradient(135deg, var(--neon-green), #2db300);
-    color: #022c22 !important;
-    box-shadow: 0 4px 15px rgba(57, 255, 20, 0.25);
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(29, 158, 117, 0.25);
 }
 .btn-baay-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(57, 255, 20, 0.4);
+    box-shadow: 0 10px 25px rgba(29, 158, 117, 0.4);
 }
 
 .btn-baay-secondary {
-    background: linear-gradient(135deg, var(--safran-ocre), #c2410c);
+    background: linear-gradient(135deg, var(--brand-accent), #d98a1c);
     color: #FFFFFF !important;
-    box-shadow: 0 4px 15px rgba(226, 114, 91, 0.25);
+    box-shadow: 0 4px 15px rgba(239, 159, 39, 0.25);
 }
 .btn-baay-secondary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(226, 114, 91, 0.4);
+    box-shadow: 0 10px 25px rgba(239, 159, 39, 0.4);
 }
 
 .btn-baay-outline {
@@ -242,9 +249,9 @@ button, input, select, textarea { font-family: inherit; }
     color: var(--text-main) !important;
 }
 .btn-baay-outline:hover {
-    border-color: var(--neon-green);
-    background: rgba(57, 255, 20, 0.05);
-    color: var(--neon-green) !important;
+    border-color: var(--brand-primary);
+    background: rgba(29, 158, 117, 0.05);
+    color: var(--brand-primary) !important;
 }
 
 .btn-baay-ghost {
@@ -252,7 +259,7 @@ button, input, select, textarea { font-family: inherit; }
     color: var(--text-muted) !important;
 }
 .btn-baay-ghost:hover {
-    background: rgba(148, 163, 184, 0.1);
+    background: rgba(8, 80, 65, 0.1);
     color: var(--text-main) !important;
 }
 
@@ -275,14 +282,14 @@ button, input, select, textarea { font-family: inherit; }
 .btn-modern:hover { opacity: 0.9; }
 
 .btn-accent {
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-    color: #022c22 !important;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: #ffffff !important;
     box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 32%, transparent);
 }
 .btn-accent:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 42%, transparent);
-    color: #022c22 !important;
+    color: #ffffff !important;
 }
 
 .dark-mode .btn-accent {
@@ -301,9 +308,9 @@ button, input, select, textarea { font-family: inherit; }
     color: var(--text-main) !important;
 }
 .btn-outline-modern:hover {
-    border-color: var(--accent);
-    color: var(--accent) !important;
-    background: rgba(163, 230, 53, 0.05);
+    border-color: var(--brand-primary);
+    color: var(--brand-primary) !important;
+    background: rgba(29, 158, 117, 0.05);
 }
 
 .btn-mini {
@@ -384,7 +391,7 @@ button, input, select, textarea { font-family: inherit; }
     color: var(--success);
     padding: 6px 14px;
     background: var(--success-subtle);
-    border: 1px solid rgba(34, 197, 94, 0.25);
+    border: 1px solid rgba(29, 158, 117, 0.25);
     border-radius: var(--radius-pill);
 }
 
@@ -515,9 +522,9 @@ button, input, select, textarea { font-family: inherit; }
     letter-spacing: 0.05em;
     border: 1px solid transparent;
 }
-.status-chip.en_cours { background: var(--info-subtle); color: var(--info); border-color: rgba(59, 130, 246, 0.25); }
-.status-chip.en_pause { background: var(--warning-subtle); color: var(--warning); border-color: rgba(245, 158, 11, 0.25); }
-.status-chip.fini { background: var(--success-subtle); color: var(--success); border-color: rgba(34, 197, 94, 0.25); }
+.status-chip.en_cours { background: var(--info-subtle); color: var(--info); border-color: rgba(8, 80, 65, 0.25); }
+.status-chip.en_pause { background: var(--warning-subtle); color: var(--warning); border-color: rgba(239, 159, 39, 0.25); }
+.status-chip.fini { background: var(--success-subtle); color: var(--success); border-color: rgba(29, 158, 117, 0.25); }
 
 /* ========== UTILITIES ========== */
 .text-xs { font-size: 0.75rem; }
@@ -539,8 +546,8 @@ button, input, select, textarea { font-family: inherit; }
     background: var(--bg-secondary);
     color: var(--text-main);
 }
-.tag-accent { background: rgba(163, 230, 53, 0.18); border-color: rgba(163, 230, 53, 0.25); color: var(--primary); }
-.tag-success { background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.22); color: var(--success); }
+.tag-accent { background: rgba(29, 158, 117, 0.18); border-color: rgba(29, 158, 117, 0.25); color: var(--primary); }
+.tag-success { background: rgba(29, 158, 117, 0.14); border-color: rgba(29, 158, 117, 0.22); color: var(--success); }
 
 /* ========== ALERT ========== */
 .alert-modern {
@@ -574,7 +581,7 @@ button, input, select, textarea { font-family: inherit; }
     border: 1px solid var(--border-color);
 }
 .surface-icon.danger { background: rgba(239, 68, 68, 0.12); color: var(--danger); border-color: rgba(239, 68, 68, 0.25); }
-.surface-icon.info { background: rgba(163, 230, 53, 0.12); color: var(--accent); border-color: rgba(163, 230, 53, 0.25); }
+.surface-icon.info { background: rgba(29, 158, 117, 0.12); color: var(--accent); border-color: rgba(29, 158, 117, 0.25); }
 
 .surface-title { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; color: var(--text-main); text-align: center; margin-bottom: 10px; }
 .surface-subtitle { color: var(--text-muted); text-align: center; margin-bottom: 26px; }
@@ -606,7 +613,7 @@ button, input, select, textarea { font-family: inherit; }
 .surface-card textarea:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
+    box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.15);
     background: var(--card-bg-solid);
 }
 
@@ -637,9 +644,9 @@ button, input, select, textarea { font-family: inherit; }
 }
 .dark-mode .table-modern thead th { background: rgba(255, 255, 255, 0.03); }
 .table-modern tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
-.table-modern tbody tr:nth-child(odd) td { background: rgba(148, 163, 184, 0.06); }
-.dark-mode .table-modern tbody tr:nth-child(odd) td { background: rgba(148, 163, 184, 0.08); }
-.table-modern tbody tr:hover td { background: rgba(163, 230, 53, 0.08); }
+.table-modern tbody tr:nth-child(odd) td { background: rgba(8, 80, 65, 0.04); }
+.dark-mode .table-modern tbody tr:nth-child(odd) td { background: rgba(159, 225, 203, 0.05); }
+.table-modern tbody tr:hover td { background: rgba(29, 158, 117, 0.08); }
 .table-modern tbody tr:last-child td { border-bottom: none; }
 
 /* ========== FOOTER ========== */
@@ -666,4 +673,4 @@ button, input, select, textarea { font-family: inherit; }
     font-size: 0.85rem;
     transition: all var(--transition-fast);
 }
-.social-links a:hover { border-color: var(--accent); color: var(--accent); background: rgba(163, 230, 53, 0.05); }
+.social-links a:hover { border-color: var(--accent); color: var(--accent); background: rgba(29, 158, 117, 0.05); }

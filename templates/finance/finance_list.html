@@ -9,20 +9,18 @@
 
 {% block content %}
 <style>
-/* Finance Hub - Modern Design System */
+/* Finance Hub — palette alignée sur base.css (:root / .dark-mode) */
 .finance-hub {
-    --primary-green: #2d5a3d;
-    --dark-green: #1e4a2e;
-    --light-green: #4a9c5d;
-    --accent-orange: #e89a3c;
-    --danger-red: #e74c3c;
-    --bg-light: #f8f9fa;
-    --card-bg: #ffffff;
-    --text-dark: #1a1a1a;
-    --text-muted: #6c757d;
-    --border-light: #e9ecef;
-    --success-bg: #e8f5e9;
-    --danger-bg: #ffebee;
+    --primary-green: var(--brand-primary);
+    --dark-green: var(--brand-deep);
+    --light-green: var(--brand-light);
+    --accent-orange: var(--brand-accent);
+    --danger-red: var(--danger);
+    --bg-light: var(--brand-bg);
+    --card-bg: var(--card-bg-solid);
+    --border-light: var(--border-glass);
+    --success-bg: var(--success-subtle);
+    --danger-bg: var(--danger-subtle);
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -30,9 +28,14 @@
     overflow-x: clip;
 }
 
-/* Hero Section */
+/* Hero — tons verts alignés marque (nuit → profond → primaire) */
 .fh-hero {
-    background: linear-gradient(135deg, #1e4a2e 0%, #2d5a3d 100%);
+    background: linear-gradient(
+        135deg,
+        var(--brand-night) 0%,
+        var(--brand-deep) 44%,
+        var(--brand-primary) 100%
+    );
     border-radius: clamp(14px, 3vw, 20px);
     padding: clamp(16px, 4vw, 28px);
     margin: clamp(8px, 2.5vw, 16px);
@@ -309,7 +312,7 @@
 
 /* Filters Bar */
 .fh-filters-bar {
-    background: white;
+    background: var(--card-bg-solid);
     border-radius: 16px;
     padding: clamp(14px, 3vw, 20px) clamp(14px, 3vw, 24px);
     margin: clamp(8px, 2.5vw, 16px);
@@ -343,9 +346,10 @@
     border: 1px solid var(--border-light);
     border-radius: 10px;
     font-size: 14px;
-    background: white;
+    color: var(--text-main);
+    background-color: var(--card-bg-solid);
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235c5c57' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     cursor: pointer;
@@ -354,18 +358,21 @@
 
 .fh-filter-group select:focus {
     outline: none;
-    border-color: var(--light-green);
+    border-color: var(--brand-primary);
 }
 
 .fh-btn--primary {
-    background: var(--light-green);
-    color: white;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: var(--text-inverse);
     height: 46px;
     padding: 0 24px;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 28%, transparent);
 }
 
 .fh-btn--primary:hover {
-    background: #3d8a4d;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 38%, transparent);
+    filter: brightness(1.03);
 }
 
 .fh-btn--ghost {
@@ -378,7 +385,7 @@
 
 .fh-btn--ghost:hover {
     background: var(--bg-light);
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 /* Charts Section */
@@ -420,7 +427,7 @@
 }
 
 .fh-chart-card {
-    background: white;
+    background: var(--card-bg-solid);
     border-radius: 16px;
     padding: clamp(14px, 3vw, 20px);
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
@@ -439,20 +446,20 @@
 .fh-chart-card__title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
 .fh-chart-card__title i {
-    color: var(--light-green);
+    color: var(--primary-green);
 }
 
 .fh-chart-card__badge {
     font-size: 11px;
     font-weight: 600;
-    color: var(--light-green);
+    color: var(--primary-green);
     background: var(--success-bg);
     padding: 4px 12px;
     border-radius: 20px;
@@ -524,7 +531,7 @@
 }
 
 .fh-transaction-card {
-    background: white;
+    background: var(--card-bg-solid);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     overflow: hidden;
@@ -541,7 +548,7 @@
 .fh-transaction-card__title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -552,7 +559,7 @@
 }
 
 .fh-transaction-card__title.income i {
-    color: var(--light-green);
+    color: var(--primary-green);
 }
 
 .fh-transaction-card__amount {
@@ -565,7 +572,7 @@
 }
 
 .fh-transaction-card__amount.income {
-    color: var(--light-green);
+    color: var(--primary-green);
 }
 
 .fh-transaction-list {
@@ -614,7 +621,7 @@
 .fh-transaction-item__label {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--text-main);
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -637,7 +644,7 @@
 }
 
 .fh-transaction-item__amount.income {
-    color: var(--light-green);
+    color: var(--primary-green);
 }
 
 .fh-empty-state {
@@ -654,7 +661,7 @@
 .fh-empty-state__title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--text-main);
     margin-bottom: 8px;
 }
 
@@ -665,7 +672,7 @@
 
 /* ROI Simulator */
 .fh-roi-section {
-    background: white;
+    background: var(--card-bg-solid);
     border-radius: 16px;
     padding: clamp(16px, 3vw, 24px);
     margin: clamp(8px, 2.5vw, 16px);
@@ -682,7 +689,7 @@
 .fh-roi-section__title {
     font-size: 18px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -690,7 +697,7 @@
 }
 
 .fh-roi-section__title i {
-    color: var(--light-green);
+    color: var(--primary-green);
 }
 
 .fh-roi-section__subtitle {
@@ -776,7 +783,7 @@
 }
 
 .fh-roi-main {
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    background: linear-gradient(135deg, #E1F5EE 0%, rgba(29, 158, 117, 0.2) 100%);
     border: 2px solid var(--light-green);
     border-radius: 12px;
     padding: 16px;
@@ -829,7 +836,7 @@
 .fh-roi-stat__value {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 .fh-roi-stat__value.income {
@@ -842,8 +849,8 @@
 
 /* ROI Info Card */
 .fh-roi-info {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    border: 1px solid #90caf9;
+    background: linear-gradient(135deg, rgba(93, 202, 165, 0.15) 0%, rgba(29, 158, 117, 0.25) 100%);
+    border: 1px solid rgba(29, 158, 117, 0.3);
     border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 16px;
@@ -859,7 +866,7 @@
 .fh-roi-info__title {
     font-size: 14px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
     margin-bottom: 4px;
 }
 
@@ -881,7 +888,7 @@
 
 .fh-roi-info__example {
     font-size: 11px;
-    color: var(--text-dark);
+    color: var(--text-main);
     background: rgba(255,255,255,0.5);
     padding: 6px 10px;
     border-radius: 6px;
@@ -896,7 +903,7 @@
 .fh-roi-current__title {
     font-size: 12px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -932,7 +939,7 @@
 .fh-roi-simulator__title {
     font-size: 14px;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -983,17 +990,18 @@
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
-    background: white;
+    background: var(--card-bg-solid);
+    color: var(--text-main);
     transition: border-color 0.2s;
 }
 
 .fh-roi-input-group input:focus {
     outline: none;
-    border-color: var(--light-green);
+    border-color: var(--brand-primary);
 }
 
 .fh-roi-result {
-    background: white;
+    background: var(--card-bg-solid);
     border-radius: 12px;
     padding: 16px;
     text-align: center;
@@ -1034,7 +1042,7 @@
 }
 
 .fh-roi-scenario {
-    background: white;
+    background: var(--card-bg-solid);
     border-radius: 10px;
     padding: 12px;
     text-align: center;
@@ -1044,7 +1052,7 @@
 }
 
 .fh-roi-scenario:hover {
-    border-color: var(--light-green);
+    border-color: var(--brand-primary);
     transform: translateY(-2px);
 }
 
@@ -1056,7 +1064,7 @@
 .fh-roi-scenario__label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 .fh-roi-scenario__label small {
@@ -1075,11 +1083,11 @@
     flex-direction: column;
     gap: 20px;
     margin: 20px 16px 32px;
-    --fh-form-surface: var(--card-bg-solid, #fff);
-    --fh-form-border: var(--border-color, #e5e7eb);
-    --fh-form-muted: var(--text-muted, #6b7280);
-    --fh-form-text: var(--text-main, #111827);
-    --fh-form-accent: var(--accent, #1d9e75);
+    --fh-form-surface: var(--card-bg-solid, #ffffff);
+    --fh-form-border: var(--border-color, rgba(8, 80, 65, 0.1));
+    --fh-form-muted: var(--text-muted, #5c5c57);
+    --fh-form-text: var(--text-main, #2C2C2A);
+    --fh-form-accent: var(--accent, #1D9E75);
     --fh-form-danger: var(--danger, #ef4444);
     --fh-form-radius: var(--radius-card, 22px);
     --fh-form-radius-sm: var(--radius-input, 12px);
@@ -1090,7 +1098,7 @@
 }
 
 .dark-mode .fh-forms-section {
-    --fh-form-surface: var(--card-bg-solid, #161b13);
+    --fh-form-surface: var(--card-bg-solid, #121c19);
 }
 
 .fh-form-card {
@@ -1228,7 +1236,7 @@
 }
 
 .fh-fieldset--panel {
-    background: var(--bg-secondary, #f4fbf8);
+    background: var(--bg-secondary, rgba(29, 158, 117, 0.08));
     border: 1px solid var(--fh-form-border);
     border-radius: var(--fh-form-radius-sm);
     padding: 16px 16px 18px;
@@ -1321,13 +1329,13 @@
 }
 
 .fh-form-control--readonly {
-    background: var(--bg-secondary, #f3f4f6);
+    background: var(--bg-secondary, rgba(8, 80, 65, 0.08));
     cursor: default;
     color: var(--fh-form-muted);
 }
 
 .dark-mode .fh-form-control--readonly {
-    background: color-mix(in srgb, var(--fh-form-surface) 88%, #000);
+    background: color-mix(in srgb, var(--fh-form-surface) 88%, #04342C);
 }
 
 select.fh-form-control {
@@ -1403,7 +1411,7 @@ select.fh-form-control {
 
 .fh-btn--large.fh-btn--primary {
     background: var(--fh-form-danger);
-    color: #fff;
+    color: #ffffff;
 }
 
 .fh-btn--large.fh-btn--primary:hover:not(:disabled) {
@@ -1412,7 +1420,7 @@ select.fh-form-control {
 
 .fh-btn--large.fh-btn--success {
     background: linear-gradient(135deg, var(--fh-form-accent), var(--accent-dark, #085041));
-    color: #fff;
+    color: #ffffff;
 }
 
 .fh-btn--large.fh-btn--success:hover:not(:disabled) {
@@ -1426,7 +1434,7 @@ select.fh-form-control {
 }
 
 .fh-form-actions .fh-btn--secondary:hover:not(:disabled) {
-    background: var(--bg-secondary, #f3f4f6);
+    background: var(--bg-secondary, rgba(29, 158, 117, 0.12));
 }
 
 .fh-alert {
@@ -1447,7 +1455,7 @@ select.fh-form-control {
 }
 
 .dark-mode .fh-alert.success {
-    color: var(--brand-pale, #9fe1cb);
+    color: var(--brand-pale, #9FE1CB);
 }
 
 .fh-alert.error {
@@ -1603,21 +1611,24 @@ button.fh-form-card__header--toggle:focus-visible {
 .fh-btn--add {
     flex: 1;
     min-width: min(100%, 200px);
-    background: var(--light-green);
-    color: white;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
+    color: var(--text-inverse);
     padding: 16px 24px;
     font-size: 15px;
     border-radius: 12px;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 28%, transparent);
 }
 
 .fh-btn--add:hover {
-    background: #3d8a4d;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 38%, transparent);
+    filter: brightness(1.03);
 }
 
 .fh-btn--add.outline {
-    background: white;
-    color: var(--light-green);
-    border: 2px solid var(--light-green);
+    background: var(--card-bg-solid);
+    color: var(--brand-primary);
+    border: 2px solid var(--brand-primary);
 }
 
 .fh-btn--add.outline:hover {
@@ -2259,12 +2270,12 @@ function updateROI() {
     
     if (hasData) {
         roiPercentageEl.textContent = (roiPercent >= 0 ? '+' : '') + roiPercent.toFixed(1) + '%';
-        roiPercentageEl.style.color = isPositive ? 'var(--light-green)' : 'var(--danger-red)';
+        roiPercentageEl.style.color = isPositive ? 'var(--primary-green)' : 'var(--danger-red)';
         
         roiBadgeEl.textContent = isPositive ? '✓ Rentable' : '✗ Non rentable';
         roiBadgeEl.className = 'fh-roi-main__badge ' + (isPositive ? 'positive' : 'negative');
         
-        roiMainCard.style.border = isPositive ? '2px solid var(--light-green)' : '2px solid var(--danger-red)';
+        roiMainCard.style.border = isPositive ? '2px solid var(--primary-green)' : '2px solid var(--danger-red)';
     } else {
         roiPercentageEl.textContent = '—';
         roiBadgeEl.textContent = 'Ajoutez des données';
@@ -2274,7 +2285,7 @@ function updateROI() {
     // Update net result
     const netResultEl = document.getElementById('netResult');
     netResultEl.textContent = formatFCFA(net);
-    netResultEl.style.color = isPositive ? 'var(--light-green)' : 'var(--danger-red)';
+    netResultEl.style.color = isPositive ? 'var(--primary-green)' : 'var(--danger-red)';
     
     // Initialize simulator with current values
     document.getElementById('simRecettes').value = totalRecettes;
@@ -2300,11 +2311,11 @@ function simulateROI() {
     const isPositive = net >= 0;
     
     simValue.textContent = (roiPercent >= 0 ? '+' : '') + roiPercent.toFixed(1) + '%';
-    simValue.style.color = isPositive ? 'var(--light-green)' : 'var(--danger-red)';
+    simValue.style.color = isPositive ? 'var(--primary-green)' : 'var(--danger-red)';
     
     if (net > 0) {
         simText.textContent = 'Bénéfice de ' + formatFCFA(net);
-        simResult.style.borderColor = 'var(--light-green)';
+        simResult.style.borderColor = 'var(--primary-green)';
     } else if (net < 0) {
         simText.textContent = 'Perte de ' + formatFCFA(Math.abs(net));
         simResult.style.borderColor = 'var(--danger-red)';
@@ -2432,11 +2443,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     data: data,
                     backgroundColor: [
-                        '#2d5a3d',
-                        '#4a9c5d',
-                        '#7dae8e',
-                        '#a4c3b2',
-                        '#c8e6c9'
+                        '#1D9E75',
+                        '#5DCAA5',
+                        '#9FE1CB',
+                        'rgba(29, 158, 117, 0.5)',
+                        'rgba(29, 158, 117, 0.3)'
                     ],
                     borderWidth: 0
                 }]
@@ -2468,13 +2479,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: 'Recettes',
                         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        backgroundColor: '#4a9c5d',
+                        backgroundColor: '#1D9E75',
                         borderRadius: 4
                     },
                     {
                         label: 'Dépenses',
                         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        backgroundColor: '#e74c3c',
+                        backgroundColor: '#ef4444',
                         borderRadius: 4
                     }
                 ]
