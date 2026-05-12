@@ -1,0 +1,1262 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+{% load humanize %}
+
+{% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
+<script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
+<style>
+/* ============================================
+   ANDD BAAY V2 - BENTO PROJECT DETAIL
+   Pilier 2: Dashboard Bento Grid Layout
+   ============================================ */
+
+:root {
+    --bento-gap: clamp(12px, 2vw, 20px);
+    --card-radius: clamp(16px, 2.5vw, 24px);
+    --card-padding: clamp(16px, 3vw, 24px);
+    --brand-primary: #2d5a3d;
+    --brand-light: #4a9c5d;
+    --brand-accent: #e89a3c;
+    --brand-night: #1a3d2e;
+    --brand-deep: #0d2818;
+    --surface-0: #ffffff;
+    --surface-1: #f8faf9;
+    --surface-2: #eef2f0;
+    --text-primary: #1a1a1a;
+    --text-secondary: #5a5a5a;
+    --text-muted: #8a8a8a;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+/* ============================================
+   BENTO GRID CONTAINER
+   ============================================ */
+.bento-project-detail {
+    display: grid;
+    gap: var(--bento-gap);
+    padding: var(--bento-gap);
+    max-width: 1400px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* ============================================
+   HERO SECTION (Full Width)
+   ============================================ */
+.bento-hero {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, var(--brand-night) 0%, var(--brand-deep) 50%, var(--brand-primary) 100%);
+    border-radius: var(--card-radius);
+    padding: var(--card-padding);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.bento-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40%;
+    height: 100%;
+    background: radial-gradient(ellipse at top right, rgba(74,156,93,0.3) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.bento-hero__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: clamp(16px, 3vw, 24px);
+    flex-wrap: wrap;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.bento-hero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.bento-hero__back:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateX(-2px);
+}
+
+.bento-hero__status {
+    background: var(--brand-light);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+}
+
+.bento-hero__content {
+    position: relative;
+    z-index: 1;
+}
+
+.bento-hero__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.bento-hero__title {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 800;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.bento-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.bento-hero__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bento-hero__meta-item i {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+/* ============================================
+   QUICK STATS ROW (4 Cards)
+   ============================================ */
+.bento-quick-stats {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--bento-gap);
+}
+
+.bento-stat-card {
+    background: var(--surface-0);
+    border-radius: var(--card-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.bento-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.bento-stat-card__icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface-1) 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--brand-primary);
+    margin-bottom: 12px;
+}
+
+.bento-stat-card__value {
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.bento-stat-card__label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.bento-stat-card__hint {
+    font-size: 11px;
+    color: var(--brand-light);
+    margin-top: 2px;
+}
+
+/* ============================================
+   BENTO GRID MAIN AREA
+   ============================================ */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--bento-gap);
+}
+
+.bento-card {
+    background: var(--surface-0);
+    border-radius: var(--card-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease;
+}
+
+.bento-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.bento-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bento-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bento-card__title i {
+    color: var(--brand-primary);
+    font-size: 18px;
+}
+
+.bento-card__badge {
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.bento-card__content {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ============================================
+   CARD SIZES (12-column grid)
+   ============================================ */
+.bento-card--small { grid-column: span 3; }
+.bento-card--medium { grid-column: span 4; }
+.bento-card--large { grid-column: span 6; }
+.bento-card--full { grid-column: span 12; }
+.bento-card--tall { grid-row: span 2; }
+
+/* ============================================
+   MÉTÉO CARD (Small)
+   ============================================ */
+.bento-weather {
+    background: linear-gradient(135deg, #2d3a5a 0%, #1e2740 100%);
+    color: white;
+    min-height: 200px;
+}
+
+.bento-weather__main {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.bento-weather__temp {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.bento-weather__condition {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.bento-weather__details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    font-size: 12px;
+}
+
+.bento-weather__detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.8;
+}
+
+/* ============================================
+   PRÉDICTION IA CARD (Large)
+   ============================================ */
+.bento-prediction__value {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    color: var(--brand-primary);
+    margin-bottom: 8px;
+}
+
+.bento-prediction__value span {
+    font-size: 0.5em;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.bento-prediction__chart {
+    height: 150px;
+    background: var(--surface-1);
+    border-radius: 12px;
+    margin: 16px 0;
+    overflow: hidden;
+}
+
+.bento-prediction__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+}
+
+.bento-prediction-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-1);
+    border-radius: 12px;
+}
+
+.bento-prediction-stat__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.bento-prediction-stat__icon--confidence {
+    background: #e8f5e9;
+    color: var(--brand-light);
+}
+
+.bento-prediction-stat__icon--quality {
+    background: #fdf6f0;
+    color: var(--brand-accent);
+}
+
+.bento-prediction-stat__label {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: block;
+}
+
+.bento-prediction-stat__value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ============================================
+   PRODUITS CARD (Full Width)
+   ============================================ */
+.bento-products__list {
+    display: grid;
+    gap: 12px;
+}
+
+.bento-product-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--surface-1);
+    border-radius: 16px;
+    transition: all 0.2s ease;
+}
+
+.bento-product-item:hover {
+    background: var(--surface-2);
+    transform: translateX(4px);
+}
+
+.bento-product-item__icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--brand-light) 0%, var(--brand-primary) 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.bento-product-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.bento-product-item__name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.bento-product-item__meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bento-product-item__badge {
+    background: var(--brand-accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.bento-product-item__stats {
+    display: flex;
+    gap: 24px;
+    text-align: center;
+}
+
+.bento-product-item__stat {
+    min-width: 80px;
+}
+
+.bento-product-item__stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bento-product-item__stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.bento-product-item__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.bento-btn--icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.bento-btn--primary {
+    background: var(--brand-primary);
+    color: white;
+}
+
+.bento-btn--primary:hover {
+    background: var(--brand-night);
+}
+
+.bento-btn--secondary {
+    background: var(--surface-2);
+    color: var(--text-primary);
+}
+
+.bento-btn--secondary:hover {
+    background: var(--surface-1);
+}
+
+/* ============================================
+   INVESTISSEMENTS CARD (Medium)
+   ============================================ */
+.bento-budget__progress {
+    margin-bottom: 20px;
+}
+
+.bento-budget__progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.bento-budget__progress-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.bento-budget__progress-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bento-budget__bar {
+    height: 8px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bento-budget__bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-light) 0%, var(--brand-primary) 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.bento-budget__list {
+    display: grid;
+    gap: 12px;
+}
+
+.bento-budget__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--surface-1);
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.bento-budget__item-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.bento-budget__item-amount {
+    color: var(--brand-primary);
+    font-weight: 700;
+}
+
+.bento-budget__empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.bento-budget__empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* ============================================
+   CARTE CARD (Medium)
+   ============================================ */
+.bento-map {
+    min-height: 300px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.bento-map__container {
+    flex: 1;
+    min-height: 250px;
+    background: var(--surface-1);
+    border-radius: calc(var(--card-radius) - var(--card-padding));
+}
+
+/* ============================================
+   TÂCHES CARD (Full Width)
+   ============================================ */
+.bento-tasks__list {
+    display: grid;
+    gap: 12px;
+}
+
+.bento-task-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--surface-1);
+    border-radius: 16px;
+    border-left: 4px solid var(--brand-accent);
+}
+
+.bento-task-item--urgent {
+    border-left-color: #e74c3c;
+}
+
+.bento-task-item--done {
+    border-left-color: var(--brand-light);
+    opacity: 0.7;
+}
+
+.bento-task-item__checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.bento-task-item--done .bento-task-item__checkbox {
+    background: var(--brand-light);
+    border-color: var(--brand-light);
+    color: white;
+}
+
+.bento-task-item__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.bento-task-item__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.bento-task-item--done .bento-task-item__title {
+    text-decoration: line-through;
+}
+
+.bento-task-item__meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bento-task-item__date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bento-task-item__priority {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.bento-task-item__priority--high {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.bento-task-item__priority--medium {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.bento-task-item__priority--low {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* ============================================
+   ACTIONS BAR
+   ============================================ */
+.bento-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+    background: var(--surface-0);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.bento-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+}
+
+.bento-btn--primary {
+    background: var(--brand-primary);
+    color: white;
+}
+
+.bento-btn--primary:hover {
+    background: var(--brand-night);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.bento-btn--secondary {
+    background: var(--surface-2);
+    color: var(--text-primary);
+}
+
+.bento-btn--secondary:hover {
+    background: var(--surface-1);
+}
+
+.bento-btn--danger {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.bento-btn--danger:hover {
+    background: #ffcdd2;
+}
+
+.bento-btn--success {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.bento-btn--success:hover {
+    background: #c8e6c9;
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+@media (max-width: 1024px) {
+    .bento-card--small,
+    .bento-card--medium {
+        grid-column: span 6;
+    }
+    
+    .bento-card--large {
+        grid-column: span 12;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --bento-gap: 12px;
+        --card-padding: 16px;
+    }
+    
+    .bento-card--small,
+    .bento-card--medium,
+    .bento-card--large {
+        grid-column: span 12;
+    }
+    
+    .bento-quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .bento-product-item {
+        flex-wrap: wrap;
+    }
+    
+    .bento-product-item__stats {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 8px;
+    }
+    
+    .bento-hero__meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .bento-actions {
+        justify-content: center;
+    }
+    
+    .bento-btn {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bento-weather__temp {
+        font-size: 36px;
+    }
+    
+    .bento-prediction__value {
+        font-size: 1.75rem;
+    }
+    
+    .bento-product-item__icon {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+    }
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.bento-skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-1) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+/* ============================================
+   HTMX LOADING STATES
+   ============================================ */
+.htmx-request .bento-card {
+    opacity: 0.7;
+}
+
+.htmx-request .bento-card__content::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid var(--surface-2);
+    border-top-color: var(--brand-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bento-project-detail">
+    <!-- HERO SECTION -->
+    <div class="bento-hero">
+        <div class="bento-hero__header">
+            <a href="{% url 'liste_projets' %}" class="bento-hero__back">
+                <i class="fas fa-chevron-left"></i> Retour aux projets
+            </a>
+            <span class="bento-hero__status">
+                {% if projet.statut == 'en_cours' %}En cours
+                {% elif projet.statut == 'en_pause' %}En pause
+                {% elif projet.statut == 'fini' %}Terminé
+                {% elif projet.statut == 'cloture' %}Clôturé
+                {% else %}En cours{% endif %}
+            </span>
+        </div>
+        
+        <div class="bento-hero__content">
+            <div class="bento-hero__label">Projet</div>
+            <h1 class="bento-hero__title">{{ projet.nom }}</h1>
+            
+            <div class="bento-hero__meta">
+                <span class="bento-hero__meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ projet.localite.nom|default:"Non spécifié" }}, {{ projet.localite.pays.nom|default:"" }}
+                </span>
+                <span class="bento-hero__meta-item">
+                    <i class="fas fa-warehouse"></i>
+                    {{ projet.ferme.nom|default:"Ferme non assignée" }}
+                </span>
+                <span class="bento-hero__meta-item">
+                    <i class="fas fa-calendar"></i>
+                    Démarré le {{ projet.date_lancement|date:"d F Y" }}
+                </span>
+                {% if projet.date_fin %}
+                <span class="bento-hero__meta-item">
+                    <i class="fas fa-flag-checkered"></i>
+                    Fin prévue {{ projet.date_fin|date:"d F Y" }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK STATS ROW -->
+    <div class="bento-quick-stats">
+        <div class="bento-stat-card">
+            <div class="bento-stat-card__icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="bento-stat-card__value">
+                {% if investissement_total_fcfa %}{{ investissement_total_fcfa|floatformat:0|intcomma }}{% else %}0{% endif %}
+            </div>
+            <div class="bento-stat-card__label">Budget utilisé</div>
+            <div class="bento-stat-card__hint">FCFA</div>
+        </div>
+        
+        <div class="bento-stat-card">
+            <div class="bento-stat-card__icon">
+                <i class="fas fa-ruler-combined"></i>
+            </div>
+            <div class="bento-stat-card__value">
+                {{ projet.superficie|default:"0" }}
+            </div>
+            <div class="bento-stat-card__label">Surface totale</div>
+            <div class="bento-stat-card__hint">hectares</div>
+        </div>
+        
+        <div class="bento-stat-card">
+            <div class="bento-stat-card__icon">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <div class="bento-stat-card__value">
+                {{ projet_produits.count|default:"0" }}
+            </div>
+            <div class="bento-stat-card__label">Cultures</div>
+            <div class="bento-stat-card__hint">produits</div>
+        </div>
+        
+        <div class="bento-stat-card">
+            <div class="bento-stat-card__icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="bento-stat-card__value">
+                {% if projet.progression_pct %}{{ projet.progression_pct|floatformat:0 }}{% else %}0{% endif %}%
+            </div>
+            <div class="bento-stat-card__label">Progression</div>
+            <div class="bento-stat-card__hint">du projet</div>
+        </div>
+    </div>
+
+    <!-- BENTO GRID -->
+    <div class="bento-grid">
+        <!-- MÉTÉO (Small) -->
+        <div class="bento-card bento-card--small bento-weather">
+            <div class="bento-card__header">
+                <h3 class="bento-card__title">
+                    <i class="fas fa-cloud-sun"></i> Météo
+                </h3>
+            </div>
+            <div class="bento-card__content">
+                <div class="bento-weather__main">
+                    <div class="bento-weather__temp">--°C</div>
+                    <div>
+                        <div class="bento-weather__condition">Chargement...</div>
+                    </div>
+                </div>
+                <div class="bento-weather__details">
+                    <div class="bento-weather__detail">
+                        <i class="fas fa-tint"></i>
+                        <span>Humidité --%</span>
+                    </div>
+                    <div class="bento-weather__detail">
+                        <i class="fas fa-wind"></i>
+                        <span>Vent -- km/h</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRÉDICTION IA (Large) -->
+        <div class="bento-card bento-card--large">
+            <div class="bento-card__header">
+                <h3 class="bento-card__title">
+                    <i class="fas fa-robot"></i> Prédiction IA
+                </h3>
+                <span class="bento-card__badge">Estimatif</span>
+            </div>
+            <div class="bento-card__content">
+                {% if prediction %}
+                <div class="bento-prediction__value">
+                    {{ prediction.rendement_estime_min|floatformat:0 }} – {{ prediction.rendement_estime_max|floatformat:0 }}
+                    <span>kg</span>
+                </div>
+                <div class="bento-prediction__chart">
+                    <canvas id="growthCurveChart"></canvas>
+                </div>
+                <div class="bento-prediction__stats">
+                    <div class="bento-prediction-stat">
+                        <div class="bento-prediction-stat__icon bento-prediction-stat__icon--confidence">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="bento-prediction-stat__content">
+                            <span class="bento-prediction-stat__label">Confiance</span>
+                            <span class="bento-prediction-stat__value">{{ prediction.indice_confiance|floatformat:0 }}%</span>
+                        </div>
+                    </div>
+                    <div class="bento-prediction-stat">
+                        <div class="bento-prediction-stat__icon bento-prediction-stat__icon--quality">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <div class="bento-prediction-stat__content">
+                            <span class="bento-prediction-stat__label">Qualité prévue</span>
+                            <span class="bento-prediction-stat__value">Standard</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="bento-prediction__value">
+                    -- – -- <span>kg</span>
+                </div>
+                <p style="color: var(--text-muted); text-align: center; padding: 40px 20px;">
+                    <i class="fas fa-bolt" style="font-size: 32px; margin-bottom: 12px; display: block;"></i>
+                    Générez une prédiction IA pour estimer votre rendement
+                </p>
+                <a href="{% url 'generer_prediction' projet.id %}" class="bento-btn bento-btn--primary" style="width: 100%;">
+                    <i class="fas fa-magic"></i> Analyser avec l'IA
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- BUDGET / INVESTISSEMENTS (Medium) -->
+        <div class="bento-card bento-card--medium">
+            <div class="bento-card__header">
+                <h3 class="bento-card__title">
+                    <i class="fas fa-coins"></i> Budget
+                </h3>
+                {% if projet.budget_alloue %}
+                <span class="bento-card__badge">{{ projet.budget_alloue|floatformat:0|intcomma }} FCFA</span>
+                {% endif %}
+            </div>
+            <div class="bento-card__content">
+                {% if investissement_total_fcfa > 0 %}
+                <div class="bento-budget__progress">
+                    <div class="bento-budget__progress-header">
+                        <span class="bento-budget__progress-label">Utilisé</span>
+                        <span class="bento-budget__progress-value">
+                            {% if projet.budget_alloue %}
+                                {% widthratio investissement_total_fcfa projet.budget_alloue 100 %}%
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="bento-budget__bar">
+                        <div class="bento-budget__bar-fill" 
+                             style="width: {% if projet.budget_alloue %}{% widthratio investissement_total_fcfa projet.budget_alloue 100 %}{% else %}0{% endif %}%">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bento-budget__list">
+                    {% for inv in investissements|slice:":3" %}
+                    <div class="bento-budget__item">
+                        <span class="bento-budget__item-name">{{ inv.libelle_affichage|truncatechars:25 }}</span>
+                        <span class="bento-budget__item-amount">{{ inv.calculer_investissement_total|floatformat:0|intcomma }} F</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if investissements.count > 3 %}
+                <a href="{% url 'liste_investissements' projet.id %}" style="display: block; text-align: center; margin-top: 12px; color: var(--brand-primary); font-size: 13px;">
+                    Voir les {{ investissements.count }} investissements <i class="fas fa-arrow-right"></i>
+                </a>
+                {% endif %}
+                {% else %}
+                <div class="bento-budget__empty">
+                    <i class="fas fa-wallet bento-budget__empty-icon"></i>
+                    <p>Aucun investissement enregistré</p>
+                    {% if can_modify_investissements %}
+                    <a href="{% url 'ajouter_investissement' projet.id %}" class="bento-btn bento-btn--primary" style="margin-top: 12px;">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- CARTE (Medium) -->
+        <div class="bento-card bento-card--medium bento-map">
+            <div class="bento-card__header" style="padding: var(--card-padding) var(--card-padding) 0;">
+                <h3 class="bento-card__title">
+                    <i class="fas fa-map-marked-alt"></i> Localisation
+                </h3>
+            </div>
+            <div class="bento-card__content bento-map__container" id="projectMap"></div>
+        </div>
+
+        <!-- PRODUITS (Full Width) -->
+        <div class="bento-card bento-card--full">
+            <div class="bento-card__header">
+                <h3 class="bento-card__title">
+                    <i class="fas fa-seedling"></i> Produits & Semis
+                </h3>
+                <span class="bento-card__badge">{{ projet_produits.count|default:"0" }} culture(s)</span>
+            </div>
+            <div class="bento-card__content">
+                <div class="bento-products__list">
+                    {% for pp in projet_produits %}
+                    <div class="bento-product-item">
+                        <div class="bento-product-item__icon">
+                            🌾
+                        </div>
+                        <div class="bento-product-item__info">
+                            <h4 class="bento-product-item__name">{{ pp.produit.nom }}</h4>
+                            <div class="bento-product-item__meta">
+                                <span class="bento-product-item__badge">{{ pp.produit.get_type_culture_display|default:"Extensif" }}</span>
+                                <span>{{ pp.projet.nom }}</span>
+                            </div>
+                        </div>
+                        <div class="bento-product-item__stats">
+                            <div class="bento-product-item__stat">
+                                <div class="bento-product-item__stat-value">
+                                    {{ pp.superficie_allouee|default:projet.superficie|floatformat:2 }}
+                                </div>
+                                <div class="bento-product-item__stat-label">hectares</div>
+                            </div>
+                            <div class="bento-product-item__stat">
+                                <div class="bento-product-item__stat-value" style="color: var(--brand-light);">
+                                    {{ pp.rendement_estime|default:"--" }}
+                                </div>
+                                <div class="bento-product-item__stat-label">kg estimé</div>
+                            </div>
+                        </div>
+                        <div class="bento-product-item__actions">
+                            <a href="{% url 'detail_semis' pp.id %}" class="bento-btn--icon bento-btn--primary" title="Détail">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'modifier_projet' projet.id %}" class="bento-btn--icon bento-btn--secondary" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="bento-budget__empty">
+                        <i class="fas fa-seedling bento-budget__empty-icon"></i>
+                        <p>Aucun produit associé à ce projet</p>
+                        <a href="{% url 'modifier_projet' projet.id %}" class="bento-btn bento-btn--primary" style="margin-top: 12px;">
+                            <i class="fas fa-plus"></i> Ajouter un produit
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- TÂCHES (Full Width) -->
+        <div class="bento-card bento-card--full">
+            <div class="bento-card__header">
+                <h3 class="bento-card__title">
+                    <i class="fas fa-tasks"></i> Tâches récentes
+                </h3>
+                <a href="{% url 'liste_taches' %}?projet={{ projet.id }}" style="font-size: 13px; color: var(--brand-primary);">
+                    Voir tout <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="bento-card__content">
+                <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+                    Chargement des tâches...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIONS BAR -->
+    <div class="bento-actions">
+        <a href="{% url 'modifier_projet' projet.id %}" class="bento-btn bento-btn--primary">
+            <i class="fas fa-edit"></i> Modifier le projet
+        </a>
+        {% if can_modify_investissements %}
+        <a href="{% url 'ajouter_investissement' projet.id %}" class="bento-btn bento-btn--secondary">
+            <i class="fas fa-plus"></i> Investissement
+        </a>
+        {% endif %}
+        {% if projet.statut != 'fini' and projet.statut != 'cloture' %}
+        <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="bento-btn bento-btn--success">
+            <i class="fas fa-check-circle"></i> Terminer & récolter
+        </a>
+        {% endif %}
+        <a href="{% url 'supprimer_projet' projet.id %}" class="bento-btn bento-btn--danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')">
+            <i class="fas fa-trash-alt"></i> Supprimer
+        </a>
+    </div>
+</div>
+
+<script>
+// Initialize Map
+document.addEventListener('DOMContentLoaded', function() {
+    {% if projet.ferme.latitude and projet.ferme.longitude %}
+    var mapCenter = [{{ projet.ferme.latitude }}, {{ projet.ferme.longitude }}];
+    {% elif projet.localite.latitude and projet.localite.longitude %}
+    var mapCenter = [{{ projet.localite.latitude }}, {{ projet.localite.longitude }}];
+    {% else %}
+    var mapCenter = [14.7167, -17.4677]; // Default Dakar
+    {% endif %}
+    
+    var map = L.map('projectMap', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView(mapCenter, 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    {% if projet.ferme.latitude and projet.ferme.longitude %}
+    L.marker(mapCenter)
+        .addTo(map)
+        .bindPopup('<strong>{{ projet.ferme.nom|escapejs }}</strong><br>{{ projet.nom|escapejs }}');
+    {% endif %}
+    
+    // Add zoom control at bottom right
+    L.control.zoom({
+        position: 'bottomright'
+    }).addTo(map);
+});
+</script>
+{% endblock %}

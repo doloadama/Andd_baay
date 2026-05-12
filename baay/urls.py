@@ -10,4 +10,7 @@ urlpatterns = [
     path("", include("baay.urls_taches")),
     path("", include("baay.urls_messagerie")),
     path("", include("baay.urls_api")),
+    path("", include("baay.urls_dashboard")),
+    path("", include("baay.urls_carte")),
+    path("", include("baay.urls_sols")),
 ]

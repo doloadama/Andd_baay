@@ -1,0 +1,14 @@
+{# Badge de statut pour recette #}
+{% if recette.est_validee %}
+<span class="badge bg-success">
+    <i class="fas fa-check me-1"></i>Validée
+</span>
+{% elif recette.est_refusee %}
+<span class="badge bg-danger">
+    <i class="fas fa-times me-1"></i>Refusée
+</span>
+{% else %}
+<span class="badge bg-warning">
+    <i class="fas fa-clock me-1"></i>En attente
+</span>
+{% endif %}

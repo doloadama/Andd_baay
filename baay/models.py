@@ -961,6 +961,41 @@ class Recette(models.Model):
         folder=cloudinary_media_folder("finance/recettes"),
         help_text="Justificatif de vente (facture ou photo pesée)",
     )
+
+    # Workflow Validation (V2)
+    STATUT_EN_ATTENTE = 'en_attente'
+    STATUT_VALIDEE = 'validee'
+    STATUT_REFUSEE = 'refusee'
+    STATUT_VALIDATION_CHOICES = [
+        (STATUT_EN_ATTENTE, 'En attente de validation'),
+        (STATUT_VALIDEE, 'Validée'),
+        (STATUT_REFUSEE, 'Refusée'),
+    ]
+
+    statut_validation = models.CharField(
+        max_length=15,
+        choices=STATUT_VALIDATION_CHOICES,
+        default=STATUT_EN_ATTENTE,
+        help_text="Statut de validation par le manager de la ferme",
+    )
+    validee_par = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recettes_validees',
+        help_text="Manager ayant validé la recette",
+    )
+    date_validation = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date de validation/refus",
+    )
+    commentaire_validation = models.TextField(
+        blank=True,
+        help_text="Commentaire du validateur (en cas de refus ou validation)",
+    )
+
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
@@ -969,7 +1004,42 @@ class Recette(models.Model):
         indexes = [
             models.Index(fields=['projet', 'date_vente']),
             models.Index(fields=['projet_produit']),
+            models.Index(fields=['statut_validation', '-date_creation']),
+            models.Index(fields=['projet', 'statut_validation']),
         ]
+
+    @property
+    def est_validee(self):
+        """Retourne True si la recette est validée."""
+        return self.statut_validation == self.STATUT_VALIDEE
+
+    @property
+    def est_en_attente(self):
+        """Retourne True si la recette est en attente de validation."""
+        return self.statut_validation == self.STATUT_EN_ATTENTE
+
+    @property
+    def est_refusee(self):
+        """Retourne True si la recette est refusée."""
+        return self.statut_validation == self.STATUT_REFUSEE
+
+    def valider(self, profile, commentaire=""):
+        """Valide la recette (workflow manager)."""
+        from django.utils import timezone
+        self.statut_validation = self.STATUT_VALIDEE
+        self.validee_par = profile
+        self.date_validation = timezone.now()
+        self.commentaire_validation = commentaire
+        self.save(update_fields=['statut_validation', 'validee_par', 'date_validation', 'commentaire_validation'])
+
+    def refuser(self, profile, commentaire=""):
+        """Refuse la recette (workflow manager)."""
+        from django.utils import timezone
+        self.statut_validation = self.STATUT_REFUSEE
+        self.validee_par = profile
+        self.date_validation = timezone.now()
+        self.commentaire_validation = commentaire
+        self.save(update_fields=['statut_validation', 'validee_par', 'date_validation', 'commentaire_validation'])
 
     def clean(self):
         super().clean()
@@ -1377,3 +1447,701 @@ class HistoriqueSol(models.Model):
         parcelle = f" — {self.parcelle_nom}" if self.parcelle_nom else ""
         return f"{self.ferme.nom}{parcelle} ({self.date_mesure})"
 
+    def analyser_et_recommander(self, culture_cible=None):
+        """
+        Génère une recommandation de fertilisation basée sur N-P-K et pH.
+        Méthode Fat Model - appelle le service de fertilisation.
+        """
+        from baay.services.fertilisation_service import generer_recommandation
+        return generer_recommandation(self, culture_cible)
+
+
+class RecommandationFertilisation(models.Model):
+    """
+    Recommandation IA de fertilisation générée à partir d'un HistoriqueSol.
+    Stocke le conseil persistant pour référence ultérieure.
+    """
+    TYPE_ENGRAIS_CHOICES = [
+        ('organique', 'Organique (Compost, Fumier)'),
+        ('mineral_npk', 'Minéral NPK'),
+        ('mineral_uree', 'Minéral (Urée)'),
+        ('mixte', 'Mixte (Organique + Minéral)'),
+        ('aucun', 'Aucun - Sol équilibré'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    historique_sol = models.ForeignKey(
+        HistoriqueSol,
+        on_delete=models.CASCADE,
+        related_name='recommandations',
+    )
+    culture_cible = models.ForeignKey(
+        ProduitAgricole,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recommandations_fertilisation',
+        help_text="Culture pour laquelle la recommandation est faite",
+    )
+
+    type_engrais_conseille = models.CharField(
+        max_length=20,
+        choices=TYPE_ENGRAIS_CHOICES,
+        help_text="Type d'engrais recommandé",
+    )
+    quantite_kg_ha = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Quantité recommandée en kg par hectare",
+    )
+    message_explication = models.TextField(
+        help_text="Explication détaillée de la recommandation (raisonnement IA)",
+    )
+    priorite_actions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Liste d'actions prioritaires [{'action': '...', 'urgence': 'haute|moyenne|basse'}]",
+    )
+    confiance_score = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=0.75,
+        help_text="Score de confiance de la recommandation (0.0 - 1.0)",
+        validators=[MinValueValidator(0), MaxValueValidator(1)],
+    )
+
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+    vue_par_utilisateur = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date de consultation par l'utilisateur",
+    )
+
+    class Meta:
+        verbose_name = "Recommandation Fertilisation"
+        verbose_name_plural = "Recommandations Fertilisation"
+        ordering = ["-date_creation"]
+        indexes = [
+            models.Index(fields=["historique_sol", "-date_creation"]),
+            models.Index(fields=["culture_cible", "-confiance_score"]),
+        ]
+
+    def __str__(self):
+        culture = f" pour {self.culture_cible.nom}" if self.culture_cible else ""
+        return f"Recommandation {self.type_engrais_conseille}{culture} ({self.historique_sol.ferme.nom})"
+
+
+class IncidentRapporte(models.Model):
+    """
+    Incident agricole signalé via l'assistant vocal (hands-free).
+    Capture transcription audio + géolocalisation pour traitement rapide.
+    """
+    TYPE_INCIDENT_CHOICES = [
+        ('invasion_ravageurs', 'Invasion de ravageurs (criquets, chenilles...)'),
+        ('maladie_feuilles', 'Maladie des feuilles'),
+        ('maladie_racines', 'Maladie des racines/tiges'),
+        ('stress_hydrique', 'Stress hydrique / Sécheresse'),
+        ('inondation', 'Inondation / Excès d\'eau'),
+        ('vol', 'Vol / Intrusion'),
+        ('incident_materiel', 'Incident matériel / Dégâts'),
+        ('autre', 'Autre incident'),
+    ]
+
+    GRAVITE_CHOICES = [
+        ('faible', 'Faible - À surveiller'),
+        ('moyenne', 'Moyenne - Action nécessaire'),
+        ('haute', 'Haute - Urgent'),
+        ('critique', 'Critique - Danger immédiat'),
+    ]
+
+    STATUT_CHOICES = [
+        ('signale', 'Signalé - Non traité'),
+        ('en_cours', 'Traitement en cours'),
+        ('resolu', 'Résolu'),
+        ('escalade', 'Escaladé au manager'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(
+        Ferme,
+        on_delete=models.CASCADE,
+        related_name='incidents',
+    )
+    signale_par = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='incidents_signales',
+        help_text="Utilisateur qui a signalé l'incident",
+    )
+
+    type_incident = models.CharField(
+        max_length=30,
+        choices=TYPE_INCIDENT_CHOICES,
+        help_text="Catégorie de l'incident détectée",
+    )
+    gravite_detectee = models.CharField(
+        max_length=10,
+        choices=GRAVITE_CHOICES,
+        default='moyenne',
+        help_text="Gravité estimée par l'IA ou l'utilisateur",
+    )
+    statut = models.CharField(
+        max_length=15,
+        choices=STATUT_CHOICES,
+        default='signale',
+    )
+
+    transcription_audio = models.TextField(
+        help_text="Texte transcrit de l'audio de signalement",
+    )
+    audio_url = models.URLField(
+        null=True,
+        blank=True,
+        help_text="URL du fichier audio stocké (Cloudinary ou autre)",
+    )
+    localisation_gps_lat = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Latitude GPS au moment du signalement",
+    )
+    localisation_gps_lon = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Longitude GPS au moment du signalement",
+    )
+    parcelle_concernee = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Nom de la parcelle si mentionnée",
+    )
+
+    traite_par = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incidents_traites',
+        help_text="Responsable ayant pris en charge l'incident",
+    )
+    date_signalement = models.DateTimeField(auto_now_add=True)
+    date_traitement = models.DateTimeField(null=True, blank=True)
+    commentaire_resolution = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Incident Rapporté"
+        verbose_name_plural = "Incidents Rapportés"
+        ordering = ["-date_signalement"]
+        indexes = [
+            models.Index(fields=["ferme", "statut"]),
+            models.Index(fields=["type_incident", "-date_signalement"]),
+            models.Index(fields=["signale_par", "-date_signalement"]),
+        ]
+
+    def __str__(self):
+        return f"{self.get_type_incident_display()} - {self.ferme.nom} ({self.get_gravite_detectee_display()})"
+
+
+class DocumentConnaissance(models.Model):
+    """
+    Document de base de connaissances pour le RAG (Retrieval Augmented Generation).
+    Stocke les textes d'expertise agronomique indexés pour requêtage LLM.
+    """
+    CATEGORIE_CHOICES = [
+        ('culture', 'Culture / Semis / Récolte'),
+        ('fertilisation', 'Fertilisation / Sol'),
+        ('irrigation', 'Irrigation / Eau'),
+        ('ravageurs', 'Ravageurs / Maladies'),
+        ('climat', 'Climat / Météo'),
+        ('economie', 'Économie / Marché'),
+        ('pratiques', 'Pratiques paysannes'),
+        ('reglementation', 'Réglementation / Certif'),
+        ('autre', 'Autre'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    titre = models.CharField(max_length=200)
+    contenu = models.TextField(help_text="Contenu textuel complet du document")
+    categorie = models.CharField(
+        max_length=20,
+        choices=CATEGORIE_CHOICES,
+        default='autre',
+    )
+    mots_cles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Liste de mots-clés pour recherche",
+    )
+    source_url = models.URLField(
+        null=True,
+        blank=True,
+        help_text="URL source si document externe",
+    )
+    auteur = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Auteur ou organisation source",
+    )
+
+    embedding_status = models.CharField(
+        max_length=15,
+        choices=[('pending', 'En attente'), ('indexed', 'Indexé'), ('failed', 'Échec')],
+        default='pending',
+        help_text="Statut de l'indexation vectorielle",
+    )
+    date_indexation = models.DateTimeField(null=True, blank=True)
+
+    is_actif = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Document de Connaissance"
+        verbose_name_plural = "Documents de Connaissance"
+        ordering = ["-date_creation"]
+        indexes = [
+            models.Index(fields=["categorie", "is_actif"]),
+            models.Index(fields=["mots_cles"]),
+        ]
+
+    def __str__(self):
+        return f"{self.titre} ({self.get_categorie_display()})"
+
+
+class SimulationROI(models.Model):
+    """
+    Simulation de retour sur investissement (prévisionnel vs réel).
+    Permet de modéliser différents scénarios de rendement et prix.
+    """
+    SCENARIO_TYPES = [
+        ('optimiste', 'Optimiste'),
+        ('realiste', 'Réaliste'),
+        ('pessimiste', 'Pessimiste'),
+        ('personnalise', 'Personnalisé'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet = models.ForeignKey(
+        Projet,
+        on_delete=models.CASCADE,
+        related_name='simulations_roi',
+        help_text="Projet concerné par la simulation",
+    )
+    projet_produit = models.ForeignKey(
+        ProjetProduit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='simulations_roi',
+        help_text="Culture spécifique (optionnel)",
+    )
+
+    # Type de scénario
+    scenario_type = models.CharField(
+        max_length=15,
+        choices=SCENARIO_TYPES,
+        default='realiste',
+        help_text="Type de scénario simulé",
+    )
+    nom_simulation = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Nom personnalisé (ex: 'Scenario prix haut')",
+    )
+
+    # Hypothèses simulation
+    rendement_prevu_kg_ha = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Rendement prévisionnel (kg/hectare)",
+    )
+    prix_prevu_fcfa_kg = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Prix prévisionnel (FCFA/kg)",
+    )
+    investissement_prevu = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        help_text="Investissement prévisionnel total (FCFA)",
+    )
+
+    # Résultats calculés
+    recette_prevue = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        editable=False,
+        help_text="Recette prévisionnelle calculée",
+    )
+    benefice_prevu = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        editable=False,
+        help_text="Bénéfice net prévisionnel",
+    )
+    roi_calcule_pct = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        editable=False,
+        help_text="ROI prévisionnel en pourcentage",
+    )
+
+    # Comparaison avec réel (rempli automatiquement)
+    recette_reelle = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Recette réalisée (pour comparaison)",
+    )
+    ecart_reel_pct = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Écart réel vs prévision en %",
+    )
+
+    # Métadonnées
+    description = models.TextField(
+        blank=True,
+        help_text="Notes et hypothèses de la simulation",
+    )
+    cree_par = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='simulations_roi_creees',
+        help_text="Utilisateur ayant créé la simulation",
+    )
+    date_simulation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Simulation ROI"
+        verbose_name_plural = "Simulations ROI"
+        ordering = ["-date_simulation"]
+        indexes = [
+            models.Index(fields=["projet", "scenario_type"]),
+            models.Index(fields=["cree_par", "-date_simulation"]),
+        ]
+
+    def __str__(self):
+        scenario = self.nom_simulation or self.get_scenario_type_display()
+        return f"Simulation {scenario} - {self.projet.nom} (ROI: {self.roi_calcule_pct}%)"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        super().clean()
+
+        # Calculs automatiques
+        superficie = self.projet_produit.superficie_allouee if self.projet_produit else self.projet.superficie
+        if superficie:
+            self.recette_prevue = self.rendement_prevu_kg_ha * self.prix_prevu_fcfa_kg * superficie
+        else:
+            self.recette_prevue = self.rendement_prevu_kg_ha * self.prix_prevu_fcfa_kg
+
+        self.benefice_prevu = self.recette_prevue - self.investissement_prevu
+
+        if self.investissement_prevu > 0:
+            self.roi_calcule_pct = (self.benefice_prevu / self.investissement_prevu) * 100
+        else:
+            self.roi_calcule_pct = 0
+
+        # Comparaison avec réel si disponible
+        if self.recette_reelle is not None and self.recette_prevue > 0:
+            self.ecart_reel_pct = ((self.recette_reelle - self.recette_prevue) / self.recette_prevue) * 100
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
+class OffreProduit(models.Model):
+    """
+    Offre de produit agricole sur le marketplace interne.
+    Permet aux fermes de vendre leurs surplus de stock.
+    """
+    QUALITE_CHOICES = [
+        ('A', 'Qualité A - Premium'),
+        ('B', 'Qualité B - Standard'),
+        ('C', 'Qualité C - Acceptable'),
+    ]
+
+    STATUT_CHOICES = [
+        ('disponible', 'Disponible'),
+        ('reserve', 'Réservé'),
+        ('vendu', 'Vendu'),
+        ('expire', 'Expiré'),
+        ('annule', 'Annulé'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    vendeur = models.ForeignKey(
+        Ferme,
+        on_delete=models.CASCADE,
+        related_name='offres',
+        help_text="Ferme vendeuse du produit",
+    )
+    produit = models.ForeignKey(
+        ProduitAgricole,
+        on_delete=models.CASCADE,
+        related_name='offres_marketplace',
+        help_text="Type de produit agricole",
+    )
+
+    titre_annonce = models.CharField(
+        max_length=200,
+        help_text="Titre de l'annonce (ex: 'Mil blanc de qualité premium')",
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Description détaillée du produit",
+    )
+
+    quantite_disponible = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Quantité disponible (kg)",
+    )
+    unite = models.CharField(
+        max_length=10,
+        choices=[('kg', 'Kilogramme'), ('tonne', 'Tonne'), ('sac', 'Sac (50kg)')],
+        default='kg',
+    )
+
+    prix_unitaire = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0"))],
+        help_text="Prix unitaire (FCFA)",
+    )
+    prix_negociable = models.BooleanField(
+        default=True,
+        help_text="Le prix est-il négociable ?",
+    )
+
+    qualite = models.CharField(
+        max_length=1,
+        choices=QUALITE_CHOICES,
+        default='B',
+        help_text="Qualité du produit",
+    )
+    date_recolte = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date de récolte (pour fraîcheur)",
+    )
+    certification_bio = models.BooleanField(
+        default=False,
+        help_text="Produit certifié bio/organique",
+    )
+
+    localite_retrait = models.ForeignKey(
+        Localite,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='offres_retrait',
+        help_text="Localité de retrait/livraison",
+    )
+    livraison_possible = models.BooleanField(
+        default=False,
+        help_text="Livraison possible (à définir avec acheteur)",
+    )
+    frais_livraison = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Frais de livraison estimés (si applicable)",
+    )
+
+    statut = models.CharField(
+        max_length=15,
+        choices=STATUT_CHOICES,
+        default='disponible',
+    )
+    date_expiration = models.DateField(
+        help_text="Date d'expiration de l'offre",
+    )
+
+    photos = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="URLs des photos (Cloudinary)",
+    )
+
+    nb_vues = models.PositiveIntegerField(default=0)
+    nb_contacts = models.PositiveIntegerField(default=0)
+
+    cree_par = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='offres_creees',
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Offre Produit"
+        verbose_name_plural = "Offres Produits"
+        ordering = ["-date_creation"]
+        indexes = [
+            models.Index(fields=["produit", "statut", "-date_creation"]),
+            models.Index(fields=["vendeur", "statut"]),
+            models.Index(fields=["localite_retrait", "statut"]),
+            models.Index(fields=["qualite", "prix_unitaire"]),
+        ]
+
+    def __str__(self):
+        return f"{self.titre_annonce} - {self.vendeur.nom} ({self.quantite_disponible} {self.unite})"
+
+    @property
+    def prix_total(self):
+        """Prix total pour la quantité disponible."""
+        return self.quantite_disponible * self.prix_unitaire
+
+    @property
+    def est_disponible(self):
+        """L'offre est-elle encore disponible ?"""
+        from django.utils import timezone
+        return (
+            self.statut == 'disponible' and
+            self.date_expiration >= timezone.now().date()
+        )
+
+    def reserver(self, acheteur, quantite):
+        """Réserve une quantité pour un acheteur (crée une transaction)."""
+        if not self.est_disponible:
+            raise ValueError("Cette offre n'est plus disponible")
+        if quantite > self.quantite_disponible:
+            raise ValueError("Quantité demandée supérieure au stock disponible")
+
+        transaction = TransactionMarche.objects.create(
+            offre=self,
+            acheteur=acheteur,
+            quantite_achetee=quantite,
+            prix_total=quantite * self.prix_unitaire,
+            statut='en_negociation',
+        )
+
+        # Mettre à jour le statut si tout est réservé
+        if quantite >= self.quantite_disponible:
+            self.statut = 'reserve'
+            self.save(update_fields=['statut'])
+
+        return transaction
+
+
+class TransactionMarche(models.Model):
+    """
+    Transaction entre vendeur et acheteur sur le marketplace.
+    """
+    STATUT_CHOICES = [
+        ('en_negociation', 'En négociation'),
+        ('confirme', 'Confirmé'),
+        ('paye', 'Payé'),
+        ('livre', 'Livré'),
+        ('annule', 'Annulé'),
+        ('litige', 'Litige'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    offre = models.ForeignKey(
+        OffreProduit,
+        on_delete=models.CASCADE,
+        related_name='transactions',
+    )
+    acheteur = models.ForeignKey(
+        Ferme,
+        on_delete=models.CASCADE,
+        related_name='achats',
+        help_text="Ferme acheteuse",
+    )
+
+    quantite_achetee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Quantité finalement achetée",
+    )
+    prix_total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        help_text="Prix total de la transaction",
+    )
+    prix_negocie_unitaire = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Prix unitaire négocié (si différent de l'offre)",
+    )
+
+    statut = models.CharField(
+        max_length=15,
+        choices=STATUT_CHOICES,
+        default='en_negociation',
+    )
+
+    # Détails de la transaction
+    date_transaction = models.DateTimeField(auto_now_add=True)
+    date_confirmation = models.DateTimeField(null=True, blank=True)
+    date_paiement = models.DateTimeField(null=True, blank=True)
+    date_livraison = models.DateTimeField(null=True, blank=True)
+
+    mode_paiement = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Mode de paiement utilisé",
+    )
+    reference_paiement = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Référence de transaction (mobile money, virement...)",
+    )
+
+    lieu_retrait = models.TextField(
+        blank=True,
+        help_text="Adresse ou lieu de retrait convenu",
+    )
+
+    # Notes
+    note_vendeur = models.TextField(blank=True, help_text="Note du vendeur sur l'acheteur")
+    note_acheteur = models.TextField(blank=True, help_text="Note de l'acheteur sur le vendeur")
+    rating_vendeur = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Évaluation vendeur (1-5)",
+    )
+    rating_acheteur = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Évaluation acheteur (1-5)",
+    )
+
+    cree_par = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name='transactions_initiees',
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Transaction Marché"
+        verbose_name_plural = "Transactions Marché"
+        ordering = ["-date_creation"]
+        indexes = [
+            models.Index(fields=["offre", "statut"]),
+            models.Index(fields=["acheteur", "-date_creation"]),
+            models.Index(fields=["statut", "-date_creation"]),
+        ]
+
+    def __str__(self):
+        return f"Transaction {self.offre.produit.nom} - {self.acheteur.nom} ({self.get_statut_display()})"

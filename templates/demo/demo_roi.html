@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Démo ROI Simulations - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">📈 Démo Simulations ROI V2</h1>
+        <a href="{% url 'demo_dashboard' %}" class="btn btn-outline-primary">← Dashboard</a>
+    </div>
+
+    {# Scénarios Prédéfinis #}
+    <div class="row g-3 mb-4">
+        {% for scenario in scenarios_predefinis %}
+        <div class="col-md-4">
+            <div class="card border-{{ scenario.couleur }} h-100">
+                <div class="card-header bg-{{ scenario.couleur }} text-white">
+                    <i class="fas fa-chart-bar me-2"></i>Scénario {{ scenario.nom }}
+                </div>
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ scenario.roi }}%</h1>
+                    <p class="text-muted">ROI Estimé</p>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-{{ scenario.couleur }}" style="width: {{ scenario.roi }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# Simulations par Projet #}
+    {% for item in projets_simulations %}
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-project-diagram me-2"></i>{{ item.projet.nom }}</span>
+            <span class="badge bg-light text-dark">{{ item.simulations|length }} simulations</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Scénario</th>
+                            <th>Investissement</th>
+                            <th>Coûts</th>
+                            <th>Recettes</th>
+                            <th>ROI</th>
+                            <th>Écart Réel</th>
+                            <th>Créée le</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sim in item.simulations %}
+                        <tr class="{% if sim.roi_calcule_pct > 50 %}table-success{% elif sim.roi_calcule_pct < 20 %}table-warning{% endif %}">
+                            <td>
+                                <strong>{{ sim.nom_scenario }}</strong>
+                                {% if sim.description %}
+                                <br><small class="text-muted">{{ sim.description|truncatechars:40 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ sim.investissement_prevu|floatformat:0 }} FCFA</td>
+                            <td>{{ sim.cout_recurrent_prevu|floatformat:0 }} FCFA</td>
+                            <td>{{ sim.recette_prevue|floatformat:0 }} FCFA</td>
+                            <td>
+                                <span class="badge bg-{% if sim.roi_calcule_pct > 50 %}success{% elif sim.roi_calcule_pct > 20 %}info{% else %}warning{% endif %}">
+                                    {{ sim.roi_calcule_pct|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td>
+                                {% if sim.recette_reelle %}
+                                <span class="badge bg-{% if sim.ecart_reel_pct > 0 %}success{% else %}danger{% endif %}">
+                                    {{ sim.ecart_reel_pct|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ sim.date_creation|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Graphique simplifié #}
+            <div class="mt-3">
+                <h6>Comparaison Visuelle des Scénarios</h6>
+                {% for sim in item.simulations %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small">
+                        <span>{{ sim.nom_scenario }}</span>
+                        <span>{{ sim.roi_calcule_pct|floatformat:1 }}% ROI</span>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-{% if sim.roi_calcule_pct > 50 %}success{% elif sim.roi_calcule_pct > 20 %}primary{% else %}warning{% endif %}"
+                             style="width: {{ sim.roi_calcule_pct }}%">
+                            {{ sim.roi_calcule_pct|floatformat:0 }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
+            <h5>Aucune simulation</h5>
+            <p class="text-muted">Créez votre première simulation de ROI</p>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nouvelle Simulation
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+
+    {# Formulaire Simulation #}
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-calculator me-2"></i>Nouvelle Simulation
+        </div>
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Nom Scénario</label>
+                    <input type="text" class="form-control" placeholder="Ex: Scénario A">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Investissement (FCFA)</label>
+                    <input type="number" class="form-control" placeholder="500000">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Coûts Récurrents/An</label>
+                    <input type="number" class="form-control" placeholder="200000">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Recettes Prévues</label>
+                    <input type="number" class="form-control" placeholder="1000000">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Durée (mois)</label>
+                    <input type="number" class="form-control" value="24">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-play me-2"></i>Calculer ROI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

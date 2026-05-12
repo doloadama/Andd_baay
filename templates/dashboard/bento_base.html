@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Andd Baay V2{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ==========================================================================
+   BENTO DASHBOARD - Andd Baay V2
+   Architecture Grid responsive avec DaisyUI
+   ========================================================================== */
+
+.bento-container {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    /* Mobile: 1 colonne */
+    grid-template-columns: 1fr;
+    /* Auto-rows pour hauteur adaptative */
+    grid-auto-rows: minmax(180px, auto);
+}
+
+/* Tablet: 2 colonnes */
+@media (min-width: 768px) {
+    .bento-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        padding: 1.25rem;
+    }
+}
+
+/* Desktop: 4 colonnes avec zones spéciales */
+@media (min-width: 1024px) {
+    .bento-container {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-areas:
+            "meteo    projets  projets  budget"
+            "alertes  taches   taches   predictions"
+            "alertes  .        .        .";
+    }
+    
+    .bento-card--meteo { grid-area: meteo; }
+    .bento-card--projets { grid-area: projets; }
+    .bento-card--budget { grid-area: budget; }
+    .bento-card--alertes { grid-area: alertes; }
+    .bento-card--taches { grid-area: taches; }
+    .bento-card--predictions { grid-area: predictions; }
+}
+
+/* Carte Bento individuelle */
+.bento-card {
+    background: var(--card-bg-solid, #ffffff);
+    border: 1px solid var(--border-glass, rgba(8, 80, 65, 0.1));
+    border-radius: var(--radius-card, 22px);
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(8, 80, 65, 0.06));
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bento-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md, 0 4px 16px rgba(8, 80, 65, 0.12));
+}
+
+/* Header de carte */
+.bento-card__header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.bento-card__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main, #2C2C2A);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.bento-card__title i {
+    color: var(--brand-primary, #1D9E75);
+    font-size: 1.125rem;
+}
+
+.bento-card__badge {
+    background: var(--brand-bg, #E1F5EE);
+    color: var(--brand-deep, #085041);
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Corps de carte */
+.bento-card__body {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+/* Footer de carte */
+.bento-card__footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-muted, #5c5c57);
+}
+
+/* État de chargement HTMX */
+.htmx-request .bento-card__content {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.bento-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    color: var(--text-muted, #5c5c57);
+}
+
+/* Header dashboard */
+.bento-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.1));
+    background: var(--card-bg-solid, #ffffff);
+}
+
+@media (min-width: 768px) {
+    .bento-header {
+        padding: 1.25rem 1.5rem;
+    }
+}
+
+.bento-header__title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--brand-deep, #085041);
+    margin-bottom: 0.5rem;
+}
+
+/* Sélecteur ferme */
+.ferme-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ferme-selector__label {
+    font-size: 0.875rem;
+    color: var(--text-muted, #5c5c57);
+    font-weight: 500;
+}
+
+/* Dark mode adjustments */
+.dark-mode .bento-card {
+    background: var(--card-bg-solid, #121c19);
+    border-color: var(--border-glass, rgba(255, 255, 255, 0.08));
+}
+
+.dark-mode .bento-card__title {
+    color: var(--text-main, #E8F5F0);
+}
+
+.dark-mode .bento-card__header,
+.dark-mode .bento-card__footer {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+    .bento-card {
+        min-height: 160px;
+    }
+    
+    .bento-card__header,
+    .bento-card__body,
+    .bento-card__footer {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .bento-card__title {
+        font-size: 0.9375rem;
+    }
+    
+    .bento-card__body {
+        max-height: 300px;
+    }
+}
+
+/* Touch targets >= 44px */
+.bento-card button,
+.bento-card a,
+.ferme-selector select {
+    min-height: 44px;
+    min-width: 44px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bento-header">
+    <h1 class="bento-header__title">
+        <i class="fas fa-grid-2"></i>
+        Dashboard Ferme
+    </h1>
+    
+    {% if has_multiple_fermes %}
+    <div class="ferme-selector">
+        <span class="ferme-selector__label">Ferme active:</span>
+        <form class="d-inline-block">
+            {% csrf_token %}
+            <select 
+                name="ferme_id"
+                class="form-select form-select-sm"
+                style="min-width: 200px;"
+                hx-post="{% url 'set_ferme_active' 'FERME_ID' %}"
+                hx-trigger="change"
+                hx-target="#ferme-status"
+                hx-swap="innerHTML"
+                hx-vals='js:{ferme_id: this.value}'
+                hx-on::after-request="document.dispatchEvent(new CustomEvent('ferme-changed'))">
+                {% for f in fermes %}
+                <option value="{{ f.id }}" {% if ferme_active and f.id == ferme_active.id %}selected{% endif %}>
+                    {{ f.nom }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+        <span id="ferme-status"></span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Container principal Bento Grid -->
+<div class="bento-container" id="bento-grid">
+    
+    <!-- Carte Météo -->
+    <div class="bento-card bento-card--meteo" 
+         hx-get="{% url 'bento_card_meteo' %}"
+         hx-trigger="load, every 30m"
+         hx-swap="innerHTML">
+        <div class="bento-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Chargement météo...
+        </div>
+    </div>
+    
+    <!-- Carte Projets -->
+    <div class="bento-card bento-card--projets"
+         hx-get="{% url 'bento_card_projets' %}"
+         hx-trigger="load, ferme-changed from:body"
+         hx-swap="innerHTML">
+        <div class="bento-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Chargement projets...
+        </div>
+    </div>
+    
+    <!-- Carte Budget -->
+    <div class="bento-card bento-card--budget"
+         hx-get="{% url 'bento_card_budget' %}"
+         hx-trigger="load, ferme-changed from:body"
+         hx-swap="innerHTML">
+        <div class="bento-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Chargement budget...
+        </div>
+    </div>
+    
+    <!-- Carte Alertes IA -->
+    <div class="bento-card bento-card--alertes"
+         hx-get="{% url 'bento_card_alertes_ia' %}"
+         hx-trigger="load, ferme-changed from:body"
+         hx-swap="innerHTML">
+        <div class="bento-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Chargement alertes...
+        </div>
+    </div>
+    
+    <!-- Carte Tâches -->
+    <div class="bento-card bento-card--taches"
+         hx-get="{% url 'bento_card_taches' %}"
+         hx-trigger="load, ferme-changed from:body"
+         hx-swap="innerHTML">
+        <div class="bento-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Chargement tâches...
+        </div>
+    </div>
+    
+    <!-- Carte Prédictions -->
+    <div class="bento-card bento-card--predictions"
+         hx-get="{% url 'bento_card_predictions' %}"
+         hx-trigger="load, ferme-changed from:body"
+         hx-swap="innerHTML">
+        <div class="bento-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Chargement prédictions...
+        </div>
+    </div>
+    
+</div>
+
+<!-- Zone pour modals HTMX -->
+<div id="bento-modals"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- HTMX pour interactivité Bento -->
+<script src="https://unpkg.com/htmx.org@1.9.12" 
+        integrity="sha384-DBjhmqeBUb9IjdbEp7xQ0xg1I8lZ9/9nq4c4=\""
+        crossorigin="anonymous"></script>
+
+<script>
+// Gestionnaire d'événements personnalisés Bento
+document.addEventListener('ferme-changed', function() {
+    console.log('🌾 Ferme changée - refresh des cartes Bento');
+});
+
+// Déclencher update-budget quand un projet est sélectionné
+document.body.addEventListener('update-budget', function(evt) {
+    const projetId = evt.detail?.projet_id;
+    if (projetId) {
+        const budgetCard = document.querySelector('.bento-card--budget');
+        if (budgetCard) {
+            htmx.ajax('GET', `/dashboard/bento/budget/${projetId}/`, {
+                target: budgetCard,
+                swap: 'innerHTML'
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

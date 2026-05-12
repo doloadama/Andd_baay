@@ -614,6 +614,42 @@ def compute_previsions_for_projet(projet_id: str) -> dict:
 # =====================
 # Météo (OpenWeatherMap)
 # =====================
+def get_weather_by_coords(lat, lon, cache_key_suffix: str = "") -> dict:
+    """Fetches weather from OpenWeatherMap for any lat/lon pair."""
+    api_key = getattr(settings, "OPENWEATHER_API_KEY", None) or os.getenv("OPENWEATHER_API_KEY", "").strip()
+    if not api_key:
+        return {"ok": False, "error": "api_key_absente"}
+
+    cache_key = f"weather:coords:{round(float(lat),3)}:{round(float(lon),3)}{cache_key_suffix}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return {"ok": True, "data": cached}
+
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {"lat": lat, "lon": lon, "appid": api_key, "units": "metric", "lang": "fr"}
+    try:
+        resp = requests.get(url, params=params, timeout=8)
+        if resp.status_code != 200:
+            return {"ok": False, "error": f"http_{resp.status_code}"}
+        raw = resp.json() or {}
+        weather = (raw.get("weather") or [{}])[0]
+        w = {
+            "temperature": (raw.get("main") or {}).get("temp"),
+            "humidite": (raw.get("main") or {}).get("humidity"),
+            "description": weather.get("description"),
+            "icone": weather.get("icon"),
+        }
+        try:
+            ttl_min = int(getattr(settings, "WEATHER_CACHE_TTL_MINUTES", 30))
+        except Exception:
+            ttl_min = 30
+        cache.set(cache_key, w, timeout=max(60, ttl_min * 60))
+        return {"ok": True, "data": w}
+    except Exception as e:
+        logger.error("Erreur appel OpenWeather", exc_info=True)
+        return {"ok": False, "error": "exception"}
+
+
 def get_weather_data(ferme_id: str) -> dict:
     """Retourne la meteo temps reel d'une ferme via OpenWeatherMap."""
     ferme = (

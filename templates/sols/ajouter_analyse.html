@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter Analyse de Sol - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0"><i class="fas fa-flask me-2"></i>Nouvelle Analyse de Sol</h4>
+        </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="ferme" class="form-label">Ferme <span class="text-danger">*</span></label>
+              <select name="ferme" id="ferme" class="form-select" required>
+                <option value="" {% if not ferme_preselected %}selected{% endif %} disabled>-- Choisir une ferme --</option>
+                {% for ferme in fermes %}
+                  <option value="{{ ferme.id }}"
+                    {% if form_data.ferme == ferme.id|stringformat:"s" or ferme_preselected == ferme.id|stringformat:"s" %}selected{% endif %}>
+                    {{ ferme.nom }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="parcelle_nom" class="form-label">Nom de la parcelle</label>
+              <input type="text" name="parcelle_nom" id="parcelle_nom" class="form-control"
+                     placeholder="Ex: Parcelle Nord, Champ A..."
+                     value="{{ form_data.parcelle_nom|default:'' }}">
+            </div>
+
+            <div class="mb-3">
+              <label for="date_mesure" class="form-label">Date du prélèvement <span class="text-danger">*</span></label>
+              <input type="date" name="date_mesure" id="date_mesure" class="form-control"
+                     value="{{ form_data.date_mesure|default:today }}" required>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="ph" class="form-label">pH du sol</label>
+                <input type="number" name="ph" id="ph" class="form-control" step="0.01" min="0" max="14"
+                       placeholder="Ex: 6.5"
+                       value="{{ form_data.ph|default:'' }}">
+                <div class="form-text">Idéal : 5.5 – 7.0</div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="azote_ppm" class="form-label">Azote (N) <small class="text-muted">ppm</small></label>
+                <input type="number" name="azote_ppm" id="azote_ppm" class="form-control" step="0.01" min="0"
+                       placeholder="Ex: 45"
+                       value="{{ form_data.azote_ppm|default:'' }}">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="phosphore_ppm" class="form-label">Phosphore (P) <small class="text-muted">ppm</small></label>
+                <input type="number" name="phosphore_ppm" id="phosphore_ppm" class="form-control" step="0.01" min="0"
+                       placeholder="Ex: 18"
+                       value="{{ form_data.phosphore_ppm|default:'' }}">
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="potassium_ppm" class="form-label">Potassium (K) <small class="text-muted">ppm</small></label>
+                <input type="number" name="potassium_ppm" id="potassium_ppm" class="form-control" step="0.01" min="0"
+                       placeholder="Ex: 150"
+                       value="{{ form_data.potassium_ppm|default:'' }}">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="culture_precedente" class="form-label">Culture précédente</label>
+              <select name="culture_precedente" id="culture_precedente" class="form-select">
+                <option value="" selected>-- Aucune / Non renseignée --</option>
+                {% for produit in produits %}
+                  <option value="{{ produit.id }}" {% if form_data.culture_precedente == produit.id|stringformat:"s" %}selected{% endif %}>
+                    {{ produit.nom }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Utile pour les recommandations de rotation.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="notes" class="form-label">Observations</label>
+              <textarea name="notes" id="notes" class="form-control" rows="3"
+                        placeholder="Texture du sol, couleur, humidité, observations visuelles...">{{ form_data.notes|default:'' }}</textarea>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{% url 'liste_analyses_sol' %}" class="btn btn-outline-secondary">Annuler</a>
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-save me-1"></i>Enregistrer l'analyse
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

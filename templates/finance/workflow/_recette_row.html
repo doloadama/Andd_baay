@@ -1,0 +1,36 @@
+{# Ligne de recette pour liste validation #}
+<tr id="recette-row-{{ recette.id }}" class="{% if recette.est_en_attente %}table-warning{% endif %}">
+    <td>
+        <strong>{{ recette.produit }}</strong>
+        {% if recette.projet_produit %}
+        <br><small class="text-muted">{{ recette.projet_produit.produit.nom }}</small>
+        {% endif %}
+    </td>
+    <td>{{ recette.projet.nom }}</td>
+    <td>
+        {{ recette.quantite }} {{ recette.get_unite_display }}
+        <br><small class="text-muted">@ {{ recette.prix_unitaire }} FCFA</small>
+    </td>
+    <td class="fw-bold">{{ recette.montant_total|floatformat:0 }} FCFA</td>
+    <td>{{ recette.date_vente|date:"d/m/Y" }}</td>
+    <td>
+        {% include 'finance/workflow/_badge_statut.html' with recette=recette %}
+    </td>
+    <td>
+        {% if recette.est_en_attente %}
+        <button class="btn btn-sm btn-primary"
+                hx-get="{% url 'recette_validation_detail' recette.id %}"
+                hx-target="#modal-content"
+                data-bs-toggle="modal"
+                data-bs-target="#validationModal">
+            <i class="fas fa-gavel"></i> Valider
+        </button>
+        {% elif recette.commentaire_validation %}
+        <small class="text-muted" title="{{ recette.commentaire_validation }}">
+            <i class="fas fa-comment"></i> {{ recette.commentaire_validation|truncatechars:20 }}
+        </small>
+        {% else %}
+        <small class="text-muted">{{ recette.date_validation|date:"d/m/Y H:i" }}</small>
+        {% endif %}
+    </td>
+</tr>

@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Démo Marketplace - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">🏪 Démo Marketplace V2</h1>
+        <a href="{% url 'demo_dashboard' %}" class="btn btn-outline-primary">← Dashboard</a>
+    </div>
+
+    {# Stats Marketplace #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h2>{{ stats.total_offres }}</h2>
+                    <p>Offres Disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h2>{{ stats.prix_moyen|floatformat:0 }}</h2>
+                    <p>Prix Moyen (FCFA)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h2>{{ mes_offres|length }}</h2>
+                    <p>Mes Offres</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h2><i class="fas fa-plus"></i></h2>
+                    <p>Créer Offre</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {# Filtres #}
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter me-2"></i>Filtres
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Produit</label>
+                        <select class="form-select">
+                            <option>Tous les produits</option>
+                            <option>Mil</option>
+                            <option>Maïs</option>
+                            <option>Arachide</option>
+                            <option>Niébé</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Localité</label>
+                        <select class="form-select">
+                            <option>Toutes</option>
+                            <option>Dakar</option>
+                            <option>Thiès</option>
+                            <option>Saint-Louis</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qualité</label>
+                        <select class="form-select">
+                            <option>Toutes</option>
+                            <option>A - Premium</option>
+                            <option>B - Standard</option>
+                            <option>C - Acceptable</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prix max (FCFA)</label>
+                        <input type="number" class="form-control" placeholder="1000">
+                    </div>
+                    <button class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </div>
+        </div>
+
+        {# Liste Offres #}
+        <div class="col-lg-9">
+            <div class="row g-3">
+                {% for offre in offres %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 {% if offre.qualite == 'A' %}border-success{% endif %}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="badge bg-{% if offre.qualite == 'A' %}success{% elif offre.qualite == 'B' %}warning{% else %}secondary{% endif %}">
+                                Qualité {{ offre.qualite }}
+                            </span>
+                            <small class="text-muted">
+                                <i class="fas fa-eye me-1"></i>{{ offre.nb_vues }}
+                            </small>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ offre.titre_annonce|truncatechars:40 }}</h5>
+                            <p class="card-text small text-muted">{{ offre.description|truncatechars:80 }}</p>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <span class="h5 mb-0 text-primary">{{ offre.prix_unitaire|floatformat:0 }}</span>
+                                    <small class="text-muted">FCFA/{{ offre.get_unite_display }}</small>
+                                </div>
+                                {% if offre.prix_negociable %}
+                                <span class="badge bg-info">Négociable</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="row g-2 text-center small">
+                                <div class="col-4">
+                                    <div class="p-1 bg-light rounded">
+                                        <strong>{{ offre.quantite_disponible|floatformat:0 }}</strong>
+                                        <small class="d-block text-muted">{{ offre.get_unite_display }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-1 bg-light rounded">
+                                        <strong>{{ offre.vendeur.nom|truncatechars:10 }}</strong>
+                                        <small class="d-block text-muted">Vendeur</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-1 bg-light rounded">
+                                        <strong>{{ offre.localite_retrait.nom|default:"-"|truncatechars:8 }}</strong>
+                                        <small class="d-block text-muted">Localité</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if offre.certification_bio %}
+                            <div class="mt-2">
+                                <span class="badge bg-success"><i class="fas fa-leaf me-1"></i>Bio</span>
+                            </div>
+                            {% endif %}
+
+                            {% if offre.livraison_possible %}
+                            <div class="mt-1">
+                                <span class="badge bg-secondary"><i class="fas fa-truck me-1"></i>Livraison</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-shopping-cart me-1"></i>Contacter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-store-slash fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Aucune offre disponible</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {# Mes Offres #}
+    {% if mes_offres %}
+    <div class="card mt-4">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-user me-2"></i>Mes Offres
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Quantité</th>
+                        <th>Prix</th>
+                        <th>Statut</th>
+                        <th>Vues</th>
+                        <th>Contacts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for offre in mes_offres %}
+                    <tr>
+                        <td>{{ offre.produit.nom }}</td>
+                        <td>{{ offre.quantite_disponible|floatformat:0 }} {{ offre.get_unite_display }}</td>
+                        <td>{{ offre.prix_unitaire|floatformat:0 }} FCFA</td>
+                        <td>
+                            <span class="badge bg-{% if offre.statut == 'disponible' %}success{% elif offre.statut == 'reserve' %}warning{% else %}secondary{% endif %}">
+                                {{ offre.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>{{ offre.nb_vues }}</td>
+                        <td>{{ offre.nb_contacts }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

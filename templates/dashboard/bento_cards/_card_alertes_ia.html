@@ -1,0 +1,106 @@
+{# Carte Bento: Alertes et recommandations IA #}
+<div class="bento-card__header">
+    <h3 class="bento-card__title">
+        <i class="fas fa-robot"></i>
+        Alertes IA
+    </h3>
+    {% if total_alertes > 0 %}
+    <span class="bento-card__badge bg-danger">{{ total_alertes }}</span>
+    {% endif %}
+</div>
+
+<div class="bento-card__body bento-card__content">
+    {# Recommandations fertilisation #}
+    {% if recommandations %}
+    <div class="mb-3">
+        <h6 class="text-muted small fw-bold mb-2">
+            <i class="fas fa-flask me-1"></i>
+            Recommandations fertilisation
+        </h6>
+        {% for reco in recommandations %}
+        <div class="alert alert-info alert-sm py-2 px-2 mb-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong class="d-block" style="font-size: 0.8rem;">
+                        {{ reco.culture_cible.nom|default:"Culture" }} - {{ reco.get_type_engrais_conseille_display }}
+                    </strong>
+                    <small class="text-muted">
+                        {{ reco.historique_sol.ferme.nom }}
+                    </small>
+                </div>
+                <button class="btn btn-sm btn-link p-0 ms-2"
+                        hx-post="{% url 'marquer_recommandation_vue' reco.id %}"
+                        hx-target=".bento-card--alertes"
+                        hx-swap="innerHTML"
+                        title="Marquer comme vue">
+                    <i class="fas fa-check text-success"></i>
+                </button>
+            </div>
+            {% if reco.quantite_kg_ha %}
+            <div class="mt-1">
+                <span class="badge bg-light text-dark">
+                    {{ reco.quantite_kg_ha }} kg/ha
+                </span>
+                <span class="badge {% if reco.confiance_score >= 0.8 %}bg-success{% elif reco.confiance_score >= 0.6 %}bg-warning{% else %}bg-secondary %}">
+                    Confiance {{ reco.confiance_score|floatformat:0 }}%
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {# Incidents #}
+    {% if incidents %}
+    <div>
+        <h6 class="text-muted small fw-bold mb-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Incidents signalés
+        </h6>
+        {% for incident in incidents %}
+        <div class="alert alert-{% if incident.gravite_detectee == 'critique' %}danger{% elif incident.gravite_detectee == 'haute' %}warning{% else %}info %} alert-sm py-2 px-2 mb-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong class="d-block" style="font-size: 0.8rem;">
+                        {{ incident.get_type_incident_display }}
+                    </strong>
+                    <small class="text-muted">
+                        {{ incident.ferme.nom }}
+                        {% if incident.parcelle_concernee %}
+                        - {{ incident.parcelle_concernee }}
+                        {% endif %}
+                    </small>
+                </div>
+                <span class="badge {% if incident.gravite_detectee == 'critique' %}bg-danger{% elif incident.gravite_detectee == 'haute' %}bg-warning{% else %}bg-info %}">
+                    {{ incident.get_gravite_detectee_display }}
+                </span>
+            </div>
+            <small class="text-muted d-block mt-1">
+                <i class="fas fa-user me-1"></i>
+                {{ incident.signale_par.user.username }}
+                • {{ incident.date_signalement|timesince }}
+            </small>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if not recommandations and not incidents %}
+    <div class="text-center text-muted py-4">
+        <i class="fas fa-check-circle fa-2x text-success mb-3 opacity-50"></i>
+        <p>Aucune alerte active</p>
+        <small>Toutes les recommandations ont été consultées et aucun incident en attente.</small>
+    </div>
+    {% endif %}
+</div>
+
+<div class="bento-card__footer">
+    <a href="#" class="text-decoration-none" onclick="alert('Chatbot IA - En développement'); return false;">
+        <i class="fas fa-comments me-1"></i>
+        Chatbot agricole
+    </a>
+    <span class="text-muted">
+        {{ total_alertes }} alert{{ total_alertes|pluralize:"e,es" }}
+    </span>
+</div>

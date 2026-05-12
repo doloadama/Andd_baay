@@ -129,6 +129,7 @@ from baay.services import (
     transition_demande_acces,
     update_prediction_for_projet_produit,
 )
+from baay.core_services import compute_previsions_for_projet, get_weather_by_coords
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
 ML_AVAILABLE = False
@@ -1018,6 +1019,11 @@ def detail_projet(request, projet_id):
         else Investissement.objects.none()
     )
 
+    # Analyses de sol de la ferme
+    analyses_sol = projet.ferme.historiques_sol.select_related(
+        "culture_precedente"
+    ).order_by("-date_mesure")[:5]
+
     investissement_total_fcfa = None
     if can_view_investissements and investissements.exists():
         inv_expr = investissement_montant_expr()
@@ -1099,6 +1105,7 @@ def detail_projet(request, projet_id):
         'can_modify_investissements': peut_modifier_investissement(request.user.profile, projet),
         'investissements': investissements,
         'investissement_total_fcfa': investissement_total_fcfa,
+        'analyses_sol': analyses_sol,
         'map_latitude': map_latitude,
         'map_longitude': map_longitude,
         'prediction': prediction,
@@ -1618,20 +1625,27 @@ def predire_rendement(projet):
         
 @login_required
 def generer_prediction(request, projet_id):
-    from .tasks import generate_previsions_for_projet_task
-
     projet = get_object_or_404(Projet.objects.select_related('ferme'), id=projet_id)
     if not peut_modifier_projet(request.user.profile, projet):
         messages.error(request, "Vous n'avez pas le droit de générer une prédiction pour ce projet.")
         return redirect('detail_projet', projet_id=projet.id)
 
-    # Déclenche la tâche Celery asynchrone pour les prévisions. Une notification
-    # temps réel sera envoyée via Channels à la fin du calcul.
-    generate_previsions_for_projet_task.delay(str(projet.id))
-    messages.success(
-        request,
-        "Génération des prévisions lancée. Vous recevrez une notification lorsqu'elle sera prête.",
-    )
+    try:
+        result = compute_previsions_for_projet(str(projet.id))
+        if result["count_pp"] == 0:
+            messages.warning(
+                request,
+                "Aucun produit lié à ce projet. Ajoutez un produit avant de générer une prédiction.",
+            )
+        else:
+            messages.success(
+                request,
+                f"Prédiction générée : {result['total_min']:.0f} – {result['total_max']:.0f} kg estimés.",
+            )
+    except Exception as exc:
+        logger.error("Erreur génération prévision projet %s : %s", projet_id, exc, exc_info=True)
+        messages.error(request, "Erreur lors de la génération de la prédiction. Vérifiez les données du projet.")
+
     return redirect('detail_projet', projet_id=projet.id)
 
 def evaluer_modele(model, X_test, y_test):
@@ -3593,15 +3607,24 @@ def nouvelle_conversation(request):
 @login_required
 @require_GET
 def api_projet_weather(request, projet_id):
-    """Météo temps réel (OpenWeather) pour la ferme du projet — coords GPS de la ferme requises."""
+    """Météo temps réel (OpenWeather) pour la ferme du projet."""
     profile = ensure_profile_for_user(request.user)
     projet = get_object_or_404(
-        Projet.objects.select_related("ferme"),
+        Projet.objects.select_related("ferme", "ferme__localite", "localite"),
         id=projet_id,
     )
     if not peut_voir_projet(profile, projet):
         return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
-    return JsonResponse(get_weather_data(str(projet.ferme_id)))
+
+    # Same fallback chain as detail_projet view
+    if projet.ferme.latitude is not None and projet.ferme.longitude is not None:
+        lat, lon = float(projet.ferme.latitude), float(projet.ferme.longitude)
+    elif projet.localite_id and projet.localite.latitude is not None and projet.localite.longitude is not None:
+        lat, lon = float(projet.localite.latitude), float(projet.localite.longitude)
+    else:
+        lat, lon = 14.497401, -14.452362
+
+    return JsonResponse(get_weather_by_coords(lat, lon))
 
 
 @login_required

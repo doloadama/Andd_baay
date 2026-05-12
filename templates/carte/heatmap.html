@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Carte des Cultures - Andd Baay{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ leaflet_css }}" />
+<style>
+    #map {
+        height: 70vh;
+        min-height: 400px;
+        width: 100%;
+        border-radius: 12px;
+    }
+    .heatmap-legend {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .heatmap-legend-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+    }
+    .heatmap-legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        border-radius: 3px;
+    }
+    @media (max-width: 768px) {
+        #map {
+            height: 50vh;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h1 class="h4 mb-0">
+            <i class="fas fa-fire me-2 text-danger"></i>
+            Carte des Cultures
+        </h1>
+        <span class="badge bg-info">
+            <i class="fas fa-info-circle me-1"></i>
+            Données agrégées et anonymisées
+        </span>
+    </div>
+
+    {# Filtres #}
+    <div class="card mb-3">
+        <div class="card-body">
+            <form id="filtres-form" class="row g-2 align-items-end">
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Pays</label>
+                    <select id="filtre-pays" class="form-select form-select-sm">
+                        <option value="">Tous les pays</option>
+                        {% for pays in pays_list %}
+                        <option value="{{ pays.id }}">{{ pays.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Culture</label>
+                    <select id="filtre-culture" class="form-select form-select-sm">
+                        <option value="">Toutes les cultures</option>
+                        {% for key, nom in cultures_list %}
+                        <option value="{{ key }}">{{ nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="refreshHeatmap()">
+                        <i class="fas fa-sync me-1"></i>
+                        Actualiser
+                    </button>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'marketplace_liste' %}" class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-store me-1"></i>
+                        Marketplace
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {# Carte #}
+        <div class="col-lg-9">
+            <div id="map"></div>
+        </div>
+
+        {# Stats et Légende #}
+        <div class="col-lg-3">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Statistiques</h6>
+                </div>
+                <div class="card-body" id="stats-container">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Chargement...
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Légende</h6>
+                </div>
+                <div class="card-body">
+                    <div class="heatmap-legend">
+                        <small class="text-muted d-block mb-2">Densité des cultures</small>
+                        <div class="heatmap-legend-item">
+                            <div class="heatmap-legend-color" style="background: #085041;"></div>
+                            <small>Très dense (superficie importante)</small>
+                        </div>
+                        <div class="heatmap-legend-item">
+                            <div class="heatmap-legend-color" style="background: #1D9E75;"></div>
+                            <small>Dense</small>
+                        </div>
+                        <div class="heatmap-legend-item">
+                            <div class="heatmap-legend-color" style="background: #DAAF3B;"></div>
+                            <small>Moyenne</small>
+                        </div>
+                        <div class="heatmap-legend-item">
+                            <div class="heatmap-legend-color" style="background: #F5A623;"></div>
+                            <small>Faible</small>
+                        </div>
+                        <div class="heatmap-legend-item">
+                            <div class="heatmap-legend-color" style="background: #E85D4E;"></div>
+                            <small>Très faible</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Données anonymisées: aucune ferme individuelle n'est identifiable.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ leaflet_js }}"></script>
+<script src="{{ heatmap_js }}"></script>
+<script>
+    // Initialiser la carte centrée sur l'Afrique de l'Ouest
+    var map = L.map('map').setView([14.0, -14.0], 6);
+
+    // Fond de carte
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+
+    var heatLayer = null;
+
+    function loadHeatmap() {
+        var pays = document.getElementById('filtre-pays').value;
+        var culture = document.getElementById('filtre-culture').value;
+
+        // Charger les données heatmap
+        var url = '{% url "api_leaflet_heatmap" %}?pays=' + encodeURIComponent(pays) + '&culture=' + encodeURIComponent(culture);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (heatLayer) {
+                    map.removeLayer(heatLayer);
+                }
+
+                if (data.data.length > 0) {
+                    heatLayer = L.heatLayer(data.data, {
+                        radius: 25,
+                        blur: 15,
+                        maxZoom: 10,
+                        gradient: {
+                            0.0: '#E85D4E',
+                            0.25: '#F5A623',
+                            0.5: '#DAAF3B',
+                            0.75: '#1D9E75',
+                            1.0: '#085041'
+                        }
+                    }).addTo(map);
+                }
+            })
+            .catch(error => console.error('Erreur chargement heatmap:', error));
+
+        // Charger les stats
+        loadStats(pays);
+    }
+
+    function loadStats(pays) {
+        var url = '{% url "api_stats_heatmap" %}?pays=' + encodeURIComponent(pays);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(stats => {
+                var html = '<div class="small">';
+                html += '<div class="d-flex justify-content-between mb-2">';
+                html += '<span>Points actifs:</span>';
+                html += '<strong>' + (stats.total_points || 0) + '</strong>';
+                html += '</div>';
+                html += '<div class="d-flex justify-content-between mb-2">';
+                html += '<span>Superficie totale:</span>';
+                html += '<strong>' + (stats.total_superficie || 0).toFixed(1) + ' ha</strong>';
+                html += '</div>';
+
+                if (stats.cultures_par_type) {
+                    html += '<hr class="my-2">';
+                    html += '<small class="text-muted">Répartition par culture:</small>';
+                    for (var culture in stats.cultures_par_type) {
+                        var c = stats.cultures_par_type[culture];
+                        html += '<div class="d-flex justify-content-between mt-1">';
+                        html += '<small>' + culture + '</small>';
+                        html += '<small>' + c.superficie_totale.toFixed(1) + ' ha (' + c.nb_projets + ' projets)</small>';
+                        html += '</div>';
+                    }
+                }
+
+                html += '</div>';
+                document.getElementById('stats-container').innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('stats-container').innerHTML = '<div class="text-danger small">Erreur chargement stats</div>';
+            });
+    }
+
+    function refreshHeatmap() {
+        loadHeatmap();
+    }
+
+    // Charger au démarrage
+    loadHeatmap();
+</script>
+{% endblock %}

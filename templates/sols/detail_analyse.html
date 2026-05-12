@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Détail Analyse - {{ analyse.parcelle_nom|default:"Sol" }} - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-flask me-2"></i>Résultats d'analyse</h5>
+          <small>{{ analyse.date_mesure }}</small>
+        </div>
+        <div class="card-body">
+          <h6 class="text-muted">{{ analyse.ferme.nom }}</h6>
+          <p class="mb-1"><strong>Parcelle :</strong> {{ analyse.parcelle_nom|default:"Non nommée" }}</p>
+          {% if analyse.culture_precedente %}
+            <p class="mb-1"><strong>Culture précédente :</strong> {{ analyse.culture_precedente.nom }}</p>
+          {% endif %}
+
+          <hr>
+
+          <div class="row text-center g-2">
+            <div class="col-6 mb-2">
+              <div class="p-3 bg-light rounded">
+                <small class="text-muted d-block">pH</small>
+                <h3 class="{% if analyse.ph < 5.5 or analyse.ph > 7.5 %}text-danger{% else %}text-success{% endif %}">
+                  {{ analyse.ph|default:"--" }}
+                </h3>
+                {% if analyse.ph < 5.5 %}
+                  <span class="badge bg-warning">Acide</span>
+                {% elif analyse.ph > 7.5 %}
+                  <span class="badge bg-info">Basique</span>
+                {% else %}
+                  <span class="badge bg-success">Optimal</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-6 mb-2">
+              <div class="p-3 bg-light rounded">
+                <small class="text-muted d-block">Azote (N)</small>
+                <h3 class="text-primary">{{ analyse.azote_ppm|default:"--" }}</h3>
+                <small class="text-muted">ppm</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-light rounded">
+                <small class="text-muted d-block">Phosphore (P)</small>
+                <h3 class="text-primary">{{ analyse.phosphore_ppm|default:"--" }}</h3>
+                <small class="text-muted">ppm</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 bg-light rounded">
+                <small class="text-muted d-block">Potassium (K)</small>
+                <h3 class="text-primary">{{ analyse.potassium_ppm|default:"--" }}</h3>
+                <small class="text-muted">ppm</small>
+              </div>
+            </div>
+          </div>
+
+          {% if analyse.notes %}
+            <hr>
+            <p class="text-muted small mb-0"><strong>Notes :</strong> {{ analyse.notes }}</p>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-transparent d-flex justify-content-between">
+          <a href="{% url 'liste_analyses_sol' %}" class="btn btn-outline-secondary btn-sm">← Retour</a>
+          <a href="{% url 'ajouter_analyse_sol' %}" class="btn btn-success btn-sm">+ Nouvelle analyse</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fas fa-robot me-2"></i>Recommandations IA</h5>
+        </div>
+        <div class="card-body">
+          {% if recommandations %}
+            {% for reco in recommandations %}
+              <div class="alert alert-light border">
+                <h6 class="alert-heading">{{ reco.type_engrais_conseille }}</h6>
+                <p class="mb-1">{{ reco.message_explication|default:"Recommandation générée automatiquement." }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">Quantité : {{ reco.quantite_kg_ha }} kg/ha</small>
+                  <span class="badge bg-success">Confiance {{ reco.confiance_score|default:"0.8" }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
+              <p class="text-muted">Aucune recommandation générée pour cette analyse.</p>
+              <p class="small text-muted">La recommandation est générée automatiquement lors de la création de l'analyse selon la culture cible.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

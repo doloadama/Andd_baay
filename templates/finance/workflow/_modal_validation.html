@@ -1,0 +1,66 @@
+{# Modal de validation/refus d'une recette #}
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="fas fa-gavel me-2"></i>
+        Validation Recette
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <div class="alert alert-info">
+        <h6 class="mb-1">{{ recette.produit }}</h6>
+        <p class="mb-0">
+            Projet: <strong>{{ recette.projet.nom }}</strong><br>
+            Montant: <strong>{{ recette.montant_total|floatformat:0 }} FCFA</strong><br>
+            Quantité: {{ recette.quantite }} {{ recette.get_unite_display }} @ {{ recette.prix_unitaire }} FCFA<br>
+            Date vente: {{ recette.date_vente|date:"d/m/Y" }}
+        </p>
+    </div>
+
+    {% if recette.justificatif_facture %}
+    <div class="mb-3">
+        <label class="form-label">Justificatif</label>
+        <div>
+            <a href="{{ recette.justificatif_facture.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                <i class="fas fa-file-invoice me-1"></i> Voir le justificatif
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <label for="commentaire" class="form-label">Commentaire (optionnel pour validation, obligatoire pour refus)</label>
+        <textarea id="commentaire" name="commentaire" class="form-control" rows="3"
+                  placeholder="Ex: Vérifié avec le client, prix conforme au marché..."></textarea>
+    </div>
+</div>
+
+<div class="modal-footer">
+    {% if peut_valider %}
+    <button type="button" class="btn btn-success"
+            hx-post="{% url 'recette_valider' recette.id %}"
+            hx-include="#commentaire"
+            hx-target="#recette-row-{{ recette.id }}"
+            hx-swap="outerHTML"
+            data-bs-dismiss="modal">
+        <i class="fas fa-check me-1"></i>
+        Valider
+    </button>
+    <button type="button" class="btn btn-danger"
+            hx-post="{% url 'recette_refuser' recette.id %}"
+            hx-include="#commentaire"
+            hx-target="#recette-row-{{ recette.id }}"
+            hx-swap="outerHTML"
+            data-bs-dismiss="modal">
+        <i class="fas fa-times me-1"></i>
+        Refuser
+    </button>
+    {% else %}
+    <div class="alert alert-warning w-100 mb-0">
+        <i class="fas fa-lock me-1"></i>
+        Vous n'avez pas les droits pour valider cette recette.
+    </div>
+    {% endif %}
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+</div>

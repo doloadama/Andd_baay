@@ -1,0 +1,96 @@
+{# Carte Bento: Prédictions récolte #}
+<div class="bento-card__header">
+    <h3 class="bento-card__title">
+        <i class="fas fa-chart-line"></i>
+        Prédictions IA
+    </h3>
+    {% if stats.count > 0 %}
+    <span class="bento-card__badge">{{ stats.count }} cultures</span>
+    {% endif %}
+</div>
+
+<div class="bento-card__body bento-card__content">
+    {% if has_predictions %}
+    <div class="text-center mb-3">
+        <div class="row g-2">
+            <div class="col-6">
+                <div class="p-2 rounded bg-success bg-opacity-10">
+                    <div class="small text-muted">Rendement min</div>
+                    <div class="fw-bold text-success">{{ stats.min_rendement|floatformat:0 }} kg/ha</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-2 rounded bg-info bg-opacity-10">
+                    <div class="small text-muted">Rendement max</div>
+                    <div class="fw-bold text-info">{{ stats.max_rendement|floatformat:0 }} kg/ha</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted small">Confiance moyenne</span>
+            <span class="badge {% if stats.avg_confiance >= 75 %}bg-success{% elif stats.avg_confiance >= 50 %}bg-warning{% else %}bg-secondary %}">
+                {{ stats.avg_confiance|floatformat:0 }}%
+            </span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            {% if stats.avg_confiance >= 75 %}
+            <div class="progress-bar bg-success" style="width: {{ stats.avg_confiance }}%"></div>
+            {% elif stats.avg_confiance >= 50 %}
+            <div class="progress-bar bg-warning" style="width: {{ stats.avg_confiance }}%"></div>
+            {% else %}
+            <div class="progress-bar bg-secondary" style="width: {{ stats.avg_confiance }}%"></div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if previsions %}
+    <div class="list-group list-group-flush">
+        <h6 class="text-muted small fw-bold mb-2">Dernières prédictions</h6>
+        {% for prev in previsions|slice:":3" %}
+        <div class="list-group-item px-0 py-1 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="fw-bold">{{ prev.projet_produit.produit.nom }}</small>
+                    <small class="text-muted d-block">{{ prev.projet.nom|truncatechars:20 }}</small>
+                </div>
+                <div class="text-end">
+                    <small class="d-block">
+                        {{ prev.rendement_estime_min|floatformat:0 }}-{{ prev.rendement_estime_max|floatformat:0 }}
+                    </small>
+                    <small class="text-muted">kg/ha</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="text-center text-muted py-4">
+        <i class="fas fa-brain fa-2x mb-3 opacity-50"></i>
+        <p>Aucune prédiction disponible</p>
+        <small>Les prédictions apparaissent quand des semis sont enregistrés avec des données agronomiques.</small>
+        <div class="mt-3">
+            <a href="{% url 'liste_projets' %}" class="btn btn-sm btn-outline-primary">
+                Voir les projets
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="bento-card__footer">
+    <span class="text-muted">
+        <i class="fas fa-robot me-1"></i>
+        IA interne
+    </span>
+    {% if has_predictions %}
+    <a href="#" class="text-decoration-none" onclick="alert('Détail prédictions - En développement'); return false;">
+        <i class="fas fa-chart-bar me-1"></i>
+        Graphiques
+    </a>
+    {% endif %}
+</div>

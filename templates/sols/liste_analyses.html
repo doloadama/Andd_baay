@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Historique Analyses de Sol - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-history me-2 text-success"></i>Analyses de Sol</h2>
+    <a href="{% url 'ajouter_analyse_sol' %}" class="btn btn-success">
+      <i class="fas fa-plus me-1"></i>Nouvelle analyse
+    </a>
+  </div>
+
+  {% if analyses %}
+    <div class="row g-3">
+      {% for analyse in analyses %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span class="fw-bold">{{ analyse.parcelle_nom|default:"Parcelle sans nom" }}</span>
+              <small class="text-muted">{{ analyse.date_mesure }}</small>
+            </div>
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">{{ analyse.ferme.nom }}</h6>
+
+              <div class="row text-center g-2 mb-3">
+                <div class="col-3">
+                  <div class="p-2 bg-light rounded">
+                    <small class="text-muted d-block">pH</small>
+                    <strong class="{% if analyse.ph < 5.5 or analyse.ph > 7.5 %}text-danger{% else %}text-success{% endif %}">
+                      {{ analyse.ph|default:"--" }}
+                    </strong>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="p-2 bg-light rounded">
+                    <small class="text-muted d-block">N</small>
+                    <strong>{{ analyse.azote_ppm|default:"--" }}</strong>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="p-2 bg-light rounded">
+                    <small class="text-muted d-block">P</small>
+                    <strong>{{ analyse.phosphore_ppm|default:"--" }}</strong>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="p-2 bg-light rounded">
+                    <small class="text-muted d-block">K</small>
+                    <strong>{{ analyse.potassium_ppm|default:"--" }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {% if analyse.culture_precedente %}
+                <p class="small mb-1"><i class="fas fa-seedling me-1 text-success"></i>Culture précédente : <strong>{{ analyse.culture_precedente.nom }}</strong></p>
+              {% endif %}
+
+              {% if analyse.notes %}
+                <p class="small text-muted mb-0">{{ analyse.notes|truncatechars:80 }}</p>
+              {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+              <a href="{% url 'detail_analyse_sol' analyse.id %}" class="btn btn-sm btn-outline-primary w-100">
+                <i class="fas fa-chart-bar me-1"></i>Voir recommandations
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Aucune analyse de sol enregistrée</h5>
+        <p class="text-muted">Commencez par ajouter votre première analyse pour obtenir des recommandations personnalisées.</p>
+        <a href="{% url 'ajouter_analyse_sol' %}" class="btn btn-success">
+          <i class="fas fa-plus me-1"></i>Ajouter une analyse
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

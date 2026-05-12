@@ -1,0 +1,152 @@
+{# Carte Bento: Budget et finances #}
+<div class="bento-card__header">
+    <h3 class="bento-card__title">
+        <i class="fas fa-wallet"></i>
+        {% if mode == 'projet' %}
+            Budget: {{ projet.nom|truncatechars:15 }}
+        {% else %}
+            Budget Global
+        {% endif %}
+    </h3>
+    {% if mode == 'projet' and taux_utilisation > 90 %}
+    <span class="bento-card__badge bg-danger">⚠️ {{ taux_utilisation|floatformat:0 }}%</span>
+    {% elif mode == 'projet' and taux_utilisation > 75 %}
+    <span class="bento-card__badge bg-warning">{{ taux_utilisation|floatformat:0 }}%</span>
+    {% endif %}
+</div>
+
+<div class="bento-card__body bento-card__content">
+    {% if mode == 'projet' %}
+    {# Vue projet spécifique #}
+    <div class="text-center mb-3">
+        <div class="row g-2">
+            <div class="col-6">
+                <div class="p-2 rounded bg-success bg-opacity-10">
+                    <div class="small text-muted">Budget</div>
+                    <div class="fw-bold text-success">{{ budget_alloue|floatformat:0 }} FCFA</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-2 rounded bg-danger bg-opacity-10">
+                    <div class="small text-muted">Dépensé</div>
+                    <div class="fw-bold text-danger">{{ depenses|floatformat:0 }} FCFA</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Barre de progression budget -->
+    <div class="mb-3">
+        <div class="d-flex justify-content-between mb-1">
+            <small class="text-muted">Utilisation</small>
+            <small class="fw-bold">{{ taux_utilisation|floatformat:1 }}%</small>
+        </div>
+        <div class="progress" style="height: 8px;">
+            {% if taux_utilisation > 100 %}
+        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ taux_utilisation|default:0 }}%" aria-valuenow="{{ taux_utilisation|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+        {% elif taux_utilisation > 75 %}
+        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ taux_utilisation|default:0 }}%" aria-valuenow="{{ taux_utilisation|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+        {% else %}
+        <div class="progress-bar bg-success" role="progressbar" style="width: {{ taux_utilisation|default:0 }}%" aria-valuenow="{{ taux_utilisation|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+        {% endif %}
+        </div>
+        {% if taux_utilisation > 100 %}
+        <div class="alert alert-danger alert-sm mt-2 py-1 px-2">
+            <i class="fas fa-exclamation-circle me-1"></i>
+            <small>Budget dépassé de {{ taux_utilisation|add:-100|floatformat:0 }}%!</small>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light">
+        <span class="text-muted">Restant</span>
+        <span class="fw-bold {% if restant < 0 %}text-danger{% endif %}">
+            {{ restant|floatformat:0 }} FCFA
+        </span>
+    </div>
+    
+    {% if roi_pct is not None %}
+    <div class="mt-3 p-2 rounded border">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted">
+                <i class="fas fa-chart-line me-1"></i>
+                ROI
+            </span>
+            <span class="badge {% if roi_pct > 0 %}bg-success{% else %}bg-warning{% endif %}">
+                {{ roi_pct|floatformat:1 }}%
+            </span>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="mt-3 text-center">
+        <a href="{% url 'detail_projet' projet.id %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-external-link-alt me-1"></i>
+            Voir projet
+        </a>
+    </div>
+    
+    {% else %}
+    {# Vue agrégée #}
+    <div class="text-center mb-3">
+        <h4 class="mb-0" style="font-size: 1.75rem; font-weight: 700; color: var(--brand-primary);">
+            {{ budget_total|floatformat:0 }} FCFA
+        </h4>
+        <small class="text-muted">Budget total alloué ({{ projets_avec_budget }} projets)</small>
+    </div>
+    
+    <div class="row g-2 mb-3">
+        <div class="col-6">
+            <div class="p-2 rounded bg-danger bg-opacity-10 text-center">
+                <div class="small text-muted">Dépensé</div>
+                <div class="fw-bold text-danger">{{ depenses_total|floatformat:0 }}</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-2 rounded bg-success bg-opacity-10 text-center">
+                <div class="small text-muted">Restant</div>
+                <div class="fw-bold text-success">{{ restant_total|floatformat:0 }}</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if projets_count > 0 %}
+    <div class="progress mb-2" style="height: 6px;">
+        {% with pct=depenses_total|default:0|div:budget_total|default:1|mul:100 %}
+        {% if pct > 100 %}
+        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ pct|default:0|floatformat:0 }}%"></div>
+        {% elif pct > 75 %}
+        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ pct|default:0|floatformat:0 }}%"></div>
+        {% else %}
+        <div class="progress-bar bg-success" role="progressbar" style="width: {{ pct|default:0|floatformat:0 }}%"></div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    <div class="text-center">
+        <small class="text-muted">
+            {{ projets_count }} projet{{ projets_count|pluralize }} au total
+        </small>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<div class="bento-card__footer">
+    <a href="{% url 'finance_hub' %}" class="text-decoration-none">
+        <i class="fas fa-chart-pie me-1"></i>
+        Finance Hub
+    </a>
+    {% if mode == 'projet' %}
+    <button class="btn btn-sm btn-link p-0"
+            hx-get="{% url 'bento_card_budget' %}"
+            hx-target=".bento-card--budget"
+            hx-swap="innerHTML"
+            style="font-size: 0.75rem;">
+        <i class="fas fa-arrow-left me-1"></i>
+        Vue globale
+    </button>
+    {% endif %}
+</div>
+
+{% comment %}Filtres template pour calculs{% endcomment %}
+{% load custom_filters %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Démo Finance Workflow - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">💰 Démo Finance Workflow V2</h1>
+        <a href="{% url 'demo_dashboard' %}" class="btn btn-outline-primary">← Dashboard</a>
+    </div>
+
+    {# Stats Validation #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h2 class="text-warning">{{ stats.total_attente }}</h2>
+                    <p class="text-muted">Recettes en Attente</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h2 class="text-success">{{ stats.total_validees }}</h2>
+                    <p class="text-muted">Recettes Validées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h2 class="text-info">{{ stats.montant_attente|floatformat:0 }}</h2>
+                    <p class="text-muted">FCFA en Attente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tableau Recettes en Attente #}
+    <div class="card">
+        <div class="card-header bg-warning">
+            <i class="fas fa-clock me-2"></i>Recettes en Attente de Validation
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Projet</th>
+                        <th>Produit</th>
+                        <th>Montant Réel</th>
+                        <th>Montant Prévu</th>
+                        <th>Écart</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recette in recettes_attente %}
+                    <tr>
+                        <td>{{ recette.projet.nom }}</td>
+                        <td>{{ recette.produit.nom|default:"-" }}</td>
+                        <td class="fw-bold">{{ recette.montant|floatformat:0 }} FCFA</td>
+                        <td class="text-muted">{{ recette.montant_prevu|floatformat:0 }} FCFA</td>
+                        <td>
+                            {% with ecart=recette.montant|add:recette.montant_prevu %}
+                            <span class="badge bg-{% if ecart > 0 %}success{% else %}danger{% endif %}">
+                                {{ ecart|floatformat:0 }}
+                            </span>
+                            {% endwith %}
+                        </td>
+                        <td>{{ recette.date_recette }}</td>
+                        <td>
+                            <span class="badge bg-warning">
+                                {{ recette.get_statut_validation_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-success">✓</button>
+                            <button class="btn btn-sm btn-danger">✗</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p>Aucune recette en attente</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Workflow Diagram #}
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-project-diagram me-2"></i>Workflow de Validation
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-around align-items-center">
+                <div class="text-center">
+                    <div class="bg-light rounded-circle p-3 mb-2" style="width: 80px; height: 80px; line-height: 50px;">
+                        <i class="fas fa-file-invoice fa-2x text-primary"></i>
+                    </div>
+                    <h6>Enregistrement</h6>
+                    <small class="text-muted">Agriculteur</small>
+                </div>
+                <i class="fas fa-arrow-right fa-2x text-muted"></i>
+                <div class="text-center">
+                    <div class="bg-warning rounded-circle p-3 mb-2" style="width: 80px; height: 80px; line-height: 50px;">
+                        <i class="fas fa-clock fa-2x text-white"></i>
+                    </div>
+                    <h6>En Attente</h6>
+                    <small class="text-muted">Validation manager</small>
+                </div>
+                <i class="fas fa-arrow-right fa-2x text-muted"></i>
+                <div class="text-center">
+                    <div class="bg-success rounded-circle p-3 mb-2" style="width: 80px; height: 80px; line-height: 50px;">
+                        <i class="fas fa-check fa-2x text-white"></i>
+                    </div>
+                    <h6>Validée</h6>
+                    <small class="text-muted">Comptabilisée</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

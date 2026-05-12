@@ -1,0 +1,117 @@
+{# Formulaire de création d'offre (modal) #}
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="fas fa-plus me-2"></i>
+        Nouvelle Offre
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <form id="form-creer-offre" method="post" action="{% url 'marketplace_creer_offre' %}">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Votre ferme *</label>
+            <select name="vendeur" class="form-select" required>
+                {% for ferme in mes_fermes %}
+                <option value="{{ ferme.id }}">{{ ferme.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Produit *</label>
+            <select name="produit" class="form-select" required>
+                <option value="">Choisir un produit...</option>
+                {% for p in produits %}
+                <option value="{{ p.id }}">{{ p.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Titre de l'annonce *</label>
+            <input type="text" name="titre" class="form-control" required
+                   placeholder="Ex: Mil blanc de qualité premium">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="3"
+                      placeholder="Détails sur la qualité, la récolte, etc."></textarea>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label">Quantité *</label>
+                <input type="number" name="quantite" class="form-control" required min="0.01" step="0.01">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Unité *</label>
+                <select name="unite" class="form-select" required>
+                    <option value="kg">Kilogramme</option>
+                    <option value="tonne">Tonne</option>
+                    <option value="sac">Sac (50kg)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label">Prix unitaire (FCFA) *</label>
+                <input type="number" name="prix" class="form-control" required min="0" step="1">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Qualité *</label>
+                <select name="qualite" class="form-select" required>
+                    <option value="A">A - Premium</option>
+                    <option value="B" selected>B - Standard</option>
+                    <option value="C">C - Acceptable</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Localité de retrait</label>
+            <select name="localite" class="form-select">
+                <option value="">Choisir...</option>
+                {% for l in localites %}
+                <option value="{{ l.id }}">{{ l.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date d'expiration de l'offre *</label>
+            <input type="date" name="date_expiration" class="form-control" required
+                   value="{% now 'Y-m-d' as today %}{{ today|date:'Y-m-d' }}"
+                   min="{% now 'Y-m-d' %}">
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" name="livraison" class="form-check-input" id="livraison-check">
+            <label class="form-check-label" for="livraison-check">
+                Livraison possible
+            </label>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" name="bio" class="form-check-input" id="bio-check">
+            <label class="form-check-label" for="bio-check">
+                Certifié Bio/Organique
+            </label>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+    <button type="submit" form="form-creer-offre" class="btn btn-primary"
+            hx-post="{% url 'marketplace_creer_offre' %}"
+            hx-target="#modal-content"
+            hx-swap="innerHTML">
+        <i class="fas fa-save me-1"></i>
+        Publier l'offre
+    </button>
+</div>

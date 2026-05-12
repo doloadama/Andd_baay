@@ -3,1180 +3,1317 @@
 {% load l10n %}
 {% block title %}{{ projet.nom }} | Détails | Andd Baay{% endblock %}
 
+{% block meta_description %}
+<meta name="description" content="Détails du projet {{ projet.nom }} — {{ projet.ferme.nom }}, {{ projet.localite.nom|default:'Andd Baay' }}. Suivi, investissements, prédictions IA et météo.">
+{% endblock %}
+
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
-<script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
 <style>
-/* Detail Project Page - Mobile First Design */
-.project-detail-page {
-    --primary-green: #2d5a3d;
-    --dark-green: #1e4a2e;
-    --light-green: #4a9c5d;
-    --accent-orange: #e89a3c;
-    --bg-light: #f5f5f5;
-    --card-bg: #ffffff;
-    --text-dark: #1a1a1a;
-    --text-muted: #666;
-    --border-light: #e0e0e0;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
+/* ============================================================
+   SPLIT LAYOUT — PROJECT DETAIL  (Andd Baay Design System)
+   ============================================================ */
+.ps-layout {
+    --ps-brand:     var(--brand-primary);
+    --ps-accent:    var(--brand-accent);
+    --ps-card:      var(--card-bg-solid);
+    --ps-bg:        var(--bg-secondary);
+    --ps-text:      var(--text-main);
+    --ps-muted:     var(--text-muted);
+    --ps-border:    var(--border-color);
+    --ps-shadow:    var(--shadow-sm);
+    --ps-shadow-md: var(--shadow-md);
+    --ps-radius:    18px;
+    --ps-radius-sm: 12px;
+    --ps-sidebar-w: 288px;
+
+    font-family: var(--font-main);
+    color: var(--ps-text);
+    padding: 0 16px 56px;
+    max-width: 1200px;
+    margin: 0 auto;
     box-sizing: border-box;
-    overflow-x: clip;
 }
 
-/* Hero Header */
-.pd-hero {
+/* ── HERO ── */
+.ps-hero {
     background: linear-gradient(
         135deg,
         var(--brand-night) 0%,
         var(--brand-deep) 44%,
         var(--brand-primary) 100%
     );
-    border-radius: clamp(12px, 2.5vw, 16px);
-    padding: clamp(16px, 4vw, 24px);
-    margin: clamp(8px, 2.5vw, 16px);
+    border-radius: clamp(14px, 2.5vw, 20px);
+    padding: clamp(16px, 4vw, 28px);
+    margin-bottom: 20px;
     color: white;
     position: relative;
-    max-width: 100%;
-    box-sizing: border-box;
+    overflow: hidden;
 }
 
-.pd-hero__header {
+.ps-hero::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 50%; height: 100%;
+    background: radial-gradient(ellipse at top right, rgba(93,202,165,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ps-hero__nav {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 20px;
-}
-
-.pd-hero__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255,255,255,0.15);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    text-decoration: none;
-    backdrop-filter: blur(10px);
-}
-
-.pd-hero__back:hover {
-    background: rgba(255,255,255,0.25);
-    color: white;
-}
-
-.pd-hero__status {
-    background: var(--light-green);
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-}
-
-.pd-hero__label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    opacity: 0.7;
-    margin-bottom: 8px;
-}
-
-.pd-hero__title {
-    font-size: clamp(1.25rem, 4.5vw, 2rem);
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: white;
-    word-break: break-word;
-    line-height: 1.2;
-}
-
-.pd-hero__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 16px;
-    font-size: clamp(0.8125rem, 2.2vw, 0.875rem);
-    opacity: 0.85;
-}
-
-.pd-hero__meta-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-    max-width: 100%;
-    word-break: break-word;
-}
-
-/* Stats Row */
-.pd-stats-row {
-    display: flex;
-    gap: 12px;
-    margin: clamp(8px, 2.5vw, 16px);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-    max-width: 100%;
-    box-sizing: border-box;
-    scroll-snap-type: x proximity;
-}
-
-/* Actions Row */
-.pd-actions-row {
-    display: flex;
-    gap: 10px;
-    margin: clamp(8px, 2.5vw, 16px);
-    flex-wrap: wrap;
-    align-items: center;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-.pd-actions-row .pd-btn {
-    flex: none;
-    white-space: nowrap;
-}
-
-/* Desktop/Mobile button visibility */
-.pd-dropdown {
-    display: none;
-}
-
-.pd-btn--desktop {
-    display: inline-flex;
-}
-
-@media (max-width: 576px) {
-    .pd-dropdown {
-        display: block;
-    }
-    
-    .pd-btn--desktop {
-        display: none;
-    }
-    
-    /* On mobile, hide investment button and show in dropdown */
-    .pd-actions-row .pd-btn--investment {
-        display: none;
-    }
-}
-
-.pd-btn--danger {
-    background: #e74c3c;
-    color: white;
-}
-
-.pd-btn--success {
-    background: #27ae60;
-    color: white;
-}
-
-.pd-dropdown {
     position: relative;
-}
-
-.pd-dropdown__menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    padding: 8px 0;
-    min-width: 200px;
-    z-index: 100;
-    display: none;
-}
-
-.pd-dropdown__menu.show {
-    display: block;
-}
-
-.pd-dropdown__item {
-    display: flex;
-    align-items: center;
+    z-index: 1;
+    flex-wrap: wrap;
     gap: 10px;
-    padding: 10px 16px;
-    font-size: 14px;
-    color: var(--text-dark);
+}
+
+.ps-hero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 500;
     text-decoration: none;
     transition: background 0.2s;
+    min-height: 40px;
 }
+.ps-hero__back:hover { background: rgba(255,255,255,0.25); color: white; }
 
-.pd-dropdown__item:hover {
-    background: #f5f5f5;
-}
-
-.pd-dropdown__item--danger {
-    color: #e74c3c;
-}
-
-.pd-stat-box {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 16px;
-    min-width: min(120px, 28vw);
-    flex: 1 0 auto;
-    scroll-snap-align: start;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.pd-stat-box__icon {
-    font-size: 20px;
-    color: var(--light-green);
-    margin-bottom: 8px;
-    display: block;
-}
-
-.pd-stat-box__label {
-    font-size: 10px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: block;
-    margin-bottom: 4px;
-}
-
-.pd-stat-box__value {
-    font-size: clamp(0.9rem, 2.8vw, 1.125rem);
-    font-weight: 700;
-    color: var(--text-dark);
-    display: block;
-    line-height: 1.3;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-}
-
-.pd-stat-box__hint {
+.ps-hero__status {
     font-size: 11px;
-    color: var(--text-muted);
-    display: block;
-    margin-top: 2px;
-}
-
-/* Section Cards */
-.pd-section {
-    background: white;
-    border-radius: 20px;
-    padding: clamp(14px, 3vw, 20px);
-    margin: clamp(8px, 2.5vw, 16px);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    max-width: 100%;
-    box-sizing: border-box;
-    min-width: 0;
-}
-
-.pd-section__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.pd-section__title {
-    font-size: 18px;
     font-weight: 700;
-    color: var(--text-dark);
-    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 7px 16px;
+    border-radius: 50px;
+    color: white;
+}
+.ps-hero__status--en_cours { background: var(--brand-primary); }
+.ps-hero__status--en_pause { background: var(--brand-accent); }
+.ps-hero__status--fini     { background: var(--info); }
+.ps-hero__status--cloture  { background: #95a5a6; }
+
+.ps-hero__body { position: relative; z-index: 1; }
+
+.ps-hero__eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    opacity: 0.65;
+    margin-bottom: 8px;
+}
+
+.ps-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 4.5vw, 2.25rem);
+    font-weight: 800;
+    color: white;
+    margin: 0 0 14px;
+    line-height: 1.15;
+    word-break: break-word;
+}
+
+.ps-hero__meta {
     display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    font-size: 13px;
+    opacity: 0.87;
+}
+
+.ps-hero__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── HERO WEATHER ── */
+.ps-hero__weather {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 7px 16px 7px 10px;
+    color: white;
+    font-size: 13px;
+    white-space: nowrap;
+    min-width: 100px;
+}
+.ps-hero__weather-icon {
+    font-size: 20px;
+    opacity: 0.85;
+    flex-shrink: 0;
+    transition: opacity 0.3s;
+}
+.ps-hero__weather-temp {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+}
+.ps-hero__weather-desc {
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: 1px;
+}
+@media (max-width: 480px) {
+    .ps-hero__weather-desc { display: none; }
+}
+
+/* ── MOBILE SIDEBAR TOGGLE ── */
+.ps-sidebar-toggle {
+    display: none;
+    width: 100%;
+    background: var(--ps-card);
+    border: 1px solid var(--ps-border);
+    border-radius: var(--ps-radius-sm);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ps-text);
+    text-align: left;
+    cursor: pointer;
     align-items: center;
     gap: 8px;
+    margin-bottom: 12px;
+    min-height: 44px;
+    box-shadow: var(--ps-shadow);
+}
+.ps-sidebar-toggle i { color: var(--ps-brand); }
+.ps-sidebar-toggle .ps-toggle-arrow {
+    margin-left: auto;
+    transition: transform 0.2s;
+}
+.ps-sidebar-toggle[aria-expanded="true"] .ps-toggle-arrow {
+    transform: rotate(180deg);
 }
 
-.pd-section__title i {
-    color: var(--light-green);
+/* ── SPLIT BODY ── */
+.ps-body {
+    display: grid;
+    grid-template-columns: var(--ps-sidebar-w) 1fr;
+    gap: 20px;
+    align-items: start;
 }
 
-.pd-section__badge {
-    background: #e8f5e9;
-    color: var(--light-green);
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 12px;
-}
-
-/* Product List */
-.pd-product-list {
+/* ── SIDEBAR ── */
+.ps-sidebar {
+    position: sticky;
+    top: 80px;
+    align-self: start;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ps-border) transparent;
+    padding-right: 2px;
+}
+.ps-sidebar::-webkit-scrollbar { width: 4px; }
+.ps-sidebar::-webkit-scrollbar-thumb { background: var(--ps-border); border-radius: 2px; }
+
+/* ── SHARED CARD ── */
+.ps-card {
+    background: var(--ps-card);
+    border: 1px solid var(--ps-border);
+    border-radius: var(--ps-radius);
+    padding: 18px;
+    box-shadow: var(--ps-shadow);
 }
 
-.pd-product-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
-    background: #f0f9f4;
-    border-radius: 16px;
-    min-height: 70px;
-}
-
-.pd-product-item__icon {
-    width: 48px;
-    height: 48px;
-    background: white;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    flex-shrink: 0;
-}
-
-.pd-product-item__info {
-    flex: 1;
-    min-width: 0;
-}
-
-.pd-product-item__name {
-    font-size: 16px;
+.ps-card__title {
+    font-size: 11px;
     font-weight: 700;
-    color: var(--text-dark);
-    margin: 0 0 4px 0;
-}
-
-.pd-product-item__meta {
-    font-size: 12px;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.pd-product-item__badge {
-    background: #d4a373;
-    color: white;
-    font-size: 9px;
-    font-weight: 600;
     text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 10px;
-}
-
-.pd-product-item__surface {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dark);
-    text-align: right;
-    min-width: 80px;
-}
-
-.pd-product-item__surface span {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 400;
-    display: block;
-}
-
-.pd-product-item__yield {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--light-green);
-    text-align: right;
-    min-width: 120px;
-}
-
-.pd-product-item__yield span {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 400;
-    display: block;
-}
-
-.pd-product-item__actions {
-    display: flex;
-    gap: 8px;
-    margin-left: auto;
-    flex-shrink: 0;
-}
-
-@media (max-width: 640px) {
-    .pd-product-item {
-        flex-wrap: wrap;
-        align-items: flex-start;
-    }
-    .pd-product-item__surface,
-    .pd-product-item__yield {
-        width: 100%;
-        text-align: left;
-        min-width: 0;
-        margin-top: 4px;
-    }
-    .pd-product-item__actions {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-end;
-    }
-}
-
-.pd-btn--icon {
-    width: 40px;
-    height: 40px;
-    padding: 0;
+    letter-spacing: 1px;
+    color: var(--ps-muted);
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    flex: none;
+    gap: 7px;
 }
+.ps-card__title i { color: var(--ps-brand); font-size: 13px; }
 
-.pd-btn {
-    flex: 1;
+/* ── INFO ROWS (sidebar) ── */
+.ps-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--ps-border);
+    font-size: 13px;
+    gap: 8px;
+}
+.ps-info-row:last-child { border-bottom: none; }
+.ps-info-row__label { color: var(--ps-muted); font-size: 12px; flex-shrink: 0; }
+.ps-info-row__value { font-weight: 600; color: var(--ps-text); text-align: right; word-break: break-word; }
+
+/* ── STAT GRID (sidebar) ── */
+.ps-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.ps-stat {
+    background: var(--ps-bg);
+    border-radius: var(--ps-radius-sm);
+    padding: 11px;
+    text-align: center;
+}
+.ps-stat__value {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--ps-text);
+    line-height: 1.2;
+}
+.ps-stat__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ps-muted);
+    margin-top: 3px;
+}
+.ps-stat__hint { font-size: 10px; color: var(--ps-brand); font-weight: 600; margin-top: 1px; }
+
+/* ── BUTTONS ── */
+.ps-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 16px;
-    border-radius: 10px;
+    gap: 8px;
+    padding: 11px 16px;
+    border-radius: var(--ps-radius-sm);
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
     border: none;
     cursor: pointer;
+    transition: all 0.18s;
+    min-height: 44px;
+    box-sizing: border-box;
+    width: 100%;
 }
+.ps-btn--primary {
+    background: var(--ps-brand);
+    color: var(--text-inverse);
+}
+.ps-btn--primary:hover { background: var(--brand-deep); color: var(--text-inverse); }
 
-.pd-btn--primary {
-    background: var(--light-green);
+.ps-btn--secondary {
+    background: var(--ps-bg);
+    border: 1px solid var(--ps-border);
+    color: var(--ps-text);
+}
+.ps-btn--secondary:hover { background: var(--ps-border); color: var(--ps-text); }
+
+.ps-btn--accent {
+    background: var(--ps-accent);
+    color: var(--text-inverse);
+}
+.ps-btn--accent:hover { filter: brightness(0.9); color: var(--text-inverse); }
+
+.ps-btn--danger {
+    background: var(--danger-subtle);
+    color: var(--danger);
+}
+.ps-btn--danger:hover { background: var(--danger); color: var(--text-inverse); }
+
+.ps-btn--icon {
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.ps-btn--inline { width: auto; }
+
+.ps-actions { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── WEATHER (sidebar) ── */
+.ps-weather-inner {
+    background: linear-gradient(135deg, #2d3a5a 0%, #1e2740 100%);
+    border-radius: var(--ps-radius-sm);
+    padding: 16px;
     color: white;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.ps-weather__icon { font-size: 34px; opacity: 0.55; transition: opacity 0.3s; flex-shrink: 0; }
+.ps-weather__temp { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1; }
+.ps-weather__condition { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+.ps-weather__meta { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+
+/* ── MAIN COLUMN ── */
+.ps-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
 }
 
-.pd-btn--secondary {
-    background: white;
-    color: var(--text-dark);
-    border: 1px solid var(--border-light);
-}
-
-/* Prediction Section */
-.pd-prediction-card {
-    background: #f0f9f4;
-    border-radius: 16px;
-    padding: 20px;
-}
-
-.pd-prediction__header {
+/* Section headers */
+.ps-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
-
-.pd-prediction__title {
-    font-size: 14px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 0;
-}
-
-.pd-prediction__value {
-    font-size: 24px;
+.ps-section-title {
+    font-family: var(--font-display);
+    font-size: 16px;
     font-weight: 700;
-    color: var(--light-green);
-    margin-bottom: 16px;
-}
-
-.pd-prediction__value span {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-muted);
-}
-
-.pd-prediction__stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.pd-prediction-stat {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
+    color: var(--ps-text);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    margin: 0;
+}
+.ps-section-title i { color: var(--ps-brand); font-size: 17px; }
+.ps-section-badge {
+    background: var(--success-subtle);
+    color: var(--ps-brand);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
 }
 
-.pd-prediction-stat__icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+/* ── PRODUCT ITEMS ── */
+.ps-product-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    background: var(--ps-bg);
+    border-radius: var(--ps-radius-sm);
+    transition: background 0.2s;
+    min-height: 44px;
+}
+.ps-product-item:hover { background: var(--ps-border); }
+.ps-product-item + .ps-product-item { margin-top: 8px; }
+
+.ps-product-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--brand-light) 0%, var(--brand-primary) 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+.ps-product-info { flex: 1; min-width: 0; }
+.ps-product-name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ps-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ps-product-meta {
+    font-size: 12px;
+    color: var(--ps-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+}
+.ps-product-badge {
+    background: var(--ps-accent);
+    color: var(--text-inverse);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+.ps-product-stats {
+    display: flex;
+    gap: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.ps-product-stat__value { font-size: 15px; font-weight: 700; color: var(--ps-text); display: block; }
+.ps-product-stat__label { font-size: 10px; color: var(--ps-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.ps-product-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ── PREDICTION ── */
+.ps-prediction-value {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 800;
+    color: var(--ps-brand);
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.ps-prediction-value span { font-size: 0.45em; font-weight: 500; color: var(--ps-muted); }
+
+.ps-prediction-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+}
+.ps-prediction-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--ps-bg);
+    border-radius: var(--ps-radius-sm);
+}
+.ps-prediction-stat__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
+    flex-shrink: 0;
 }
+.ps-prediction-stat__icon--confidence { background: var(--success-subtle); color: var(--brand-light); }
+.ps-prediction-stat__icon--quality    { background: var(--warning-subtle); color: var(--brand-accent); }
+.ps-prediction-stat__label { font-size: 11px; color: var(--ps-muted); }
+.ps-prediction-stat__value { font-size: 15px; font-weight: 700; color: var(--ps-text); }
 
-.pd-prediction-stat__icon--confidence {
-    background: #e8f5e9;
-    color: var(--light-green);
-}
-
-.pd-prediction-stat__icon--quality {
-    background: #fdf6f0;
-    color: #d4a373;
-}
-
-.pd-prediction-stat__content {
-    flex: 1;
-}
-
-.pd-prediction-stat__label {
-    font-size: 11px;
-    color: var(--text-muted);
-    display: block;
-}
-
-.pd-prediction-stat__value {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-.pd-prediction__chart {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    height: 120px;
-}
-
-.pd-btn--full {
-    width: 100%;
-    background: var(--accent-orange);
-    color: white;
-}
-
-/* Weather Card */
-.pd-weather-card {
-    background: linear-gradient(135deg, #2d3a5a 0%, #1e2740 100%);
-    border-radius: 16px;
-    padding: 20px;
-    color: white;
-}
-
-.pd-weather__header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.pd-weather__temp {
-    font-size: 36px;
-    font-weight: 700;
-}
-
-.pd-weather__condition {
-    font-size: 14px;
-    opacity: 0.9;
-}
-
-.pd-weather__meta {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-/* Map Section */
-.pd-map-container {
-    border-radius: 16px;
+.ps-chart {
+    height: 150px;
+    background: var(--ps-bg);
+    border-radius: var(--ps-radius-sm);
+    margin: 12px 0 4px;
     overflow: hidden;
-    height: 200px;
-    background: #e0e0e0;
+    position: relative;
+}
+.ps-chart-label { text-align: center; font-size: 11px; color: var(--ps-muted); margin-bottom: 12px; }
+
+/* ── MAP ── */
+.ps-map-container {
+    height: 280px;
+    background: var(--ps-bg);
+    border-radius: var(--ps-radius-sm);
+    overflow: hidden;
+}
+.leaflet-container { height: 100%; width: 100%; }
+
+/* ── INVESTMENTS ── */
+.ps-invest-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--success-subtle);
+    border-radius: var(--ps-radius-sm);
+    margin-bottom: 12px;
+}
+.ps-invest-total__label {
+    font-size: 11px;
+    color: var(--ps-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.ps-invest-total__value {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--ps-brand);
 }
 
-/* Investments Section */
-.pd-investments-empty {
+.ps-invest-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 14px;
+    border-radius: var(--ps-radius-sm);
+    background: var(--ps-bg);
+    transition: background 0.2s;
+    gap: 12px;
+}
+.ps-invest-item:hover { background: var(--ps-border); }
+.ps-invest-item + .ps-invest-item { margin-top: 6px; }
+.ps-invest-item__name { font-size: 13px; font-weight: 500; color: var(--ps-text); }
+.ps-invest-item__amount { font-size: 14px; font-weight: 700; color: var(--ps-brand); flex-shrink: 0; }
+
+/* ── SOL ITEMS ── */
+.ps-sol-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: var(--ps-radius-sm);
+    background: var(--ps-bg);
+    transition: background 0.2s;
+    gap: 14px;
+}
+.ps-sol-item + .ps-sol-item { margin-top: 6px; }
+.ps-sol-item__info { flex: 1; min-width: 0; }
+.ps-sol-item__name { font-size: 13px; font-weight: 600; color: var(--ps-text); }
+.ps-sol-item__date { font-size: 11px; color: var(--ps-muted); margin-top: 2px; }
+.ps-sol-item__npk {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    text-align: right;
+}
+.ps-sol-npk-val { font-size: 11px; color: var(--ps-muted); }
+
+/* ── SECTION FOOTER ── */
+.ps-section-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+.ps-section-footer .ps-btn { width: auto; flex: 1; min-width: 130px; }
+
+/* ── EMPTY STATES ── */
+.ps-empty {
     text-align: center;
     padding: 40px 20px;
+    color: var(--ps-muted);
 }
-
-.pd-investments-empty__icon {
-    font-size: 40px;
-    color: #ccc;
-    margin-bottom: 16px;
-}
-
-.pd-investments-empty__title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 8px;
-}
-
-.pd-investments-empty__text {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 20px;
-}
-
-.pd-btn--add {
-    width: 100%;
-    background: var(--accent-orange);
-    color: white;
-    padding: 14px 24px;
+.ps-empty__icon { font-size: 44px; opacity: 0.35; margin-bottom: 12px; }
+.ps-empty__title {
+    font-family: var(--font-display);
     font-size: 15px;
+    font-weight: 700;
+    color: var(--ps-text);
+    margin-bottom: 6px;
+}
+.ps-empty__text { font-size: 13px; line-height: 1.5; }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — mobile-first
+   ══════════════════════════════════════════ */
+
+/* ── Tablet: sidebar collapses to toggle ── */
+@media (max-width: 900px) {
+    .ps-body { grid-template-columns: 1fr; }
+    .ps-sidebar {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+        display: none;
+    }
+    .ps-sidebar.is-open { display: flex; }
+    .ps-sidebar-toggle { display: inline-flex; }
 }
 
-/* Two Columns Layout */
-.pd-two-col {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-}
+/* ── Small tablet / large phone (≤640px) ── */
+@media (max-width: 640px) {
+    .ps-layout { padding: 0 12px 40px; }
 
-@media (min-width: 768px) {
-    .pd-two-col {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/* Mobile improvements for project detail */
-@media (max-width: 576px) {
-    /* Hero section */
-    .pd-hero {
-        padding: 16px;
-    }
-
-    .pd-hero__title {
-        font-size: 20px;
-    }
-
-    .pd-hero__subtitle {
-        font-size: 13px;
-    }
-
-    .pd-hero__header {
+    /* Hero nav: stack weather+status below back-link on small screens */
+    .ps-hero__nav {
         flex-direction: column;
-        gap: 16px;
         align-items: flex-start;
+        gap: 12px;
     }
-
-    .pd-actions-row {
+    .ps-hero__nav > div {
         width: 100%;
-        flex-wrap: wrap;
+        justify-content: space-between;
     }
 
-    .pd-btn {
+    /* Make weather pill fill available space on the left */
+    .ps-hero__weather {
         flex: 1;
-        justify-content: center;
-        min-height: 44px;
-        padding: 12px 16px;
-        font-size: 13px;
+        max-width: calc(100% - 100px);
     }
 
-    /* Stats cards */
-    .pd-stats-row {
-        gap: 10px;
-        padding: 0 12px;
-    }
+    /* Hero title: smaller on phones */
+    .ps-hero__title { font-size: clamp(1.2rem, 6vw, 1.7rem); }
 
-    .pd-stat-card {
-        padding: 14px 12px;
-        min-width: 80px;
-    }
-
-    .pd-stat-card__value {
-        font-size: 18px;
-    }
-
-    .pd-stat-card__label {
-        font-size: 10px;
-    }
-
-    /* Content sections */
-    .pd-content {
-        padding: 12px;
-    }
-
-    .pd-section {
-        padding: 16px;
-        margin-bottom: 12px;
-    }
-
-    .pd-section__title {
-        font-size: 15px;
-    }
-
-    /* Product items */
-    .pd-product-item {
-        padding: 12px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .pd-product-item__icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-
-    .pd-product-item__name {
-        font-size: 14px;
-    }
-
-    .pd-product-item__surface,
-    .pd-product-item__yield {
-        min-width: 70px;
-    }
-
-    /* Map and weather */
-    .pd-map-card,
-    .pd-weather-card {
-        height: 200px;
-    }
-
-    .pd-map-container {
-        height: 200px;
-    }
-
-    /* Prediction cards */
-    .pd-prediction__stats {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .pd-prediction__stat-value {
-        font-size: 20px;
-    }
-
-    /* Growth chart container */
-    .pd-chart-container {
-        height: 150px;
-    }
-
-    /* Info rows */
-    .pd-info-row {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .pd-info-row__label {
+    /* Hero meta: smaller gap, wrap tighter */
+    .ps-hero__meta {
+        gap: 8px 14px;
         font-size: 12px;
     }
 
-    .pd-info-row__value {
-        font-size: 14px;
+    /* Product items: stack name+meta vertically, hide stats */
+    .ps-product-item {
+        flex-wrap: wrap;
+        gap: 10px;
     }
+    .ps-product-stats { display: none; }
+    .ps-product-actions { margin-left: auto; }
 
-    /* Empty states */
-    .pd-empty-state {
-        padding: 30px 16px;
-    }
+    /* Prediction stats: single column */
+    .ps-prediction-stats { grid-template-columns: 1fr; }
 
-    .pd-empty-state__icon {
-        font-size: 40px;
-    }
+    /* Stats grid: stay 2-col but shrink */
+    .ps-stats { grid-template-columns: repeat(2, 1fr); }
 
-    .pd-empty-state__text {
-        font-size: 13px;
+    /* Investment items: stack */
+    .ps-invest-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
     }
+    .ps-invest-item__amount { font-size: 15px; }
+
+    /* Sol items: stack */
+    .ps-sol-item { flex-direction: column; }
+    .ps-sol-item__npk { text-align: left; }
+
+    /* Section footer: full-width buttons */
+    .ps-section-footer { flex-direction: column; }
+    .ps-section-footer .ps-btn { width: 100%; flex: none; min-width: unset; }
+
+    /* Chart: shorter on small phones */
+    .ps-chart { height: 120px; }
+
+    /* Map: slightly shorter */
+    .ps-map-container { height: 230px; }
 }
 
-/* Touch improvements */
-@media (pointer: coarse) {
-    .pd-btn,
-    .pd-product-item,
-    .pd-dropdown__toggle {
-        min-height: 44px;
-    }
+/* ── Phones (≤480px) ── */
+@media (max-width: 480px) {
+    .ps-layout { padding: 0 8px 32px; }
 
-    .pd-product-item {
-        padding: 14px;
+    /* Hero: tighter padding */
+    .ps-hero { padding: 14px 14px 18px; }
+
+    /* Hero nav: keep back on left, weather+status stacked neatly */
+    .ps-hero__weather-desc { display: none; }
+    .ps-hero__weather {
+        padding: 6px 12px 6px 9px;
+        gap: 8px;
     }
+    .ps-hero__weather-temp { font-size: 15px; }
+    .ps-hero__weather-icon { font-size: 17px; }
+
+    /* Hero title */
+    .ps-hero__title { font-size: clamp(1.1rem, 6.5vw, 1.5rem); margin-bottom: 10px; }
+
+    /* Cards: tighter padding */
+    .ps-card { padding: 14px 12px; }
+
+    /* Product icon: smaller */
+    .ps-product-icon { width: 40px; height: 40px; font-size: 20px; border-radius: 11px; }
+    .ps-product-name { font-size: 14px; }
+
+    /* Prediction value */
+    .ps-prediction-value { font-size: clamp(1.6rem, 9vw, 2.2rem); }
+
+    /* Map */
+    .ps-map-container { height: 200px; }
+
+    /* Stat values */
+    .ps-stat__value { font-size: 1rem; }
+}
+
+/* ── Very small (≤360px) ── */
+@media (max-width: 360px) {
+    .ps-layout { padding: 0 6px 28px; }
+    .ps-hero { padding: 12px 12px 16px; }
+    .ps-hero__title { font-size: 1.05rem; }
+    .ps-hero__meta { font-size: 11px; gap: 6px 10px; }
+    .ps-stats { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .ps-stat { padding: 9px 8px; }
+    .ps-card { padding: 12px 10px; }
+    .ps-btn { font-size: 12px; padding: 10px 12px; }
+}
+
+/* ── Touch: ensure all interactive targets are ≥44px ── */
+@media (pointer: coarse) {
+    .ps-btn,
+    .ps-product-item,
+    .ps-invest-item,
+    .ps-sidebar-toggle,
+    .ps-hero__back { min-height: 44px; }
+
+    /* Leaflet map: allow vertical scroll through map on touch */
+    .ps-map-container { touch-action: pan-y; }
 }
 </style>
 {% endblock %}
 
+
 {% block content %}
-<div class="project-detail-page">
-    <!-- Hero Header -->
-    <div class="pd-hero">
-        <div class="pd-hero__header">
-            <a href="{% url 'liste_projets' %}" class="pd-hero__back">
-                <i class="fas fa-chevron-left"></i> Back
+<div class="ps-layout">
+
+    <!-- ═══════════ HERO ═══════════ -->
+    <div class="ps-hero">
+        <div class="ps-hero__nav">
+            <a href="{% url 'liste_projets' %}" class="ps-hero__back">
+                <i class="fas fa-chevron-left"></i> Retour
             </a>
-            <span class="pd-hero__status">
-                {% if projet.statut == 'en_cours' %}En cours
-                {% elif projet.statut == 'en_pause' %}En pause
-                {% elif projet.statut == 'fini' %}Terminé
-                {% elif projet.statut == 'cloture' %}Clôturé
-                {% else %}En cours{% endif %}
-            </span>
-        </div>
-        
-        <div class="pd-hero__label">Fiche projet</div>
-        <h1 class="pd-hero__title">{{ projet.nom }}</h1>
-        
-        <div class="pd-hero__meta">
-            <span class="pd-hero__meta-item">
-                <i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom|default:"Dakar" }}
-            </span>
-            <span class="pd-hero__meta-item">
-                <i class="fas fa-warehouse"></i> {{ projet.ferme.nom|default:"Ferme du Sahel" }}
-            </span>
-            <span class="pd-hero__meta-item">
-                <i class="fas fa-calendar"></i> {{ projet.date_lancement|date:"d M Y"|default:"09 May 2026" }}
-            </span>
-        </div>
-    </div>
-
-    <!-- Stats Row -->
-    <div class="pd-stats-row">
-        <div class="pd-stat-box">
-            <i class="fas fa-seedling pd-stat-box__icon"></i>
-            <span class="pd-stat-box__label">Surface</span>
-            <span class="pd-stat-box__value">{{ projet.superficie|default:"5.00" }} ha</span>
-        </div>
-        <div class="pd-stat-box">
-            <i class="fas fa-seedling pd-stat-box__icon"></i>
-            <span class="pd-stat-box__label">Produits</span>
-            <span class="pd-stat-box__value">{{ projet_produits.count|default:"1" }}</span>
-        </div>
-        <div class="pd-stat-box">
-            <i class="fas fa-coins pd-stat-box__icon"></i>
-            <span class="pd-stat-box__label">Investissements</span>
-            <span class="pd-stat-box__value">
-                {% if can_view_investissements and investissement_total_fcfa %}
-                    {{ investissement_total_fcfa|floatformat:0 }} FCFA
-                {% else %}
-                    0 FCFA
-                {% endif %}
-            </span>
-        </div>
-        <div class="pd-stat-box">
-            <i class="fas fa-chart-line pd-stat-box__icon"></i>
-            <span class="pd-stat-box__label">Prévision IA</span>
-            <span class="pd-stat-box__value">
-                {% if prediction %}
-                    {{ prediction.rendement_estime_min|floatformat:0 }}-{{ prediction.rendement_estime_max|floatformat:0 }} kg
-                    <span class="pd-stat-box__hint">~{{ prediction.indice_confiance|floatformat:0 }}% confiance</span>
-                {% else %}
-                    16200-19800 kg
-                    <span class="pd-stat-box__hint">~90% confiance</span>
-                {% endif %}
-            </span>
-        </div>
-    </div>
-
-    <!-- Actions Row -->
-    <div class="pd-actions-row">
-        <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--primary">
-            <i class="fas fa-edit"></i> Modifier
-        </a>
-        {% if can_modify_investissements %}
-        <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-btn pd-btn--secondary pd-btn--investment">
-            <i class="fas fa-plus"></i> Investissement
-        </a>
-        {% endif %}
-        <a href="{% url 'supprimer_projet' projet.id %}" class="pd-btn pd-btn--danger pd-btn--desktop" onclick="return confirm('Supprimer ce projet ?')">
-            <i class="fas fa-trash-alt"></i> Supprimer
-        </a>
-        <div class="pd-dropdown">
-            <button type="button" class="pd-btn pd-btn--secondary" onclick="this.nextElementSibling.classList.toggle('show')">
-                <i class="fas fa-ellipsis-v"></i> Autres
-            </button>
-            <div class="pd-dropdown__menu">
-                {% if projet.statut != 'fini' and projet.statut != 'cloture' %}
-                <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="pd-dropdown__item pd-dropdown__item--success">
-                    <i class="fas fa-check-circle"></i> Terminer & saisir récolte
-                </a>
-                {% endif %}
-                {% if can_modify_investissements %}
-                <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-dropdown__item">
-                    <i class="fas fa-plus"></i> Investissement
-                </a>
-                {% endif %}
-                <div style="border-top: 1px solid #eee; margin: 8px 0;"></div>
-                <a href="{% url 'supprimer_projet' projet.id %}" class="pd-dropdown__item pd-dropdown__item--danger" onclick="return confirm('Supprimer ce projet ?')">
-                    <i class="fas fa-trash-alt"></i> Supprimer
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Produits & Semis Section -->
-    <div class="pd-section">
-        <div class="pd-section__header">
-            <h2 class="pd-section__title">
-                <i class="fas fa-seedling"></i> Produits & semis
-            </h2>
-        </div>
-        
-        <div class="pd-product-list">
-            {% if projet_produits %}
-                {% for pp in projet_produits %}
-                <div class="pd-product-item">
-                    <div class="pd-product-item__icon">
-                        🌾
-                    </div>
-                    <div class="pd-product-item__info">
-                        <h3 class="pd-product-item__name">{{ pp.produit.nom }}</h3>
-                        <div class="pd-product-item__meta">
-                            <span class="pd-product-item__badge">Extensif</span>
-                            <span>Produit du projet</span>
-                        </div>
-                    </div>
-                    <div class="pd-product-item__surface">
-                        {{ pp.superficie_allouee|default:projet.superficie|default:"5,00" }} ha
-                        <span>Superficie</span>
-                    </div>
-                    <div class="pd-product-item__yield">
-                        {{ pp.rendement_estime|default:"22500" }} kg
-                        <span>Rendement estimé</span>
-                    </div>
-                    <div class="pd-product-item__actions">
-                        <a href="{% url 'detail_semis' pp.id %}" class="pd-btn pd-btn--icon pd-btn--primary" title="Détail">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--icon pd-btn--secondary" title="Modifier">
-                            <i class="fas fa-edit"></i>
-                        </a>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div class="ps-hero__weather" id="heroWeather">
+                    <i class="fas fa-cloud-sun ps-hero__weather-icon" id="weatherIcon"></i>
+                    <div>
+                        <div class="ps-hero__weather-temp" id="weatherTemp">—</div>
+                        <div class="ps-hero__weather-desc" id="weatherCondition">Chargement…</div>
                     </div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="pd-product-item">
-                    <div class="pd-product-item__icon">
-                        🌾
-                    </div>
-                    <div class="pd-product-item__info">
-                        <h3 class="pd-product-item__name">{{ projet.culture.nom|default:"Riz" }}</h3>
-                        <div class="pd-product-item__meta">
-                            <span class="pd-product-item__badge">Extensif</span>
-                            <span>Produit du projet</span>
-                        </div>
-                    </div>
-                    <div class="pd-product-item__surface">
-                        {{ projet.superficie|default:"5,00" }} ha
-                        <span>Superficie</span>
-                    </div>
-                    <div class="pd-product-item__yield">
-                        22500 kg
-                        <span>Rendement estimé</span>
-                    </div>
-                    <div class="pd-product-item__actions">
-                        <a href="#" class="pd-btn pd-btn--icon pd-btn--primary" title="Détail">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--icon pd-btn--secondary" title="Modifier">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    </div>
-                </div>
-            {% endif %}
+                <span class="ps-hero__status ps-hero__status--{{ projet.statut|default:'en_cours' }}">
+                    {% if projet.statut == 'en_cours' %}En cours
+                    {% elif projet.statut == 'en_pause' %}En pause
+                    {% elif projet.statut == 'fini' %}Terminé
+                    {% elif projet.statut == 'cloture' %}Clôturé
+                    {% else %}En cours{% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="ps-hero__body">
+            <div class="ps-hero__eyebrow">Fiche projet</div>
+            <h1 class="ps-hero__title">{{ projet.nom }}</h1>
+            <div class="ps-hero__meta">
+                <span class="ps-hero__meta-item">
+                    <i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom|default:"Non renseigné" }}
+                </span>
+                <span class="ps-hero__meta-item">
+                    <i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}
+                </span>
+                <span class="ps-hero__meta-item">
+                    <i class="fas fa-calendar"></i> {{ projet.date_lancement|date:"d M Y"|default:"Non défini" }}
+                </span>
+                {% if projet.description %}
+                <span class="ps-hero__meta-item">
+                    <i class="fas fa-info-circle"></i> {{ projet.description|truncatechars:60 }}
+                </span>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Prédiction IA Section -->
-    <div class="pd-section">
-        <div class="pd-section__header">
-            <h2 class="pd-section__title">
-                <i class="fas fa-robot"></i> Prédiction IA
-            </h2>
-            <span class="pd-section__badge">Estimatif</span>
-        </div>
-        
-        <div class="pd-prediction-card">
-            <div class="pd-prediction__header">
-                <h3 class="pd-prediction__title">Rendement estimé</h3>
-            </div>
-            
-            <div class="pd-prediction__value">
-                {% if prediction %}
-                    {{ prediction.rendement_estime_min|floatformat:0 }} – {{ prediction.rendement_estime_max|floatformat:0 }} <span>kg</span>
-                {% else %}
-                    16200 – 19800 <span>kg</span>
+    <!-- ═══════════ MOBILE TOGGLE ═══════════ -->
+    <button class="ps-sidebar-toggle" id="sidebarToggle"
+            aria-expanded="false" aria-controls="psSidebar">
+        <i class="fas fa-sliders-h"></i>
+        Infos &amp; actions du projet
+        <i class="fas fa-chevron-down ps-toggle-arrow"></i>
+    </button>
+
+    <!-- ═══════════ SPLIT BODY ═══════════ -->
+    <div class="ps-body">
+
+        <!-- ─────── SIDEBAR ─────── -->
+        <aside class="ps-sidebar" id="psSidebar">
+
+            <!-- Project Info -->
+            <div class="ps-card">
+                <div class="ps-card__title"><i class="fas fa-info-circle"></i> Infos projet</div>
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Culture</span>
+                    <span class="ps-info-row__value">{{ projet.culture.nom|default:"Non renseigné" }}</span>
+                </div>
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Superficie</span>
+                    <span class="ps-info-row__value">{{ projet.superficie|default:"—" }} ha</span>
+                </div>
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Localité</span>
+                    <span class="ps-info-row__value">{{ projet.localite.nom|default:"Non renseigné" }}</span>
+                </div>
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Ferme</span>
+                    <span class="ps-info-row__value">{{ projet.ferme.nom }}</span>
+                </div>
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Lancement</span>
+                    <span class="ps-info-row__value">{{ projet.date_lancement|date:"d M Y"|default:"Non défini" }}</span>
+                </div>
+                {% if projet.date_fin %}
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Fin prévue</span>
+                    <span class="ps-info-row__value">{{ projet.date_fin|date:"d M Y" }}</span>
+                </div>
                 {% endif %}
             </div>
-            
-            <div class="pd-prediction__stats">
-                <div class="pd-prediction-stat">
-                    <div class="pd-prediction-stat__icon pd-prediction-stat__icon--confidence">
-                        <i class="fas fa-chart-pie"></i>
+
+            <!-- Key Stats -->
+            <div class="ps-card">
+                <div class="ps-card__title"><i class="fas fa-chart-bar"></i> Indicateurs</div>
+                <div class="ps-stats">
+                    <div class="ps-stat">
+                        <div class="ps-stat__value">{{ projet.superficie|default:"—" }}</div>
+                        <div class="ps-stat__label">Hectares</div>
                     </div>
-                    <div class="pd-prediction-stat__content">
-                        <span class="pd-prediction-stat__label">Confiance modèle</span>
-                        <span class="pd-prediction-stat__value">
-                            {% if prediction %}
-                                {{ prediction.indice_confiance|floatformat:0 }}% Correcte
-                            {% else %}
-                                90% Correcte
-                            {% endif %}
+                    <div class="ps-stat">
+                        {% if can_view_investissements and investissement_total_fcfa %}
+                        <div class="ps-stat__value">{{ investissement_total_fcfa|floatformat:0 }}</div>
+                        <div class="ps-stat__label">FCFA</div>
+                        {% else %}
+                        <div class="ps-stat__value">—</div>
+                        <div class="ps-stat__label">Budget</div>
+                        {% endif %}
+                    </div>
+                    <div class="ps-stat">
+                        {% if prediction %}
+                        <div class="ps-stat__value">{{ prediction.indice_confiance|floatformat:0 }}%</div>
+                        <div class="ps-stat__hint">Confiance IA</div>
+                        {% else %}
+                        <div class="ps-stat__value">—</div>
+                        <div class="ps-stat__label">Confiance</div>
+                        {% endif %}
+                    </div>
+                    <div class="ps-stat">
+                        {% if prediction %}
+                        <div class="ps-stat__value">{{ prediction.rendement_estime_min|floatformat:0 }}</div>
+                        <div class="ps-stat__hint">kg min</div>
+                        {% else %}
+                        <div class="ps-stat__value">—</div>
+                        <div class="ps-stat__label">Rendement</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="ps-card">
+                <div class="ps-card__title"><i class="fas fa-bolt"></i> Actions</div>
+                <div class="ps-actions">
+                    <a href="{% url 'modifier_projet' projet.id %}" class="ps-btn ps-btn--primary">
+                        <i class="fas fa-edit"></i> Modifier le projet
+                    </a>
+                    {% if can_modify_investissements %}
+                    <a href="{% url 'ajouter_investissement' projet.id %}" class="ps-btn ps-btn--accent">
+                        <i class="fas fa-plus"></i> Ajouter un investissement
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'generer_prediction' projet.id %}" class="ps-btn ps-btn--secondary">
+                        <i class="fas fa-robot"></i> Actualiser l'analyse IA
+                    </a>
+                    <a href="{% url 'supprimer_projet' projet.id %}" class="ps-btn ps-btn--danger"
+                       onclick="return confirm('Supprimer définitivement ce projet ?')">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </a>
+                </div>
+            </div>
+
+
+        </aside><!-- /sidebar -->
+
+        <!-- ─────── MAIN ─────── -->
+        <div class="ps-main">
+
+            <!-- Produits -->
+            <div class="ps-card">
+                <div class="ps-section-header">
+                    <h2 class="ps-section-title">
+                        <i class="fas fa-seedling"></i> Produits du projet
+                    </h2>
+                    {% if projet_produits %}
+                    <span class="ps-section-badge">
+                        {{ projet_produits|length }} produit{{ projet_produits|length|pluralize }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if projet_produits %}
+                    {% for pp in projet_produits %}
+                    <div class="ps-product-item">
+                        <div class="ps-product-icon">🌾</div>
+                        <div class="ps-product-info">
+                            <div class="ps-product-name">{{ pp.produit.nom }}</div>
+                            <div class="ps-product-meta">
+                                <span class="ps-product-badge">{{ pp.produit.categorie|default:"Culture" }}</span>
+                                Produit du projet
+                            </div>
+                        </div>
+                        <div class="ps-product-stats">
+                            <div>
+                                <span class="ps-product-stat__value">
+                                    {{ pp.superficie_allouee|default:projet.superficie|default:"--" }}
+                                </span>
+                                <span class="ps-product-stat__label">ha</span>
+                            </div>
+                            <div>
+                                <span class="ps-product-stat__value">
+                                    {% if pp.rendement_estime %}{{ pp.rendement_estime }}{% else %}—{% endif %}
+                                </span>
+                                <span class="ps-product-stat__label">kg est.</span>
+                            </div>
+                        </div>
+                        <div class="ps-product-actions">
+                            <a href="{% url 'detail_semis' pp.id %}"
+                               class="ps-btn ps-btn--primary ps-btn--icon" title="Voir le détail">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'modifier_projet' projet.id %}"
+                               class="ps-btn ps-btn--secondary ps-btn--icon" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="ps-product-item">
+                        <div class="ps-product-icon">🌿</div>
+                        <div class="ps-product-info">
+                            <div class="ps-product-name">{{ projet.culture.nom|default:"Culture" }}</div>
+                            <div class="ps-product-meta">
+                                <span class="ps-product-badge">Culture</span>
+                                Culture principale
+                            </div>
+                        </div>
+                        <div class="ps-product-stats">
+                            <div>
+                                <span class="ps-product-stat__value">{{ projet.superficie|default:"--" }}</span>
+                                <span class="ps-product-stat__label">ha</span>
+                            </div>
+                            <div>
+                                <span class="ps-product-stat__value">—</span>
+                                <span class="ps-product-stat__label">kg est.</span>
+                            </div>
+                        </div>
+                        <div class="ps-product-actions">
+                            <a href="{% url 'modifier_projet' projet.id %}"
+                               class="ps-btn ps-btn--secondary ps-btn--icon" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Prédiction IA -->
+            <div class="ps-card">
+                <div class="ps-section-header">
+                    <h2 class="ps-section-title">
+                        <i class="fas fa-robot"></i> Prédiction IA
+                    </h2>
+                    <span class="ps-section-badge">Modèle ML</span>
+                </div>
+
+                {% if prediction %}
+                    <div class="ps-prediction-value">
+                        {{ prediction.rendement_estime_min|floatformat:0 }} –
+                        {{ prediction.rendement_estime_max|floatformat:0 }}
+                        <span>kg</span>
+                    </div>
+                    <div class="ps-prediction-stats">
+                        <div class="ps-prediction-stat">
+                            <div class="ps-prediction-stat__icon ps-prediction-stat__icon--confidence">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div>
+                                <span class="ps-prediction-stat__label">Confiance modèle</span>
+                                <div class="ps-prediction-stat__value">
+                                    {{ prediction.indice_confiance|floatformat:0 }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ps-prediction-stat">
+                            <div class="ps-prediction-stat__icon ps-prediction-stat__icon--quality">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div>
+                                <span class="ps-prediction-stat__label">Qualité prévue</span>
+                                <div class="ps-prediction-stat__value">À déterminer</div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="ps-empty">
+                        <div class="ps-empty__icon">🤖</div>
+                        <div class="ps-empty__title">Aucune prédiction disponible</div>
+                        <div class="ps-empty__text">
+                            Générez une prédiction IA pour obtenir une estimation du rendement.
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="ps-chart">
+                    <canvas id="growthCurveChart"></canvas>
+                    <noscript>
+                        <p style="text-align:center;padding:20px;color:var(--ps-muted);font-size:13px;">
+                            Graphique non disponible sans JavaScript.
+                        </p>
+                    </noscript>
+                </div>
+                <p class="ps-chart-label">Courbe de croissance illustrative</p>
+
+                <a href="{% url 'generer_prediction' projet.id %}"
+                   class="ps-btn ps-btn--secondary ps-btn--inline" style="width:auto;">
+                    <i class="fas fa-sync-alt"></i> Actualiser l'analyse
+                </a>
+            </div>
+
+            <!-- Carte -->
+            <div class="ps-card">
+                <div class="ps-section-header">
+                    <h2 class="ps-section-title">
+                        <i class="fas fa-map-marked-alt"></i> Localisation
+                    </h2>
+                </div>
+                <div class="ps-map-container" id="projectMap"></div>
+            </div>
+
+            <!-- Investissements -->
+            {% if can_view_investissements %}
+            <div class="ps-card">
+                <div class="ps-section-header">
+                    <h2 class="ps-section-title">
+                        <i class="fas fa-coins"></i> Investissements
+                    </h2>
+                    {% if investissements and investissements.count > 0 %}
+                    <span class="ps-section-badge">
+                        {{ investissements.count }} entrée{{ investissements.count|pluralize }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if investissements and investissements.count > 0 %}
+                    <div class="ps-invest-total">
+                        <span class="ps-invest-total__label">Total investi</span>
+                        <span class="ps-invest-total__value">
+                            {{ investissement_total_fcfa|floatformat:0 }} FCFA
                         </span>
                     </div>
-                </div>
-                <div class="pd-prediction-stat">
-                    <div class="pd-prediction-stat__icon pd-prediction-stat__icon--quality">
-                        <i class="fas fa-seedling"></i>
+                    {% for inv in investissements %}
+                    <div class="ps-invest-item">
+                        <span class="ps-invest-item__name">{{ inv.libelle_affichage }}</span>
+                        <span class="ps-invest-item__amount">
+                            {{ inv.calculer_investissement_total|floatformat:0 }} FCFA
+                        </span>
                     </div>
-                    <div class="pd-prediction-stat__content">
-                        <span class="pd-prediction-stat__label">Qualité prévue</span>
-                        <span class="pd-prediction-stat__value">À déterminer</span>
+                    {% endfor %}
+                    {% if can_modify_investissements %}
+                    <div class="ps-section-footer">
+                        <a href="{% url 'ajouter_investissement' projet.id %}"
+                           class="ps-btn ps-btn--accent">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </a>
                     </div>
-                </div>
-            </div>
-            
-            <div class="pd-prediction__chart">
-                <canvas id="growthCurveChart"></canvas>
-            </div>
-            
-            <a href="{% url 'generer_prediction' projet.id %}" class="pd-btn pd-btn--full">
-                <i class="fas fa-bolt"></i> Actualiser l'analyse
-            </a>
-        </div>
-    </div>
-
-    <!-- Two Column: Weather & Map -->
-    <div class="pd-two-col">
-        <!-- Weather -->
-        <div class="pd-section">
-            <div class="pd-section__header">
-                <h2 class="pd-section__title">
-                    <i class="fas fa-cloud-sun"></i> Météo à la ferme
-                </h2>
-            </div>
-            <div class="pd-weather-card" id="weatherCard">
-                <div class="pd-weather__header">
-                    <div>
-                        <div class="pd-weather__temp" id="weatherTemp">--°C</div>
-                        <div class="pd-weather__condition" id="weatherCondition">Chargement...</div>
-                        <div class="pd-weather__meta" id="weatherMeta">Humidité : --%</div>
+                    {% endif %}
+                {% else %}
+                    <div class="ps-empty">
+                        <div class="ps-empty__icon">💰</div>
+                        <div class="ps-empty__title">Aucun investissement</div>
+                        <div class="ps-empty__text">
+                            Gérez vos coûts en ajoutant des investissements liés à ce projet.
+                        </div>
                     </div>
-                    <i class="fas fa-moon" style="font-size: 40px; opacity: 0.5;"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Location -->
-        <div class="pd-section">
-            <div class="pd-section__header">
-                <h2 class="pd-section__title">
-                    <i class="fas fa-map-marked-alt"></i> Localisation
-                </h2>
-            </div>
-            <div class="pd-map-container" id="map"></div>
-        </div>
-    </div>
-
-    <!-- Investissements Section -->
-    <div class="pd-section">
-        <div class="pd-section__header">
-            <h2 class="pd-section__title">
-                <i class="fas fa-coins"></i> Investissements
-            </h2>
-        </div>
-        
-        {% if investissements and investissements.count > 0 %}
-            <div class="pd-investments-list">
-                {% for inv in investissements %}
-                <div class="pd-investment-item">
-                    <div class="pd-investment-item__name">{{ inv.libelle_affichage }}</div>
-                    <div class="pd-investment-item__amount">{{ inv.calculer_investissement_total|floatformat:0 }} FCFA</div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="pd-investments-empty">
-                <i class="fas fa-wallet pd-investments-empty__icon"></i>
-                <h3 class="pd-investments-empty__title">Aucun investissement</h3>
-                <p class="pd-investments-empty__text">Gérez vos coûts en lien des investissements liés à ce projet.</p>
-                {% if can_modify_investissements %}
-                <a href="{% url 'ajouter_investissement' projet.id %}" class="pd-btn pd-btn--add">
-                    <i class="fas fa-plus"></i> Ajouter
-                </a>
+                    {% if can_modify_investissements %}
+                    <a href="{% url 'ajouter_investissement' projet.id %}"
+                       class="ps-btn ps-btn--accent" style="margin-top:12px;">
+                        <i class="fas fa-plus"></i> Premier investissement
+                    </a>
+                    {% endif %}
                 {% endif %}
             </div>
-        {% endif %}
-    </div>
-</div>
+            {% endif %}
+
+            <!-- Analyses de sol -->
+            <div class="ps-card">
+                <div class="ps-section-header">
+                    <h2 class="ps-section-title">
+                        <i class="fas fa-flask"></i> Analyses de sol
+                    </h2>
+                    {% if analyses_sol %}
+                    <span class="ps-section-badge">
+                        {{ analyses_sol|length }} analyse{{ analyses_sol|length|pluralize }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if analyses_sol %}
+                    {% for analyse in analyses_sol %}
+                    <div class="ps-sol-item">
+                        <div class="ps-sol-item__info">
+                            <div class="ps-sol-item__name">
+                                {{ analyse.parcelle_nom|default:"Parcelle" }}
+                            </div>
+                            <div class="ps-sol-item__date">
+                                {{ analyse.date_mesure }} — pH : {{ analyse.ph|default:"--" }}
+                            </div>
+                        </div>
+                        <div class="ps-sol-item__npk">
+                            <span class="ps-sol-npk-val">N: {{ analyse.azote_ppm|default:"--" }}</span>
+                            <span class="ps-sol-npk-val">P: {{ analyse.phosphore_ppm|default:"--" }}</span>
+                            <span class="ps-sol-npk-val">K: {{ analyse.potassium_ppm|default:"--" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="ps-section-footer">
+                        <a href="{% url 'liste_analyses_sol' %}" class="ps-btn ps-btn--secondary">
+                            <i class="fas fa-list"></i> Voir toutes
+                        </a>
+                        <a href="{% url 'ajouter_analyse_sol' %}?ferme={{ projet.ferme.id }}"
+                           class="ps-btn ps-btn--primary">
+                            <i class="fas fa-plus"></i> Nouvelle analyse
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="ps-empty">
+                        <div class="ps-empty__icon">🧪</div>
+                        <div class="ps-empty__title">Aucune analyse de sol</div>
+                        <div class="ps-empty__text">
+                            Ajoutez une analyse pour obtenir des recommandations de fertilisation.
+                        </div>
+                    </div>
+                    <a href="{% url 'ajouter_analyse_sol' %}?ferme={{ projet.ferme.id }}&next={{ request.path }}"
+                       class="ps-btn ps-btn--secondary" style="margin-top:12px;">
+                        <i class="fas fa-plus"></i> Ajouter une analyse
+                    </a>
+                {% endif %}
+            </div>
+
+        </div><!-- /ps-main -->
+    </div><!-- /ps-body -->
+</div><!-- /ps-layout -->
+
+<link rel="stylesheet" id="leafletCss" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
 
 <script>
-// Initialize Map
-document.addEventListener('DOMContentLoaded', function() {
-    {% if projet.ferme.latitude and projet.ferme.longitude %}
-    var map = L.map('map').setView([{{ projet.ferme.latitude }}, {{ projet.ferme.longitude }}], 13);
-    {% else %}
-    var map = L.map('map').setView([14.7167, -17.4677], 13); // Default Dakar
-    {% endif %}
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-    
-    {% if projet.ferme.latitude and projet.ferme.longitude %}
-    L.marker([{{ projet.ferme.latitude }}, {{ projet.ferme.longitude }}])
-        .addTo(map)
-        .bindPopup('{{ projet.ferme.nom|escapejs }}');
-    {% endif %}
-});
+(function() {
 
-// Load Weather
-document.addEventListener('DOMContentLoaded', function() {
-    var weatherTemp = document.getElementById('weatherTemp');
-    var weatherCondition = document.getElementById('weatherCondition');
-    var weatherMeta = document.getElementById('weatherMeta');
-    
-    {% if projet.ferme.latitude and projet.ferme.longitude %}
-    fetch('/api/meteo/?lat={{ projet.ferme.latitude }}&lon={{ projet.ferme.longitude }}')
-    {% else %}
-    fetch('/api/meteo/?lat=14.7167&lon=-17.4677')
-    {% endif %}
-        .then(r => r.json())
-        .then(data => {
-            if (data.data) {
-                weatherTemp.textContent = Math.round(data.data.temperature) + '°C';
-                weatherCondition.textContent = data.data.description || 'Ciel dégagé';
-                weatherMeta.textContent = 'Humidité : ' + data.data.humidite + '%';
-            }
-        })
-        .catch(() => {
-            weatherTemp.textContent = '22.8°C';
-            weatherCondition.textContent = 'Ciel dégagé';
-            weatherMeta.textContent = 'Humidité : 85%';
+    // ── Sidebar toggle (mobile) ──
+    // Delegated + guarded: attaches only once even across pjax navigations
+    if (!document.__psSidebarListenerAttached) {
+        document.__psSidebarListenerAttached = true;
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('#sidebarToggle');
+            if (!btn) return;
+            var sb = document.getElementById('psSidebar');
+            if (!sb) return;
+            var open = sb.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', String(open));
         });
-});
-
-// Initialize Growth Chart
-document.addEventListener('DOMContentLoaded', function() {
-    var ctx = document.getElementById('growthCurveChart');
-    if (!ctx) return;
-    
-    if (window.Chart) {
-        initGrowthChart(ctx);
-    } else {
-        var s = document.createElement('script');
-        s.src = '{% static "vendor/chartjs-4.4.0.umd.min.js" %}';
-        s.onload = function() { initGrowthChart(ctx); };
-        document.head.appendChild(s);
     }
-});
+
+    // ── Leaflet Map ──
+    var mapEl = document.getElementById('projectMap');
+    if (mapEl && !mapEl._leaflet_id) {
+        var lat = {{ map_latitude }};
+        var lon = {{ map_longitude }};
+
+        function renderMap() {
+            if (mapEl._leaflet_id) return;
+            var map = L.map('projectMap').setView([lat, lon], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '\u00a9 OpenStreetMap'
+            }).addTo(map);
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup('<strong>{{ projet.ferme.nom|escapejs }}</strong><br>{{ projet.localite.nom|default:""|escapejs }}')
+                .openPopup();
+        }
+
+        function loadLeafletAndRender() {
+            if (typeof L !== 'undefined') {
+                renderMap();
+            } else {
+                var ls = document.createElement('script');
+                ls.src = '{% static "vendor/leaflet-1.9.4.min.js" %}';
+                ls.onload = renderMap;
+                document.head.appendChild(ls);
+            }
+        }
+
+        // Ensure Leaflet CSS is loaded before rendering (avoids 0-height tiles)
+        var cssLink = document.getElementById('leafletCss') ||
+                      document.querySelector('link[href*="leaflet"]');
+        if (!cssLink || cssLink.sheet) {
+            loadLeafletAndRender();
+        } else {
+            cssLink.addEventListener('load', loadLeafletAndRender);
+            cssLink.addEventListener('error', loadLeafletAndRender);
+        }
+    }
+
+    // ── Weather ──
+    var weatherTemp      = document.getElementById('weatherTemp');
+    var weatherCondition = document.getElementById('weatherCondition');
+    var weatherIcon      = document.getElementById('weatherIcon');
+    if (weatherTemp) {
+        fetch('{% url "api_projet_weather" projet.id %}')
+            .then(function(r) { return r.json(); })
+            .then(function(payload) {
+                if (!payload.ok || !payload.data) {
+                    weatherTemp.textContent      = '--\u00b0C';
+                    weatherCondition.textContent = 'Indisponible';
+                    return;
+                }
+                var d = payload.data;
+                weatherTemp.textContent      = Math.round(d.temperature) + '\u00b0C';
+                weatherCondition.textContent = d.description || 'Ciel d\u00e9gag\u00e9';
+                if (document.getElementById('weatherMeta')) document.getElementById('weatherMeta').textContent = 'Humidit\u00e9\u00a0: ' + d.humidite + '%';
+                var icone = (d.icone || '').slice(0, 2);
+                var iconMap = {
+                    '01': 'fas fa-sun',
+                    '02': 'fas fa-cloud-sun',
+                    '03': 'fas fa-cloud',
+                    '04': 'fas fa-cloud',
+                    '09': 'fas fa-cloud-rain',
+                    '10': 'fas fa-cloud-showers-heavy',
+                    '11': 'fas fa-bolt',
+                    '13': 'fas fa-snowflake',
+                    '50': 'fas fa-smog'
+                };
+                var faClass = (iconMap[icone] || 'fas fa-cloud-sun') + ' ps-hero__weather-icon';
+                weatherIcon.className      = faClass;
+                weatherIcon.style.opacity  = '1';
+            })
+            .catch(function() {
+                weatherTemp.textContent      = '--\u00b0C';
+                weatherCondition.textContent = 'Indisponible';
+            });
+    }
+
+    // ── Growth Chart (lazy) ──
+    var ctx = document.getElementById('growthCurveChart');
+    if (ctx) {
+        if (window.Chart) {
+            initGrowthChart(ctx);
+        } else {
+            var s    = document.createElement('script');
+            s.src    = '{% static "vendor/chartjs-4.4.0.umd.min.js" %}';
+            s.onload = function() { initGrowthChart(ctx); };
+            document.head.appendChild(s);
+        }
+    }
+
+})();
 
 function initGrowthChart(ctx) {
-    var gCtx = ctx.getContext('2d');
-    var gradient = gCtx.createLinearGradient(0, 0, 0, 100);
-    gradient.addColorStop(0, 'rgba(74, 156, 93, 0.35)');
-    gradient.addColorStop(1, 'rgba(74, 156, 93, 0)');
+    var gCtx       = ctx.getContext('2d');
+    var brandColor = getComputedStyle(document.documentElement)
+                         .getPropertyValue('--brand-primary').trim() || '#1D9E75';
+    var r = 29, g = 158, b = 117;
+    if (brandColor.startsWith('#')) {
+        r = parseInt(brandColor.slice(1, 3), 16);
+        g = parseInt(brandColor.slice(3, 5), 16);
+        b = parseInt(brandColor.slice(5, 7), 16);
+    }
+    var gradient = gCtx.createLinearGradient(0, 0, 0, 150);
+    gradient.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',0.35)');
+    gradient.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',0)');
 
     new Chart(gCtx, {
         type: 'line',
         data: {
-            labels: ['J0', 'J10', 'J20', 'J30', 'J40', 'J50', 'J60', 'J70', 'J80', 'J90'],
+            labels: ['J0','J10','J20','J30','J40','J50','J60','J70','J80','J90'],
             datasets: [{
                 label: 'Croissance',
                 data: [5, 15, 30, 50, 70, 85, 92, 97, 99, 100],
-                borderColor: '#4a9c5d',
+                borderColor: brandColor,
                 borderWidth: 2,
                 pointRadius: 0,
                 fill: true,
@@ -1188,12 +1325,10 @@ function initGrowthChart(ctx) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: {
-                y: { display: false, min: 0, max: 110 },
-                x: { display: false }
-            }
+            scales: { x: { display: false }, y: { display: false } }
         }
     });
 }
 </script>
 {% endblock %}
+{% block extra_scripts %}{% endblock %}

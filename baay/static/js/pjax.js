@@ -36,6 +36,46 @@
     });
   }
 
+  function swapHeadStyles(newDoc) {
+    // Remove elements injected by a previous pjax navigation
+    document.querySelectorAll('[data-pjax-injected]').forEach(el => el.remove());
+
+    // Inject inline <style> tags from the new page's <head>
+    newDoc.querySelectorAll('head style').forEach(s => {
+      const clone = document.createElement('style');
+      clone.setAttribute('data-pjax-injected', '');
+      clone.textContent = s.textContent;
+      document.head.appendChild(clone);
+    });
+
+    // Inject new <link rel="stylesheet"> not already present in current head
+    const existingHrefs = new Set(
+      Array.from(document.querySelectorAll('head link[rel="stylesheet"]')).map(l => l.href)
+    );
+    newDoc.querySelectorAll('head link[rel="stylesheet"]').forEach(l => {
+      const href = new URL(l.getAttribute('href'), location.href).href;
+      if (!existingHrefs.has(href)) {
+        const clone = document.createElement('link');
+        clone.rel = 'stylesheet';
+        clone.href = href;
+        clone.setAttribute('data-pjax-injected', '');
+        document.head.appendChild(clone);
+      }
+    });
+  }
+
+  function executeScripts(container) {
+    // innerHTML does not run <script> tags — recreate them so they execute
+    container.querySelectorAll('script').forEach(oldScript => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach(attr =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.textContent = oldScript.textContent;
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+  }
+
   function swapMain(html, url) {
     const parser = new DOMParser();
     const newDoc = parser.parseFromString(html, 'text/html');
@@ -46,8 +86,12 @@
       window.location.href = url;
       return false;
     }
-    // Replace content
+    // 1. Swap page-specific <head> styles
+    swapHeadStyles(newDoc);
+    // 2. Replace main content
     curMain.innerHTML = newMain.innerHTML;
+    // 3. Re-execute inline scripts inside main (innerHTML suppresses execution)
+    executeScripts(curMain);
     updateTitle(newDoc);
     updateNavState(url);
     window.scrollTo({ top: 0, behavior: 'instant' });

@@ -135,6 +135,12 @@
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
     --shadow-glow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    /* Subtle tints need higher opacity on dark backgrounds */
+    --accent-subtle: rgba(29, 158, 117, 0.22);
+    --success-subtle: rgba(29, 158, 117, 0.22);
+    --warning-subtle: rgba(239, 159, 39, 0.22);
+    --info-subtle: rgba(59, 130, 246, 0.22);
+    --danger-subtle: rgba(239, 68, 68, 0.22);
 }
 
 /* ========== BASE ========== */

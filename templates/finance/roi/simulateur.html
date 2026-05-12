@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Simulateur ROI - {{ projet.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3">
+                <i class="fas fa-chart-line me-2"></i>
+                Simulateur ROI
+            </h1>
+            <p class="text-muted mb-0">{{ projet.nom }} - {{ projet.ferme.nom }}</p>
+        </div>
+        <a href="{% url 'detail_projet' projet.id %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Retour au projet
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {# Scénarios par défaut #}
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>
+                        Scénarios Prédéfinis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for nom, scenario in scenarios.items %}
+                        <div class="col-md-4">
+                            <div class="card h-100 border-{% if scenario.rentabilite == 'positive' %}success{% elif scenario.rentabilite == 'negative' %}danger{% else %}warning{% endif %}">
+                                <div class="card-body">
+                                    <h6 class="card-title text-capitalize">{{ nom }}</h6>
+                                    <p class="card-text small text-muted">{{ scenario.description }}</p>
+                                    
+                                    <div class="mt-3">
+                                        <div class="d-flex justify-content-between">
+                                            <small>Rendement</small>
+                                            <strong>{{ scenario.rendement_kg_ha }} kg/ha</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small>Prix</small>
+                                            <strong>{{ scenario.prix_fcfa_kg }} FCFA/kg</strong>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex justify-content-between">
+                                            <small>ROI</small>
+                                            <span class="badge bg-{% if scenario.roi_pct > 0 %}success{% else %}danger{% endif %}">
+                                                {{ scenario.roi_pct|floatformat:1 }}%
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small>Bénéfice</small>
+                                            <strong class="{% if scenario.benefice_prevu > 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ scenario.benefice_prevu|floatformat:0 }} FCFA
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <button class="btn btn-sm btn-outline-primary w-100"
+                                            hx-post="{% url 'creer_simulation_roi' projet.id %}"
+                                            hx-vals='{"scenario_type": "{{ nom }}", "rendement": "{{ scenario.rendement_kg_ha }}", "prix": "{{ scenario.prix_fcfa_kg }}", "investissement": "{{ scenario.investissement }}", "nom_simulation": "Scénario {{ nom|title }}"}'
+                                            hx-target="#simulations-list"
+                                            hx-swap="afterbegin">
+                                        <i class="fas fa-save me-1"></i>
+                                        Sauvegarder
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {# Simulateur personnalisé #}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sliders-h me-2"></i>
+                        Simulation Personnalisée
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form hx-post="{% url 'creer_simulation_roi' projet.id %}"
+                          hx-target="#simulations-list"
+                          hx-swap="afterbegin">
+                        {% csrf_token %}
+                        <input type="hidden" name="scenario_type" value="personnalise">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Rendement (kg/ha)</label>
+                                <input type="number" name="rendement" class="form-control" 
+                                       value="{{ scenarios.realiste.rendement_kg_ha }}" step="50" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Prix (FCFA/kg)</label>
+                                <input type="number" name="prix" class="form-control" 
+                                       value="{{ scenarios.realiste.prix_fcfa_kg }}" step="10" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Investissement (FCFA)</label>
+                                <input type="number" name="investissement" class="form-control" 
+                                       value="{{ scenarios.realiste.investissement }}" step="1000" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nom de la simulation</label>
+                                <input type="text" name="nom_simulation" class="form-control" 
+                                       placeholder="Ex: Scénario prix haut">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description / Notes</label>
+                                <textarea name="description" class="form-control" rows="2"
+                                          placeholder="Hypothèses et notes sur cette simulation..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calculator me-1"></i>
+                                Calculer et sauvegarder
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# Historique des simulations #}
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Historique
+                    </h5>
+                    <span class="badge bg-secondary">{{ simulations|length }}</span>
+                </div>
+                <div class="card-body" id="simulations-list" style="max-height: 600px; overflow-y: auto;">
+                    {% if simulations %}
+                        {% for sim in simulations %}
+                            {% include 'finance/roi/_simulation_result.html' with simulation=sim %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-chart-line fa-2x mb-2"></i>
+                            <p class="mb-0">Aucune simulation sauvegardée</p>
+                            <small>Créez votre première simulation personnalisée</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+{% endblock %}

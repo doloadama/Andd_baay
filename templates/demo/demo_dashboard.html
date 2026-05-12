@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Démo Dashboard V2 - Andd Baay{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">🎨 Démo Dashboard V2</h1>
+        <a href="{% url 'demo_finance' %}" class="btn btn-outline-primary">Finance</a>
+        <a href="{% url 'demo_marketplace' %}" class="btn btn-outline-success">Marketplace</a>
+        <a href="{% url 'demo_roi' %}" class="btn btn-outline-info">ROI</a>
+    </div>
+
+    {# Stats globales #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ projets_actifs }}</h5>
+                    <p class="card-text">Projets Actifs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">{{ recommandations|length }}</h5>
+                    <p class="card-text">Reco. IA</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ incidents|length }}</h5>
+                    <p class="card-text">Incidents</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_taches }}</h5>
+                    <p class="card-text">Tâches</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {# Colonne gauche - Météo & Projets #}
+        <div class="col-lg-4">
+            {# Carte Météo #}
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-cloud-sun me-2"></i>Météo - {{ meteo.localite }}
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="display-4">{{ meteo.temperature }}°C</h2>
+                    <p class="lead">{{ meteo.condition }}</p>
+                    <div class="row text-muted small">
+                        <div class="col-4">
+                            <i class="fas fa-tint"></i><br>{{ meteo.humidite }}%
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-wind"></i><br>{{ meteo.vent_kmh }} km/h
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-umbrella"></i><br>{{ meteo.pluie_prevue_mm }}mm
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Carte Projets #}
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-folder-open me-2"></i>Projets Récents
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for projet in projets %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ projet.nom }}</h6>
+                            <small class="text-muted">{{ projet.get_statut_display }}</small>
+                        </div>
+                        <span class="badge bg-primary">{{ projet.budget_alloue|floatformat:0 }} FCFA</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# Colonne milieu - Alertes & Tâches #}
+        <div class="col-lg-4">
+            {# Alertes IA #}
+            <div class="card mb-3">
+                <div class="card-header bg-warning">
+                    <i class="fas fa-robot me-2"></i>Alertes IA - Fertilisation
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for reco in recommandations %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ reco.engrais_suggere }}</h6>
+                            <small>{{ reco.stade_culture }}</small>
+                        </div>
+                        <p class="mb-1 small">{{ reco.projet_produit.projet.nom }}</p>
+                        <small class="text-muted">
+                            {{ reco.quantite_kg_ha }} kg/ha - 
+                            {% if reco.ajustement_ph_requis %}
+                            <span class="text-warning">pH à corriger</span>
+                            {% else %}
+                            <span class="text-success">pH OK</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted">Aucune recommandation</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Tâches prioritaires #}
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-tasks me-2"></i>Tâches Prioritaires
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for tache in taches %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ tache.titre }}</h6>
+                            <small class="text-muted">{{ tache.projet.nom }}</small>
+                        </div>
+                        <span class="badge bg-{% if tache.priorite == 'haute' %}danger{% elif tache.priorite == 'moyenne' %}warning{% else %}info{% endif %}">
+                            {{ tache.get_priorite_display }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted">Aucune tâche</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# Colonne droite - Incidents & Prédictions #}
+        <div class="col-lg-4">
+            {# Incidents #}
+            <div class="card mb-3">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Incidents Signalés
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for incident in incidents %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ incident.titre }}</h6>
+                            <span class="badge bg-{% if incident.gravite_estimee == 'elevee' %}danger{% elif incident.gravite_estimee == 'moyenne' %}warning{% else %}info{% endif %}">
+                                {{ incident.get_gravite_estimee_display }}
+                            </span>
+                        </div>
+                        <p class="mb-1 small">{{ incident.description|truncatechars:50 }}</p>
+                        <small class="text-muted">{{ incident.projet.nom }}</small>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted">Aucun incident</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Prédictions #}
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-chart-line me-2"></i>Prédictions IA
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for pred in predictions %}
+                    <div class="list-group-item">
+                        <h6 class="mb-1">{{ pred.projet.nom }}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Rendement:</span>
+                            <span class="badge bg-success">
+                                {{ pred.rendement_min }}-{{ pred.rendement_max }} kg/ha
+                            </span>
+                        </div>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar" style="width: {{ pred.confiance }}%"></div>
+                        </div>
+                        <small class="text-muted">Confiance: {{ pred.confiance }}%</small>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted">Aucune prédiction</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Section Budget #}
+    <div class="card mt-4">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-wallet me-2"></i>Budget Global
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <h4 class="text-primary">{{ budget.total_alloue|floatformat:0 }} FCFA</h4>
+                    <small class="text-muted">Total Alloué</small>
+                </div>
+                <div class="col-md-4">
+                    <h4 class="text-danger">{{ budget.total_depense|floatformat:0 }} FCFA</h4>
+                    <small class="text-muted">Dépensé</small>
+                </div>
+                <div class="col-md-4">
+                    <h4 class="text-success">{{ budget.total_recette|floatformat:0 }} FCFA</h4>
+                    <small class="text-muted">Recettes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
