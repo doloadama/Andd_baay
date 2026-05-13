@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views_projets import (
     ajouter_investissement,
+    ajouter_projet_produit,
     creer_projet,
     detail_projet,
     generer_prediction,
@@ -17,6 +18,7 @@ urlpatterns = [
     path("creer-projet/", creer_projet, name="creer_projet"),
     path("liste-projets/", liste_projets, name="liste_projets"),
     path("projet/<uuid:projet_id>/", detail_projet, name="detail_projet"),
+    path("projet/<uuid:projet_id>/produits/ajouter/", ajouter_projet_produit, name="ajouter_projet_produit"),
     path("projet/<uuid:projet_id>/ajouter-investissement/", ajouter_investissement, name="ajouter_investissement"),
     path("projet/<uuid:projet_id>/modifier/", modifier_projet, name="modifier_projet"),
     path("projet/<uuid:projet_id>/generer_prediction/", generer_prediction, name="generer_prediction"),

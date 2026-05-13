@@ -27,14 +27,9 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Ferme)
 def creer_membre_proprietaire_apres_ferme(sender, instance, created, **kwargs):
-    """Chaque nouvelle ferme a un MembreFerme « Propriétaire » aligné sur Ferme.proprietaire."""
-    if not created:
-        return
-    MembreFerme.objects.get_or_create(
-        ferme=instance,
-        utilisateur=instance.proprietaire,
-        defaults={"role": "proprietaire", "peut_gerer_membres": True},
-    )
+    """Le propriétaire est tracé uniquement via Ferme.proprietaire.
+    Aucune ligne MembreFerme n'est créée pour le propriétaire."""
+    pass
 
 
 @receiver(post_save, sender=User)

@@ -118,14 +118,16 @@ def roles_assignables_par(role):
 
 def peut_acceder_menu_finance(profile):
     """
-    Menu « Finance » et alertes budgétaires côté site : uniquement membres
-    Propriétaire ou Manager (ligne MembreFerme).
+    Menu « Finance » et alertes budgétaires côté site : propriétaire
+    de n'importe quelle ferme ou membre manager.
     """
     if profile is None:
         return False
+    if Ferme.objects.filter(proprietaire=profile).exists():
+        return True
     return MembreFerme.objects.filter(
         utilisateur=profile,
-        role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+        role=ROLE_MANAGER,
     ).exists()
 
 
@@ -140,13 +142,13 @@ def projets_avec_vue_depenses_qs(profile):
     from django.db.models import Exists, OuterRef
     from .models import MembreFerme
 
+    ferme_ids_prop = Ferme.objects.filter(proprietaire=profile).values_list(
+        "pk", flat=True
+    )
     mem_ok = MembreFerme.objects.filter(
         ferme_id=OuterRef("pk"),
         utilisateur=profile,
-        role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
-    )
-    ferme_ids_prop = Ferme.objects.filter(proprietaire=profile).values_list(
-        "pk", flat=True
+        role=ROLE_MANAGER,
     )
     ferme_ids_mem = (
         Ferme.objects.filter(Exists(mem_ok)).values_list("pk", flat=True)
@@ -160,13 +162,18 @@ def projets_avec_vue_depenses_qs(profile):
 
 
 def projets_modifiables_depenses_qs(profile):
-    """Projets où l'utilisateur peut saisir des dépenses (Membre Propriétaire / Manager)."""
+    """Projets où l'utilisateur peut saisir des dépenses (Propriétaire / Manager)."""
     if profile is None:
         return Projet.objects.none()
+    ferme_ids_prop = Ferme.objects.filter(proprietaire=profile).values_list(
+        "pk", flat=True
+    )
+    ferme_ids_mgr = MembreFerme.objects.filter(
+        utilisateur=profile, role=ROLE_MANAGER
+    ).values_list("ferme_id", flat=True)
     return (
         Projet.objects.filter(
-            ferme__membres__utilisateur=profile,
-            ferme__membres__role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+            Q(ferme_id__in=ferme_ids_prop) | Q(ferme_id__in=ferme_ids_mgr)
         )
         .exclude(statut=Projet.STATUT_CLOTURE)
         .select_related("ferme")
@@ -199,23 +206,24 @@ def peut_personnaliser_taux_avancement_projet(profile, projet) -> bool:
 
 def peut_modifier_budget_ferme(profile, ferme):
     """
-    Modifier le budget (lignes Investissement) : exiger une ligne MembreFerme
-    sur cette ferme avec rôle propriétaire ou manager (pas le seul fallback
-    Ferme.proprietaire sans adhésion explicite).
+    Modifier le budget (lignes Investissement) : propriétaire de la ferme
+    ou membre avec rôle manager.
     """
     if profile is None or ferme is None:
         return False
+    if ferme.proprietaire_id == profile.id:
+        return True
     return MembreFerme.objects.filter(
         ferme=ferme,
         utilisateur=profile,
-        role__in=(ROLE_PROPRIETAIRE, ROLE_MANAGER),
+        role=ROLE_MANAGER,
     ).exists()
 
 
 def peut_modifier_investissement(profile, projet):
     """
-    Création / modification des lignes Investissement : MembreFerme sur la ferme
-    du projet avec rôle propriétaire ou manager.
+    Création / modification des lignes Investissement : propriétaire de la ferme
+    du projet ou membre manager.
     """
     if projet is None:
         return False
@@ -225,7 +233,7 @@ def peut_voir_investissements_any(profile):
     if profile is None:
         return False
     return Ferme.objects.filter(
-        Q(proprietaire=profile) | Q(membres__utilisateur=profile, membres__role__in=[ROLE_PROPRIETAIRE, ROLE_MANAGER])
+        Q(proprietaire=profile) | Q(membres__utilisateur=profile, membres__role=ROLE_MANAGER)
     ).exists()
 
 

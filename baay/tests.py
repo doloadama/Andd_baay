@@ -36,10 +36,10 @@ class FermeCodeAccesTests(TestCase):
         ferme = Ferme.objects.create(nom='F1', proprietaire=owner.profile)
         self.assertEqual(len(ferme.code_acces), 8)
         self.assertTrue(ferme.code_acces.isalnum())
-        self.assertTrue(
-            MembreFerme.objects.filter(
-                ferme=ferme, utilisateur=owner.profile, role='proprietaire'
-            ).exists()
+        # Le propriétaire n'est plus membre MembreFerme (trace via Ferme.proprietaire)
+        self.assertEqual(
+            MembreFerme.objects.filter(ferme=ferme, utilisateur=owner.profile).count(),
+            0
         )
 
     def test_regenerer_code_proprietaire_change_code(self):
@@ -91,12 +91,8 @@ class AjouterMembreFermeTests(TestCase):
         resp = self.client.post(self.url, {'username': 'ghost', 'role': 'ouvrier'})
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "n'est pas inscrit")
-        self.assertEqual(MembreFerme.objects.filter(ferme=self.ferme).count(), 1)
-        self.assertTrue(
-            MembreFerme.objects.filter(
-                ferme=self.ferme, utilisateur=self.owner.profile, role='proprietaire'
-            ).exists()
-        )
+        # Le propriétaire n'est plus membre MembreFerme
+        self.assertEqual(MembreFerme.objects.filter(ferme=self.ferme).count(), 0)
 
     def test_proprietaire_ne_peut_pas_s_ajouter(self):
         self.client.login(username='owner', password='pass12345')
@@ -596,12 +592,12 @@ class PermissionsRoleTests(TestCase):
         self.assertFalse(peut_modifier_investissement(self.tech.profile, self.projet))
         self.assertFalse(peut_modifier_investissement(self.ouvrier.profile, self.projet))
 
-    def test_proprietaire_sans_ligne_membreferme_ne_peut_pas_modifier_budget(self):
+    def test_proprietaire_peut_modifier_budget_meme_sans_ligne_membreferme(self):
         from baay.permissions import peut_modifier_investissement
 
         owner_orphan = _create_user('owner_orphan', 'oo@test')
         ferme_orphan = Ferme.objects.create(nom='F-Orphan', proprietaire=owner_orphan.profile)
-        MembreFerme.objects.filter(ferme=ferme_orphan, utilisateur=owner_orphan.profile).delete()
+        # Le proprietaire n'est plus membre MembreFerme par defaut
         projet_orphan = Projet.objects.create(
             nom='P-Orphan',
             ferme=ferme_orphan,
@@ -610,7 +606,7 @@ class PermissionsRoleTests(TestCase):
             superficie=1,
             date_lancement=timezone.now().date(),
         )
-        self.assertFalse(peut_modifier_investissement(owner_orphan.profile, projet_orphan))
+        self.assertTrue(peut_modifier_investissement(owner_orphan.profile, projet_orphan))
 
     def test_permission_policy_role_resolution(self):
         self.assertEqual(role_dans_ferme(self.owner.profile, self.ferme), 'proprietaire')

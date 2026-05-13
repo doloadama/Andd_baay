@@ -110,7 +110,6 @@ class Ferme(models.Model):
 
 class MembreFerme(models.Model):
     ROLE_CHOICES = [
-        ('proprietaire', 'Propriétaire'),
         ('manager', 'Manager'),
         ('technicien', 'Technicien'),
         ('ouvrier', 'Ouvrier'),

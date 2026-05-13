@@ -516,7 +516,7 @@ class ProjetForm(forms.ModelForm):
     produits_selection = forms.ModelMultipleChoiceField(
         queryset=ProduitAgricole.objects.all(),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        required=False,
+        required=True,
         label="Produits cultives"
     )
 
@@ -592,12 +592,15 @@ class ProjetForm(forms.ModelForm):
         self.fields['localite'].queryset = Localite.objects.all().order_by('nom')
         self.fields['localite'].label_from_instance = lambda obj: obj.nom
 
-        # Filter farms to user's own farms and farms they are members of
+        # Filter farms to those where the user can create projects
         if 'ferme' in self.fields and user:
-            from django.db.models import Q
-            from baay.models import Ferme
+            from baay.models import Ferme, MembreFerme
+            ferme_ids_prop = Ferme.objects.filter(proprietaire=user.profile).values_list('id', flat=True)
+            ferme_ids_mgr = MembreFerme.objects.filter(
+                utilisateur=user.profile, role='manager'
+            ).values_list('ferme_id', flat=True)
             self.fields['ferme'].queryset = Ferme.objects.filter(
-                Q(proprietaire=user.profile) | Q(membres__utilisateur=user.profile)
+                id__in=list(ferme_ids_prop) + list(ferme_ids_mgr)
             ).distinct().order_by('nom')
             self.fields['ferme'].label_from_instance = lambda obj: obj.nom
             self.fields['ferme'].required = True
@@ -1178,6 +1181,52 @@ class TacheForm(forms.ModelForm):
 
         return cleaned
 
+
+
+class AjouterProduitProjetForm(forms.Form):
+    """Formulaire pour ajouter un nouveau produit à un projet existant."""
+
+    produit = forms.ModelChoiceField(
+        queryset=ProduitAgricole.objects.all().order_by('nom'),
+        label="Produit agricole",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+    superficie_allouee = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        label="Superficie allouée (ha)",
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Optionnel'}),
+    )
+    date_semis = forms.DateField(
+        required=False,
+        label="Date de semis",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+    date_recolte_prevue = forms.DateField(
+        required=False,
+        label="Date de récolte prévue",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+    )
+
+    def __init__(self, *args, projet=None, **kwargs):
+        self.projet = projet
+        super().__init__(*args, **kwargs)
+        if projet:
+            existing_ids = set(
+                projet.projet_produits.values_list('produit_id', flat=True)
+            )
+            self.fields['produit'].queryset = ProduitAgricole.objects.exclude(
+                id__in=existing_ids
+            ).order_by('nom')
+
+    def clean_produit(self):
+        produit = self.cleaned_data['produit']
+        if self.projet and self.projet.projet_produits.filter(produit=produit).exists():
+            raise forms.ValidationError(
+                f"'{produit.nom}' est déjà associé à ce projet."
+            )
+        return produit
 
 class TacheStatutForm(forms.Form):
     """Mise à jour du statut d'une tâche par son assigné (ou un supérieur)."""

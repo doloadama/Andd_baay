@@ -56,6 +56,7 @@ from baay.forms import (
     DemandeAccesFermeForm,
     TacheForm,
     TacheStatutForm,
+    AjouterProduitProjetForm,
 )
 from baay.messaging_contract import (
     build_inbox_update_event_v1_light,
@@ -92,6 +93,7 @@ from baay.models import (
 )
 from baay import dashboard_services
 from baay.permissions import (
+    ROLES_TECHNIQUES,
     fermes_accessibles_qs,
     peut_changer_statut_tache,
     peut_creer_projet,
@@ -656,8 +658,11 @@ def creer_projet(request):
     if request.method == 'POST':
         projet_form = ProjetForm(request.POST, user=request.user, from_ferme=from_ferme)
         if projet_form.is_valid():
-            # Sauvegarder le projet en associant l'utilisateur connecte
             projet = projet_form.save(commit=False)
+            # Double-check permission after form validation (POST tampering guard)
+            if not peut_creer_projet(request.user.profile, projet.ferme):
+                messages.error(request, "Votre rôle ne vous permet pas de créer un projet dans cette ferme.")
+                return redirect('liste_projets')
             projet.utilisateur = request.user.profile
             projet.save()
 
@@ -667,17 +672,17 @@ def creer_projet(request):
             rendement_total = 0
             for produit in produits:
                 surf = superficies_par_produit.get(str(produit.id))
+                if surf is None and projet.superficie and len(produits) > 0:
+                    from decimal import Decimal
+                    surf = Decimal(projet.superficie) / Decimal(len(produits))
                 pp = ProjetProduit.objects.create(
                     projet=projet,
                     produit=produit,
                     superficie_allouee=surf,
                 )
                 # Calculate estimated yield based on product average and allocated area
-                if produit.rendement_moyen:
-                    if surf:
-                        rendement_total += float(surf) * float(produit.rendement_moyen)
-                    elif projet.superficie:
-                        rendement_total += float(projet.superficie / len(produits)) * float(produit.rendement_moyen)
+                if produit.rendement_moyen and surf:
+                    rendement_total += float(surf) * float(produit.rendement_moyen)
 
             # Set backwards compatibility - use first product as main culture
             if produits:
@@ -835,6 +840,9 @@ def modifier_projet(request, projet_id):
                 for produit in produits:
                     surf = superficies_par_produit.get(str(produit.id))
                     if produit.id not in existing_produits:
+                        if surf is None and projet.superficie and len(produits) > 0:
+                            from decimal import Decimal
+                            surf = Decimal(projet.superficie) / Decimal(len(produits))
                         ProjetProduit.objects.create(
                             projet=projet,
                             produit=produit,
@@ -930,6 +938,45 @@ def supprimer_projets(request):
         else:
             messages.warning(request, "Aucun projet sélectionné.")
     return redirect('liste_projets')
+
+
+@login_required
+def ajouter_projet_produit(request, projet_id):
+    """Ajouter un nouveau produit (culture) à un projet existant."""
+    projet = get_object_or_404(
+        Projet.objects.select_related('ferme'),
+        id=projet_id,
+    )
+    if not peut_modifier_semis(request.user.profile, projet.projet_produits.first()):
+        # Fallback : permettre propriétaire/manager du projet
+        if role_dans_ferme(request.user.profile, projet.ferme) not in ROLES_TECHNIQUES:
+            messages.error(request, "Vous n'avez pas le droit d'ajouter un produit à ce projet.")
+            return redirect('detail_projet', projet_id=projet.id)
+
+    if request.method == 'POST':
+        form = AjouterProduitProjetForm(request.POST, projet=projet)
+        if form.is_valid():
+            from decimal import Decimal
+            ProjetProduit.objects.create(
+                projet=projet,
+                produit=form.cleaned_data['produit'],
+                superficie_allouee=form.cleaned_data.get('superficie_allouee') or None,
+                date_semis=form.cleaned_data.get('date_semis') or None,
+                date_recolte_prevue=form.cleaned_data.get('date_recolte_prevue') or None,
+            )
+            messages.success(
+                request,
+                f"'{form.cleaned_data['produit'].nom}' ajouté au projet avec succès."
+            )
+            return redirect('detail_projet', projet_id=projet.id)
+    else:
+        form = AjouterProduitProjetForm(projet=projet)
+
+    return render(request, 'projets/ajouter_projet_produit.html', {
+        'form': form,
+        'projet': projet,
+    })
+
 
 @login_required
 def ajouter_investissement(request, projet_id):
@@ -1103,6 +1150,7 @@ def detail_projet(request, projet_id):
         'projet': projet,
         'can_view_investissements': can_view_investissements,
         'can_modify_investissements': peut_modifier_investissement(request.user.profile, projet),
+        'can_add_produit': peut_modifier_semis(request.user.profile, projet.projet_produits.first()) or role_dans_ferme(request.user.profile, projet.ferme) in ROLES_TECHNIQUES,
         'investissements': investissements,
         'investissement_total_fcfa': investissement_total_fcfa,
         'analyses_sol': analyses_sol,

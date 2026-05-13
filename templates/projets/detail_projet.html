@@ -619,9 +619,16 @@
         max-height: none;
         overflow-y: visible;
         display: none;
+        width: 100%;
+        animation: psDrawerIn 0.2s ease-out;
     }
     .ps-sidebar.is-open { display: flex; }
     .ps-sidebar-toggle { display: inline-flex; }
+}
+
+@keyframes psDrawerIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Small tablet / large phone (≤640px) ── */
@@ -804,7 +811,8 @@
 
     <!-- ═══════════ MOBILE TOGGLE ═══════════ -->
     <button class="ps-sidebar-toggle" id="sidebarToggle"
-            aria-expanded="false" aria-controls="psSidebar">
+            aria-expanded="false" aria-controls="psSidebar"
+            onclick="event.stopPropagation();(function(btn){var sb=document.getElementById('psSidebar');if(!sb)return;var open=sb.classList.toggle('is-open');btn.setAttribute('aria-expanded',String(open));})(this)">
         <i class="fas fa-sliders-h"></i>
         Infos &amp; actions du projet
         <i class="fas fa-chevron-down ps-toggle-arrow"></i>
@@ -924,6 +932,11 @@
                         {{ projet_produits|length }} produit{{ projet_produits|length|pluralize }}
                     </span>
                     {% endif %}
+                    {% if can_add_produit %}
+                    <a href="{% url 'ajouter_projet_produit' projet.id %}" class="ps-btn ps-btn--accent ps-btn--sm">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </a>
+                    {% endif %}
                 </div>
 
                 {% if projet_produits %}
@@ -956,7 +969,7 @@
                                class="ps-btn ps-btn--primary ps-btn--icon" title="Voir le détail">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'modifier_projet' projet.id %}"
+                            <a href="{% url 'modifier_semis' pp.id %}"
                                class="ps-btn ps-btn--secondary ps-btn--icon" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
@@ -1063,7 +1076,13 @@
                         <i class="fas fa-map-marked-alt"></i> Localisation
                     </h2>
                 </div>
-                <div class="ps-map-container" id="projectMap"></div>
+                <div id="projectMap"
+                     class="ps-map-container"
+                     data-lat="{{ map_latitude|unlocalize }}"
+                     data-lon="{{ map_longitude|unlocalize }}"
+                     data-ferme="{{ projet.ferme.nom|escape }}"
+                     data-localite="{{ projet.localite.nom|default:''|escape }}">
+                </div>
             </div>
 
             <!-- Investissements -->
@@ -1185,35 +1204,30 @@
 <script>
 (function() {
 
-    // ── Sidebar toggle (mobile) ──
-    // Delegated + guarded: attaches only once even across pjax navigations
-    if (!document.__psSidebarListenerAttached) {
-        document.__psSidebarListenerAttached = true;
-        document.addEventListener('click', function(e) {
-            var btn = e.target.closest('#sidebarToggle');
-            if (!btn) return;
-            var sb = document.getElementById('psSidebar');
-            if (!sb) return;
-            var open = sb.classList.toggle('is-open');
-            btn.setAttribute('aria-expanded', String(open));
-        });
-    }
-
     // ── Leaflet Map ──
     var mapEl = document.getElementById('projectMap');
     if (mapEl && !mapEl._leaflet_id) {
-        var lat = {{ map_latitude }};
-        var lon = {{ map_longitude }};
+        var lat = parseFloat(String(mapEl.dataset.lat || '14.497401').replace(',', '.'));
+        var lon = parseFloat(String(mapEl.dataset.lon || '-14.452362').replace(',', '.'));
+        if (!Number.isFinite(lat)) lat = 14.497401;
+        if (!Number.isFinite(lon)) lon = -14.452362;
+        var fermeNom = mapEl.dataset.ferme || '';
+        var localiteNom = mapEl.dataset.localite || '';
 
         function renderMap() {
             if (mapEl._leaflet_id) return;
-            var map = L.map('projectMap').setView([lat, lon], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            var map = L.map('projectMap', {
+                preferCanvas: true,
+                zoomControl: false,
+                attributionControl: false
+            }).setView([lat, lon], 12);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '\u00a9 OpenStreetMap'
             }).addTo(map);
             L.marker([lat, lon]).addTo(map)
-                .bindPopup('<strong>{{ projet.ferme.nom|escapejs }}</strong><br>{{ projet.localite.nom|default:""|escapejs }}')
+                .bindPopup('<strong>' + fermeNom + '</strong><br>' + localiteNom)
                 .openPopup();
+            setTimeout(function() { map.invalidateSize(); }, 80);
         }
 
         function loadLeafletAndRender() {
@@ -1227,15 +1241,7 @@
             }
         }
 
-        // Ensure Leaflet CSS is loaded before rendering (avoids 0-height tiles)
-        var cssLink = document.getElementById('leafletCss') ||
-                      document.querySelector('link[href*="leaflet"]');
-        if (!cssLink || cssLink.sheet) {
-            loadLeafletAndRender();
-        } else {
-            cssLink.addEventListener('load', loadLeafletAndRender);
-            cssLink.addEventListener('error', loadLeafletAndRender);
-        }
+        loadLeafletAndRender();
     }
 
     // ── Weather ──

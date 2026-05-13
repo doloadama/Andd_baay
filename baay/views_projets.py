@@ -1,5 +1,6 @@
 from .views import (
     ajouter_investissement,
+    ajouter_projet_produit,
     creer_projet,
     detail_projet,
     generer_prediction,
