@@ -4,6 +4,7 @@
     const tourSkip = document.getElementById('tourSkip');
     const tourProgress = document.getElementById('tourProgress');
     const openGuideBtn = document.getElementById('openGuideBtn');
+    const tourCloseBtn = document.getElementById('tourCloseBtn');
     const tourStepLabel = document.getElementById('tourStepLabel');
     const tourIconEl = document.getElementById('tourIconEl');
     const tourTitle = document.getElementById('tourTitle');
@@ -242,7 +243,7 @@
         `).join('');
 
         if (s.tryIt) {
-            html += `<a href="${s.tryIt.url}" class="tour-try-it" onclick="document.getElementById('tourOverlay').classList.remove('active'); document.body.style.overflow = '';">
+            html += `<a href="${s.tryIt.url}" class="tour-try-it" onclick="document.getElementById('tourOverlay').classList.remove('active');">
                 <i class="fas fa-external-link-alt"></i> ${s.tryIt.label}
             </a>`;
         }
@@ -295,14 +296,12 @@
         currentStep = 0;
         renderStep(0);
         tourOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
         updateGuideFab();
     }
 
     function closeTour() {
         resetAction();
         tourOverlay.classList.remove('active');
-        document.body.style.overflow = '';
         localStorage.setItem(TOUR_KEY, '1');
         updateGuideFab();
     }
@@ -325,11 +324,10 @@
         }
     });
 
-    tourOverlay.addEventListener('click', (event) => {
-        if (event.target === tourOverlay) {
-            closeTour();
-        }
-    });
+    // Close button in header
+    if (tourCloseBtn) {
+        tourCloseBtn.addEventListener('click', closeTour);
+    }
 
     openGuideBtn.addEventListener('click', openTour);
 
