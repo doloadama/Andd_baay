@@ -50,6 +50,18 @@
     overflow: hidden;
 }
 
+.ps-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    z-index: 0;
+}
+
 .ps-hero::after {
     content: '';
     position: absolute;
@@ -68,6 +80,27 @@
     z-index: 1;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.ps-hero__content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: clamp(16px, 4vw, 32px);
+    align-items: end;
+}
+
+.ps-hero__main {
+    min-width: 0;
+}
+
+.ps-hero__side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 190px;
 }
 
 .ps-hero__back {
@@ -89,6 +122,9 @@
 .ps-hero__back:hover { background: rgba(255,255,255,0.25); color: white; }
 
 .ps-hero__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -96,6 +132,7 @@
     padding: 7px 16px;
     border-radius: 50px;
     color: white;
+    min-height: 34px;
 }
 .ps-hero__status--en_cours { background: var(--brand-primary); }
 .ps-hero__status--en_pause { background: var(--brand-accent); }
@@ -150,12 +187,13 @@
     font-size: 13px;
     white-space: nowrap;
     min-width: 100px;
+    transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
 }
 .ps-hero__weather-icon {
     font-size: 20px;
     opacity: 0.85;
     flex-shrink: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, transform 0.4s ease;
 }
 .ps-hero__weather-temp {
     font-family: var(--font-display);
@@ -168,6 +206,92 @@
     opacity: 0.75;
     margin-top: 1px;
 }
+
+/* Weather themes for hero */
+.ps-hero__weather.ps-hero__weather--clear-day {
+    background: linear-gradient(135deg, rgba(251,191,36,0.25) 0%, rgba(56,189,248,0.20) 100%);
+    border-color: rgba(251,191,36,0.35);
+    box-shadow: 0 0 20px rgba(251,191,36,0.15);
+}
+.ps-hero__weather.ps-hero__weather--clear-day .ps-hero__weather-icon { color: #fbbf24; }
+
+.ps-hero__weather.ps-hero__weather--clear-night {
+    background: linear-gradient(135deg, rgba(49,46,129,0.55) 0%, rgba(30,27,75,0.60) 100%);
+    border-color: rgba(165,180,252,0.25);
+    box-shadow: 0 0 20px rgba(99,102,241,0.15);
+}
+.ps-hero__weather.ps-hero__weather--clear-night .ps-hero__weather-icon { color: #fde68a; }
+
+.ps-hero__weather.ps-hero__weather--few-clouds-day {
+    background: linear-gradient(135deg, rgba(254,243,199,0.30) 0%, rgba(165,243,252,0.25) 100%);
+    border-color: rgba(34,211,238,0.30);
+}
+.ps-hero__weather.ps-hero__weather--few-clouds-day .ps-hero__weather-icon { color: #38bdf8; }
+
+.ps-hero__weather.ps-hero__weather--few-clouds-night {
+    background: linear-gradient(135deg, rgba(30,58,138,0.50) 0%, rgba(23,37,84,0.55) 100%);
+    border-color: rgba(129,140,248,0.25);
+}
+.ps-hero__weather.ps-hero__weather--few-clouds-night .ps-hero__weather-icon { color: #93c5fd; }
+
+.ps-hero__weather.ps-hero__weather--cloudy-day,
+.ps-hero__weather.ps-hero__weather--overcast-day {
+    background: linear-gradient(135deg, rgba(226,232,240,0.30) 0%, rgba(203,213,225,0.25) 100%);
+    border-color: rgba(148,163,184,0.30);
+}
+.ps-hero__weather.ps-hero__weather--cloudy-day .ps-hero__weather-icon,
+.ps-hero__weather.ps-hero__weather--overcast-day .ps-hero__weather-icon { color: #94a3b8; }
+
+.ps-hero__weather.ps-hero__weather--cloudy-night,
+.ps-hero__weather.ps-hero__weather--overcast-night {
+    background: linear-gradient(135deg, rgba(30,41,59,0.60) 0%, rgba(15,23,42,0.65) 100%);
+    border-color: rgba(100,116,139,0.25);
+}
+.ps-hero__weather.ps-hero__weather--cloudy-night .ps-hero__weather-icon,
+.ps-hero__weather.ps-hero__weather--overcast-night .ps-hero__weather-icon { color: #64748b; }
+
+.ps-hero__weather.ps-hero__weather--rain-day,
+.ps-hero__weather.ps-hero__weather--rain-night {
+    background: linear-gradient(135deg, rgba(59,130,246,0.25) 0%, rgba(30,64,175,0.30) 100%);
+    border-color: rgba(96,165,250,0.30);
+}
+.ps-hero__weather.ps-hero__weather--rain-day .ps-hero__weather-icon,
+.ps-hero__weather.ps-hero__weather--rain-night .ps-hero__weather-icon { color: #60a5fa; }
+
+.ps-hero__weather.ps-hero__weather--storm-day,
+.ps-hero__weather.ps-hero__weather--storm-night {
+    background: linear-gradient(135deg, rgba(88,28,135,0.35) 0%, rgba(49,46,129,0.40) 100%);
+    border-color: rgba(167,139,250,0.25);
+    box-shadow: 0 0 20px rgba(139,92,246,0.15);
+}
+.ps-hero__weather.ps-hero__weather--storm-day .ps-hero__weather-icon,
+.ps-hero__weather.ps-hero__weather--storm-night .ps-hero__weather-icon { color: #c4b5fd; }
+
+.ps-hero__weather.ps-hero__weather--snow-day,
+.ps-hero__weather.ps-hero__weather--snow-night {
+    background: linear-gradient(135deg, rgba(224,242,254,0.30) 0%, rgba(186,230,253,0.25) 100%);
+    border-color: rgba(125,211,252,0.30);
+}
+.ps-hero__weather.ps-hero__weather--snow-day .ps-hero__weather-icon,
+.ps-hero__weather.ps-hero__weather--snow-night .ps-hero__weather-icon { color: #7dd3fc; }
+
+.ps-hero__weather.ps-hero__weather--fog-day,
+.ps-hero__weather.ps-hero__weather--fog-night {
+    background: linear-gradient(135deg, rgba(148,163,184,0.25) 0%, rgba(100,116,139,0.30) 100%);
+    border-color: rgba(148,163,184,0.25);
+}
+.ps-hero__weather.ps-hero__weather--fog-day .ps-hero__weather-icon,
+.ps-hero__weather.ps-hero__weather--fog-night .ps-hero__weather-icon { color: #94a3b8; }
+
+@keyframes weatherIconPop {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.85; }
+}
+.ps-hero__weather-icon.weather-loaded {
+    animation: weatherIconPop 0.5s ease-out forwards;
+}
+
 @media (max-width: 480px) {
     .ps-hero__weather-desc { display: none; }
 }
@@ -260,6 +384,14 @@
 .ps-info-row:last-child { border-bottom: none; }
 .ps-info-row__label { color: var(--ps-muted); font-size: 12px; flex-shrink: 0; }
 .ps-info-row__value { font-weight: 600; color: var(--ps-text); text-align: right; word-break: break-word; }
+.ps-info-row__value--danger { color: var(--danger); }
+.ps-info-row__hint {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--danger);
+}
 
 /* ── STAT GRID (sidebar) ── */
 .ps-stats {
@@ -359,6 +491,70 @@
 .ps-weather__temp { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1; }
 .ps-weather__condition { font-size: 12px; opacity: 0.85; margin-top: 3px; }
 .ps-weather__meta { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+
+/* Sidebar weather themes */
+.ps-weather-inner.ps-weather--clear-day {
+    background: linear-gradient(135deg, #f59e0b 0%, #38bdf8 100%);
+}
+.ps-weather-inner.ps-weather--clear-day .ps-weather__icon { color: #fef3c7; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--clear-night {
+    background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+}
+.ps-weather-inner.ps-weather--clear-night .ps-weather__icon { color: #fde68a; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--few-clouds-day {
+    background: linear-gradient(135deg, #fcd34d 0%, #22d3ee 100%);
+}
+.ps-weather-inner.ps-weather--few-clouds-day .ps-weather__icon { color: #0ea5e9; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--few-clouds-night {
+    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+}
+.ps-weather-inner.ps-weather--few-clouds-night .ps-weather__icon { color: #93c5fd; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--cloudy-day,
+.ps-weather-inner.ps-weather--overcast-day {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+.ps-weather-inner.ps-weather--cloudy-day .ps-weather__icon,
+.ps-weather-inner.ps-weather--overcast-day .ps-weather__icon { color: #e2e8f0; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--cloudy-night,
+.ps-weather-inner.ps-weather--overcast-night {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+.ps-weather-inner.ps-weather--cloudy-night .ps-weather__icon,
+.ps-weather-inner.ps-weather--overcast-night .ps-weather__icon { color: #94a3b8; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--rain-day,
+.ps-weather-inner.ps-weather--rain-night {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+}
+.ps-weather-inner.ps-weather--rain-day .ps-weather__icon,
+.ps-weather-inner.ps-weather--rain-night .ps-weather__icon { color: #bfdbfe; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--storm-day,
+.ps-weather-inner.ps-weather--storm-night {
+    background: linear-gradient(135deg, #581c87 0%, #312e81 100%);
+}
+.ps-weather-inner.ps-weather--storm-day .ps-weather__icon,
+.ps-weather-inner.ps-weather--storm-night .ps-weather__icon { color: #ddd6fe; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--snow-day,
+.ps-weather-inner.ps-weather--snow-night {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0f172a;
+}
+.ps-weather-inner.ps-weather--snow-day .ps-weather__icon,
+.ps-weather-inner.ps-weather--snow-night .ps-weather__icon { color: #0284c7; opacity: 0.9; }
+
+.ps-weather-inner.ps-weather--fog-day,
+.ps-weather-inner.ps-weather--fog-night {
+    background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
+}
+.ps-weather-inner.ps-weather--fog-day .ps-weather__icon,
+.ps-weather-inner.ps-weather--fog-night .ps-weather__icon { color: #e2e8f0; opacity: 0.9; }
 
 /* ── MAIN COLUMN ── */
 .ps-main {
@@ -512,11 +708,113 @@
 .ps-chart-label { text-align: center; font-size: 11px; color: var(--ps-muted); margin-bottom: 12px; }
 
 /* ── MAP ── */
+.ps-location-card {
+    overflow: hidden;
+}
+.ps-location-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1.2fr);
+    gap: 16px;
+    align-items: stretch;
+}
+.ps-location-panel {
+    background:
+        radial-gradient(circle at top left, rgba(93,202,165,0.12), transparent 45%),
+        var(--ps-bg);
+    border: 1px solid var(--ps-border);
+    border-radius: var(--ps-radius-sm);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.ps-location-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: fit-content;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--success-subtle);
+    color: var(--ps-brand);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+.ps-location-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 3vw, 1.55rem);
+    font-weight: 800;
+    color: var(--ps-text);
+    line-height: 1.15;
+}
+.ps-location-subtitle {
+    color: var(--ps-muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+.ps-location-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.ps-location-metric {
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--ps-card);
+    border: 1px solid var(--ps-border);
+}
+.ps-location-metric__label {
+    display: block;
+    color: var(--ps-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.ps-location-metric__value {
+    display: block;
+    color: var(--ps-text);
+    font-size: 12px;
+    font-weight: 700;
+    word-break: break-word;
+}
+.ps-location-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+.ps-location-map-wrap {
+    position: relative;
+    min-width: 0;
+}
 .ps-map-container {
     height: 280px;
     background: var(--ps-bg);
     border-radius: var(--ps-radius-sm);
     overflow: hidden;
+    border: 1px solid var(--ps-border);
+}
+.ps-map-source {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 400;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+    color: var(--ps-text);
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: var(--ps-shadow);
+}
+.ps-map-source--default {
+    color: var(--danger);
 }
 .leaflet-container { height: 100%; width: 100%; }
 
@@ -635,21 +933,35 @@
 @media (max-width: 640px) {
     .ps-layout { padding: 0 12px 40px; }
 
-    /* Hero nav: stack weather+status below back-link on small screens */
+    /* Hero nav: stack content on small screens */
     .ps-hero__nav {
-        flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        margin-bottom: 14px;
     }
-    .ps-hero__nav > div {
+
+    .ps-hero__content {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .ps-hero__side {
+        min-width: 0;
         width: 100%;
+        flex-direction: row;
+        align-items: center;
         justify-content: space-between;
     }
 
     /* Make weather pill fill available space on the left */
     .ps-hero__weather {
         flex: 1;
-        max-width: calc(100% - 100px);
+        max-width: none;
+        min-height: 44px;
+    }
+
+    .ps-hero__status {
+        flex-shrink: 0;
+        min-height: 44px;
     }
 
     /* Hero title: smaller on phones */
@@ -694,6 +1006,10 @@
     /* Chart: shorter on small phones */
     .ps-chart { height: 120px; }
 
+    .ps-location-layout {
+        grid-template-columns: 1fr;
+    }
+
     /* Map: slightly shorter */
     .ps-map-container { height: 230px; }
 }
@@ -705,11 +1021,19 @@
     /* Hero: tighter padding */
     .ps-hero { padding: 14px 14px 18px; }
 
-    /* Hero nav: keep back on left, weather+status stacked neatly */
+    .ps-hero__side {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .ps-hero__weather-desc { display: none; }
     .ps-hero__weather {
+        width: 100%;
         padding: 6px 12px 6px 9px;
         gap: 8px;
+    }
+    .ps-hero__status {
+        width: 100%;
     }
     .ps-hero__weather-temp { font-size: 15px; }
     .ps-hero__weather-icon { font-size: 17px; }
@@ -728,6 +1052,8 @@
     .ps-prediction-value { font-size: clamp(1.6rem, 9vw, 2.2rem); }
 
     /* Map */
+    .ps-location-grid { grid-template-columns: 1fr; }
+    .ps-location-actions .ps-btn { width: 100%; }
     .ps-map-container { height: 200px; }
 
     /* Stat values */
@@ -770,7 +1096,29 @@
             <a href="{% url 'liste_projets' %}" class="ps-hero__back">
                 <i class="fas fa-chevron-left"></i> Retour
             </a>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        </div>
+        <div class="ps-hero__content">
+            <div class="ps-hero__main">
+                <div class="ps-hero__eyebrow">Fiche projet</div>
+                <h1 class="ps-hero__title">{{ projet.nom }}</h1>
+                <div class="ps-hero__meta">
+                    <span class="ps-hero__meta-item">
+                        <i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom|default:"Non renseigné" }}
+                    </span>
+                    <span class="ps-hero__meta-item">
+                        <i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}
+                    </span>
+                    <span class="ps-hero__meta-item">
+                        <i class="fas fa-calendar"></i> {{ projet.date_lancement|date:"d M Y"|default:"Non défini" }}
+                    </span>
+                    {% if projet.description %}
+                    <span class="ps-hero__meta-item">
+                        <i class="fas fa-info-circle"></i> {{ projet.description|truncatechars:60 }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="ps-hero__side">
                 <div class="ps-hero__weather" id="heroWeather">
                     <i class="fas fa-cloud-sun ps-hero__weather-icon" id="weatherIcon"></i>
                     <div>
@@ -785,26 +1133,6 @@
                     {% elif projet.statut == 'cloture' %}Clôturé
                     {% else %}En cours{% endif %}
                 </span>
-            </div>
-        </div>
-        <div class="ps-hero__body">
-            <div class="ps-hero__eyebrow">Fiche projet</div>
-            <h1 class="ps-hero__title">{{ projet.nom }}</h1>
-            <div class="ps-hero__meta">
-                <span class="ps-hero__meta-item">
-                    <i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom|default:"Non renseigné" }}
-                </span>
-                <span class="ps-hero__meta-item">
-                    <i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}
-                </span>
-                <span class="ps-hero__meta-item">
-                    <i class="fas fa-calendar"></i> {{ projet.date_lancement|date:"d M Y"|default:"Non défini" }}
-                </span>
-                {% if projet.description %}
-                <span class="ps-hero__meta-item">
-                    <i class="fas fa-info-circle"></i> {{ projet.description|truncatechars:60 }}
-                </span>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -824,6 +1152,18 @@
         <!-- ─────── SIDEBAR ─────── -->
         <aside class="ps-sidebar" id="psSidebar">
 
+            <!-- Weather -->
+            <div class="ps-weather-inner" id="sidebarWeather">
+                <div class="ps-weather__main">
+                    <i class="fas fa-cloud-sun ps-weather__icon" id="sidebarWeatherIcon"></i>
+                    <div>
+                        <div class="ps-weather__temp" id="sidebarWeatherTemp">—</div>
+                        <div class="ps-weather__condition" id="sidebarWeatherCondition">Chargement…</div>
+                        <div class="ps-weather__meta">Humidité : <span id="sidebarHumidity">--</span>%</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Project Info -->
             <div class="ps-card">
                 <div class="ps-card__title"><i class="fas fa-info-circle"></i> Infos projet</div>
@@ -832,9 +1172,24 @@
                     <span class="ps-info-row__value">{{ projet.culture.nom|default:"Non renseigné" }}</span>
                 </div>
                 <div class="ps-info-row">
-                    <span class="ps-info-row__label">Superficie</span>
-                    <span class="ps-info-row__value">{{ projet.superficie|default:"—" }} ha</span>
+                    <span class="ps-info-row__label">Superficie allouée</span>
+                    <span class="ps-info-row__value">{{ superficie_allouee_totale|floatformat:2 }} ha</span>
                 </div>
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Surface ferme</span>
+                    <span class="ps-info-row__value">{{ ferme_superficie_totale|default:"—" }} ha</span>
+                </div>
+                {% if superficie_restante is not None %}
+                <div class="ps-info-row">
+                    <span class="ps-info-row__label">Ferme restante</span>
+                    <span class="ps-info-row__value {% if superficie_overallocated %}ps-info-row__value--danger{% endif %}">
+                        {{ superficie_restante|floatformat:2 }} ha
+                        {% if superficie_overallocated %}
+                        <span class="ps-info-row__hint">Surface dépassée</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
                 <div class="ps-info-row">
                     <span class="ps-info-row__label">Localité</span>
                     <span class="ps-info-row__value">{{ projet.localite.nom|default:"Non renseigné" }}</span>
@@ -963,6 +1318,14 @@
                                 </span>
                                 <span class="ps-product-stat__label">kg est.</span>
                             </div>
+                            <div>
+                                <span class="ps-product-stat__value">
+                                    {% if pp.prevision %}
+                                        {{ pp.prevision.rendement_estime_min|floatformat:0 }}–{{ pp.prevision.rendement_estime_max|floatformat:0 }}
+                                    {% else %}—{% endif %}
+                                </span>
+                                <span class="ps-product-stat__label">IA préd.</span>
+                            </div>
                         </div>
                         <div class="ps-product-actions">
                             <a href="{% url 'detail_semis' pp.id %}"
@@ -1070,18 +1433,70 @@
             </div>
 
             <!-- Carte -->
-            <div class="ps-card">
+            <div class="ps-card ps-location-card">
                 <div class="ps-section-header">
                     <h2 class="ps-section-title">
                         <i class="fas fa-map-marked-alt"></i> Localisation
                     </h2>
+                    <span class="ps-section-badge">{{ map_source_label }}</span>
                 </div>
-                <div id="projectMap"
-                     class="ps-map-container"
-                     data-lat="{{ map_latitude|unlocalize }}"
-                     data-lon="{{ map_longitude|unlocalize }}"
-                     data-ferme="{{ projet.ferme.nom|escape }}"
-                     data-localite="{{ projet.localite.nom|default:''|escape }}">
+                <div class="ps-location-layout">
+                    <div class="ps-location-panel">
+                        <span class="ps-location-kicker">
+                            <i class="fas fa-location-dot"></i>
+                            {% if map_source == 'ferme' %}GPS ferme{% elif map_source == 'localite' %}Localité{% else %}Approximation{% endif %}
+                        </span>
+                        <div>
+                            <div class="ps-location-name">{{ projet.ferme.nom }}</div>
+                            <div class="ps-location-subtitle">
+                                {{ projet.localite.nom|default:"Localité non renseignée" }}
+                                {% if projet.pays %} — {{ projet.pays.nom }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="ps-location-grid">
+                            <div class="ps-location-metric">
+                                <span class="ps-location-metric__label">Latitude</span>
+                                <span class="ps-location-metric__value">{{ map_latitude|floatformat:5 }}</span>
+                            </div>
+                            <div class="ps-location-metric">
+                                <span class="ps-location-metric__label">Longitude</span>
+                                <span class="ps-location-metric__value">{{ map_longitude|floatformat:5 }}</span>
+                            </div>
+                            <div class="ps-location-metric">
+                                <span class="ps-location-metric__label">Région</span>
+                                <span class="ps-location-metric__value">{{ projet.ferme.region.nom|default:"—" }}</span>
+                            </div>
+                            <div class="ps-location-metric">
+                                <span class="ps-location-metric__label">Source</span>
+                                <span class="ps-location-metric__value">{{ map_source_label }}</span>
+                            </div>
+                        </div>
+                        <div class="ps-location-actions">
+                            <a class="ps-btn ps-btn--secondary ps-btn--inline"
+                               href="https://www.openstreetmap.org/?mlat={{ map_latitude|unlocalize }}&mlon={{ map_longitude|unlocalize }}#map=14/{{ map_latitude|unlocalize }}/{{ map_longitude|unlocalize }}"
+                               target="_blank" rel="noopener">
+                                <i class="fas fa-external-link-alt"></i> Ouvrir la carte
+                            </a>
+                            <a class="ps-btn ps-btn--primary ps-btn--inline"
+                               href="https://www.google.com/maps/search/?api=1&query={{ map_latitude|unlocalize }},{{ map_longitude|unlocalize }}"
+                               target="_blank" rel="noopener">
+                                <i class="fas fa-route"></i> Itinéraire
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ps-location-map-wrap">
+                        <span class="ps-map-source {% if map_source == 'default' %}ps-map-source--default{% endif %}">
+                            <i class="fas fa-crosshairs"></i> {{ map_source_label }}
+                        </span>
+                        <div id="projectMap"
+                             class="ps-map-container"
+                             data-lat="{{ map_latitude|unlocalize }}"
+                             data-lon="{{ map_longitude|unlocalize }}"
+                             data-ferme="{{ projet.ferme.nom|escape }}"
+                             data-localite="{{ projet.localite.nom|default:''|escape }}"
+                             data-source="{{ map_source }}">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1213,6 +1628,8 @@
         if (!Number.isFinite(lon)) lon = -14.452362;
         var fermeNom = mapEl.dataset.ferme || '';
         var localiteNom = mapEl.dataset.localite || '';
+        var mapSource = mapEl.dataset.source || 'default';
+        var zoomLevel = mapSource === 'ferme' ? 14 : 11;
 
         function renderMap() {
             if (mapEl._leaflet_id) return;
@@ -1220,12 +1637,17 @@
                 preferCanvas: true,
                 zoomControl: false,
                 attributionControl: false
-            }).setView([lat, lon], 12);
+            }).setView([lat, lon], zoomLevel);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '\u00a9 OpenStreetMap'
             }).addTo(map);
+            var popupLabel = mapSource === 'default'
+                ? 'Position approximative'
+                : mapSource === 'localite'
+                    ? 'Coordonnées de la localité'
+                    : 'Coordonnées GPS de la ferme';
             L.marker([lat, lon]).addTo(map)
-                .bindPopup('<strong>' + fermeNom + '</strong><br>' + localiteNom)
+                .bindPopup('<strong>' + fermeNom + '</strong><br>' + localiteNom + '<br><small>' + popupLabel + '</small>')
                 .openPopup();
             setTimeout(function() { map.invalidateSize(); }, 80);
         }
@@ -1248,6 +1670,8 @@
     var weatherTemp      = document.getElementById('weatherTemp');
     var weatherCondition = document.getElementById('weatherCondition');
     var weatherIcon      = document.getElementById('weatherIcon');
+    var heroWeather      = document.getElementById('heroWeather');
+    var sidebarWeather   = document.getElementById('sidebarWeather');
     if (weatherTemp) {
         fetch('{% url "api_projet_weather" projet.id %}')
             .then(function(r) { return r.json(); })
@@ -1261,21 +1685,34 @@
                 weatherTemp.textContent      = Math.round(d.temperature) + '\u00b0C';
                 weatherCondition.textContent = d.description || 'Ciel d\u00e9gag\u00e9';
                 if (document.getElementById('weatherMeta')) document.getElementById('weatherMeta').textContent = 'Humidit\u00e9\u00a0: ' + d.humidite + '%';
-                var icone = (d.icone || '').slice(0, 2);
-                var iconMap = {
-                    '01': 'fas fa-sun',
-                    '02': 'fas fa-cloud-sun',
-                    '03': 'fas fa-cloud',
-                    '04': 'fas fa-cloud',
-                    '09': 'fas fa-cloud-rain',
-                    '10': 'fas fa-cloud-showers-heavy',
-                    '11': 'fas fa-bolt',
-                    '13': 'fas fa-snowflake',
-                    '50': 'fas fa-smog'
-                };
-                var faClass = (iconMap[icone] || 'fas fa-cloud-sun') + ' ps-hero__weather-icon';
-                weatherIcon.className      = faClass;
-                weatherIcon.style.opacity  = '1';
+
+                var resolve = window.resolveOpenWeatherTheme || function() { return { panelClass: '', cockpitIcon: 'fa-cloud-sun' }; };
+                var theme = resolve(d.icone);
+                var iconClass = 'fas ' + (theme.cockpitIcon || 'fa-cloud-sun') + ' ps-hero__weather-icon weather-loaded';
+                weatherIcon.className = iconClass;
+                weatherIcon.style.opacity = '1';
+
+                // Sidebar weather update
+                var sidebarTemp = document.getElementById('sidebarWeatherTemp');
+                var sidebarCond = document.getElementById('sidebarWeatherCondition');
+                var sidebarHum  = document.getElementById('sidebarHumidity');
+                var sidebarIcon = document.getElementById('sidebarWeatherIcon');
+                if (sidebarTemp) sidebarTemp.textContent = Math.round(d.temperature) + '\u00b0C';
+                if (sidebarCond) sidebarCond.textContent = d.description || 'Ciel d\u00e9gag\u00e9';
+                if (sidebarHum)  sidebarHum.textContent  = d.humidite + '%';
+                if (sidebarIcon) {
+                    sidebarIcon.className = 'fas ' + (theme.cockpitIcon || 'fa-cloud-sun') + ' ps-weather__icon';
+                    sidebarIcon.style.opacity = '1';
+                }
+
+                // Apply theme to hero weather pill
+                if (heroWeather && theme.panelClass) {
+                    heroWeather.className = 'ps-hero__weather ' + theme.panelClass.replace('pd-meteo--', 'ps-hero__weather--');
+                }
+                // Apply theme to sidebar weather card
+                if (sidebarWeather && theme.panelClass) {
+                    sidebarWeather.className = 'ps-weather-inner ' + theme.panelClass.replace('pd-meteo--', 'ps-weather--');
+                }
             })
             .catch(function() {
                 weatherTemp.textContent      = '--\u00b0C';
@@ -1337,4 +1774,6 @@ function initGrowthChart(ctx) {
 }
 </script>
 {% endblock %}
-{% block extra_scripts %}{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'js/weather-theme.js' %}"></script>
+{% endblock %}

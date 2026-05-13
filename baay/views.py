@@ -672,9 +672,6 @@ def creer_projet(request):
             rendement_total = 0
             for produit in produits:
                 surf = superficies_par_produit.get(str(produit.id))
-                if surf is None and projet.superficie and len(produits) > 0:
-                    from decimal import Decimal
-                    surf = Decimal(projet.superficie) / Decimal(len(produits))
                 pp = ProjetProduit.objects.create(
                     projet=projet,
                     produit=produit,
@@ -840,9 +837,6 @@ def modifier_projet(request, projet_id):
                 for produit in produits:
                     surf = superficies_par_produit.get(str(produit.id))
                     if produit.id not in existing_produits:
-                        if surf is None and projet.superficie and len(produits) > 0:
-                            from decimal import Decimal
-                            surf = Decimal(projet.superficie) / Decimal(len(produits))
                         ProjetProduit.objects.create(
                             projet=projet,
                             produit=produit,
@@ -1084,18 +1078,33 @@ def detail_projet(request, projet_id):
     ):
         map_latitude = float(projet.ferme.latitude)
         map_longitude = float(projet.ferme.longitude)
+        map_source = "ferme"
+        map_source_label = "Coordonnées GPS de la ferme"
     elif projet.localite_id and projet.localite.latitude is not None and projet.localite.longitude is not None:
         map_latitude = float(projet.localite.latitude)
         map_longitude = float(projet.localite.longitude)
+        map_source = "localite"
+        map_source_label = "Coordonnées de la localité"
     else:
         map_latitude = 14.497401
         map_longitude = -14.452362
+        map_source = "default"
+        map_source_label = "Position par défaut"
 
     # Prévision(s) liée(s) aux ProjetProduit — affichage agrégé
     prediction = get_prevision_affichee_projet(projet)
 
-    # Recuperer les produits du projet
-    projet_produits = projet.projet_produits.select_related('produit').all()
+    # Recuperer les produits du projet avec leurs previsions individuelles
+    projet_produits = projet.projet_produits.select_related('produit').prefetch_related('prevision').all()
+    superficie_allouee_totale = projet_produits.aggregate(
+        total=Coalesce(Sum('superficie_allouee'), Value(Decimal('0')))
+    )['total'] or Decimal('0')
+    superficie_restante = None
+    superficie_overallocated = False
+    ferme_superficie_totale = projet.ferme.superficie_totale
+    if ferme_superficie_totale is not None:
+        superficie_restante = ferme_superficie_totale - superficie_allouee_totale
+        superficie_overallocated = superficie_restante < 0
 
     # Pre-calculate photos
     plant_photos = []
@@ -1156,8 +1165,14 @@ def detail_projet(request, projet_id):
         'analyses_sol': analyses_sol,
         'map_latitude': map_latitude,
         'map_longitude': map_longitude,
+        'map_source': map_source,
+        'map_source_label': map_source_label,
         'prediction': prediction,
         'projet_produits': projet_produits,
+        'superficie_allouee_totale': superficie_allouee_totale,
+        'superficie_restante': superficie_restante,
+        'superficie_overallocated': superficie_overallocated,
+        'ferme_superficie_totale': ferme_superficie_totale,
         'plant_photos': plant_photos,
     })
 
@@ -4203,6 +4218,65 @@ def performance(request):
             'projets_actifs': f_projets.filter(statut='en_cours').count(),
         })
 
+    # --- Productivite des employes (agents) ---
+    taches_qs = Tache.objects.filter(ferme__in=user_fermes)
+    if selected_ferme:
+        taches_qs = taches_qs.filter(ferme=selected_ferme)
+
+    agents_stats = (
+        taches_qs.values(
+            'assigne_a__id',
+            'assigne_a__user__username',
+            'assigne_a__user__first_name',
+            'assigne_a__user__last_name',
+        )
+        .annotate(
+            total_taches=Count('id'),
+            terminees=Count('id', filter=Q(statut='terminee')),
+            a_temps=Count(
+                'id',
+                filter=Q(
+                    statut='terminee',
+                    date_terminee__lte=F('date_echeance'),
+                ),
+            ),
+            en_retard=Count(
+                'id',
+                filter=Q(
+                    date_echeance__lt=timezone.now().date(),
+                    statut__in=['a_faire', 'en_cours'],
+                ),
+            ),
+        )
+        .order_by('-terminees')
+    )
+
+    agents_performance = []
+    max_terminees = max((a['terminees'] for a in agents_stats), default=0)
+    for agent in agents_stats:
+        nom = (
+            f"{agent['assigne_a__user__first_name'] or ''} {agent['assigne_a__user__last_name'] or ''}".strip()
+            or agent['assigne_a__user__username']
+        )
+        term = agent['terminees']
+        taux = (term / agent['total_taches'] * 100) if agent['total_taches'] > 0 else 0
+        taux_temps = (agent['a_temps'] / term * 100) if term > 0 else 0
+        volume_score = (term / max_terminees * 100) if max_terminees > 0 else 0
+        score_global = round((taux_temps * 0.6) + (volume_score * 0.4), 1)
+        agents_performance.append(
+            {
+                'nom': nom,
+                'username': agent['assigne_a__user__username'],
+                'total_taches': agent['total_taches'],
+                'terminees': term,
+                'a_temps': agent['a_temps'],
+                'en_retard': agent['en_retard'],
+                'taux_completion': round(taux, 1),
+                'taux_a_temps': round(taux_temps, 1),
+                'score_global': score_global,
+            }
+        )
+
     context = {
         'utilisateur': utilisateur,
         'fermes': user_fermes,
@@ -4213,6 +4287,7 @@ def performance(request):
         'cultures_data': cultures_data,
         'fermes_performance': fermes_performance,
         'projets_count': projets_qs.count(),
+        'agents_performance': agents_performance,
     }
 
     return render(request, 'projets/performance.html', context)

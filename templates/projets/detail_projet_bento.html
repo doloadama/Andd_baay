@@ -326,6 +326,54 @@
     opacity: 0.8;
 }
 
+/* Bento weather themes */
+.bento-weather.bento-weather--clear-day {
+    background: linear-gradient(135deg, #f59e0b 0%, #38bdf8 100%);
+    color: #0f172a;
+}
+.bento-weather.bento-weather--clear-night {
+    background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+    color: #f1f5f9;
+}
+.bento-weather.bento-weather--few-clouds-day {
+    background: linear-gradient(135deg, #fcd34d 0%, #22d3ee 100%);
+    color: #0f172a;
+}
+.bento-weather.bento-weather--few-clouds-night {
+    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+    color: #e2e8f0;
+}
+.bento-weather.bento-weather--cloudy-day,
+.bento-weather.bento-weather--overcast-day {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    color: #f1f5f9;
+}
+.bento-weather.bento-weather--cloudy-night,
+.bento-weather.bento-weather--overcast-night {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+}
+.bento-weather.bento-weather--rain-day,
+.bento-weather.bento-weather--rain-night {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: #f1f5f9;
+}
+.bento-weather.bento-weather--storm-day,
+.bento-weather.bento-weather--storm-night {
+    background: linear-gradient(135deg, #581c87 0%, #312e81 100%);
+    color: #f1f5f9;
+}
+.bento-weather.bento-weather--snow-day,
+.bento-weather.bento-weather--snow-night {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0f172a;
+}
+.bento-weather.bento-weather--fog-day,
+.bento-weather.bento-weather--fog-night {
+    background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
+    color: #f1f5f9;
+}
+
 /* ============================================
    PRÉDICTION IA CARD (Large)
    ============================================ */
@@ -984,27 +1032,27 @@
     <!-- BENTO GRID -->
     <div class="bento-grid">
         <!-- MÉTÉO (Small) -->
-        <div class="bento-card bento-card--small bento-weather">
+        <div class="bento-card bento-card--small bento-weather" id="bentoWeather">
             <div class="bento-card__header">
                 <h3 class="bento-card__title">
-                    <i class="fas fa-cloud-sun"></i> Météo
+                    <i class="fas fa-cloud-sun" id="bentoWeatherHeaderIcon"></i> Météo
                 </h3>
             </div>
             <div class="bento-card__content">
                 <div class="bento-weather__main">
-                    <div class="bento-weather__temp">--°C</div>
+                    <div class="bento-weather__temp" id="bentoWeatherTemp">--°C</div>
                     <div>
-                        <div class="bento-weather__condition">Chargement...</div>
+                        <div class="bento-weather__condition" id="bentoWeatherCondition">Chargement...</div>
                     </div>
                 </div>
                 <div class="bento-weather__details">
                     <div class="bento-weather__detail">
                         <i class="fas fa-tint"></i>
-                        <span>Humidité --%</span>
+                        <span id="bentoWeatherHumidity">Humidité --%</span>
                     </div>
                     <div class="bento-weather__detail">
                         <i class="fas fa-wind"></i>
-                        <span>Vent -- km/h</span>
+                        <span id="bentoWeatherWind">Vent -- km/h</span>
                     </div>
                 </div>
             </div>
@@ -1227,7 +1275,46 @@
     </div>
 </div>
 
+<script src="{% static 'js/weather-theme.js' %}"></script>
 <script>
+// Fetch weather for bento card
+function initBentoWeather() {
+    var bentoWeather = document.getElementById('bentoWeather');
+    var bentoTemp = document.getElementById('bentoWeatherTemp');
+    var bentoCond = document.getElementById('bentoWeatherCondition');
+    var bentoHum = document.getElementById('bentoWeatherHumidity');
+    var bentoWind = document.getElementById('bentoWeatherWind');
+    var bentoHeaderIcon = document.getElementById('bentoWeatherHeaderIcon');
+    if (!bentoTemp) return;
+    fetch('{% url "api_projet_weather" projet.id %}')
+        .then(function(r) { return r.json(); })
+        .then(function(payload) {
+            if (!payload.ok || !payload.data) {
+                bentoTemp.textContent = '--°C';
+                bentoCond.textContent = 'Indisponible';
+                return;
+            }
+            var d = payload.data;
+            bentoTemp.textContent = Math.round(d.temperature) + '°C';
+            bentoCond.textContent = d.description || 'Ciel dégagé';
+            if (bentoHum) bentoHum.textContent = 'Humidité ' + d.humidite + '%';
+            if (bentoWind) bentoWind.textContent = 'Vent ' + (d.vent || '--') + ' km/h';
+            var resolve = window.resolveOpenWeatherTheme || function() { return { panelClass: '', cockpitIcon: 'fa-cloud-sun' }; };
+            var theme = resolve(d.icone);
+            if (bentoHeaderIcon) {
+                bentoHeaderIcon.className = 'fas ' + (theme.cockpitIcon || 'fa-cloud-sun');
+            }
+            if (bentoWeather && theme.panelClass) {
+                bentoWeather.className = 'bento-card bento-card--small bento-weather ' + theme.panelClass.replace('pd-meteo--', 'bento-weather--');
+            }
+        })
+        .catch(function() {
+            bentoTemp.textContent = '--°C';
+            bentoCond.textContent = 'Indisponible';
+        });
+}
+initBentoWeather();
+
 // Initialize Map
 document.addEventListener('DOMContentLoaded', function() {
     {% if projet.ferme.latitude and projet.ferme.longitude %}

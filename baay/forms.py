@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
+from decimal import Decimal
 import json
+from django.db.models import Sum, Value
+from django.db.models.functions import Coalesce
 from baay.models import (
     DemandeAccesFerme,
     Ferme,
@@ -694,9 +697,7 @@ class ProjetForm(forms.ModelForm):
             superficie = total
         else:
             superficie = cleaned_data.get('superficie')
-            if superficie is None:
-                raise forms.ValidationError("La superficie est obligatoire.")
-            if superficie <= 0:
+            if superficie is not None and superficie <= 0:
                 raise forms.ValidationError("La superficie doit etre positive.")
 
         # Validation contre la superficie totale de la ferme.
@@ -704,13 +705,14 @@ class ProjetForm(forms.ModelForm):
             autres_projets = Projet.objects.filter(ferme=ferme, statut='en_cours')
             if self.instance and self.instance.pk:
                 autres_projets = autres_projets.exclude(pk=self.instance.pk)
-            superficie_totale_autres = autres_projets.aggregate(total=Sum('superficie'))['total'] or 0
-            if Decimal(superficie_totale_autres) + Decimal(superficie) > Decimal(ferme.superficie_totale):
-                reste = Decimal(ferme.superficie_totale) - Decimal(superficie_totale_autres)
-                raise forms.ValidationError(
-                    f"La somme des superficies des projets en cours ne peut pas depasser celle de la ferme. "
-                    f"Superficie restante disponible : {reste} ha."
-                )
+            if superficie is not None:
+                superficie_totale_autres = autres_projets.aggregate(total=Sum('superficie'))['total'] or 0
+                if Decimal(superficie_totale_autres) + Decimal(superficie) > Decimal(ferme.superficie_totale):
+                    reste = Decimal(ferme.superficie_totale) - Decimal(superficie_totale_autres)
+                    raise forms.ValidationError(
+                        f"La somme des superficies des projets en cours ne peut pas depasser celle de la ferme. "
+                        f"Superficie restante disponible : {reste} ha."
+                    )
         return cleaned_data
 
 
@@ -1227,6 +1229,23 @@ class AjouterProduitProjetForm(forms.Form):
                 f"'{produit.nom}' est déjà associé à ce projet."
             )
         return produit
+
+    def clean(self):
+        cleaned_data = super().clean()
+        superficie_allouee = cleaned_data.get('superficie_allouee')
+        ferme = self.projet.ferme if self.projet else None
+        if ferme and ferme.superficie_totale is not None and superficie_allouee:
+            deja_allouee = self.projet.projet_produits.aggregate(
+                total=Coalesce(Sum('superficie_allouee'), Value(Decimal('0')))
+            )['total'] or Decimal('0')
+            nouvelle_allocation = deja_allouee + superficie_allouee
+            if nouvelle_allocation > ferme.superficie_totale:
+                restante = ferme.superficie_totale - deja_allouee
+                raise forms.ValidationError(
+                    f"La superficie allouée dépasse la superficie totale de la ferme. "
+                    f"Il reste {restante:.2f} ha disponible(s)."
+                )
+        return cleaned_data
 
 class TacheStatutForm(forms.Form):
     """Mise à jour du statut d'une tâche par son assigné (ou un supérieur)."""
