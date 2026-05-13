@@ -589,9 +589,14 @@ function startInlineEdit(cell) {
     const original = cell.dataset.original || cell.textContent.trim();
     const projectId = cell.dataset.id;
     cell.classList.add('editing');
-    cell.innerHTML = `<input type="text" class="project-name-input" value="${original}" aria-label="Modifier le nom du projet">`;
+    cell.textContent = '';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'project-name-input';
+    input.value = original;
+    input.setAttribute('aria-label', 'Modifier le nom du projet');
+    cell.appendChild(input);
 
-    const input = cell.querySelector('input');
     input.focus();
     input.select();
 
@@ -651,28 +656,28 @@ function openQuickView(projectId) {
 
     setText('quickViewTitle', row?.querySelector('.project-name-cell')?.textContent?.trim() || project.name);
     document.getElementById('quickViewEdit').href = project.editUrl;
-    document.getElementById('quickViewContent').innerHTML = `
-        <div class="modal-detail-row">
-            <span class="modal-detail-label">Culture</span>
-            <span class="modal-detail-value">${culture}</span>
-        </div>
-        <div class="modal-detail-row">
-            <span class="modal-detail-label">Statut</span>
-            <span class="modal-detail-value">${statusLabel}</span>
-        </div>
-        <div class="modal-detail-row">
-            <span class="modal-detail-label">Superficie</span>
-            <span class="modal-detail-value">${project.superficie.toLocaleString('fr-FR')} ha</span>
-        </div>
-        <div class="modal-detail-row">
-            <span class="modal-detail-label">Date de lancement</span>
-            <span class="modal-detail-value">${formatDate(project.date)}</span>
-        </div>
-        <div class="modal-detail-row">
-            <span class="modal-detail-label">Progression</span>
-            <span class="modal-detail-value">${progress}</span>
-        </div>
-    `;
+    const qv = document.getElementById('quickViewContent');
+    qv.innerHTML = '';
+    const rows = [
+        { label: 'Culture', value: escapeHtml(culture) },
+        { label: 'Statut', value: escapeHtml(statusLabel) },
+        { label: 'Superficie', value: escapeHtml(project.superficie.toLocaleString('fr-FR')) + ' ha' },
+        { label: 'Date de lancement', value: escapeHtml(formatDate(project.date)) },
+        { label: 'Progression', value: escapeHtml(progress) },
+    ];
+    rows.forEach(({ label, value }) => {
+        const row = document.createElement('div');
+        row.className = 'modal-detail-row';
+        const lbl = document.createElement('span');
+        lbl.className = 'modal-detail-label';
+        lbl.textContent = label;
+        const val = document.createElement('span');
+        val.className = 'modal-detail-value';
+        val.textContent = value;
+        row.appendChild(lbl);
+        row.appendChild(val);
+        qv.appendChild(row);
+    });
     modal.classList.add('is-open');
 }
 

@@ -1624,6 +1624,7 @@ function showProjectsModal(type, title, projects = null) {
     
     const projectsToShow = projects || filteredProjects;
     
+    modalList.innerHTML = '';
     if (projectsToShow.length === 0) {
         modalList.innerHTML = `
             <div class="modal-empty">
@@ -1632,19 +1633,47 @@ function showProjectsModal(type, title, projects = null) {
             </div>
         `;
     } else {
-        modalList.innerHTML = projectsToShow.map(project => `
-            <div class="modal-project-item" onclick="window.location.href='/projet/${project.id}/'">
-                <div class="modal-project-info">
-                    <h4>${project.nom}</h4>
-                    <p>${project.cultureName || 'Culture'} - ${project.localite || 'Localité'}</p>
-                </div>
-                <div class="modal-project-stats">
-                    <span><i class="fas fa-crop-alt"></i> ${project.superficie} ha</span>
-                    <span><i class="fas fa-weight"></i> ${project.rendement} kg</span>
-                </div>
-                <i class="fas fa-chevron-right modal-project-arrow"></i>
-            </div>
-        `).join('');
+        projectsToShow.forEach(project => {
+            const item = document.createElement('div');
+            item.className = 'modal-project-item';
+            item.addEventListener('click', () => { window.location.href = '/projet/' + encodeURIComponent(project.id) + '/'; });
+
+            const info = document.createElement('div');
+            info.className = 'modal-project-info';
+
+            const h4 = document.createElement('h4');
+            h4.textContent = project.nom;
+            info.appendChild(h4);
+
+            const p = document.createElement('p');
+            p.textContent = (project.cultureName || 'Culture') + ' - ' + (project.localite || 'Localité');
+            info.appendChild(p);
+            item.appendChild(info);
+
+            const stats = document.createElement('div');
+            stats.className = 'modal-project-stats';
+
+            const span1 = document.createElement('span');
+            span1.innerHTML = '<i class="fas fa-crop-alt"></i> ';
+            const s1t = document.createElement('span');
+            s1t.textContent = project.superficie + ' ha';
+            span1.appendChild(s1t);
+            stats.appendChild(span1);
+
+            const span2 = document.createElement('span');
+            span2.innerHTML = '<i class="fas fa-weight"></i> ';
+            const s2t = document.createElement('span');
+            s2t.textContent = project.rendement + ' kg';
+            span2.appendChild(s2t);
+            stats.appendChild(span2);
+            item.appendChild(stats);
+
+            const arrow = document.createElement('i');
+            arrow.className = 'fas fa-chevron-right modal-project-arrow';
+            item.appendChild(arrow);
+
+            modalList.appendChild(item);
+        });
     }
     
     modal.classList.add('active');
@@ -2259,59 +2288,152 @@ function updateProjectList(data) {
         <button class="btn" id="bulkCancel">Annuler</button>
     </div>`;
 
-    const listHtml = projets.map(p => {
-        const prog =
-            typeof p.taux_avancement === 'number' ? Math.round(p.taux_avancement) : progressFallback(p.statut);
-        const farmBadge = (showFerme && p.ferme_nom) ? `<span class="farm-badge"><i class="fas fa-warehouse"></i> ${p.ferme_nom}</span>` : '';
-        return `
-        <div class="project-item" data-id="${p.id}" data-status="${p.statut}"
-            data-culture="${p.culture_id}" data-date="${p.date_lancement}"
-            data-culture-name="${p.culture_nom}"
-            data-nom="${p.nom}" data-rendement="${p.rendement_estime}"
-            data-superficie="${p.superficie}"
-            data-progress="${prog}">
-            <div class="project-checkbox" onclick="toggleProjectSelection(event, '${p.id}')"></div>
-            <div class="project-info" onclick="window.location.href='/projet/${p.id}/'">
-                <div class="project-name editable" data-id="${p.id}"
-                    ondblclick="editProjectName(event, '${p.id}', '${p.nom.replace(/'/g, "\\'")}')">
-                    ${p.nom}
-                </div>
-                <div class="project-meta">
-                    ${farmBadge}
-                    <span><i class="fas fa-seedling"></i> ${p.culture_nom}</span>
-                    <span><i class="fas fa-map"></i> ${p.superficie} ha</span>
-                </div>
-                <div class="project-progress">
-                    <div class="project-progress-bar" style="width: ${prog}%"></div>
-                </div>
-                <div class="project-progress-meta">
-                    <span>Progression</span>
-                    <strong>${prog}%</strong>
-                </div>
-            </div>
-            <span class="status-badge status-${p.statut}"
-                onclick="event.stopPropagation(); showStatusModal('${p.id}', '${p.statut}')">
-                ${statusLabel(p.statut)}
-            </span>
-            <div class="mini-p-stats">
-                <span><i class="fas fa-crop-alt"></i> ${p.superficie} ha</span>
-                <span><i class="fas fa-weight"></i> ${p.rendement_estime || '-'} kg</span>
-            </div>
-            <div class="mini-p-actions">
-                <a href="/projet/${p.id}/" class="btn-baay btn-baay-outline py-1 px-2 text-xs" onclick="event.stopPropagation();" title="Voir">
-                    <i class="fas fa-eye"></i>
-                </a>
-                <a href="/projet/${p.id}/modifier/" class="btn-baay btn-baay-ghost py-1 px-2 text-xs" onclick="event.stopPropagation();" title="Modifier">
-                    <i class="fas fa-edit"></i>
-                </a>
-                <a href="/projet/${p.id}/generer_prediction/" class="btn-baay btn-baay-primary py-1 px-3 text-xs" onclick="event.stopPropagation();" title="IA Prediction">
-                    <i class="fas fa-robot"></i>
-                </a>
-            </div>
-        </div>`;
-    }).join('');
+    const listContainer = document.createElement('div');
+    listContainer.className = 'project-list';
+    listContainer.id = 'projectsList';
 
-    projectsSection.innerHTML = bulkBar + `<div class="project-list" id="projectsList">${listHtml}</div>`;
+    projets.forEach(p => {
+        const prog = typeof p.taux_avancement === 'number' ? Math.round(p.taux_avancement) : progressFallback(p.statut);
+
+        const item = document.createElement('div');
+        item.className = 'project-item';
+        item.dataset.id = p.id;
+        item.dataset.status = p.statut;
+        item.dataset.culture = p.culture_id;
+        item.dataset.date = p.date_lancement;
+        item.dataset.cultureName = p.culture_nom;
+        item.dataset.nom = p.nom;
+        item.dataset.rendement = p.rendement_estime;
+        item.dataset.superficie = p.superficie;
+        item.dataset.progress = String(prog);
+
+        // Checkbox
+        const checkbox = document.createElement('div');
+        checkbox.className = 'project-checkbox';
+        checkbox.addEventListener('click', (e) => toggleProjectSelection(e, p.id));
+        item.appendChild(checkbox);
+
+        // Project info
+        const info = document.createElement('div');
+        info.className = 'project-info';
+        info.addEventListener('click', () => { window.location.href = '/projet/' + encodeURIComponent(p.id) + '/'; });
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'project-name editable';
+        nameDiv.dataset.id = p.id;
+        nameDiv.textContent = p.nom;
+        if (typeof editProjectName === 'function') {
+            nameDiv.addEventListener('dblclick', (e) => editProjectName(e, p.id, p.nom));
+        }
+        info.appendChild(nameDiv);
+
+        const meta = document.createElement('div');
+        meta.className = 'project-meta';
+        if (showFerme && p.ferme_nom) {
+            const farmBadgeEl = document.createElement('span');
+            farmBadgeEl.className = 'farm-badge';
+            farmBadgeEl.innerHTML = '<i class="fas fa-warehouse"></i> ';
+            const farmText = document.createElement('span');
+            farmText.textContent = p.ferme_nom;
+            farmBadgeEl.appendChild(farmText);
+            meta.appendChild(farmBadgeEl);
+        }
+
+        const cultureSpan = document.createElement('span');
+        cultureSpan.innerHTML = '<i class="fas fa-seedling"></i> ';
+        const cultureText = document.createElement('span');
+        cultureText.textContent = p.culture_nom;
+        cultureSpan.appendChild(cultureText);
+        meta.appendChild(cultureSpan);
+
+        const superficieSpan = document.createElement('span');
+        superficieSpan.innerHTML = '<i class="fas fa-map"></i> ';
+        const superficieText = document.createElement('span');
+        superficieText.textContent = p.superficie + ' ha';
+        superficieSpan.appendChild(superficieText);
+        meta.appendChild(superficieSpan);
+        info.appendChild(meta);
+
+        const progressWrap = document.createElement('div');
+        progressWrap.className = 'project-progress';
+        const progressBar = document.createElement('div');
+        progressBar.className = 'project-progress-bar';
+        progressBar.style.width = prog + '%';
+        progressWrap.appendChild(progressBar);
+        info.appendChild(progressWrap);
+
+        const progressMeta = document.createElement('div');
+        progressMeta.className = 'project-progress-meta';
+        const progLabel = document.createElement('span');
+        progLabel.textContent = 'Progression';
+        progressMeta.appendChild(progLabel);
+        const progStrong = document.createElement('strong');
+        progStrong.textContent = prog + '%';
+        progressMeta.appendChild(progStrong);
+        info.appendChild(progressMeta);
+        item.appendChild(info);
+
+        // Status badge
+        const statusBadge = document.createElement('span');
+        statusBadge.className = 'status-badge status-' + p.statut;
+        statusBadge.textContent = statusLabel(p.statut);
+        statusBadge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showStatusModal(p.id, p.statut);
+        });
+        item.appendChild(statusBadge);
+
+        // Mini stats
+        const miniStats = document.createElement('div');
+        miniStats.className = 'mini-p-stats';
+        const stat1 = document.createElement('span');
+        stat1.innerHTML = '<i class="fas fa-crop-alt"></i> ';
+        const stat1Text = document.createElement('span');
+        stat1Text.textContent = p.superficie + ' ha';
+        stat1.appendChild(stat1Text);
+        miniStats.appendChild(stat1);
+        const stat2 = document.createElement('span');
+        stat2.innerHTML = '<i class="fas fa-weight"></i> ';
+        const stat2Text = document.createElement('span');
+        stat2Text.textContent = (p.rendement_estime || '-') + ' kg';
+        stat2.appendChild(stat2Text);
+        miniStats.appendChild(stat2);
+        item.appendChild(miniStats);
+
+        // Actions
+        const actions = document.createElement('div');
+        actions.className = 'mini-p-actions';
+
+        const viewBtn = document.createElement('a');
+        viewBtn.href = '/projet/' + encodeURIComponent(p.id) + '/';
+        viewBtn.className = 'btn-baay btn-baay-outline py-1 px-2 text-xs';
+        viewBtn.title = 'Voir';
+        viewBtn.innerHTML = '<i class="fas fa-eye"></i>';
+        viewBtn.addEventListener('click', (e) => e.stopPropagation());
+        actions.appendChild(viewBtn);
+
+        const editBtn = document.createElement('a');
+        editBtn.href = '/projet/' + encodeURIComponent(p.id) + '/modifier/';
+        editBtn.className = 'btn-baay btn-baay-ghost py-1 px-2 text-xs';
+        editBtn.title = 'Modifier';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.addEventListener('click', (e) => e.stopPropagation());
+        actions.appendChild(editBtn);
+
+        const predictBtn = document.createElement('a');
+        predictBtn.href = '/projet/' + encodeURIComponent(p.id) + '/generer_prediction/';
+        predictBtn.className = 'btn-baay btn-baay-primary py-1 px-3 text-xs';
+        predictBtn.title = 'IA Prediction';
+        predictBtn.innerHTML = '<i class="fas fa-robot"></i>';
+        predictBtn.addEventListener('click', (e) => e.stopPropagation());
+        actions.appendChild(predictBtn);
+
+        item.appendChild(actions);
+        listContainer.appendChild(item);
+    });
+
+    projectsSection.innerHTML = bulkBar;
+    projectsSection.appendChild(listContainer);
 
     // Re-init context menu and bulk actions on new DOM
     initContextMenu();
