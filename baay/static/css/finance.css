@@ -339,6 +339,10 @@
     box-shadow: 0 8px 22px color-mix(in srgb, var(--brand-deep) 58%, transparent);
 }
 
+.dark-mode .finance-badge {
+    color: var(--brand-light);
+}
+
 .finance-badge {
     display: inline-flex;
     align-items: center;

@@ -241,7 +241,7 @@ button, input, select, textarea { font-family: inherit; }
 
 .btn-baay-secondary {
     background: linear-gradient(135deg, var(--brand-accent), #d98a1c);
-    color: #FFFFFF !important;
+    color: var(--brand-night) !important;
     box-shadow: 0 4px 15px rgba(239, 159, 39, 0.25);
 }
 .btn-baay-secondary:hover {
@@ -267,6 +267,20 @@ button, input, select, textarea { font-family: inherit; }
 .btn-baay-ghost:hover {
     background: rgba(8, 80, 65, 0.1);
     color: var(--text-main) !important;
+}
+
+/* Dark mode — ease green button text for readability */
+.dark-mode .btn-baay-outline {
+    color: var(--text-secondary) !important;
+}
+.dark-mode .btn-baay-outline:hover {
+    border-color: var(--brand-light);
+    background: rgba(93, 202, 165, 0.08);
+    color: var(--brand-light) !important;
+}
+.dark-mode .btn-baay-ghost:hover {
+    background: rgba(93, 202, 165, 0.1);
+    color: var(--brand-light) !important;
 }
 
 /* Modern pill buttons */
