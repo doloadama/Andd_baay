@@ -3138,21 +3138,39 @@
             transform: translateY(0) scale(0.98);
         }
 
-        @media (max-width: 576px) {
+        /* ===== TOUR: Mobile — bottom sheet above bottom-nav ===== */
+        @media (max-width: 767.98px) {
             .tour-overlay {
-                bottom: 16px;
-                right: 16px;
-                left: 16px;
+                bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+                right: 10px;
+                left: 10px;
             }
 
             .tour-modal {
                 width: 100%;
-                border-radius: 18px;
-                max-height: min(480px, calc(100vh - 100px));
+                border-radius: 20px;
+                max-height: min(420px, calc(100vh - 160px));
+                box-shadow:
+                    0 -4px 24px rgba(0, 0, 0, 0.3),
+                    0 0 0 1px rgba(29, 158, 117, 0.1);
+                transform-origin: bottom center;
+            }
+
+            .tour-overlay.active .tour-modal {
+                transform: translateY(0) scale(1);
             }
 
             .tour-header {
                 padding: 14px 16px 12px;
+            }
+
+            .tour-header::before,
+            .tour-header::after {
+                display: none;
+            }
+
+            .tour-header-top {
+                gap: 10px;
             }
 
             .tour-icon {
@@ -3160,29 +3178,196 @@
                 height: 36px;
                 min-width: 36px;
                 font-size: 16px;
-                border-radius: var(--radius-input);
+                border-radius: 10px;
+            }
+
+            .tour-step-badge {
+                font-size: 0.58rem;
+                padding: 2px 7px;
+                margin-bottom: 2px;
             }
 
             .tour-title {
-                font-size: 0.92rem;
+                font-size: 0.9rem;
+                margin-bottom: 2px;
+            }
+
+            .tour-description {
+                font-size: 0.7rem;
+                line-height: 1.35;
+            }
+
+            .tour-close-btn {
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
+                font-size: 11px;
             }
 
             .tour-body {
-                padding: 10px 16px;
+                padding: 8px 14px;
+            }
+
+            .tour-tips {
+                gap: 5px;
+            }
+
+            .tour-tip {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 10px;
+            }
+
+            .tour-tip-icon {
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
+                font-size: 11px;
+            }
+
+            .tour-tip-text strong {
+                font-size: 0.72rem;
+            }
+
+            .tour-tip-text span {
+                font-size: 0.68rem;
+                line-height: 1.3;
+            }
+
+            .tour-demo {
+                padding: 8px 0 4px;
+                min-height: 50px;
+            }
+
+            .tour-demo-phone {
+                width: 80px;
+                height: 120px;
+                border-radius: 12px;
+            }
+
+            .demo-phone-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+
+            .tour-demo-chart {
+                height: 40px;
+                gap: 3px;
+            }
+
+            .demo-chart-bar {
+                width: 8px;
             }
 
             .tour-footer {
-                padding: 10px 16px 12px;
+                padding: 8px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+                flex-wrap: wrap;
+                gap: 8px;
             }
 
-            .tour-next {
-                padding: 8px 14px;
-                font-size: 0.78rem;
+            .tour-progress-wrap {
+                width: 100%;
+                margin-right: 0;
+                order: 1;
+            }
+
+            .tour-progress-bar {
+                height: 3px;
+            }
+
+            .tour-progress {
+                gap: 4px;
+            }
+
+            .tour-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            .tour-dot.active {
+                width: 18px;
+            }
+
+            .tour-actions {
+                width: 100%;
+                order: 2;
+                justify-content: space-between;
             }
 
             .tour-skip {
-                padding: 6px 10px;
+                padding: 10px 16px;
+                font-size: 0.74rem;
+                min-height: 44px;
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .tour-next {
+                padding: 10px 20px;
+                font-size: 0.78rem;
+                min-height: 44px;
+                flex: 1;
+            }
+
+            .tour-next.tour-next-locked {
                 font-size: 0.72rem;
+                padding: 10px 12px;
+            }
+
+            .tour-try-it {
+                padding: 10px 16px;
+                font-size: 0.76rem;
+                width: 100%;
+                justify-content: center;
+                min-height: 44px;
+            }
+
+            /* Guide FAB — position above bottom nav */
+            .guide-fab {
+                bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+                right: 14px;
+                width: 46px;
+                height: 46px;
+                font-size: 16px;
+                border-radius: 14px;
+            }
+
+            .guide-fab::after {
+                display: none;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 374.98px) {
+            .tour-modal {
+                max-height: min(380px, calc(100vh - 150px));
+            }
+
+            .tour-title {
+                font-size: 0.84rem;
+            }
+
+            .tour-tip {
+                padding: 7px 8px;
+            }
+
+            .tour-tip-icon {
+                width: 24px;
+                height: 24px;
+                min-width: 24px;
+                font-size: 10px;
+            }
+
+            .tour-tip-text strong {
+                font-size: 0.68rem;
+            }
+
+            .tour-tip-text span {
+                font-size: 0.64rem;
             }
         }
 
