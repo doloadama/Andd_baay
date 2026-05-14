@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Inventaire — {{ ferme.nom }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1"><i class="fas fa-boxes me-2 text-accent"></i>Inventaire</h2>
+            <p class="text-muted small mb-0">{{ ferme.nom }}</p>
+        </div>
+        <a href="{% url 'detail_ferme' ferme.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour à la ferme
+        </a>
+    </div>
+
+    <!-- Bento Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="bento-tile alert-tile p-3 h-100 {% if alertes %}border-warning{% endif %}">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-exclamation-triangle {% if alertes %}text-warning{% else %}text-muted{% endif %}"></i>
+                    <span class="small fw-bold">Alertes stock</span>
+                </div>
+                <strong class="fs-4">{{ alertes|length }}</strong>
+                <p class="small text-muted mb-0">intrants bas</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="bento-tile p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-seedling text-success"></i>
+                    <span class="small fw-bold">Récoltes</span>
+                </div>
+                <strong class="fs-4">{{ volume_total|default:"0" }}</strong>
+                <p class="small text-muted mb-0">kg total</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="bento-tile p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-cubes text-accent"></i>
+                    <span class="small fw-bold">Intrants</span>
+                </div>
+                <strong class="fs-4">{{ intrants|length|default:"0" }}</strong>
+                <p class="small text-muted mb-0">références</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="bento-tile p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fas fa-exchange-alt text-info"></i>
+                    <span class="small fw-bold">Mouvements</span>
+                </div>
+                <strong class="fs-4">{{ mouvements|length|default:"0" }}</strong>
+                <p class="small text-muted mb-0">derniers 50</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card-modern">
+        <div class="d-flex flex-wrap gap-2 p-3 border-bottom border-secondary">
+            <a href="?onglet=intrants" class="btn btn-sm {% if onglet == 'intrants' %}btn-baay-primary{% else %}btn-outline-light{% endif %}">
+                <i class="fas fa-cubes me-1"></i> Intrants
+            </a>
+            <a href="?onglet=recoltes" class="btn btn-sm {% if onglet == 'recoltes' %}btn-baay-primary{% else %}btn-outline-light{% endif %}">
+                <i class="fas fa-seedling me-1"></i> Récoltes
+            </a>
+            <a href="?onglet=mouvements" class="btn btn-sm {% if onglet == 'mouvements' %}btn-baay-primary{% else %}btn-outline-light{% endif %}">
+                <i class="fas fa-exchange-alt me-1"></i> Mouvements
+            </a>
+        </div>
+
+        <div class="p-3 p-md-4">
+            {% if onglet == 'intrants' %}
+                <!-- Alertes -->
+                {% if alertes %}
+                <div class="alert alert-warning d-flex align-items-start gap-3 mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle mt-1"></i>
+                    <div>
+                        <strong>Stocks bas :</strong>
+                        <ul class="list-unstyled mb-0 mt-1">
+                            {% for a in alertes %}
+                            <li class="small">{{ a.nom }} — {{ a.quantite }} {{ a.get_unite_display }} (seuil : {{ a.seuil_alerte }})</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Table Intrants -->
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="font-size:0.9rem;min-width:560px;">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th class="text-end">Quantité</th>
+                                <th class="text-center" style="width:140px;">Ajustement</th>
+                                <th>Seuil alerte</th>
+                                {% if peut_modifier %}<th></th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for intrant in intrants %}
+                            <tr id="intrant-row-{{ intrant.id }}" class="{% if intrant.quantite < intrant.seuil_alerte %}table-warning{% endif %}">
+                                <td>
+                                    <strong>{{ intrant.nom }}</strong>
+                                    {% if intrant.quantite < intrant.seuil_alerte %}
+                                    <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> Bas</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-secondary">{{ intrant.get_categorie_display }}</span></td>
+                                <td class="text-end fw-bold">{{ intrant.quantite }} {{ intrant.get_unite_display }}</td>
+                                <td class="text-center">
+                                    {% if peut_modifier %}
+                                    <form method="post" action="{% url 'ajuster_intrant_htmx' ferme.id intrant.id %}"
+                                          hx-post="{% url 'ajuster_intrant_htmx' ferme.id intrant.id %}"
+                                          hx-target="#intrant-row-{{ intrant.id }}"
+                                          hx-swap="outerHTML"
+                                          class="d-inline-flex align-items-center gap-1">
+                                        {% csrf_token %}
+                                        <button type="submit" name="delta" value="-1" class="btn btn-sm btn-outline-danger px-2">−</button>
+                                        <input type="text" name="raison" value="Ajustement rapide" hidden>
+                                        <button type="submit" name="delta" value="1" class="btn btn-sm btn-outline-success px-2">+</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">{{ intrant.seuil_alerte }}</td>
+                                {% if peut_modifier %}
+                                <td class="text-end">
+                                    <a href="{% url 'supprimer_intrant' ferme.id intrant.id %}" class="text-danger small" title="Supprimer"
+                                       onclick="return confirm('Supprimer {{ intrant.nom }} ?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if peut_modifier %}6{% else %}5{% endif %}" class="text-center text-muted py-4">
+                                    <i class="fas fa-cubes fa-2x mb-2"></i>
+                                    <p class="mb-0">Aucun intrant enregistré.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if peut_modifier %}
+                <!-- Formulaire ajout rapide -->
+                <form method="post" action="{% url 'ajouter_intrant' ferme.id %}" class="mt-4 row g-2 align-items-end">
+                    {% csrf_token %}
+                    <div class="col-md-4">
+                        <label class="form-label small">Nom</label>
+                        <input type="text" name="nom" class="form-control form-control-sm" placeholder="Ex: Urée" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Catégorie</label>
+                        <select name="categorie" class="form-select form-select-sm">
+                            <option value="engrais">Engrais</option>
+                            <option value="semence">Semence</option>
+                            <option value="pesticide">Pesticide</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Quantité</label>
+                        <input type="number" name="quantite" step="0.01" class="form-control form-control-sm" value="0" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Unité</label>
+                        <select name="unite" class="form-select form-select-sm">
+                            <option value="kg">kg</option>
+                            <option value="L">L</option>
+                            <option value="sacs">Sacs</option>
+                            <option value="unites">Unités</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-baay-primary btn-sm w-100"><i class="fas fa-plus me-1"></i> Ajouter</button>
+                    </div>
+                </form>
+                {% endif %}
+
+            {% elif onglet == 'recoltes' %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="font-size:0.9rem;min-width:480px;">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Date récolte</th>
+                                <th class="text-end">Quantité</th>
+                                <th>Qualité</th>
+                                {% if peut_modifier %}<th></th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for recolte in recoltes %}
+                            <tr>
+                                <td><strong>{{ recolte.produit.nom }}</strong></td>
+                                <td>{{ recolte.date_recolte|date:"d/m/Y" }}</td>
+                                <td class="text-end fw-bold">{{ recolte.quantite }} {{ recolte.get_unite_display }}</td>
+                                <td><span class="badge bg-{% if recolte.qualite == 'A' %}success{% elif recolte.qualite == 'B' %}info{% elif recolte.qualite == 'C' %}warning{% else %}secondary{% endif %}">{{ recolte.get_qualite_display }}</span></td>
+                                {% if peut_modifier %}
+                                <td class="text-end">
+                                    <a href="#" class="text-danger small" title="Supprimer"
+                                       onclick="return confirm('Supprimer cette récolte ?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if peut_modifier %}5{% else %}4{% endif %}" class="text-center text-muted py-4">
+                                    <i class="fas fa-seedling fa-2x mb-2"></i>
+                                    <p class="mb-0">Aucune récolte enregistrée.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if peut_modifier %}
+                <form method="post" action="{% url 'ajouter_recolte' ferme.id %}" class="mt-4 row g-2 align-items-end">
+                    {% csrf_token %}
+                    <div class="col-md-3">
+                        <label class="form-label small">Produit</label>
+                        <select name="produit" class="form-select form-select-sm" required>
+                            {% for p in ferme.produits.all|default:"" %}
+                            <option value="{{ p.id }}">{{ p.nom }}</option>
+                            {% empty %}
+                            <option disabled>Aucun produit</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Quantité</label>
+                        <input type="number" name="quantite" step="0.01" class="form-control form-control-sm" value="0" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Unité</label>
+                        <select name="unite" class="form-select form-select-sm">
+                            <option value="kg">kg</option>
+                            <option value="tonnes">Tonnes</option>
+                            <option value="sacs">Sacs</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Date</label>
+                        <input type="date" name="date_recolte" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Qualité</label>
+                        <select name="qualite" class="form-select form-select-sm">
+                            <option value="A">Grade A</option>
+                            <option value="B">Grade B</option>
+                            <option value="C">Grade C</option>
+                            <option value="D">Grade D</option>
+                            <option value="NC" selected>Non classé</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-baay-primary btn-sm w-100"><i class="fas fa-plus"></i></button>
+                    </div>
+                </form>
+                {% endif %}
+
+            {% elif onglet == 'mouvements' %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="font-size:0.85rem;min-width:480px;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Produit</th>
+                                <th class="text-end">Quantité</th>
+                                <th>Raison</th>
+                                <th>Par</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in mouvements %}
+                            <tr>
+                                <td class="small text-muted">{{ m.date_mouvement|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if m.type == 'entree' %}
+                                    <span class="badge bg-success">Entrée</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Sortie</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if m.stock_intrant %}{{ m.stock_intrant.nom }}
+                                    {% elif m.stock_recolte %}{{ m.stock_recolte.produit.nom }}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="text-end fw-bold">{{ m.quantite }}</td>
+                                <td class="small text-muted">{{ m.raison|default:"—" }}</td>
+                                <td class="small text-muted">{{ m.utilisateur.user.username|default:"Système" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-exchange-alt fa-2x mb-2"></i>
+                                    <p class="mb-0">Aucun mouvement enregistré.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

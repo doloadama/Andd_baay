@@ -78,9 +78,14 @@
                             <div>
                                 <div class="fw-bold small">{{ membre.utilisateur.user.username }}</div>
                                 <div class="text-muted small">
-                                    {{ membre.get_role_display }}
+                                    <span class="role-badge role-{{ membre.role }}">{{ membre.get_role_display }}</span>
                                     {% if membre.peut_gerer_membres %}
                                     <span class="badge bg-info ms-1">Gestion membres</span>
+                                    {% endif %}
+                                    {% if membre.date_expiration %}
+                                    <span class="badge bg-warning text-dark ms-1" title="Expire le {{ membre.date_expiration|date:'d/m/Y H:i' }}">
+                                        <i class="fas fa-clock me-1"></i>Temporaire
+                                    </span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -95,6 +100,41 @@
                     {% else %}
                     <p class="text-muted small">Aucun membre.</p>
                     {% endif %}
+                </div>
+            </div>
+            <!-- Inventaire -->
+            <div class="card-modern mt-4">
+                <div class="d-flex justify-content-between align-items-center p-4 border-bottom border-secondary">
+                    <h5 class="mb-0"><i class="fas fa-boxes me-2 text-accent"></i>Inventaire</h5>
+                    <a href="{% url 'liste_inventaire' ferme.id %}" class="btn btn-sm btn-baay-primary">Gérer</a>
+                </div>
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="{% url 'liste_inventaire' ferme.id %}?onglet=intrants" class="text-decoration-none">
+                                <div class="bento-tile inventory-tile p-3">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        <span class="small fw-bold">Alertes stock</span>
+                                    </div>
+                                    <strong class="fs-5">{{ alertes_stock|default:"0" }}</strong>
+                                    <span class="small text-muted">intrants bas</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'liste_inventaire' ferme.id %}?onglet=recoltes" class="text-decoration-none">
+                                <div class="bento-tile inventory-tile p-3">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="fas fa-seedling text-success"></i>
+                                        <span class="small fw-bold">Récoltes</span>
+                                    </div>
+                                    <strong class="fs-5">{{ volume_recoltes|default:"0" }}</strong>
+                                    <span class="small text-muted">kg total</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% if is_proprietaire %}
@@ -124,6 +164,8 @@
                                     <option value="ouvrier" selected>Ouvrier</option>
                                     <option value="technicien">Technicien</option>
                                     <option value="manager">Manager</option>
+                                    <option value="consultant">Consultant</option>
+                                    <option value="invite">Invité</option>
                                 </select>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="peut_gerer_membres" id="pgm-{{ demande.id }}">

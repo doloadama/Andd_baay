@@ -113,12 +113,18 @@ class MembreFerme(models.Model):
         ('manager', 'Manager'),
         ('technicien', 'Technicien'),
         ('ouvrier', 'Ouvrier'),
+        ('consultant', 'Consultant'),
+        ('invite', 'Invité'),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='membres')
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='fermes_membre')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ouvrier')
     peut_gerer_membres = models.BooleanField(default=False)
+    date_expiration = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Date d'expiration de l'accès (pour les rôles temporaires)."
+    )
     date_ajout = models.DateTimeField(auto_now_add=True)
     photo_profil = CloudinaryField(
         "photo_profil",
@@ -2144,3 +2150,141 @@ class TransactionMarche(models.Model):
 
     def __str__(self):
         return f"Transaction {self.offre.produit.nom} - {self.acheteur.nom} ({self.get_statut_display()})"
+
+
+class NoteAgronomique(models.Model):
+    """Note ou commentaire agronomique lié à un projet."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet = models.ForeignKey('Projet', on_delete=models.CASCADE, related_name='notes_agronomiques')
+    auteur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notes_agronomiques')
+    contenu = models.TextField(help_text="Contenu de la note ou du commentaire agronomique")
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = "Note agronomique"
+        verbose_name_plural = "Notes agronomiques"
+
+    def __str__(self):
+        return f"Note {self.auteur.user.username} sur {self.projet.nom} ({self.date_creation.strftime('%d/%m/%Y')})"
+
+
+class StockIntrant(models.Model):
+    """Stock d'intrants agricoles (engrais, semences, pesticides, etc.)."""
+    CATEGORIE_ENGRAIS = 'engrais'
+    CATEGORIE_SEMENCE = 'semence'
+    CATEGORIE_PESTICIDE = 'pesticide'
+    CATEGORIE_AUTRE = 'autre'
+    CATEGORIE_CHOICES = [
+        (CATEGORIE_ENGRAIS, 'Engrais'),
+        (CATEGORIE_SEMENCE, 'Semence'),
+        (CATEGORIE_PESTICIDE, 'Pesticide'),
+        (CATEGORIE_AUTRE, 'Autre'),
+    ]
+
+    UNITE_KG = 'kg'
+    UNITE_L = 'L'
+    UNITE_SACS = 'sacs'
+    UNITE_UNITES = 'unites'
+    UNITE_CHOICES = [
+        (UNITE_KG, 'Kilogrammes'),
+        (UNITE_L, 'Litres'),
+        (UNITE_SACS, 'Sacs'),
+        (UNITE_UNITES, 'Unités'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='intrants')
+    nom = models.CharField(max_length=100, help_text="Nom de l'intrant (ex: Urée, Semences de maïs)")
+    categorie = models.CharField(max_length=20, choices=CATEGORIE_CHOICES, default=CATEGORIE_AUTRE)
+    quantite = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    unite = models.CharField(max_length=10, choices=UNITE_CHOICES, default=UNITE_KG)
+    seuil_alerte = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal('10.00'),
+        help_text="Seuil en dessous duquel une alerte de stock bas est déclenchée"
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = "Stock d'intrant"
+        verbose_name_plural = "Stocks d'intrants"
+
+    def __str__(self):
+        return f"{self.nom} ({self.quantite} {self.get_unite_display()})"
+
+
+class StockRecolte(models.Model):
+    """Stock de récoltes (produits agricoles récoltés)."""
+    UNITE_KG = 'kg'
+    UNITE_TONNES = 'tonnes'
+    UNITE_SACS = 'sacs'
+    UNITE_CHOICES = [
+        (UNITE_KG, 'Kilogrammes'),
+        (UNITE_TONNES, 'Tonnes'),
+        (UNITE_SACS, 'Sacs'),
+    ]
+
+    QUALITE_A = 'A'
+    QUALITE_B = 'B'
+    QUALITE_C = 'C'
+    QUALITE_D = 'D'
+    QUALITE_NC = 'NC'
+    QUALITE_CHOICES = [
+        (QUALITE_A, 'Grade A'),
+        (QUALITE_B, 'Grade B'),
+        (QUALITE_C, 'Grade C'),
+        (QUALITE_D, 'Grade D'),
+        (QUALITE_NC, 'Non classé'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='recoltes')
+    projet = models.ForeignKey('Projet', on_delete=models.SET_NULL, null=True, blank=True, related_name='recoltes')
+    produit = models.ForeignKey('ProduitAgricole', on_delete=models.CASCADE, related_name='recoltes_stock')
+    quantite = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    unite = models.CharField(max_length=10, choices=UNITE_CHOICES, default=UNITE_KG)
+    date_recolte = models.DateField(help_text="Date de la récolte")
+    qualite = models.CharField(max_length=2, choices=QUALITE_CHOICES, default=QUALITE_NC)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_recolte', '-date_creation']
+        verbose_name = "Stock de récolte"
+        verbose_name_plural = "Stocks de récoltes"
+
+    def __str__(self):
+        return f"{self.produit.nom} ({self.quantite} {self.get_unite_display()}) — {self.get_qualite_display()}"
+
+
+class MouvementStock(models.Model):
+    """Historique des entrées et sorties de stock."""
+    TYPE_ENTREE = 'entree'
+    TYPE_SORTIE = 'sortie'
+    TYPE_CHOICES = [
+        (TYPE_ENTREE, 'Entrée'),
+        (TYPE_SORTIE, 'Sortie'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='mouvements_stock')
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    stock_intrant = models.ForeignKey(StockIntrant, on_delete=models.CASCADE, null=True, blank=True, related_name='mouvements')
+    stock_recolte = models.ForeignKey(StockRecolte, on_delete=models.CASCADE, null=True, blank=True, related_name='mouvements')
+    quantite = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    date_mouvement = models.DateTimeField(auto_now_add=True)
+    raison = models.CharField(max_length=255, blank=True, help_text="Raison du mouvement (ex: achat, utilisation, vente)")
+    utilisateur = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True, related_name='mouvements_stock')
+    investissement = models.ForeignKey('Investissement', on_delete=models.SET_NULL, null=True, blank=True, related_name='mouvements_stock')
+
+    class Meta:
+        ordering = ['-date_mouvement']
+        verbose_name = "Mouvement de stock"
+        verbose_name_plural = "Mouvements de stock"
+
+    def __str__(self):
+        cible = self.stock_intrant or self.stock_recolte
+        return f"{self.get_type_display()} — {cible} ({self.quantite}) — {self.date_mouvement.strftime('%d/%m/%Y %H:%M')}"

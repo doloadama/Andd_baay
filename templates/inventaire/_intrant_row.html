@@ -1,0 +1,29 @@
+<tr id="intrant-row-{{ intrant.id }}" class="{% if alerte %}table-warning{% endif %}">
+    <td>
+        <strong>{{ intrant.nom }}</strong>
+        {% if alerte %}
+        <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> Bas</span>
+        {% endif %}
+    </td>
+    <td><span class="badge bg-secondary">{{ intrant.get_categorie_display }}</span></td>
+    <td class="text-end fw-bold">{{ intrant.quantite }} {{ intrant.get_unite_display }}</td>
+    <td class="text-center">
+        <form method="post" action="{% url 'ajuster_intrant_htmx' intrant.ferme.id intrant.id %}"
+              hx-post="{% url 'ajuster_intrant_htmx' intrant.ferme.id intrant.id %}"
+              hx-target="#intrant-row-{{ intrant.id }}"
+              hx-swap="outerHTML"
+              class="d-inline-flex align-items-center gap-1">
+            {% csrf_token %}
+            <button type="submit" name="delta" value="-1" class="btn btn-sm btn-outline-danger px-2">−</button>
+            <input type="text" name="raison" value="Ajustement rapide" hidden>
+            <button type="submit" name="delta" value="1" class="btn btn-sm btn-outline-success px-2">+</button>
+        </form>
+    </td>
+    <td class="small text-muted">{{ intrant.seuil_alerte }}</td>
+    <td class="text-end">
+        <a href="{% url 'supprimer_intrant' intrant.ferme.id intrant.id %}" class="text-danger small" title="Supprimer"
+           onclick="return confirm('Supprimer {{ intrant.nom }} ?');">
+            <i class="fas fa-trash"></i>
+        </a>
+    </td>
+</tr>

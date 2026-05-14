@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
@@ -709,3 +711,164 @@ class MessagerieReliabilityTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'm-4')
         self.assertNotContains(resp, 'm-6')
+
+
+class RolesTemporairesTests(TestCase):
+    """Tests des rôles temporaires Consultant et Invité."""
+
+    def setUp(self):
+        self.owner = _create_user('owner_rt', 'owner_rt@x.test')
+        self.consultant = _create_user('consultant1', 'c@x.test')
+        self.invite = _create_user('invite1', 'i@x.test')
+        self.ferme = Ferme.objects.create(nom='Ferme RT', proprietaire=self.owner.profile)
+        self.url = reverse('ajouter_membre_ferme', args=[self.ferme.id])
+
+    def test_ajouter_consultant(self):
+        self.client.login(username='owner_rt', password='pass12345')
+        resp = self.client.post(self.url, {
+            'username': 'consultant1',
+            'role': 'consultant',
+            'date_expiration': '2026-12-31T23:59',
+        })
+        self.assertEqual(resp.status_code, 302)
+        membre = MembreFerme.objects.get(ferme=self.ferme, utilisateur=self.consultant.profile)
+        self.assertEqual(membre.role, 'consultant')
+        self.assertIsNotNone(membre.date_expiration)
+
+    def test_ajouter_invite(self):
+        self.client.login(username='owner_rt', password='pass12345')
+        resp = self.client.post(self.url, {
+            'username': 'invite1',
+            'role': 'invite',
+        })
+        self.assertEqual(resp.status_code, 302)
+        membre = MembreFerme.objects.get(ferme=self.ferme, utilisateur=self.invite.profile)
+        self.assertEqual(membre.role, 'invite')
+        self.assertIsNone(membre.date_expiration)
+
+    def test_permissions_consultant_lecture(self):
+        from baay.permissions import (
+            ROLES_VISIBILITE_FERME,
+            ROLES_LECTURE_FINANCE,
+            ROLES_COMMENTAIRE,
+        )
+        self.assertIn('consultant', ROLES_VISIBILITE_FERME)
+        self.assertIn('consultant', ROLES_LECTURE_FINANCE)
+        self.assertIn('consultant', ROLES_COMMENTAIRE)
+
+    def test_permissions_invite_lecture_restreinte(self):
+        from baay.permissions import (
+            ROLES_VISIBILITE_FERME,
+            ROLES_LECTURE_FINANCE,
+            ROLES_COMMENTAIRE,
+        )
+        self.assertIn('invite', ROLES_VISIBILITE_FERME)
+        self.assertNotIn('invite', ROLES_LECTURE_FINANCE)
+        self.assertNotIn('invite', ROLES_COMMENTAIRE)
+
+    def test_roles_assignables_par_inclut_nouveaux(self):
+        from baay.permissions import ROLE_PROPRIETAIRE, ROLE_MANAGER
+        self.assertIn('consultant', roles_assignables_par(ROLE_PROPRIETAIRE))
+        self.assertIn('invite', roles_assignables_par(ROLE_PROPRIETAIRE))
+        self.assertIn('consultant', roles_assignables_par(ROLE_MANAGER))
+        self.assertIn('invite', roles_assignables_par(ROLE_MANAGER))
+
+
+class InventaireTests(TestCase):
+    """Tests du module d'inventaire."""
+
+    def setUp(self):
+        self.owner = _create_user('owner_inv', 'owner_inv@x.test')
+        self.ferme = Ferme.objects.create(nom='Ferme Inv', proprietaire=self.owner.profile)
+        self.produit = ProduitAgricole.objects.create(nom='Maïs')
+
+    def test_stock_intrant_creation(self):
+        from baay.models import StockIntrant
+        stock = StockIntrant.objects.create(
+            ferme=self.ferme,
+            nom='Urée',
+            categorie=StockIntrant.CATEGORIE_ENGRAIS,
+            quantite=Decimal('50.00'),
+            unite=StockIntrant.UNITE_KG,
+            seuil_alerte=Decimal('10.00'),
+        )
+        self.assertEqual(str(stock), 'Urée (50.00 Kilogrammes)')
+        self.assertEqual(stock.ferme, self.ferme)
+
+    def test_stock_recolte_creation(self):
+        from baay.models import StockRecolte
+        recolte = StockRecolte.objects.create(
+            ferme=self.ferme,
+            produit=self.produit,
+            quantite=Decimal('1200.00'),
+            unite=StockRecolte.UNITE_KG,
+            date_recolte='2026-05-01',
+            qualite=StockRecolte.QUALITE_A,
+        )
+        self.assertIn('Maïs', str(recolte))
+        self.assertEqual(recolte.qualite, 'A')
+
+    def test_mouvement_stock_creation(self):
+        from baay.models import StockIntrant, MouvementStock
+        stock = StockIntrant.objects.create(
+            ferme=self.ferme,
+            nom='Semences',
+            quantite=Decimal('100.00'),
+            unite=StockIntrant.UNITE_KG,
+        )
+        mouv = MouvementStock.objects.create(
+            ferme=self.ferme,
+            type=MouvementStock.TYPE_ENTREE,
+            stock_intrant=stock,
+            quantite=Decimal('25.00'),
+            raison='Achat',
+        )
+        self.assertIn('Entrée', str(mouv))
+        self.assertEqual(mouv.quantite, Decimal('25.00'))
+
+    def test_service_stocks_en_alerte(self):
+        from baay.models import StockIntrant
+        from baay.services.inventory_service import stocks_en_alerte
+        StockIntrant.objects.create(
+            ferme=self.ferme,
+            nom='Pesticide',
+            quantite=Decimal('5.00'),
+            unite=StockIntrant.UNITE_L,
+            seuil_alerte=Decimal('10.00'),
+        )
+        alertes = stocks_en_alerte(self.ferme)
+        self.assertEqual(len(alertes), 1)
+        self.assertEqual(alertes[0].nom, 'Pesticide')
+
+    def test_service_volume_total_recoltes(self):
+        from baay.models import StockRecolte
+        from baay.services.inventory_service import volume_total_recoltes
+        StockRecolte.objects.create(
+            ferme=self.ferme,
+            produit=self.produit,
+            quantite=Decimal('2.00'),
+            unite=StockRecolte.UNITE_TONNES,
+            date_recolte='2026-05-01',
+        )
+        total = volume_total_recoltes(self.ferme)
+        self.assertEqual(total, Decimal('2000.00'))
+
+    def test_ajuster_stock_intrant(self):
+        from baay.models import StockIntrant, MouvementStock
+        from baay.services.inventory_service import ajuster_stock_intrant
+        stock = StockIntrant.objects.create(
+            ferme=self.ferme,
+            nom='Engrais',
+            quantite=Decimal('30.00'),
+            unite=StockIntrant.UNITE_KG,
+        )
+        ajuster_stock_intrant(str(stock.id), Decimal('10.00'), 'Réapprovisionnement', self.owner.profile)
+        stock.refresh_from_db()
+        self.assertEqual(stock.quantite, Decimal('40.00'))
+        self.assertEqual(MouvementStock.objects.filter(stock_intrant=stock).count(), 1)
+
+    def test_url_inventaire_existe(self):
+        url = reverse('liste_inventaire', args=[self.ferme.id])
+        self.client.login(username='owner_inv', password='pass12345')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)

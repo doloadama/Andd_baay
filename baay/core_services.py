@@ -716,7 +716,7 @@ def transition_demande_acces(demande_id: str, nouveau_statut: str, role: str = "
     """
     if nouveau_statut not in {"en_attente", "approuvee", "refusee"}:
         raise ValidationError({"statut": "Statut invalide."})
-    if role not in {"manager", "technicien", "ouvrier"}:
+    if role not in {"manager", "technicien", "ouvrier", "consultant", "invite"}:
         role = "ouvrier"
 
     with transaction.atomic():

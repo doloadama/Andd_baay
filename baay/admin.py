@@ -23,6 +23,7 @@ from .models import (
     Localite,
     Message,
     MessageReaction,
+    MouvementStock,
     Pays,
     PhotoProduitAgricole,
     PrevisionRecolte,
@@ -32,6 +33,8 @@ from .models import (
     ProjetProduit,
     Recette,
     Region,
+    StockIntrant,
+    StockRecolte,
     Tache,
 )
 
@@ -345,4 +348,45 @@ class HistoriqueSolAdmin(ModelAdmin):
     ordering = ("-date_mesure",)
     list_select_related = ("ferme", "culture_precedente")
     autocomplete_fields = ("ferme", "culture_precedente")
+    list_filter_submit = True
+
+
+@admin.register(StockIntrant)
+class StockIntrantAdmin(ModelAdmin):
+    list_display = ("nom", "ferme", "categorie", "quantite", "unite", "seuil_alerte", "date_modification")
+    list_filter = [
+        ("ferme", AutocompleteSelectFilter),
+        ("categorie", ChoicesDropdownFilter),
+    ]
+    search_fields = ("nom", "ferme__nom")
+    ordering = ("-date_modification",)
+    list_select_related = ("ferme",)
+    list_filter_submit = True
+
+
+@admin.register(StockRecolte)
+class StockRecolteAdmin(ModelAdmin):
+    list_display = ("produit", "ferme", "projet", "quantite", "unite", "date_recolte", "qualite")
+    list_filter = [
+        ("ferme", AutocompleteSelectFilter),
+        ("qualite", ChoicesDropdownFilter),
+        ("date_recolte", RangeDateFilter),
+    ]
+    search_fields = ("produit__nom", "ferme__nom")
+    ordering = ("-date_recolte",)
+    list_select_related = ("ferme", "projet", "produit")
+    list_filter_submit = True
+
+
+@admin.register(MouvementStock)
+class MouvementStockAdmin(ModelAdmin):
+    list_display = ("type", "stock_intrant", "stock_recolte", "quantite", "date_mouvement", "utilisateur")
+    list_filter = [
+        ("ferme", AutocompleteSelectFilter),
+        ("type", ChoicesDropdownFilter),
+        ("date_mouvement", RangeDateTimeFilter),
+    ]
+    search_fields = ("raison", "stock_intrant__nom", "stock_recolte__produit__nom")
+    ordering = ("-date_mouvement",)
+    list_select_related = ("ferme", "stock_intrant", "stock_recolte", "utilisateur__user")
     list_filter_submit = True

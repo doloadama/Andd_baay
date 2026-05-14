@@ -995,6 +995,9 @@ def ajouter_investissement(request, projet_id):
             investissement = investissement_form.save(commit=False)
             investissement.projet = projet  # Associer l'investissement au projet
             investissement.save()
+            # Lien automatique avec le stock d'intrants si catégorie = intrant
+            from baay.services.inventory_service import lier_investissement_a_stock
+            lier_investissement_a_stock(investissement)
             st = check_budget_status(projet.id)
             stp = (
                 check_projet_produit_budget_status(investissement.projet_produit_id)
@@ -2445,6 +2448,11 @@ def detail_ferme(request, ferme_id):
         .order_by('-date_mesure')[:10]
     )
     suggestion_sol = suggerer_semis_saison_suivante(ferme_id)
+    # Données inventaire pour la bento card
+    from baay.services.inventory_service import stocks_en_alerte, volume_total_recoltes
+    alertes_stock = stocks_en_alerte(ferme)
+    volume_recoltes = volume_total_recoltes(ferme)
+
     return render(request, 'fermes/detail_ferme.html', {
         'ferme': ferme,
         'projets': projets,
@@ -2454,6 +2462,8 @@ def detail_ferme(request, ferme_id):
         'can_manage_members': can_manage_members,
         'historiques_sol': historiques_sol,
         'suggestion_sol': suggestion_sol,
+        'alertes_stock': alertes_stock,
+        'volume_recoltes': volume_recoltes,
     })
 
 
@@ -2516,6 +2526,7 @@ def ajouter_membre_ferme(request, ferme_id):
                 defaults={
                     'role': form.cleaned_data['role'],
                     'peut_gerer_membres': form.cleaned_data.get('peut_gerer_membres', False),
+                    'date_expiration': form.cleaned_data.get('date_expiration'),
                 }
             )
             if not created:

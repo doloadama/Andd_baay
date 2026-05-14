@@ -3683,3 +3683,79 @@
                 animation: none !important;
             }
         }
+
+        /* ===== ROLE BADGES ===== */
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .role-badge.role-manager {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .role-badge.role-technicien {
+            background: rgba(101, 163, 13, 0.2);
+            color: #84cc16;
+            border: 1px solid rgba(101, 163, 13, 0.3);
+        }
+        .role-badge.role-ouvrier {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .role-badge.role-consultant {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .role-badge.role-invite {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fdba74;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
+
+        /* ===== INVENTORY TILES ===== */
+        .inventory-tile {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.5) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .inventory-tile:hover {
+            transform: translateY(-2px);
+            border-color: rgba(29, 158, 117, 0.25);
+            box-shadow: 0 4px 16px rgba(29, 158, 117, 0.08);
+        }
+        .inventory-tile.border-warning {
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+        .alert-tile:hover {
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+
+        /* ===== TABLE DARK INVENTORY ===== */
+        .table-dark th {
+            background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            font-weight: 700;
+            font-size: 0.78rem;
+            border: none;
+            padding: 10px 12px;
+        }
+        .table-dark td {
+            border-color: rgba(148, 163, 184, 0.08);
+            padding: 10px 12px;
+            vertical-align: middle;
+        }
+        .table-dark tbody tr:hover {
+            background: rgba(29, 158, 117, 0.05);
+        }
+        .table-warning {
+            background: rgba(234, 179, 8, 0.08) !important;
+        }

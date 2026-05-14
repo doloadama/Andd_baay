@@ -994,7 +994,13 @@ class MembreFermeForm(forms.Form):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Nom d'utilisateur ou email de l'utilisateur inscrit"})
     )
     role = forms.ChoiceField(
-        choices=[('manager', 'Manager'), ('technicien', 'Technicien'), ('ouvrier', 'Ouvrier')],
+        choices=[
+            ('manager', 'Manager'),
+            ('technicien', 'Technicien'),
+            ('ouvrier', 'Ouvrier'),
+            ('consultant', 'Consultant'),
+            ('invite', 'Invité'),
+        ],
         label="Rôle",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -1002,6 +1008,15 @@ class MembreFermeForm(forms.Form):
         required=False,
         label="Autoriser à ajouter des membres",
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    date_expiration = forms.DateTimeField(
+        required=False,
+        label="Date d'expiration",
+        widget=forms.DateTimeInput(
+            attrs={'class': 'form-control', 'type': 'datetime-local'},
+            format='%Y-%m-%dT%H:%M'
+        ),
+        help_text="Optionnel. Pour les accès temporaires (consultant, invité)."
     )
 
     def __init__(self, *args, ferme=None, can_delegate_members=False, **kwargs):

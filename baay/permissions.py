@@ -7,10 +7,14 @@ ROLE_PROPRIETAIRE = 'proprietaire'
 ROLE_MANAGER = 'manager'
 ROLE_TECHNICIEN = 'technicien'
 ROLE_OUVRIER = 'ouvrier'
+ROLE_CONSULTANT = 'consultant'
+ROLE_INVITE = 'invite'
 
 ROLES_GESTION_PROJET = {ROLE_PROPRIETAIRE, ROLE_MANAGER}
 ROLES_TECHNIQUES = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN}
-ROLES_VISIBILITE_FERME = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_OUVRIER}
+ROLES_VISIBILITE_FERME = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_OUVRIER, ROLE_CONSULTANT, ROLE_INVITE}
+ROLES_LECTURE_FINANCE = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_CONSULTANT}
+ROLES_COMMENTAIRE = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_CONSULTANT}
 
 
 def role_dans_ferme(profile, ferme):
@@ -108,10 +112,12 @@ def peut_voir_semis(profile, projet_produit):
 
 def roles_assignables_par(role):
     return {
-        ROLE_PROPRIETAIRE: [ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_OUVRIER],
-        ROLE_MANAGER: [ROLE_TECHNICIEN, ROLE_OUVRIER],
+        ROLE_PROPRIETAIRE: [ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_OUVRIER, ROLE_CONSULTANT, ROLE_INVITE],
+        ROLE_MANAGER: [ROLE_TECHNICIEN, ROLE_OUVRIER, ROLE_CONSULTANT, ROLE_INVITE],
         ROLE_TECHNICIEN: [ROLE_OUVRIER],
         ROLE_OUVRIER: [],
+        ROLE_CONSULTANT: [],
+        ROLE_INVITE: [],
         None: [],
     }.get(role, [])
 
@@ -263,7 +269,6 @@ def projets_accessibles_kpi_roi_qs(profile, projets_qs):
     if user is not None and (user.is_superuser or user.is_staff):
         return projets_qs
     return projets_qs.filter(ferme__proprietaire=profile)
-    return bool(roles_assignables_par(role_dans_ferme(profile, ferme)))
 
 
 def peut_voir_tache(profile, tache):
@@ -320,3 +325,39 @@ def peut_supprimer_semis(profile, projet_produit):
     if projet_produit is None:
         return False
     return role_dans_ferme(profile, projet_produit.projet.ferme) == ROLE_PROPRIETAIRE
+
+
+def peut_voir_inventaire(profile, ferme):
+    """
+    Consulter l'inventaire d'une ferme : tous les rôles ayant visibilité sur la ferme.
+    """
+    if profile is None or ferme is None:
+        return False
+    return role_dans_ferme(profile, ferme) in ROLES_VISIBILITE_FERME
+
+
+def peut_modifier_inventaire(profile, ferme):
+    """
+    Modifier les stocks (ajout, ajustement, suppression) : propriétaire ou manager.
+    """
+    if profile is None or ferme is None:
+        return False
+    return role_dans_ferme(profile, ferme) in {ROLE_PROPRIETAIRE, ROLE_MANAGER}
+
+
+def peut_creer_note_agronomique(profile, projet):
+    """
+    Créer une note agronomique sur un projet : consultant + rôles de gestion.
+    """
+    if profile is None or projet is None:
+        return False
+    return role_dans_ferme(profile, projet.ferme) in ROLES_COMMENTAIRE
+
+
+def peut_voir_notes_agronomiques(profile, projet):
+    """
+    Voir les notes agronomiques d'un projet : tous ceux qui voient le projet.
+    """
+    if profile is None or projet is None:
+        return False
+    return peut_voir_projet(profile, projet)
