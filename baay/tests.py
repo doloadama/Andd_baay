@@ -617,8 +617,8 @@ class PermissionsRoleTests(TestCase):
         self.assertEqual(role_dans_ferme(self.ouvrier.profile, self.ferme), 'ouvrier')
 
     def test_permission_policy_assignable_roles(self):
-        self.assertEqual(roles_assignables_par('proprietaire'), ['manager', 'technicien', 'ouvrier'])
-        self.assertEqual(roles_assignables_par('manager'), ['technicien', 'ouvrier'])
+        self.assertEqual(roles_assignables_par('proprietaire'), ['manager', 'technicien', 'ouvrier', 'consultant', 'invite'])
+        self.assertEqual(roles_assignables_par('manager'), ['technicien', 'ouvrier', 'consultant', 'invite'])
         self.assertEqual(roles_assignables_par('technicien'), ['ouvrier'])
         self.assertEqual(roles_assignables_par('ouvrier'), [])
 

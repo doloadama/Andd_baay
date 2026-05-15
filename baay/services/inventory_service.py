@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, F, DecimalField
 
 from baay.models import (
     Ferme,
@@ -100,7 +100,7 @@ def stocks_en_alerte(ferme: Ferme) -> list[StockIntrant]:
     return list(
         StockIntrant.objects.filter(
             ferme=ferme,
-            quantite__lt=models.F("seuil_alerte"),
+            quantite__lt=F("seuil_alerte"),
         ).order_by("nom")
     )
 
@@ -114,9 +114,9 @@ def volume_total_recoltes(ferme: Ferme) -> Decimal:
     total = StockRecolte.objects.filter(ferme=ferme).aggregate(
         total=Sum(
             Case(
-                When(unite=StockRecolte.UNITE_TONNES, then=models.F("quantite") * 1000),
-                default=models.F("quantite"),
-                output_field=models.DecimalField(),
+                When(unite=StockRecolte.UNITE_TONNES, then=F("quantite") * 1000),
+                default=F("quantite"),
+                output_field=DecimalField(),
             )
         )
     )["total"]
