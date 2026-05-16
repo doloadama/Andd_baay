@@ -127,7 +127,7 @@ def generer_geojson_heatmap(
             "features": [],
             "metadata": {
                 "count": 0,
-                "generated_at": str(__import__('django.utils.timezone').now()),
+                "generated_at": str(__import__('django.utils', fromlist=['timezone']).timezone.now()),
             }
         }
 
@@ -165,7 +165,7 @@ def generer_geojson_heatmap(
                 "pays_id": pays_id,
                 "culture_type": culture_type,
             },
-            "generated_at": str(__import__('django.utils.timezone').now()),
+            "generated_at": str(__import__('django.utils', fromlist=['timezone']).timezone.now()),
             "disclaimer": "Données agrégées et anonymisées. Aucune ferme individuelle identifiable.",
         }
     }

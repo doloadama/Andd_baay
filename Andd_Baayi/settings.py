@@ -487,15 +487,15 @@ if IS_VERCEL or not DEBUG:
 # ============================================================
 
 # Account settings
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 # email* / username* / password* = champs obligatoires (remplace ACCOUNT_EMAIL_REQUIRED déprécié)
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 
 # Skip email verification for social logins (Google already verified the email)
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # Social account settings
 # GOOGLE_OAUTH_PROMPT :

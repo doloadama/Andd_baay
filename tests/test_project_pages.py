@@ -1,4 +1,5 @@
 import io
+from unittest.mock import patch
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -40,7 +41,8 @@ def test_modifier_semis_form_has_multipart_and_file_input(client_logged, projet_
 
 
 @pytest.mark.django_db
-def test_modifier_semis_can_post_with_image(client_logged, projet_produit, settings, tmp_path):
+@patch("baay.models.CloudinaryField.pre_save", return_value="fake_url")
+def test_modifier_semis_can_post_with_image(mock_cloudinary, client_logged, projet_produit, settings, tmp_path):
     """
     This is a lightweight integration check: the view accepts request.FILES and saves without crashing.
     Storage backend may vary (Cloudinary vs local), so we only assert the response + model update.
