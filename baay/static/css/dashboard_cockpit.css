@@ -100,12 +100,23 @@ body.dark-mode .cockpit-topbar {
     background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
     min-height: 96px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+}
+
+.cockpit-qcard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(8, 80, 65, 0.12);
 }
 
 body.dark-mode .cockpit-qcard {
     background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
     border-color: rgba(248, 250, 252, 0.14);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .cockpit-qcard:hover {
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+    border-color: rgba(93, 202, 165, 0.25);
 }
 
 .cockpit-qcard .cq-kicker {
@@ -139,7 +150,7 @@ body.dark-mode .cockpit-qcard .cq-value {
     font-size: 0.78rem;
     margin-top: 0.35rem;
     color: var(--cockpit-ink);
-    opacity: 0.65;
+    opacity: 0.85; /* Optimized for sunlight readability */
 }
 
 body.dark-mode .cockpit-qcard .cq-hint {
@@ -563,6 +574,12 @@ body.dark-mode .cockpit-chart-loading {
         linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.09);
     cursor: default;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+}
+
+.cockpit-project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(8, 80, 65, 0.14);
 }
 
 body.dark-mode .cockpit-project-card {
@@ -573,17 +590,32 @@ body.dark-mode .cockpit-project-card {
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
 }
 
+@keyframes cockpitStatusPulse {
+    0% { border-left-color: var(--cockpit-recette); }
+    50% { border-left-color: var(--cockpit-recette-bg); }
+    100% { border-left-color: var(--cockpit-recette); }
+}
+
 .status-ring-en_cours {
-    border-left: 6px solid var(--cockpit-orange);
+    border-left: 6px solid var(--cockpit-recette);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .status-ring-en_cours {
+        animation: cockpitStatusPulse 4s infinite ease-in-out;
+    }
 }
 
 .status-ring-en_pause {
-    border-left: 6px solid #d97706;
+    border-left: 6px solid var(--cockpit-orange);
 }
 
-.status-ring-fini,
+.status-ring-fini {
+    border-left: 6px solid #FFD700; /* Gold as per design.md */
+}
+
 .status-ring-cloture {
-    border-left: 6px solid var(--cockpit-recette);
+    border-left: 6px solid #94a3b8; /* Neutral gray as per design.md */
 }
 
 .cockpit-project-topline {

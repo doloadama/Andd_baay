@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
+{% load l10n %}
 {% load money %}
 {% block title %}Finance Hub — Gestion financière | Andd Baay{% endblock %}
 
-{% block extra_head %}
-<script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
-{% endblock %}
+{% block extra_head %}{% endblock %}
 
 {% block content %}
 <style>
@@ -110,7 +109,7 @@
 
 .fh-hero__subtitle {
     font-size: clamp(0.8125rem, 2.2vw, 0.9375rem);
-    opacity: 0.88;
+    opacity: 0.95; /* Increased for outdoor readability */
     max-width: min(36rem, 100%);
     line-height: 1.55;
 }
@@ -304,7 +303,7 @@
 
 .fh-stat-card__label {
     font-size: 11px;
-    opacity: 0.7;
+    opacity: 0.85; /* Optimized for high-glare environments */
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 2px;
@@ -470,6 +469,28 @@
     position: relative;
     min-height: 180px;
     max-width: 100%;
+}
+.fh-chart-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+    gap: 8px;
+    pointer-events: none;
+}
+.fh-chart-empty i {
+    font-size: 2rem;
+    opacity: 0.35;
+    color: var(--primary-green);
+}
+.fh-chart-wrap.is-empty canvas {
+    opacity: 0;
 }
 
 /* Transactions Section */
@@ -1077,12 +1098,9 @@
     font-weight: 400;
 }
 
-/* ─── Formulaires dépense / recette (tokens app + dark mode) ─── */
+/* ─── Formulaires dépense / recette ─── */
 .fh-forms-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin: 20px 16px 32px;
+    margin: clamp(12px, 2.5vw, 20px) clamp(8px, 2.5vw, 16px) clamp(20px, 3vw, 32px);
     --fh-form-surface: var(--card-bg-solid, #ffffff);
     --fh-form-border: var(--border-color, rgba(8, 80, 65, 0.1));
     --fh-form-muted: var(--text-muted, #5c5c57);
@@ -1093,12 +1111,43 @@
     --fh-form-radius-sm: var(--radius-input, 12px);
 }
 
-.fh-forms-section {
-    grid-template-columns: 1fr !important;
-}
-
 .dark-mode .fh-forms-section {
     --fh-form-surface: var(--card-bg-solid, #121c19);
+}
+
+.fh-forms-quick__intro {
+    margin-bottom: clamp(14px, 2.5vw, 20px);
+    padding: 0 4px;
+}
+
+.fh-forms-quick__intro h2 {
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: clamp(1.125rem, 2.8vw, 1.35rem);
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+}
+
+.fh-forms-quick__intro p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-width: 42rem;
+}
+
+.fh-forms-quick__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2.5vw, 22px);
+    align-items: start;
+}
+
+@media (min-width: 960px) {
+    .fh-forms-quick__grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .fh-form-card {
@@ -1109,45 +1158,76 @@
     border: 1px solid var(--fh-form-border);
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .fh-form-card--expense {
-    border-inline-start: 4px solid var(--fh-form-danger);
+    --fh-form-card-accent: var(--fh-form-danger);
 }
 
 .fh-form-card--income {
-    border-inline-start: 4px solid var(--fh-form-accent);
+    --fh-form-card-accent: var(--fh-form-accent);
 }
 
-.fh-form-card__header {
-    padding: 18px 22px;
-    display: flex;
-    align-items: flex-start;
+button.fh-form-card__header--toggle {
+    position: relative;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
     gap: 14px;
+    border: none;
     border-bottom: 1px solid var(--fh-form-border);
-    background: color-mix(in srgb, var(--fh-form-surface) 92%, var(--fh-form-danger) 8%);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--fh-form-surface) 88%, var(--fh-form-card-accent) 12%) 0%,
+        var(--fh-form-surface) 100%
+    );
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
 }
 
-.fh-form-card__header--income {
-    background: color-mix(in srgb, var(--fh-form-surface) 92%, var(--fh-form-accent) 8%);
+button.fh-form-card__header--toggle::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--fh-form-card-accent);
 }
 
-.fh-form-card__icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-sm, 10px);
+.fh-form-card__badge {
+    position: absolute;
+    top: 12px;
+    inset-inline-end: 44px;
+    font-size: 0.625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fh-form-card-accent) 14%, var(--fh-form-surface));
+    color: var(--fh-form-card-accent);
+    border: 1px solid color-mix(in srgb, var(--fh-form-card-accent) 28%, transparent);
+}
+
+.fh-form-card__icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     flex-shrink: 0;
-    background: var(--fh-form-surface);
-    border: 1px solid var(--fh-form-border);
-    color: var(--fh-form-danger);
-}
-
-.fh-form-card__header--income .fh-form-card__icon {
-    color: var(--fh-form-accent);
+    background: color-mix(in srgb, var(--fh-form-card-accent) 12%, var(--fh-form-surface));
+    color: var(--fh-form-card-accent);
+    border: 1px solid color-mix(in srgb, var(--fh-form-card-accent) 22%, var(--fh-form-border));
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--fh-form-card-accent) 12%, transparent);
 }
 
 .fh-form-card__title {
@@ -1173,36 +1253,86 @@
 }
 
 .fh-form-improved {
-    padding: 22px 22px 24px;
+    padding: 18px 18px 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 0;
+}
+
+@media (min-width: 640px) {
+    .fh-form-improved {
+        padding: 20px 22px 22px;
+    }
+}
+
+.fh-form-step {
+    margin-bottom: 1.125rem;
+    padding-bottom: 1.125rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--fh-form-border) 80%, transparent);
+}
+
+.fh-form-step:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.fh-form-step__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.fh-form-step__num {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    background: color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 12%, var(--fh-form-surface));
+    color: var(--fh-form-card-accent, var(--fh-form-accent));
+    border: 1px solid color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 25%, transparent);
+    flex-shrink: 0;
+}
+
+.fh-form-step__title {
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--fh-form-text);
+    letter-spacing: -0.01em;
+}
+
+.fh-form-step__hint {
+    font-size: 0.6875rem;
+    color: var(--fh-form-muted);
+    margin: -8px 0 12px 36px;
+    line-height: 1.4;
 }
 
 .fh-fieldset {
-    margin: 0 0 1.25rem;
+    margin: 0;
     padding: 0;
     border: none;
     min-width: 0;
 }
 
-.fh-fieldset:last-of-type {
-    margin-bottom: 0;
-}
-
 .fh-legend {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--fh-form-muted);
-    margin-bottom: 12px;
+    position: absolute;
+    width: 1px;
+    height: 1px;
     padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .fh-legend i {
@@ -1235,16 +1365,33 @@
     }
 }
 
-.fh-fieldset--panel {
-    background: var(--bg-secondary, rgba(29, 158, 117, 0.08));
-    border: 1px solid var(--fh-form-border);
+.fh-form-step--amount {
+    background: color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 5%, var(--fh-form-surface));
+    border: 1px solid color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 18%, var(--fh-form-border));
     border-radius: var(--fh-form-radius-sm);
-    padding: 16px 16px 18px;
-    margin-bottom: 1.25rem;
+    padding: 16px;
+    margin-bottom: 0;
+    border-bottom: none;
 }
 
-.dark-mode .fh-fieldset--panel {
-    background: color-mix(in srgb, var(--fh-form-surface) 96%, var(--fh-form-accent) 4%);
+.fh-form-formula {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--fh-form-muted);
+    margin: -4px 0 12px 36px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--fh-form-surface) 70%, var(--fh-form-card-accent, var(--fh-form-accent)) 30%);
+}
+
+.fh-form-formula span {
+    font-family: ui-monospace, monospace;
+    color: var(--fh-form-text);
+    opacity: 0.85;
 }
 
 .fh-form-group {
@@ -1350,19 +1497,28 @@ select.fh-form-control {
 .fh-form-total {
     border-radius: var(--fh-form-radius-sm);
     padding: 14px 16px;
-    margin-top: 14px;
+    margin-top: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-    border: 1px dashed color-mix(in srgb, var(--fh-form-danger) 45%, var(--fh-form-border));
-    background: color-mix(in srgb, var(--fh-form-danger) 6%, var(--fh-form-surface));
+    border: none;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-danger)) 14%, var(--fh-form-surface)),
+        color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-danger)) 6%, var(--fh-form-surface))
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-danger)) 22%, transparent);
 }
 
-.fh-form-total--income {
-    border-color: color-mix(in srgb, var(--fh-form-accent) 45%, var(--fh-form-border));
-    background: color-mix(in srgb, var(--fh-form-accent) 7%, var(--fh-form-surface));
+.fh-form-card--income .fh-form-total {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--fh-form-accent) 14%, var(--fh-form-surface)),
+        color-mix(in srgb, var(--fh-form-accent) 6%, var(--fh-form-surface))
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fh-form-accent) 22%, transparent);
 }
 
 .fh-form-total__label {
@@ -1372,15 +1528,12 @@ select.fh-form-control {
 }
 
 .fh-form-total__value {
-    font-size: 1.35rem;
+    font-size: clamp(1.2rem, 3vw, 1.4rem);
     font-weight: 800;
-    color: var(--fh-form-danger);
+    color: var(--fh-form-card-accent, var(--fh-form-danger));
     font-variant-numeric: tabular-nums;
-    font-family: ui-monospace, 'Cascadia Code', monospace;
-}
-
-.fh-form-total--income .fh-form-total__value {
-    color: var(--fh-form-accent);
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    letter-spacing: -0.02em;
 }
 
 .fh-form-actions {
@@ -1464,35 +1617,24 @@ select.fh-form-control {
     border: 1px solid color-mix(in srgb, var(--fh-form-danger) 35%, transparent);
 }
 
-/* ─── Formulaires sous filtres (repliables) ─── */
 .fh-forms-section--below-filters {
     margin-top: clamp(4px, 1.5vw, 12px);
-    margin-bottom: clamp(12px, 2.5vw, 20px);
 }
 
-/* Collapsible cards - each takes full width */
 .fh-form-card--collapsible {
     width: 100%;
-    max-width: 100%;
 }
 
 .fh-form-card__collapsible {
-    display: none;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.28s ease;
 }
 
 .fh-form-card--collapsible.is-open .fh-form-card__collapsible {
-    display: block;
-}
-
-button.fh-form-card__header--toggle {
-    font: inherit;
-    font-family: inherit;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: left;
-    margin: 0;
+    max-height: 4800px;
+    opacity: 1;
 }
 
 button.fh-form-card__header--toggle:focus-visible {
@@ -1500,47 +1642,56 @@ button.fh-form-card__header--toggle:focus-visible {
     outline-offset: -2px;
 }
 
-.fh-form-card--collapsible .fh-form-card__collapsible {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.42s ease;
-}
-
-.fh-form-card--collapsible.is-open .fh-form-card__collapsible {
-    max-height: 4200px;
-}
-
 .fh-form-card__chevron {
-    margin-left: auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    align-self: center;
+    justify-content: center;
     color: var(--fh-form-muted);
-    transition: transform 0.22s ease;
-    font-size: 0.75rem;
+    background: var(--fh-form-surface);
+    border: 1px solid var(--fh-form-border);
+    transition: transform 0.22s ease, background 0.2s ease;
+    font-size: 0.7rem;
 }
 
 .fh-form-card--collapsible.is-open .fh-form-card__chevron {
     transform: rotate(180deg);
+    background: color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 10%, var(--fh-form-surface));
+    color: var(--fh-form-card-accent, var(--fh-form-accent));
 }
 
-/* Mobile adjustments for quick forms */
+@media (min-width: 960px) {
+    .fh-form-card--collapsible.is-open-desktop .fh-form-card__collapsible {
+        max-height: 4800px;
+        opacity: 1;
+    }
+    .fh-form-card--collapsible.is-open-desktop .fh-form-card__chevron {
+        transform: rotate(180deg);
+    }
+}
+
 @media (max-width: 576px) {
     button.fh-form-card__header--toggle {
-        padding: 14px 16px;
-        gap: 12px;
+        padding: 14px 14px;
+        gap: 10px;
     }
-    .fh-form-card__title span {
-        font-size: 15px;
+    .fh-form-card__badge {
+        top: auto;
+        bottom: 10px;
+        inset-inline-end: 14px;
+        font-size: 0.5625rem;
     }
-    .fh-form-card__title small {
-        font-size: 11px;
+    .fh-form-card__icon-wrap {
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
     }
-    .fh-form-card__icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+    .fh-form-step__hint,
+    .fh-form-formula {
+        margin-left: 0;
     }
 }
 
@@ -1707,6 +1858,15 @@ button.fh-form-card__header--toggle:focus-visible {
     <!-- Filters Bar -->
     <form method="get" action="{% url 'finance_hub' %}" class="fh-filters-bar">
         <div class="fh-filter-group">
+            <label for="filt-ferme">Ferme</label>
+            <select name="ferme" id="filt-ferme" onchange="this.form.submit()">
+                <option value="">Toutes les fermes</option>
+                {% for f in filter_fermes %}
+                    <option value="{{ f.pk }}"{% if filter_ferme_id == f.pk|stringformat:"s" %} selected{% endif %}>{{ f.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="fh-filter-group">
             <label for="filt-projet">Projet</label>
             <select name="projet" id="filt-projet" onchange="this.form.submit()">
                 <option value="">Tous les projets</option>
@@ -1736,9 +1896,9 @@ button.fh-form-card__header--toggle:focus-visible {
         <div class="fh-filter-group">
             <label for="filt-annee">Année</label>
             <select name="annee" id="filt-annee" onchange="this.form.submit()">
-                <option value="">2026</option>
+                <option value=""{% if not filter_annee %} selected{% endif %}>Toutes les années</option>
                 {% for year in years %}
-                    <option value="{{ year }}">{{ year }}</option>
+                    <option value="{{ year }}"{% if filter_annee == year|stringformat:"s" %} selected{% endif %}>{{ year }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -1750,275 +1910,248 @@ button.fh-form-card__header--toggle:focus-visible {
         </a>
     </form>
 
-    <!-- Saisie dépense / recette (repliable, sous filtres) -->
-    <div class="fh-forms-section fh-forms-section--below-filters" id="financeQuickForms">
-                <div class="fh-form-card fh-form-card--expense fh-form-card--collapsible" id="financeCardDepense">
-                    <button type="button" class="fh-form-card__header fh-form-card__header--toggle" id="financeToggleDepense" aria-expanded="false" aria-controls="financePanelDepense" onclick="toggleFinanceQuickForm('depense')">
-                        <div class="fh-form-card__icon" aria-hidden="true">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <div class="fh-form-card__title">
-                            <span>Nouvelle dépense</span>
-                            <small>Investissement ou charge liée à un projet (montant = coût / ha × surface + autres frais).</small>
-                        </div>
-                        <span class="fh-form-card__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                    <div class="fh-form-card__collapsible" id="financePanelDepense">
+    <!-- Saisie dépense / recette -->
+    <section class="fh-forms-section fh-forms-section--below-filters" id="financeQuickForms" aria-labelledby="finance-quick-forms-title">
+        <header class="fh-forms-quick__intro">
+            <h2 id="finance-quick-forms-title">Saisie rapide</h2>
+            <p>Enregistrez une charge ou une vente en quelques champs — les totaux se calculent automatiquement.</p>
+        </header>
+
+        <div class="fh-forms-quick__grid">
+            <article class="fh-form-card fh-form-card--expense fh-form-card--collapsible" id="financeCardDepense">
+                <button type="button" class="fh-form-card__header fh-form-card__header--toggle" id="financeToggleDepense" aria-expanded="false" aria-controls="financePanelDepense" onclick="toggleFinanceQuickForm('depense')">
+                    <span class="fh-form-card__badge">Dépense</span>
+                    <span class="fh-form-card__icon-wrap" aria-hidden="true"><i class="fas fa-arrow-down"></i></span>
+                    <span class="fh-form-card__title">
+                        <span>Nouvelle dépense</span>
+                        <small>Coût / ha × surface du projet + autres frais</small>
+                    </span>
+                    <span class="fh-form-card__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div class="fh-form-card__collapsible" id="financePanelDepense">
                     <form id="formDepense" class="fh-form-improved" novalidate>
                         {% csrf_token %}
 
-                        <fieldset class="fh-fieldset">
-                            <legend class="fh-legend"><i class="fas fa-folder-open" aria-hidden="true"></i> Projet &amp; culture</legend>
-                            <div class="fh-form-grid fh-form-grid--2">
-                                <div class="fh-form-group">
-                                    <label for="depProjet">
-                                        <i class="fas fa-project-diagram" aria-hidden="true"></i> Projet <span class="text-danger">*</span>
-                                    </label>
-                                    <select name="projet" id="depProjet" class="fh-form-control" required aria-required="true">
-                                        <option value="">Choisir un projet…</option>
-                                        {% for p in filter_projets %}
-                                        <option value="{{ p.pk }}" data-surface="{{ p.superficie|default:0 }}">{{ p.nom }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <span class="fh-form-hint" id="dep-hint-projet">La dépense est rattachée à ce périmètre.</span>
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="depProduit">
-                                        <i class="fas fa-seedling" aria-hidden="true"></i> Culture (optionnel)
-                                    </label>
-                                    <select name="projet_produit" id="depProduit" class="fh-form-control" aria-describedby="dep-hint-culture">
-                                        <option value="">Toutes les cultures du projet</option>
-                                    </select>
-                                    <span class="fh-form-hint" id="dep-hint-culture">Affine la répartition si la charge concerne une culture précise.</span>
-                                </div>
+                        <div class="fh-form-step">
+                            <div class="fh-form-step__head">
+                                <span class="fh-form-step__num">1</span>
+                                <span class="fh-form-step__title">Contexte</span>
                             </div>
-                        </fieldset>
+                            <fieldset class="fh-fieldset">
+                                <legend>Projet et culture</legend>
+                                <div class="fh-form-grid fh-form-grid--2">
+                                    <div class="fh-form-group">
+                                        <label for="depProjet"><i class="fas fa-project-diagram" aria-hidden="true"></i> Projet <span class="text-danger">*</span></label>
+                                        <select name="projet" id="depProjet" class="fh-form-control" required aria-required="true">
+                                            <option value="">Choisir un projet…</option>
+                                            {% for p in filter_projets %}
+                                            <option value="{{ p.pk }}" data-surface="{{ p.superficie|default:0 }}">{{ p.nom }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <span class="fh-form-hint" id="dep-hint-projet">Rattachée au périmètre du projet.</span>
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="depProduit"><i class="fas fa-seedling" aria-hidden="true"></i> Culture <span class="fh-form-hint">(opt.)</span></label>
+                                        <select name="projet_produit" id="depProduit" class="fh-form-control" aria-describedby="dep-hint-culture">
+                                            <option value="">Toutes les cultures</option>
+                                        </select>
+                                        <span class="fh-form-hint" id="dep-hint-culture">Pour une charge spécifique à une culture.</span>
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="depDate"><i class="fas fa-calendar-day" aria-hidden="true"></i> Date</label>
+                                        <input type="date" name="date_investissement" id="depDate" class="fh-form-control" value="{% now 'Y-m-d' %}">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
 
-                        <fieldset class="fh-fieldset">
-                            <legend class="fh-legend"><i class="fas fa-info-circle" aria-hidden="true"></i> Libellé &amp; catégorie</legend>
-                            <div class="fh-form-grid fh-form-grid--2">
-                                <div class="fh-form-group fh-form-group--wide">
-                                    <label for="depLibelle">
-                                        <i class="fas fa-tag" aria-hidden="true"></i> Libellé <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" id="depLibelle" name="libelle" class="fh-form-control" autocomplete="off"
-                                           placeholder="Ex. Engrais NPK, rémunération équipe, transport…" required aria-required="true" maxlength="500">
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="depCategorie">
-                                        <i class="fas fa-layer-group" aria-hidden="true"></i> Catégorie
-                                    </label>
-                                    <select name="categorie" id="depCategorie" class="fh-form-control">
-                                        <option value="general">Général</option>
-                                        <option value="intrant">Intrants (engrais, semences)</option>
-                                        <option value="main_oeuvre">Main d'œuvre</option>
-                                        <option value="transport">Transport</option>
-                                        <option value="irrigation">Irrigation</option>
-                                        <option value="materiel">Matériel</option>
-                                    </select>
-                                </div>
+                        <div class="fh-form-step">
+                            <div class="fh-form-step__head">
+                                <span class="fh-form-step__num">2</span>
+                                <span class="fh-form-step__title">Détails</span>
                             </div>
-                        </fieldset>
+                            <fieldset class="fh-fieldset">
+                                <legend>Libellé et catégorie</legend>
+                                <div class="fh-form-grid fh-form-grid--2">
+                                    <div class="fh-form-group fh-form-group--wide">
+                                        <label for="depLibelle"><i class="fas fa-tag" aria-hidden="true"></i> Libellé <span class="text-danger">*</span></label>
+                                        <input type="text" id="depLibelle" name="libelle" class="fh-form-control" autocomplete="off" placeholder="Ex. Engrais NPK, transport…" required aria-required="true" maxlength="500">
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="depCategorie"><i class="fas fa-layer-group" aria-hidden="true"></i> Catégorie</label>
+                                        <select name="categorie" id="depCategorie" class="fh-form-control">
+                                            <option value="general">Général</option>
+                                            <option value="intrant">Intrants</option>
+                                            <option value="main_oeuvre">Main d'œuvre</option>
+                                            <option value="transport">Transport</option>
+                                            <option value="irrigation">Irrigation</option>
+                                            <option value="materiel">Matériel</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
 
-                        <fieldset class="fh-fieldset fh-fieldset--panel fh-fieldset--amounts">
-                            <legend class="fh-legend"><i class="fas fa-calculator" aria-hidden="true"></i> Montant</legend>
-                            <div class="fh-form-grid fh-form-grid--3">
-                                <div class="fh-form-group">
-                                    <label for="depCoutHa">
-                                        <i class="fas fa-coins" aria-hidden="true"></i> Coût / ha <span class="text-danger">*</span>
-                                        <span class="fh-form-unit">FCFA</span>
-                                    </label>
-                                    <input type="number" id="depCoutHa" name="cout_par_hectare" class="fh-form-control fh-form-control--number" inputmode="decimal"
-                                           placeholder="0" min="0" step="0.01" required aria-required="true" oninput="calculerTotalDepense()">
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="depSurface">
-                                        <i class="fas fa-map" aria-hidden="true"></i> Surface
-                                        <span class="fh-form-unit">ha</span>
-                                    </label>
-                                    <input type="number" id="depSurface" class="fh-form-control fh-form-control--number fh-form-control--readonly"
-                                           value="0" readonly tabindex="-1" aria-live="polite" title="Surface du projet sélectionné">
-                                    <span class="fh-form-hint">Renseignée automatiquement à partir du projet.</span>
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="depAutresFrais">
-                                        <i class="fas fa-plus" aria-hidden="true"></i> Autres frais
-                                        <span class="fh-form-unit">FCFA</span>
-                                    </label>
-                                    <input type="number" id="depAutresFrais" name="autres_frais" class="fh-form-control fh-form-control--number" inputmode="decimal"
-                                           placeholder="0" min="0" step="0.01" value="0" oninput="calculerTotalDepense()">
-                                </div>
+                        <div class="fh-form-step fh-form-step--amount">
+                            <div class="fh-form-step__head">
+                                <span class="fh-form-step__num">3</span>
+                                <span class="fh-form-step__title">Montant</span>
                             </div>
-                            <div class="fh-form-total" role="status" aria-live="polite">
-                                <span class="fh-form-total__label">Total estimé</span>
-                                <span class="fh-form-total__value" id="depTotalDisplay">0 FCFA</span>
-                            </div>
-                        </fieldset>
-
-                        <fieldset class="fh-fieldset">
-                            <legend class="fh-legend"><i class="fas fa-calendar" aria-hidden="true"></i> Date</legend>
-                            <div class="fh-form-grid fh-form-grid--2">
-                                <div class="fh-form-group">
-                                    <label for="depDate">
-                                        <i class="fas fa-calendar-day" aria-hidden="true"></i> Date de la dépense
-                                    </label>
-                                    <input type="date" name="date_investissement" id="depDate" class="fh-form-control"
-                                           value="{% now 'Y-m-d' %}">
+                            <p class="fh-form-formula" aria-hidden="true">
+                                <span>(coût / ha)</span> × <span>surface</span> + <span>autres frais</span>
+                            </p>
+                            <fieldset class="fh-fieldset fh-fieldset--amounts">
+                                <legend>Montant</legend>
+                                <div class="fh-form-grid fh-form-grid--3">
+                                    <div class="fh-form-group">
+                                        <label for="depCoutHa"><i class="fas fa-coins" aria-hidden="true"></i> Coût / ha <span class="text-danger">*</span><span class="fh-form-unit">FCFA</span></label>
+                                        <input type="number" id="depCoutHa" name="cout_par_hectare" class="fh-form-control fh-form-control--number" inputmode="decimal" placeholder="0" min="0" step="0.01" required aria-required="true" oninput="calculerTotalDepense()">
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="depSurface"><i class="fas fa-map" aria-hidden="true"></i> Surface<span class="fh-form-unit">ha</span></label>
+                                        <input type="number" id="depSurface" class="fh-form-control fh-form-control--number fh-form-control--readonly" value="0" readonly tabindex="-1" aria-live="polite" title="Surface du projet">
+                                        <span class="fh-form-hint">Auto. depuis le projet</span>
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="depAutresFrais"><i class="fas fa-plus" aria-hidden="true"></i> Autres frais<span class="fh-form-unit">FCFA</span></label>
+                                        <input type="number" id="depAutresFrais" name="autres_frais" class="fh-form-control fh-form-control--number" inputmode="decimal" placeholder="0" min="0" step="0.01" value="0" oninput="calculerTotalDepense()">
+                                    </div>
                                 </div>
-                            </div>
-                        </fieldset>
+                                <div class="fh-form-total" role="status" aria-live="polite">
+                                    <span class="fh-form-total__label">Total estimé</span>
+                                    <span class="fh-form-total__value" id="depTotalDisplay">0 FCFA</span>
+                                </div>
+                            </fieldset>
+                        </div>
 
                         <div class="fh-form-actions">
                             <button type="button" id="btnSubmitDepense" class="fh-btn fh-btn--primary fh-btn--large" onclick="submitDepense()">
                                 <span class="fh-btn__icon"><i class="fas fa-check" aria-hidden="true"></i></span>
                                 <span class="fh-btn__text">Enregistrer la dépense</span>
-                                <span class="fh-btn__loader d-none" aria-hidden="true">
-                                    <i class="fas fa-spinner fa-spin"></i> Enregistrement…
-                                </span>
+                                <span class="fh-btn__loader d-none" aria-hidden="true"><i class="fas fa-spinner fa-spin"></i></span>
                             </button>
-                            <button type="button" class="fh-btn fh-btn--secondary" onclick="resetForm('formDepense')">
-                                <i class="fas fa-undo" aria-hidden="true"></i> Effacer
-                            </button>
+                            <button type="button" class="fh-btn fh-btn--secondary" onclick="resetForm('formDepense')"><i class="fas fa-undo" aria-hidden="true"></i> Effacer</button>
                         </div>
-
                         <div id="depenseAlert" class="fh-alert fh-alert--inline d-none" role="alert"></div>
                     </form>
-                    </div>
                 </div>
+            </article>
 
-                <div class="fh-form-card fh-form-card--income fh-form-card--collapsible" id="financeCardRecette">
-                    <button type="button" class="fh-form-card__header fh-form-card__header--income fh-form-card__header--toggle" id="financeToggleRecette" aria-expanded="false" aria-controls="financePanelRecette" onclick="toggleFinanceQuickForm('recette')">
-                        <div class="fh-form-card__icon" aria-hidden="true">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                        <div class="fh-form-card__title">
-                            <span>Nouvelle recette</span>
-                            <small>Vente ou revenu : le total = quantité × prix unitaire (selon l'unité choisie).</small>
-                        </div>
-                        <span class="fh-form-card__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                    <div class="fh-form-card__collapsible" id="financePanelRecette">
+            <article class="fh-form-card fh-form-card--income fh-form-card--collapsible" id="financeCardRecette">
+                <button type="button" class="fh-form-card__header fh-form-card__header--toggle" id="financeToggleRecette" aria-expanded="false" aria-controls="financePanelRecette" onclick="toggleFinanceQuickForm('recette')">
+                    <span class="fh-form-card__badge">Recette</span>
+                    <span class="fh-form-card__icon-wrap" aria-hidden="true"><i class="fas fa-arrow-up"></i></span>
+                    <span class="fh-form-card__title">
+                        <span>Nouvelle recette</span>
+                        <small>Quantité × prix unitaire selon l'unité choisie</small>
+                    </span>
+                    <span class="fh-form-card__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div class="fh-form-card__collapsible" id="financePanelRecette">
                     <form id="formRecette" class="fh-form-improved" novalidate>
                         {% csrf_token %}
 
-                        <fieldset class="fh-fieldset">
-                            <legend class="fh-legend"><i class="fas fa-folder-open" aria-hidden="true"></i> Projet &amp; culture</legend>
-                            <div class="fh-form-grid fh-form-grid--2">
-                                <div class="fh-form-group">
-                                    <label for="recProjet">
-                                        <i class="fas fa-project-diagram" aria-hidden="true"></i> Projet <span class="text-danger">*</span>
-                                    </label>
-                                    <select name="projet" id="recProjet" class="fh-form-control" required aria-required="true">
-                                        <option value="">Choisir un projet…</option>
-                                        {% for p in filter_projets %}
-                                        <option value="{{ p.pk }}">{{ p.nom }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="recProduit">
-                                        <i class="fas fa-seedling" aria-hidden="true"></i> Culture (optionnel)
-                                    </label>
-                                    <select name="projet_produit" id="recProduit" class="fh-form-control" aria-describedby="rec-hint-culture">
-                                        <option value="">Toutes les cultures du projet</option>
-                                    </select>
-                                    <span class="fh-form-hint" id="rec-hint-culture">Lie la vente à une ligne culture du projet si besoin.</span>
-                                </div>
+                        <div class="fh-form-step">
+                            <div class="fh-form-step__head">
+                                <span class="fh-form-step__num">1</span>
+                                <span class="fh-form-step__title">Contexte</span>
                             </div>
-                        </fieldset>
+                            <fieldset class="fh-fieldset">
+                                <legend>Projet et culture</legend>
+                                <div class="fh-form-grid fh-form-grid--2">
+                                    <div class="fh-form-group">
+                                        <label for="recProjet"><i class="fas fa-project-diagram" aria-hidden="true"></i> Projet <span class="text-danger">*</span></label>
+                                        <select name="projet" id="recProjet" class="fh-form-control" required aria-required="true">
+                                            <option value="">Choisir un projet…</option>
+                                            {% for p in filter_projets %}
+                                            <option value="{{ p.pk }}">{{ p.nom }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="recProduit"><i class="fas fa-seedling" aria-hidden="true"></i> Culture <span class="fh-form-hint">(opt.)</span></label>
+                                        <select name="projet_produit" id="recProduit" class="fh-form-control" aria-describedby="rec-hint-culture">
+                                            <option value="">Toutes les cultures</option>
+                                        </select>
+                                        <span class="fh-form-hint" id="rec-hint-culture">Lie la vente à une ligne culture.</span>
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="recDate"><i class="fas fa-calendar-check" aria-hidden="true"></i> Date de vente</label>
+                                        <input type="date" name="date_vente" id="recDate" class="fh-form-control" value="{% now 'Y-m-d' %}">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
 
-                        <fieldset class="fh-fieldset">
-                            <legend class="fh-legend"><i class="fas fa-box" aria-hidden="true"></i> Produit vendu</legend>
-                            <div class="fh-form-grid fh-form-grid--2">
+                        <div class="fh-form-step">
+                            <div class="fh-form-step__head">
+                                <span class="fh-form-step__num">2</span>
+                                <span class="fh-form-step__title">Produit</span>
+                            </div>
+                            <fieldset class="fh-fieldset">
+                                <legend>Produit vendu</legend>
                                 <div class="fh-form-group fh-form-group--wide">
-                                    <label for="recProduitNom">
-                                        <i class="fas fa-box" aria-hidden="true"></i> Désignation du produit <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" id="recProduitNom" name="produit" class="fh-form-control" autocomplete="off"
-                                           placeholder="Ex. Mil, maïs, arachide…" required aria-required="true" list="produitsSuggeres" maxlength="200">
+                                    <label for="recProduitNom"><i class="fas fa-box" aria-hidden="true"></i> Désignation <span class="text-danger">*</span></label>
+                                    <input type="text" id="recProduitNom" name="produit" class="fh-form-control" autocomplete="off" placeholder="Ex. Mil, arachide, maïs…" required aria-required="true" list="produitsSuggeres" maxlength="200">
                                     <datalist id="produitsSuggeres">
-                                        <option value="Mil">
-                                        <option value="Maïs">
-                                        <option value="Sorgho">
-                                        <option value="Arachide">
-                                        <option value="Niébé">
-                                        <option value="Sésame">
-                                        <option value="Coton">
-                                        <option value="Riz">
-                                        <option value="Manioc">
-                                        <option value="Patate">
+                                        <option value="Mil"><option value="Maïs"><option value="Sorgho"><option value="Arachide">
+                                        <option value="Niébé"><option value="Sésame"><option value="Coton"><option value="Riz">
+                                        <option value="Manioc"><option value="Patate">
                                     </datalist>
                                 </div>
-                            </div>
-                        </fieldset>
+                            </fieldset>
+                        </div>
 
-                        <fieldset class="fh-fieldset fh-fieldset--panel">
-                            <legend class="fh-legend"><i class="fas fa-scale-balanced" aria-hidden="true"></i> Quantité &amp; prix</legend>
-                            <div class="fh-form-grid fh-form-grid--3">
-                                <div class="fh-form-group">
-                                    <label for="recQuantite">
-                                        <i class="fas fa-weight-hanging" aria-hidden="true"></i> Quantité <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="number" id="recQuantite" name="quantite" class="fh-form-control fh-form-control--number" inputmode="decimal"
-                                           placeholder="0" min="0.01" step="0.01" required aria-required="true" oninput="calculerTotalRecette()">
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="recUnite">
-                                        <i class="fas fa-ruler-combined" aria-hidden="true"></i> Unité
-                                    </label>
-                                    <select name="unite" id="recUnite" class="fh-form-control" onchange="calculerTotalRecette()">
-                                        <option value="kg">Kilogramme (kg)</option>
-                                        <option value="tonne">Tonne</option>
-                                        <option value="sac">Sac (réf. 50–100 kg)</option>
-                                    </select>
-                                </div>
-                                <div class="fh-form-group">
-                                    <label for="recPrixUnitaire">
-                                        <i class="fas fa-tag" aria-hidden="true"></i> Prix unitaire <span class="text-danger">*</span>
-                                        <span class="fh-form-unit" id="recPrixUnitaireUnit">FCFA / kg</span>
-                                    </label>
-                                    <input type="number" id="recPrixUnitaire" name="prix_unitaire" class="fh-form-control fh-form-control--number" inputmode="decimal"
-                                           placeholder="0" min="0" step="0.01" required aria-required="true" oninput="calculerTotalRecette()">
-                                    <span class="fh-form-hint">Prix pour une <span id="uniteHint">kg</span> (selon l'unité).</span>
-                                </div>
+                        <div class="fh-form-step fh-form-step--amount">
+                            <div class="fh-form-step__head">
+                                <span class="fh-form-step__num">3</span>
+                                <span class="fh-form-step__title">Vente</span>
                             </div>
-                            <div class="fh-form-total fh-form-total--income" role="status" aria-live="polite">
-                                <span class="fh-form-total__label">Total vente</span>
-                                <span class="fh-form-total__value" id="recTotalDisplay">0 FCFA</span>
-                            </div>
-                        </fieldset>
-
-                        <fieldset class="fh-fieldset">
-                            <legend class="fh-legend"><i class="fas fa-calendar" aria-hidden="true"></i> Date</legend>
-                            <div class="fh-form-grid fh-form-grid--2">
-                                <div class="fh-form-group">
-                                    <label for="recDate">
-                                        <i class="fas fa-calendar-check" aria-hidden="true"></i> Date de vente
-                                    </label>
-                                    <input type="date" name="date_vente" id="recDate" class="fh-form-control"
-                                           value="{% now 'Y-m-d' %}">
+                            <p class="fh-form-formula" aria-hidden="true">
+                                <span>quantité</span> × <span>prix unitaire</span>
+                            </p>
+                            <fieldset class="fh-fieldset">
+                                <legend>Quantité et prix</legend>
+                                <div class="fh-form-grid fh-form-grid--3">
+                                    <div class="fh-form-group">
+                                        <label for="recQuantite"><i class="fas fa-weight-hanging" aria-hidden="true"></i> Quantité <span class="text-danger">*</span></label>
+                                        <input type="number" id="recQuantite" name="quantite" class="fh-form-control fh-form-control--number" inputmode="decimal" placeholder="0" min="0.01" step="0.01" required aria-required="true" oninput="calculerTotalRecette()">
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="recUnite"><i class="fas fa-ruler-combined" aria-hidden="true"></i> Unité</label>
+                                        <select name="unite" id="recUnite" class="fh-form-control" onchange="calculerTotalRecette()">
+                                            <option value="kg">Kilogramme (kg)</option>
+                                            <option value="tonne">Tonne</option>
+                                            <option value="sac">Sac</option>
+                                        </select>
+                                    </div>
+                                    <div class="fh-form-group">
+                                        <label for="recPrixUnitaire"><i class="fas fa-tag" aria-hidden="true"></i> Prix unitaire <span class="text-danger">*</span><span class="fh-form-unit" id="recPrixUnitaireUnit">FCFA / kg</span></label>
+                                        <input type="number" id="recPrixUnitaire" name="prix_unitaire" class="fh-form-control fh-form-control--number" inputmode="decimal" placeholder="0" min="0" step="0.01" required aria-required="true" oninput="calculerTotalRecette()">
+                                        <span class="fh-form-hint">Prix pour une <span id="uniteHint">kg</span></span>
+                                    </div>
                                 </div>
-                            </div>
-                        </fieldset>
+                                <div class="fh-form-total" role="status" aria-live="polite">
+                                    <span class="fh-form-total__label">Total vente</span>
+                                    <span class="fh-form-total__value" id="recTotalDisplay">0 FCFA</span>
+                                </div>
+                            </fieldset>
+                        </div>
 
                         <div class="fh-form-actions">
                             <button type="button" id="btnSubmitRecette" class="fh-btn fh-btn--success fh-btn--large" onclick="submitRecette()">
                                 <span class="fh-btn__icon"><i class="fas fa-check" aria-hidden="true"></i></span>
                                 <span class="fh-btn__text">Enregistrer la recette</span>
-                                <span class="fh-btn__loader d-none" aria-hidden="true">
-                                    <i class="fas fa-spinner fa-spin"></i> Enregistrement…
-                                </span>
+                                <span class="fh-btn__loader d-none" aria-hidden="true"><i class="fas fa-spinner fa-spin"></i></span>
                             </button>
-                            <button type="button" class="fh-btn fh-btn--secondary" onclick="resetForm('formRecette')">
-                                <i class="fas fa-undo" aria-hidden="true"></i> Effacer
-                            </button>
+                            <button type="button" class="fh-btn fh-btn--secondary" onclick="resetForm('formRecette')"><i class="fas fa-undo" aria-hidden="true"></i> Effacer</button>
                         </div>
-
                         <div id="recetteAlert" class="fh-alert fh-alert--inline d-none" role="alert"></div>
                     </form>
-                    </div>
                 </div>
-            </div>
+            </article>
+        </div>
+    </section>
 
     <!-- Charts Section -->
     <div class="fh-charts-section">
@@ -2028,10 +2161,14 @@ button.fh-form-card__header--toggle:focus-visible {
                     <i class="fas fa-chart-pie"></i>
                     Répartition Dépenses
                 </div>
-                <span class="fh-chart-card__badge">{{ depenses|length }} transactions</span>
+                <span class="fh-chart-card__badge">{{ count_filtre|default:0 }} ligne{{ count_filtre|pluralize }}</span>
             </div>
-            <div class="fh-chart-wrap">
-                <canvas id="expensesChart"></canvas>
+            <div class="fh-chart-wrap{% if not chart_expenses %} is-empty{% endif %}" id="expensesChartWrap">
+                <canvas id="expensesChart" role="img" aria-label="Répartition des dépenses par catégorie"></canvas>
+                <div class="fh-chart-empty" id="expensesChartEmpty"{% if chart_expenses %} hidden{% endif %}>
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Aucune dépense pour afficher ce graphique.</span>
+                </div>
             </div>
         </div>
 
@@ -2041,10 +2178,10 @@ button.fh-form-card__header--toggle:focus-visible {
                     <i class="fas fa-chart-bar"></i>
                     Évolution Mensuelle
                 </div>
-                <span class="fh-chart-card__badge">2026</span>
+                <span class="fh-chart-card__badge">{{ chart_year }}</span>
             </div>
-            <div class="fh-chart-wrap">
-                <canvas id="monthlyChart"></canvas>
+            <div class="fh-chart-wrap" id="monthlyChartWrap">
+                <canvas id="monthlyChart" role="img" aria-label="Recettes et dépenses par mois"></canvas>
             </div>
         </div>
     </div>
@@ -2209,18 +2346,13 @@ button.fh-form-card__header--toggle:focus-visible {
 
 </div>
 
+{{ chart_expenses|json_script:"fh-chart-expenses-data" }}
+{{ chart_monthly|json_script:"fh-chart-monthly-data" }}
+<script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
 <script>
 // Data from Django
-const totalDepenses = {{ total_depenses|default:0 }};
-const totalRecettes = {{ total_recettes|default:0 }};
-const depensesData = [
-    {% for d in depenses %}
-    {
-        label: "{{ d.libelle_affichage|escapejs|truncatechars:20 }}",
-        amount: {{ d.calculer_investissement_total|default:0 }}
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-];
+const totalDepenses = {{ total_depenses|default:0|unlocalize }};
+const totalRecettes = {{ total_recettes|default:0|unlocalize }};
 
 // Format FCFA
 function formatFCFA(amount) {
@@ -2236,7 +2368,9 @@ function toggleFinanceQuickForm(which) {
     if (!card) return;
 
     const opening = !card.classList.contains('is-open');
-    if (opening && other && other.classList.contains('is-open')) {
+    const isDesktop = window.matchMedia('(min-width: 960px)').matches;
+
+    if (opening && !isDesktop && other && other.classList.contains('is-open')) {
         other.classList.remove('is-open');
         const ob = other.querySelector('.fh-form-card__header--toggle');
         if (ob) ob.setAttribute('aria-expanded', 'false');
@@ -2248,6 +2382,27 @@ function toggleFinanceQuickForm(which) {
 
     if (opening && window.matchMedia('(max-width: 719px)').matches) {
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function initFinanceQuickFormsLayout() {
+    const mq = window.matchMedia('(min-width: 960px)');
+    function applyDesktop(wide) {
+        ['financeCardDepense', 'financeCardRecette'].forEach(function (id) {
+            const card = document.getElementById(id);
+            if (!card) return;
+            const btn = card.querySelector('.fh-form-card__header--toggle');
+            if (wide) {
+                card.classList.add('is-open', 'is-open-desktop');
+                if (btn) btn.setAttribute('aria-expanded', 'true');
+            } else {
+                card.classList.remove('is-open-desktop');
+            }
+        });
+    }
+    applyDesktop(mq.matches);
+    if (mq.addEventListener) {
+        mq.addEventListener('change', function (e) { applyDesktop(e.matches); });
     }
 }
 
@@ -2372,24 +2527,37 @@ function calculerTotalRecette() {
 }
 
 // Update surface when project is selected
-document.getElementById('depProjet').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const surface = selectedOption.dataset.surface || 0;
-    document.getElementById('depSurface').value = surface;
-    calculerTotalDepense();
-});
-
 function updateRecettePrixUnitLabel() {
-    const unite = document.getElementById('recUnite').value;
+    const uniteEl = document.getElementById('recUnite');
+    if (!uniteEl) return;
+    const unite = uniteEl.value;
     const unitText = unite === 'sac' ? 'sac' : unite;
     const el = document.getElementById('recPrixUnitaireUnit');
     if (el) el.textContent = 'FCFA / ' + unitText;
+    const hint = document.getElementById('uniteHint');
+    if (hint) hint.textContent = unitText;
 }
 
-document.getElementById('recUnite').addEventListener('change', function() {
-    updateRecettePrixUnitLabel();
-    calculerTotalRecette();
-});
+(function bindDepenseProjetSurface() {
+    const depProjet = document.getElementById('depProjet');
+    if (!depProjet) return;
+    depProjet.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const surface = selectedOption.dataset.surface || 0;
+        const depSurface = document.getElementById('depSurface');
+        if (depSurface) depSurface.value = surface;
+        calculerTotalDepense();
+    });
+})();
+
+(function bindRecetteUnite() {
+    const recUnite = document.getElementById('recUnite');
+    if (!recUnite) return;
+    recUnite.addEventListener('change', function() {
+        updateRecettePrixUnitLabel();
+        calculerTotalRecette();
+    });
+})();
 
 // Reset form function
 function resetForm(formId) {
@@ -2426,29 +2594,43 @@ function setButtonLoading(btnId, loading) {
     }
 }
 
-// Initialize Charts
-document.addEventListener('DOMContentLoaded', function() {
-    updateROI();
-    
-    // Expenses Pie Chart
+function readJsonScript(id, fallback) {
+    const el = document.getElementById(id);
+    if (!el || !el.textContent) return fallback;
+    try {
+        return JSON.parse(el.textContent);
+    } catch (e) {
+        console.warn('Finance Hub: invalid chart JSON', id, e);
+        return fallback;
+    }
+}
+
+function initFinanceCharts() {
+    if (typeof Chart === 'undefined') {
+        console.warn('Finance Hub: Chart.js not loaded');
+        return;
+    }
+
+    const pieColors = ['#1D9E75', '#5DCAA5', '#9FE1CB', '#085041', '#EF9F27', '#94a3b8'];
+    const expensesByCategory = readJsonScript('fh-chart-expenses-data', []);
+    const monthly = readJsonScript('fh-chart-monthly-data', { recettes: [], depenses: [] });
+    const monthLabels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+
     const expensesCtx = document.getElementById('expensesChart');
-    if (expensesCtx && depensesData.length > 0) {
-        const labels = depensesData.slice(0, 5).map(d => d.label);
-        const data = depensesData.slice(0, 5).map(d => d.amount);
-        
+    const expensesEmpty = document.getElementById('expensesChartEmpty');
+    const expensesWrap = document.getElementById('expensesChartWrap');
+    if (expensesCtx && expensesByCategory.length > 0) {
+        if (expensesEmpty) expensesEmpty.hidden = true;
+        if (expensesWrap) expensesWrap.classList.remove('is-empty');
         new Chart(expensesCtx, {
             type: 'doughnut',
             data: {
-                labels: labels,
+                labels: expensesByCategory.map(function (d) { return d.label; }),
                 datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        '#1D9E75',
-                        '#5DCAA5',
-                        '#9FE1CB',
-                        'rgba(29, 158, 117, 0.5)',
-                        'rgba(29, 158, 117, 0.3)'
-                    ],
+                    data: expensesByCategory.map(function (d) { return d.amount; }),
+                    backgroundColor: expensesByCategory.map(function (_, i) {
+                        return pieColors[i % pieColors.length];
+                    }),
                     borderWidth: 0
                 }]
             },
@@ -2457,34 +2639,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'right',
-                        labels: {
-                            boxWidth: 12,
-                            font: { size: 11 }
-                        }
+                        position: window.matchMedia('(max-width: 576px)').matches ? 'bottom' : 'right',
+                        labels: { boxWidth: 12, font: { size: 11 } }
                     }
                 }
             }
         });
+    } else if (expensesWrap) {
+        expensesWrap.classList.add('is-empty');
+        if (expensesEmpty) expensesEmpty.hidden = false;
     }
-    
-    // Monthly Bar Chart
+
     const monthlyCtx = document.getElementById('monthlyChart');
     if (monthlyCtx) {
+        const recettes = monthly.recettes || [];
+        const depenses = monthly.depenses || [];
         new Chart(monthlyCtx, {
             type: 'bar',
             data: {
-                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'],
+                labels: monthLabels,
                 datasets: [
                     {
                         label: 'Recettes',
-                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        data: recettes,
                         backgroundColor: '#1D9E75',
                         borderRadius: 4
                     },
                     {
                         label: 'Dépenses',
-                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        data: depenses,
                         backgroundColor: '#ef4444',
                         borderRadius: 4
                     }
@@ -2503,9 +2686,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: function(value) {
-                                return value >= 1000000 ? (value/1000000).toFixed(1) + 'M' : 
-                                       value >= 1000 ? (value/1000).toFixed(0) + 'k' : value;
+                            callback: function (value) {
+                                return value >= 1000000 ? (value / 1000000).toFixed(1) + 'M'
+                                    : value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value;
                             }
                         }
                     }
@@ -2513,14 +2696,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+}
 
-    // Load cultures when project is selected in modals
-    document.getElementById('depProjet').addEventListener('change', function() {
-        loadProduits(this.value, 'depProduit');
-    });
-    document.getElementById('recProjet').addEventListener('change', function() {
-        loadProduits(this.value, 'recProduit');
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    updateROI();
+    initFinanceQuickFormsLayout();
+    initFinanceCharts();
+
+    const depProjet = document.getElementById('depProjet');
+    if (depProjet) {
+        depProjet.addEventListener('change', function() {
+            loadProduits(this.value, 'depProduit');
+        });
+    }
+    const recProjet = document.getElementById('recProjet');
+    if (recProjet) {
+        recProjet.addEventListener('change', function() {
+            loadProduits(this.value, 'recProduit');
+        });
+    }
     updateRecettePrixUnitLabel();
 });
 
@@ -2596,11 +2790,21 @@ function submitDepense() {
             alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
             alert.classList.remove('d-none');
             
-            // Reset form and totals
-            resetForm('formDepense');
+            // Reset form fields but keep the alert visible
+            document.getElementById('formDepense').reset();
+            document.getElementById('depSurface').value = 0;
+            document.getElementById('depTotalDisplay').textContent = '0 FCFA';
             
-            // Reload page after short delay
-            setTimeout(() => window.location.reload(), 1500);
+            // SPA-like update: close form and show success
+            setTimeout(() => {
+                toggleFinanceQuickForm('depense');
+                alert.classList.add('d-none');
+                // Note: In a full HTMX implementation we would swap the list,
+                // for now we notify the user that the entry is recorded.
+                if (typeof showToast === 'function') {
+                    showToast(result.message, 'success');
+                }
+            }, 2000);
         } else {
             alert.className = 'fh-alert error';
             alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (result.error || 'Erreur lors de l\'enregistrement');
@@ -2656,11 +2860,20 @@ function submitRecette() {
             alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
             alert.classList.remove('d-none');
             
-            // Reset form and totals
-            resetForm('formRecette');
+            // Reset form fields but keep the alert visible
+            document.getElementById('formRecette').reset();
+            document.getElementById('recTotalDisplay').textContent = '0 FCFA';
+            updateRecettePrixUnitLabel();
+            calculerTotalRecette();
             
-            // Reload page after short delay
-            setTimeout(() => window.location.reload(), 1500);
+            // SPA-like update: close form and show success
+            setTimeout(() => {
+                toggleFinanceQuickForm('recette');
+                alert.classList.add('d-none');
+                if (typeof showToast === 'function') {
+                    showToast(result.message, 'success');
+                }
+            }, 2000);
         } else {
             alert.className = 'fh-alert error';
             alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (result.error || 'Erreur lors de l\'enregistrement');
