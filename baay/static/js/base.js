@@ -328,43 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     restoreChatHistory();
 
-    // Global Toast Helper
-    window.showToast = function(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-
-        const icons = { success: 'check', error: 'exclamation', info: 'info' };
-
-        toast.innerHTML = `
-            <div class="toast-icon">
-                <i class="fas fa-${icons[type] || 'check'}"></i>
-            </div>
-            <span class="toast-message">${message}</span>
-            <button class="toast-close" type="button" aria-label="Fermer">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-
-        container.appendChild(toast);
-
-        const closeBtn = toast.querySelector('.toast-close');
-        closeBtn.onclick = () => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        };
-
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }, 4000);
-    };
-
     setTimeout(() => {
         if (chatWindow && !chatWindow.classList.contains('open')) {
             chatNotification.classList.add('show');

@@ -1159,14 +1159,6 @@ def detail_projet(request, projet_id):
                 logger.error("Erreur récupération photo", exc_info=True)
                 pass
 
-    role_ferme = role_dans_ferme(request.user.profile, projet.ferme)
-    peut_creer_tache = bool(role_ferme and roles_assignables_par(role_ferme))
-    taches_projet = (
-        Tache.objects.filter(projet=projet)
-        .select_related("assigne_a__user", "assigne_par__user")
-        .order_by("statut", "date_echeance", "-date_creation")[:10]
-    )
-
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'can_view_investissements': can_view_investissements,
@@ -1186,8 +1178,6 @@ def detail_projet(request, projet_id):
         'superficie_overallocated': superficie_overallocated,
         'ferme_superficie_totale': ferme_superficie_totale,
         'plant_photos': plant_photos,
-        'taches_projet': taches_projet,
-        'peut_creer_tache': peut_creer_tache,
     })
 
 @login_required
@@ -1393,6 +1383,18 @@ def dashboard(request):
 
     cultures = ProduitAgricole.objects.filter(projet__in=projets_accessibles_qs(utilisateur)).distinct()
     localites = Localite.objects.all().order_by('nom')
+
+    can_view_investissements = peut_voir_investissements_any(utilisateur)
+
+    cockpit_dashboard = dashboard_services.cockpit_payload(projets_qs, roi_scope_projets)
+    weather_ferme_id = None
+    if selected_ferme and selected_ferme.latitude is not None and selected_ferme.longitude is not None:
+        weather_ferme_id = str(selected_ferme.id)
+    else:
+        for wf in user_fermes:
+            if wf.latitude is not None and wf.longitude is not None:
+                weather_ferme_id = str(wf.id)
+                break
 
     context = get_unified_dashboard_context(request, utilisateur, selected_ferme)
     return render(request, 'projets/dashboard_unified.html', context)
@@ -3361,7 +3363,11 @@ def conversation_detail(request, conversation_id):
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
     is_mini = request.GET.get('mini') == 'true'
 
-    resp = render(request, 'messagerie/conversation.html', {
+    template = 'messagerie/conversation.html'
+    if _htmx_request(request):
+        template = 'messagerie/_conversation_view.html'
+
+    resp = render(request, template, {
         'conversation': conversation,
         'messages_list': messages_list,
         'titre': titre,

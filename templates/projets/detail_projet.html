@@ -273,144 +273,21 @@
     .at-ledger tr td:last-child { border-radius: 0 12px 12px 0; text-align: right; }
     .at-ledger__amount { font-weight: 800; color: var(--at-brand-deep); }
 
-    /* Management tab */
-    .at-mgmt {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 24px;
-        align-items: start;
-    }
-    @media (min-width: 992px) {
-        .at-mgmt {
-            grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-        }
-    }
-    .at-mgmt__head {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-    .at-mgmt__head .at-card-title { margin-bottom: 0; }
-    .at-mgmt__footer {
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px solid var(--at-border);
-        text-align: center;
-    }
-    .at-mgmt__footer a {
-        font-weight: 700;
-        font-size: 14px;
-        color: var(--at-brand);
-        text-decoration: none;
-    }
-    .at-mgmt__footer a:hover { color: var(--at-brand-deep); }
-
-    .at-task-list { display: flex; flex-direction: column; gap: 10px; }
+    /* Management List */
     .at-task-item {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 12px 16px;
+        display: flex;
         align-items: center;
-        padding: 14px 16px;
+        gap: 16px;
+        padding: 16px;
         background: var(--at-bg);
         border-radius: var(--at-radius-sm);
+        margin-bottom: 12px;
         border-left: 4px solid var(--at-brand);
-        text-decoration: none;
-        color: inherit;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .at-task-item:hover {
-        transform: translateX(3px);
-        box-shadow: 0 4px 12px rgba(8, 80, 65, 0.08);
-        color: inherit;
     }
     .at-task-item--urgent { border-left-color: #ef4444; }
-    .at-task-item--done { opacity: 0.72; border-left-color: #94a3b8; }
-    .at-task-info { min-width: 0; }
-    .at-task-title {
-        font-weight: 700;
-        font-size: 15px;
-        margin: 0 0 6px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-    }
-    .at-task-meta {
-        font-size: 12px;
-        color: var(--at-muted);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 16px;
-    }
-    .at-task-meta i { margin-right: 4px; color: var(--at-brand); opacity: 0.85; }
-    .at-task-side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-    .at-task-badge {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-    .at-task-badge--a_faire { background: #fef3c7; color: #92400e; }
-    .at-task-badge--en_cours { background: #dbeafe; color: #1e40af; }
-    .at-task-badge--terminee { background: #d1fae5; color: #065f46; }
-    .at-task-badge--annulee { background: #e5e7eb; color: #374151; }
-    .at-task-badge--prio { background: rgba(29, 158, 117, 0.12); color: var(--at-brand-deep); }
-    .at-task-badge--prio-urgente { background: #fee2e2; color: #991b1b; }
-    .at-task-due { font-size: 12px; color: var(--at-muted); }
-    .at-task-due--late { color: #dc2626; font-weight: 700; }
-
-    .at-empty-tasks {
-        text-align: center;
-        padding: 32px 16px;
-        color: var(--at-muted);
-    }
-    .at-empty-tasks i { font-size: 2.5rem; opacity: 0.25; margin-bottom: 12px; display: block; }
-
-    .at-team-list { display: flex; flex-direction: column; gap: 10px; }
-    .at-team-member {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 14px;
-        background: var(--at-bg);
-        border-radius: var(--at-radius-sm);
-        border: 1px solid var(--at-border);
-    }
-    .at-team-member__info { flex: 1; min-width: 0; }
-    .at-team-member__name {
-        font-weight: 700;
-        font-size: 14px;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .at-team-member__role {
-        font-size: 12px;
-        color: var(--at-muted);
-        margin: 2px 0 0;
-    }
-    .at-team-role-pill {
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 4px 8px;
-        border-radius: 6px;
-        background: rgba(29, 158, 117, 0.12);
-        color: var(--at-brand-deep);
-        flex-shrink: 0;
-    }
-    .at-team-role-pill--owner {
-        background: rgba(8, 80, 65, 0.12);
-        color: var(--at-brand-night);
-    }
+    .at-task-info { flex: 1; }
+    .at-task-title { font-weight: 700; font-size: 15px; }
+    .at-task-meta { font-size: 12px; color: var(--at-muted); margin-top: 2px; }
 
     /* Action Buttons */
     .at-btn {
@@ -431,37 +308,6 @@
     .at-btn--accent { background: var(--at-accent); color: white; }
     .at-btn--ghost { background: var(--at-bg); color: var(--at-text); }
     .at-btn--sm { padding: 8px 16px; font-size: 13px; }
-    .at-btn--danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-    .at-btn--danger:hover { background: rgba(239, 68, 68, 0.2); }
-
-    /* Utility classes */
-    .text-at-brand { color: var(--at-brand) !important; }
-    .hover-bg-light:hover { background: rgba(8, 80, 65, 0.05); }
-    .at-danger-card {
-        background: rgba(239, 68, 68, 0.05);
-        border: 1px solid rgba(239, 68, 68, 0.15);
-    }
-    .at-danger-card .at-card-title { color: #ef4444; }
-    .at-danger-card .at-btn--ghost { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
-    .at-danger-card .at-btn--ghost:hover { background: rgba(239, 68, 68, 0.1); }
-
-    /* Team Avatar */
-    .at-team-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--at-brand);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-    .at-team-avatar--owner {
-        background: var(--at-brand-deep);
-    }
 
     /* Responsive */
     @media (max-width: 768px) {
@@ -469,16 +315,6 @@
         .at-hero__content { flex-direction: column; align-items: flex-start; }
         .at-hero__widgets { align-items: flex-start; width: 100%; }
         .at-weather-pill { width: 100%; justify-content: center; }
-        .at-task-item {
-            grid-template-columns: 1fr;
-        }
-        .at-task-side {
-            flex-direction: row;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: flex-start;
-            text-align: left;
-        }
     }
 </style>
 {% endblock %}
@@ -803,14 +639,58 @@
 
     <!-- ═══════════ TAB: MANAGEMENT ═══════════ -->
     <div x-show="activeTab === 'management'" x-transition>
-        <div class="at-mgmt">
-            {% include "projets/partials/_tab_management.html" %}
+        <div class="at-grid-dashboard">
+            <!-- Tasks Hub -->
+            <div class="at-card" style="grid-column: span 2;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="at-card-title m-0"><i class="fas fa-tasks"></i> Travaux & Tâches</h3>
+                    <a href="{% url 'creer_tache' %}?ferme={{ projet.ferme.id }}&projet={{ projet.id }}" class="at-btn at-btn--primary at-btn--sm">
+                        <i class="fas fa-plus"></i> Ajouter une tâche
+                    </a>
+                </div>
+
+                <div id="tasksListContainer">
+                    <!-- Loaded via HTMX or fallback -->
+                    <p class="text-center py-4 at-muted">Chargement des tâches...</p>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'taches_liste' %}?projet={{ projet.id }}" class="text-at-brand fw-bold">Voir toutes les tâches du projet <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+
+            <!-- Team Members -->
+            <div class="at-card">
+                <h3 class="at-card-title"><i class="fas fa-users"></i> Équipe assignée</h3>
+                <div class="d-flex flex-column gap-3">
+                    {% for membre in projet.ferme.membres.all %}
+                    <div class="d-flex align-items-center gap-3 p-2 rounded hover-bg-light">
+                        <div class="at-progress-circle__val" style="width: 40px; height: 40px; border-radius: 50%; background: var(--at-brand); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                            {{ membre.utilisateur.user.username|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ membre.utilisateur.user.username }}</div>
+                            <div class="at-muted small">{{ membre.get_role_display }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex align-items-center gap-3 p-2 rounded">
+                        <div class="at-progress-circle__val" style="width: 40px; height: 40px; border-radius: 50%; background: var(--at-brand-deep); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                            {{ projet.ferme.proprietaire.user.username|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ projet.ferme.proprietaire.user.username }}</div>
+                            <div class="at-muted small">Propriétaire</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="at-card mt-4 at-danger-card">
-            <h3 class="at-card-title"><i class="fas fa-exclamation-triangle"></i> Zone de danger</h3>
+        <div class="at-card mt-4 bg-danger-subtle border-danger">
+            <h3 class="at-card-title text-danger"><i class="fas fa-exclamation-triangle"></i> Zone de danger</h3>
             <p class="at-muted mb-4">La suppression d'un projet est irréversible. Toutes les données associées seront perdues.</p>
-            <a href="{% url 'supprimer_projet' projet.id %}" class="at-btn at-btn--ghost" onclick="return confirm('Confirmer la suppression ?')">
+            <a href="{% url 'supprimer_projet' projet.id %}" class="at-btn at-btn--ghost text-danger" onclick="return confirm('Confirmer la suppression ?')">
                 <i class="fas fa-trash"></i> Supprimer définitivement
             </a>
         </div>
@@ -897,6 +777,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // ── Tasks Loading ──
+    const tasksContainer = document.getElementById('tasksListContainer');
+    // In a real scenario, we'd use HTMX or a proper API call.
+    // Here we use the pre-rendered tasks from the context if we had them,
+    // or a specialized partial.
+    fetch("{% url 'taches_liste' %}?projet={{ projet.id }}&mini=1")
+        .then(response => response.text())
+        .then(html => {
+            if (html.trim().length > 100) {
+                tasksContainer.innerHTML = html;
+            } else {
+                tasksContainer.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-check fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
+                        <p class="at-muted">Aucune tâche active pour ce projet.</p>
+                        {% if can_add_produit %}
+                        <a href="{% url 'creer_tache' %}?ferme={{ projet.ferme.id }}&projet={{ projet.id }}" class="at-btn at-btn--primary at-btn--sm">
+                            Créer la première tâche
+                        </a>
+                        {% endif %}
+                    </div>
+                `;
+            }
+        })
+        .catch(() => {
+            tasksContainer.innerHTML = '<p class="text-danger text-center">Erreur lors du chargement des tâches.</p>';
+        });
 });
 </script>
 {% endblock %}

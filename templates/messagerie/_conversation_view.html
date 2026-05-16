@@ -1,5 +1,6 @@
 {% load static %}
 {# Reusable conversation view partial. Used by full page and drawer fragment. #}
+<link rel="stylesheet" href="{% static 'css/messagerie-modern.css' %}">
 {# Expected context: conversation, messages_list, profile, autres, titre, is_mini, drawer (bool, optional) #}
 {# has_older_messages, oldest_loaded_message_id (optional) #}
 <div class="glass-card d-flex flex-column h-100 mobile-chat-card msg-conv-partial" data-conversation-id="{{ conversation.id }}">

@@ -159,15 +159,10 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
     ).exclude(expediteur=utilisateur).select_related('expediteur__user', 'conversation').order_by('-date_envoi')[:5]
 
     # 7. Next Harvest
-    prochaine_recolte = (
-        ProjetProduit.objects.filter(
-            projet__in=projets_qs,
-            date_recolte_prevue__gte=today,
-        )
-        .select_related('produit')
-        .order_by('date_recolte_prevue')
-        .first()
-    )
+    prochaine_recolte = ProjetProduit.objects.filter(
+        projet__in=projets_qs,
+        date_recolte_prevue__gte=today
+    ).order_by('date_recolte_prevue').first()
 
     # 8. Map Data
     map_markers = []
