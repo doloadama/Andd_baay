@@ -3196,6 +3196,7 @@ def messagerie_inbox(request):
 
     resp = render(request, 'messagerie/inbox.html', {
         'conv_data': conv_data,
+        'active_conversation_id': None,
         'profile': profile,
         'base_template': base_template,
         'is_mini': request.GET.get('mini') == 'true',
@@ -3369,6 +3370,7 @@ def conversation_detail(request, conversation_id):
 
     resp = render(request, template, {
         'conversation': conversation,
+        'active_conversation_id': conversation.id,
         'messages_list': messages_list,
         'titre': titre,
         'autres': autres,
@@ -3881,6 +3883,7 @@ def drawer_inbox_fragment(request):
     return render(request, 'messagerie/_inbox_list.html', {
         'conv_data': conv_data,
         'profile': profile,
+        'active_conversation_id': None,
     })
 
 
