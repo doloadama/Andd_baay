@@ -7,6 +7,7 @@
 {% block title %}Cockpit Unifié | Andd Baay{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
 <style>
     /* ============================================================
        ANDD BAAY V3 - UNIFIED MULTI-TAB DASHBOARD (Premium Afro-Tech)
@@ -109,6 +110,30 @@
     .at-card--lg { grid-column: span 8; }
     .at-card--sm { grid-column: span 4; }
 
+    /* Cockpit tab layout */
+    .at-bento--cockpit .at-cockpit-kpis { grid-column: 1 / -1; }
+    .at-bento--cockpit .at-cockpit-cashflow { grid-column: span 8; }
+    .at-bento--cockpit .at-cockpit-invest { grid-column: span 4; }
+    .at-bento--cockpit .at-cockpit-weather { grid-column: span 4; align-self: start; }
+    .at-bento--cockpit .at-cockpit-projects { grid-column: span 8; }
+    .at-bento--cockpit .at-cockpit-map { grid-column: span 12; }
+    .at-card--weather {
+        background: linear-gradient(145deg, var(--at-brand-night) 0%, #0a3d32 100%);
+        border: none;
+        color: #fff;
+    }
+    .at-card--weather .at-card-title { color: rgba(255,255,255,0.65); }
+    .at-card--weather .at-card-title i { color: var(--at-accent); }
+
+    .at-chart-wrap { height: 280px; position: relative; }
+    .at-chart-wrap--compact { height: 220px; }
+    .at-weather-body { display: flex; align-items: center; gap: 16px; padding: 8px 0; }
+    .at-weather-icon { font-size: 44px; line-height: 1; color: var(--at-accent); flex-shrink: 0; }
+    .at-weather-icon img { display: block; width: 64px; height: 64px; }
+    .at-weather-temp { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 800; line-height: 1.1; }
+    .at-weather-desc { margin: 4px 0 0; font-size: 13px; color: rgba(255,255,255,0.7); text-transform: capitalize; }
+    .at-map-canvas { height: 320px; border-radius: 14px; background: #e8eeeb; }
+
     .at-card-title {
         font-family: 'Space Grotesk', sans-serif;
         font-size: 14px;
@@ -185,7 +210,10 @@
     /* --- RESPONSIVE --- */
     @media (max-width: 992px) {
         .at-card--md, .at-card--sm, .at-card--lg { grid-column: span 12; }
+        .at-bento--cockpit > * { grid-column: 1 / -1 !important; }
         .at-tabs-nav { top: 60px; }
+        .at-action-hub { display: none !important; }
+        .at-dashboard { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
     }
 </style>
 {% endblock %}
@@ -215,9 +243,9 @@
                     <i class="fas fa-warehouse me-2 text-at-brand"></i> {% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Toutes mes fermes{% endif %}
                 </button>
                 <ul class="dropdown-menu shadow-lg border-0 rounded-4">
-                    <li><a class="dropdown-item" href="?">Toutes les fermes</a></li>
+                    <li><a class="dropdown-item" href="?tab=overview">Toutes les fermes</a></li>
                     {% for f in fermes %}
-                    <li><a class="dropdown-item" href="?ferme={{ f.id }}">{{ f.nom }}</a></li>
+                    <li><a class="dropdown-item" href="?ferme={{ f.id }}&tab=overview">{{ f.nom }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -241,9 +269,9 @@
     </nav>
 
     <!-- ═══════════ TAB: COCKPIT (OVERVIEW) ═══════════ -->
-    <div x-show="activeTab === 'overview'" x-transition class="at-bento">
-        <!-- Strategic KPIs -->
-        <div class="at-card at-card--lg">
+    <div x-show="activeTab === 'overview'" x-transition class="at-bento at-bento--cockpit">
+        <!-- Ligne 1 — KPIs -->
+        <div class="at-card at-cockpit-kpis">
             <h3 class="at-card-title"><i class="fas fa-bolt"></i> Indicateurs Clés</h3>
             <div class="at-stat-group">
                 <div class="at-stat">
@@ -266,36 +294,65 @@
                     <div class="at-stat__hint">Aucune planifiée</div>
                     {% endif %}
                 </div>
-                {% if can_view_investissements %}
+                <div class="at-stat">
+                    <span class="at-stat__label">Tâches critiques</span>
+                    <span class="at-stat__value">{{ cockpit.quick_stats.taches_critiques_retard|default:0 }}</span>
+                    <div class="at-stat__hint">En retard / urgentes</div>
+                </div>
+                <div class="at-stat">
+                    <span class="at-stat__label">Complétion</span>
+                    <span class="at-stat__value">{{ completion_rate }}%</span>
+                    <div class="at-stat__hint">{{ projets_finis }} projet(s) terminé(s)</div>
+                </div>
+                {% if can_view_investissements and cockpit.quick_stats.show_financial_kpis %}
                 <div class="at-stat">
                     <span class="at-stat__label">Bénéfice Net</span>
                     <span class="at-stat__value">{{ cockpit.quick_stats.benefice_net_total|fcfa }}</span>
-                    <div class="at-stat__hint">ROI : {{ cockpit.quick_stats.roi_moyen_pct|floatformat:1 }}%</div>
+                    <div class="at-stat__hint">ROI : {% if cockpit.quick_stats.roi_moyen_pct is not None %}{{ cockpit.quick_stats.roi_moyen_pct|floatformat:1 }}%{% else %}—{% endif %}</div>
+                </div>
+                {% elif can_view_investissements %}
+                <div class="at-stat">
+                    <span class="at-stat__label">Bénéfice Net</span>
+                    <span class="at-stat__value">—</span>
+                    <div class="at-stat__hint">Visible selon droits projet</div>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Weather Widget -->
-        <div class="at-card at-card--sm bg-dark text-white">
-            <h3 class="at-card-title text-white-50"><i class="fas fa-cloud-sun"></i> Météo Locale</h3>
-            <div id="weatherContent" class="d-flex align-items-center gap-3 py-2">
-                <div style="font-size: 48px;" id="atWeatherIconContainer"><i class="fas fa-sun text-warning"></i></div>
-                <div>
-                    <div style="font-size: 32px; font-weight: 800;" id="atWeatherTemp">--°C</div>
-                    <div class="text-white-50 small" id="atWeatherDesc">Chargement...</div>
+        {% if can_view_investissements %}
+        <div class="at-card at-cockpit-cashflow">
+            <h3 class="at-card-title"><i class="fas fa-coins"></i> Flux de Trésorerie (12 mois)</h3>
+            <div class="at-chart-wrap">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+        </div>
+        <div class="at-card at-cockpit-invest">
+            <h3 class="at-card-title"><i class="fas fa-tags"></i> Investissements</h3>
+            <div class="at-chart-wrap at-chart-wrap--compact">
+                <canvas id="investCatChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="at-card at-card--weather at-cockpit-weather">
+            <h3 class="at-card-title"><i class="fas fa-cloud-sun"></i> Météo locale</h3>
+            <div id="weatherContent" class="at-weather-body">
+                <div id="atWeatherIconContainer" class="at-weather-icon"><i class="fas fa-sun"></i></div>
+                <div class="at-weather-meta">
+                    <div id="atWeatherTemp" class="at-weather-temp">--°C</div>
+                    <p id="atWeatherDesc" class="at-weather-desc">Chargement…</p>
                 </div>
             </div>
         </div>
 
-        <!-- Projects & Feed Split -->
-        <div class="at-card at-card--md">
-            <h3 class="at-card-title"><i class="fas fa-leaf"></i> Projets Récents</h3>
-            {% for p in projets|slice:":4" %}
+        <div class="at-card at-cockpit-projects">
+            <h3 class="at-card-title"><i class="fas fa-leaf"></i> Projets récents</h3>
+            {% for p in projets|slice:":5" %}
             <a href="{% url 'detail_projet' p.id %}" class="at-project-row">
                 <div>
                     <div class="at-project-name">{{ p.nom }}</div>
-                    <div class="at-project-meta">{{ p.culture.nom }} • {{ p.superficie }} ha</div>
+                    <div class="at-project-meta">{% if p.culture %}{{ p.culture.nom }}{% else %}—{% endif %} • {{ p.superficie }} ha</div>
                 </div>
                 <div class="text-end">
                     <div class="fw-bold text-success">{{ p.taux_avancement }}%</div>
@@ -307,18 +364,12 @@
             {% endfor %}
         </div>
 
-        <div class="at-card at-card--md">
-            <h3 class="at-card-title"><i class="fas fa-comment-dots"></i> Conversations</h3>
-            <div id="overviewMessagesContainer">
-                <p class="text-center py-4 at-muted small">Chargement des messages...</p>
-            </div>
+        <div class="at-card at-cockpit-map">
+            <h3 class="at-card-title"><i class="fas fa-map-marked-alt"></i> Sites d'exploitation</h3>
+            <div id="dashboardMap" class="at-map-canvas"></div>
+            <p id="dashboardMapEmpty" class="small at-muted text-center py-3 d-none">Aucune coordonnée GPS enregistrée pour vos fermes.</p>
         </div>
 
-        <!-- Map -->
-        <div class="at-card">
-            <h3 class="at-card-title"><i class="fas fa-map-marked-alt"></i> Sites d'exploitation</h3>
-            <div id="dashboardMap" style="height: 300px; border-radius: 14px; background: #f0f0f0;"></div>
-        </div>
     </div>
 
     <!-- ═══════════ TAB: PERFORMANCE (ANALYTICS) ═══════════ -->
@@ -429,21 +480,7 @@
             </div>
         </div>
 
-        <!-- Financial Flow -->
         {% if can_view_investissements %}
-        <div class="at-card at-card--lg">
-            <h3 class="at-card-title"><i class="fas fa-coins"></i> Flux de Trésorerie (12 mois)</h3>
-            <div style="height: 280px;">
-                <canvas id="cashflowChart"></canvas>
-            </div>
-        </div>
-        <div class="at-card at-card--sm">
-            <h3 class="at-card-title"><i class="fas fa-tags"></i> Investissements</h3>
-            <div style="height: 220px;">
-                <canvas id="investCatChart"></canvas>
-            </div>
-        </div>
-
         <div class="at-card at-card--md">
             <h3 class="at-card-title"><i class="fas fa-fire"></i> Burn Rate Budgetaire</h3>
             <div class="at-stat-group">
@@ -581,6 +618,12 @@
 
 </div>
 
+{{ map_markers|json_script:"dashboard-map-markers" }}
+{% if can_view_investissements %}
+{{ cockpit.finance_monthly|json_script:"cockpit-finance-monthly" }}
+{{ cockpit.invest_by_category|json_script:"cockpit-invest-by-category" }}
+{% endif %}
+
 <link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
 <script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
 <!-- Charting & Logic -->
@@ -588,30 +631,53 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // 0. Map Logic
-        const markers = {{ map_markers|safe }};
-        if (markers.length > 0) {
-            const map = L.map('dashboardMap', { zoomControl: false, attributionControl: false }).setView([markers[0].lat, markers[0].lng], 10);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            markers.forEach(m => {
-                L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.title);
-            });
-            if (markers.length > 1) {
-                const group = new L.featureGroup(markers.map(m => L.marker([m.lat, m.lng])));
-                map.fitBounds(group.getBounds().pad(0.1));
+        const markersEl = document.getElementById('dashboard-map-markers');
+        const mapEl = document.getElementById('dashboardMap');
+        const mapEmptyEl = document.getElementById('dashboardMapEmpty');
+        if (markersEl && mapEl) {
+            const markers = JSON.parse(markersEl.textContent);
+            if (markers.length > 0) {
+                const map = L.map('dashboardMap', { zoomControl: false, attributionControl: false }).setView([markers[0].lat, markers[0].lng], 10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                const leafletMarkers = markers.map(m => L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.title));
+                if (leafletMarkers.length > 1) {
+                    const group = L.featureGroup(leafletMarkers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            } else if (mapEmptyEl) {
+                mapEl.classList.add('d-none');
+                mapEmptyEl.classList.remove('d-none');
             }
         }
         // 1. Weather Logic
         const weatherFermeId = "{{ dashboard_weather_ferme_id|default:'' }}";
+        const weatherTempEl = document.getElementById('atWeatherTemp');
+        const weatherDescEl = document.getElementById('atWeatherDesc');
+        const weatherIconEl = document.getElementById('atWeatherIconContainer');
         if (weatherFermeId) {
-            fetch('/api/dashboard/weather/?ferme=' + weatherFermeId)
+            fetch('/api/dashboard/weather/?ferme=' + encodeURIComponent(weatherFermeId))
                 .then(r => r.json())
                 .then(payload => {
                     if (payload.ok && payload.data) {
                         const d = payload.data;
-                        document.getElementById('atWeatherTemp').textContent = Math.round(d.temperature) + '°C';
-                        document.getElementById('atWeatherDesc').textContent = d.description;
+                        if (weatherTempEl && d.temperature != null) {
+                            weatherTempEl.textContent = Math.round(d.temperature) + '°C';
+                        }
+                        if (weatherDescEl && d.description) {
+                            weatherDescEl.textContent = d.description;
+                        }
+                        if (weatherIconEl && d.icone) {
+                            weatherIconEl.innerHTML = '<img src="https://openweathermap.org/img/wn/' + d.icone + '@2x.png" alt="" width="64" height="64">';
+                        }
+                    } else if (weatherDescEl) {
+                        weatherDescEl.textContent = 'Météo indisponible';
                     }
+                })
+                .catch(function() {
+                    if (weatherDescEl) weatherDescEl.textContent = 'Météo indisponible';
                 });
+        } else if (weatherDescEl) {
+            weatherDescEl.textContent = 'Aucune ferme géolocalisée';
         }
 
         // 2. Messages Async Feed
@@ -659,7 +725,7 @@
         {% if can_view_investissements %}
         const cashflowCtx = document.getElementById('cashflowChart');
         if (cashflowCtx) {
-            const financeData = {{ cockpit.finance_monthly|safe }};
+            const financeData = JSON.parse(document.getElementById('cockpit-finance-monthly').textContent);
             new Chart(cashflowCtx, {
                 type: 'line',
                 data: {
@@ -680,7 +746,7 @@
 
         const investCtx = document.getElementById('investCatChart');
         if (investCtx) {
-            const investData = {{ cockpit.invest_by_category|safe }};
+            const investData = JSON.parse(document.getElementById('cockpit-invest-by-category').textContent);
             new Chart(investCtx, {
                 type: 'doughnut',
                 data: {
@@ -705,7 +771,7 @@
                     datasets: [{
                         data: [
                             {{ projets_en_cours }},
-                            {{ projects_finis|default:0 }},
+                            {{ projets_finis|default:0 }},
                             {{ projets_en_pause|default:0 }}
                         ],
                         backgroundColor: ['#1D9E75', '#085041', '#EF9F27'],

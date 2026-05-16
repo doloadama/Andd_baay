@@ -384,15 +384,18 @@
         bottom: 0;
         left: 0;
         right: 0;
-        height: 65px;
-        background: var(--bg-card, #fff);
+        min-height: 64px;
+        height: calc(64px + env(safe-area-inset-bottom, 0px));
+        background: rgba(252, 252, 251, 0.94);
+        backdrop-filter: blur(12px) saturate(1.3);
+        -webkit-backdrop-filter: blur(12px) saturate(1.3);
         border-top: 1px solid var(--border-color, #e2e8f0);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-        z-index: 1030;
+        box-shadow: 0 -4px 20px rgba(8, 80, 65, 0.1);
+        z-index: 1040;
         justify-content: space-around;
-        align-items: center;
-        padding: 0 0.5rem;
-        padding-bottom: env(safe-area-inset-bottom);
+        align-items: flex-end;
+        padding: 4px 6px 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     
     .dark-mode .mobile-bottom-nav {
@@ -439,13 +442,43 @@
         transform: translateY(-2px);
     }
     
-    /* Logout button - red color */
-    .mobile-nav-item.mobile-nav-logout {
-        color: #dc2626;
+    /* Menu (drawer) — même gabarit que les liens */
+    .mobile-nav-item.mobile-nav-menu {
+        font-family: inherit;
+        appearance: none;
+        -webkit-appearance: none;
     }
-    
-    .mobile-nav-item.mobile-nav-logout:active {
-        color: #b91c1c;
+
+    .mobile-nav-item.mobile-nav-menu.active {
+        color: var(--accent, #1D9E75);
+    }
+
+    /* Badge messages non lus */
+    .mobile-nav-messagerie {
+        position: relative;
+    }
+
+    .mobile-nav-badge {
+        display: none;
+        position: absolute;
+        top: 4px;
+        right: calc(50% - 22px);
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        box-shadow: 0 0 0 2px var(--bg-card, #fff);
+        pointer-events: none;
+    }
+
+    .dark-mode .mobile-nav-badge {
+        box-shadow: 0 0 0 2px var(--bg-card-dark, #1e293b);
     }
     
     /* Labels */
@@ -478,6 +511,11 @@
     .mobile-nav-fab:active .mobile-nav-fab-bg {
         transform: scale(0.95);
         box-shadow: 0 2px 8px rgba(29, 158, 117, 0.3);
+    }
+
+    /* FAB dashboard unifié : évite doublon avec la barre du bas */
+    .at-action-hub {
+        display: none !important;
     }
 }
 
