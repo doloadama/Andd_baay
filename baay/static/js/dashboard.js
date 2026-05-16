@@ -1890,30 +1890,6 @@ function deleteProject(projectId) {
 }
 
 // ===== TOAST NOTIFICATION =====
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icons = { success: 'check', error: 'exclamation', info: 'info' };
-    
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fas fa-${icons[type] || 'check'}"></i>
-        </div>
-        <span class="toast-message">${message}</span>
-        <button class="toast-close" onclick="this.closest('.toast').remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    container.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
 
 // ===== DYNAMIC FARM FILTER (AJAX) =====
 let currentFermeId = document.getElementById('filterFerme')?.value || '';

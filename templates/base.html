@@ -1005,6 +1005,9 @@
     {% include 'includes/messagerie_drawer.html' %}
     {% endif %}
 
+    <!-- Global Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
     document.addEventListener('alpine:init', function () {
         Alpine.data('offlineIndicator', function () {

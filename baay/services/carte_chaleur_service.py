@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from django.db.models import Sum, Count, Avg
 from django.core.cache import cache
+from django.utils import timezone
 
 from baay.models import Projet, ProjetProduit, Pays, Localite
 
@@ -127,7 +128,7 @@ def generer_geojson_heatmap(
             "features": [],
             "metadata": {
                 "count": 0,
-                "generated_at": str(__import__('django.utils', fromlist=['timezone']).timezone.now()),
+                "generated_at": str(timezone.now()),
             }
         }
 
@@ -165,7 +166,7 @@ def generer_geojson_heatmap(
                 "pays_id": pays_id,
                 "culture_type": culture_type,
             },
-            "generated_at": str(__import__('django.utils', fromlist=['timezone']).timezone.now()),
+            "generated_at": str(timezone.now()),
             "disclaimer": "Données agrégées et anonymisées. Aucune ferme individuelle identifiable.",
         }
     }
