@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load l10n %}
 {% load money %}
 {% block title %}Finance Hub — Gestion financière | Andd Baay{% endblock %}
 
@@ -110,7 +111,7 @@
 
 .fh-hero__subtitle {
     font-size: clamp(0.8125rem, 2.2vw, 0.9375rem);
-    opacity: 0.88;
+    opacity: 0.95; /* Increased for outdoor readability */
     max-width: min(36rem, 100%);
     line-height: 1.55;
 }
@@ -304,7 +305,7 @@
 
 .fh-stat-card__label {
     font-size: 11px;
-    opacity: 0.7;
+    opacity: 0.85; /* Optimized for high-glare environments */
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 2px;
@@ -2211,13 +2212,13 @@ button.fh-form-card__header--toggle:focus-visible {
 
 <script>
 // Data from Django
-const totalDepenses = {{ total_depenses|default:0 }};
-const totalRecettes = {{ total_recettes|default:0 }};
+const totalDepenses = {{ total_depenses|default:0|unlocalize }};
+const totalRecettes = {{ total_recettes|default:0|unlocalize }};
 const depensesData = [
     {% for d in depenses %}
     {
         label: "{{ d.libelle_affichage|escapejs|truncatechars:20 }}",
-        amount: {{ d.calculer_investissement_total|default:0 }}
+        amount: {{ d.calculer_investissement_total|default:0|unlocalize }}
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
 ];
@@ -2596,11 +2597,21 @@ function submitDepense() {
             alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
             alert.classList.remove('d-none');
             
-            // Reset form and totals
-            resetForm('formDepense');
+            // Reset form fields but keep the alert visible
+            document.getElementById('formDepense').reset();
+            document.getElementById('depSurface').value = 0;
+            document.getElementById('depTotalDisplay').textContent = '0 FCFA';
             
-            // Reload page after short delay
-            setTimeout(() => window.location.reload(), 1500);
+            // SPA-like update: close form and show success
+            setTimeout(() => {
+                toggleFinanceQuickForm('depense');
+                alert.classList.add('d-none');
+                // Note: In a full HTMX implementation we would swap the list,
+                // for now we notify the user that the entry is recorded.
+                if (typeof showToast === 'function') {
+                    showToast(result.message, 'success');
+                }
+            }, 2000);
         } else {
             alert.className = 'fh-alert error';
             alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (result.error || 'Erreur lors de l\'enregistrement');
@@ -2656,11 +2667,20 @@ function submitRecette() {
             alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
             alert.classList.remove('d-none');
             
-            // Reset form and totals
-            resetForm('formRecette');
+            // Reset form fields but keep the alert visible
+            document.getElementById('formRecette').reset();
+            document.getElementById('recTotalDisplay').textContent = '0 FCFA';
+            updateRecettePrixUnitLabel();
+            calculerTotalRecette();
             
-            // Reload page after short delay
-            setTimeout(() => window.location.reload(), 1500);
+            // SPA-like update: close form and show success
+            setTimeout(() => {
+                toggleFinanceQuickForm('recette');
+                alert.classList.add('d-none');
+                if (typeof showToast === 'function') {
+                    showToast(result.message, 'success');
+                }
+            }, 2000);
         } else {
             alert.className = 'fh-alert error';
             alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (result.error || 'Erreur lors de l\'enregistrement');

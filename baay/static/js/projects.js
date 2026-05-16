@@ -797,28 +797,3 @@ function setText(id, value) {
     if (element) element.textContent = value;
 }
 
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-
-    const icons = { success: 'check', error: 'exclamation', info: 'info' };
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon"><i class="fas fa-${icons[type] || 'check'}"></i></div>
-        <span class="toast-message">${message}</span>
-        <button type="button" class="toast-close" aria-label="Fermer"><i class="fas fa-times"></i></button>
-    `;
-
-    container.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('is-visible'));
-
-    toast.querySelector('.toast-close')?.addEventListener('click', () => removeToast(toast));
-    setTimeout(() => removeToast(toast), 3500);
-}
-
-function removeToast(toast) {
-    if (!toast || !toast.parentNode) return;
-    toast.classList.remove('is-visible');
-    setTimeout(() => toast.remove(), 200);
-}
