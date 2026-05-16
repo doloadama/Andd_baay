@@ -13,6 +13,8 @@ DATABASES = {
 }
 
 # Tests should not require external services.
+CLOUDINARY_ACTIVE = False
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
