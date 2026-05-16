@@ -1394,18 +1394,6 @@ def dashboard(request):
     cultures = ProduitAgricole.objects.filter(projet__in=projets_accessibles_qs(utilisateur)).distinct()
     localites = Localite.objects.all().order_by('nom')
 
-    can_view_investissements = peut_voir_investissements_any(utilisateur)
-
-    cockpit_dashboard = dashboard_services.cockpit_payload(projets_qs, roi_scope_projets)
-    weather_ferme_id = None
-    if selected_ferme and selected_ferme.latitude is not None and selected_ferme.longitude is not None:
-        weather_ferme_id = str(selected_ferme.id)
-    else:
-        for wf in user_fermes:
-            if wf.latitude is not None and wf.longitude is not None:
-                weather_ferme_id = str(wf.id)
-                break
-
     context = get_unified_dashboard_context(request, utilisateur, selected_ferme)
     return render(request, 'projets/dashboard_unified.html', context)
 
