@@ -1,0 +1,720 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+{% load money %}
+{% load humanize %}
+
+{% block title %}Cockpit Unifié | Andd Baay{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ============================================================
+       ANDD BAAY V3 - UNIFIED MULTI-TAB DASHBOARD (Premium Afro-Tech)
+       ============================================================ */
+    :root {
+        --at-brand: #1D9E75;
+        --at-brand-deep: #085041;
+        --at-brand-night: #04342C;
+        --at-accent: #EF9F27;
+        --at-surface: #ffffff;
+        --at-bg: #f8faf9;
+        --at-text: #2C2C2A;
+        --at-muted: #5c5c57;
+        --at-border: rgba(8,80,65,0.08);
+        --at-shadow: 0 4px 16px rgba(8,80,65,0.08);
+        --at-radius: 22px;
+        --at-radius-sm: 14px;
+        --at-glass: rgba(255, 255, 255, 0.92);
+    }
+
+    .at-dashboard {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 16px 80px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* --- TOPBAR & HEADER --- */
+    .at-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 0;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .at-topbar__title h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800; margin: 0; color: var(--at-brand-night); }
+    .at-topbar__title p { margin: 0; color: var(--at-muted); font-size: 14px; }
+
+    /* --- TABS NAVIGATION --- */
+    .at-tabs-nav {
+        display: flex;
+        background: var(--at-surface);
+        padding: 6px;
+        border-radius: 50px;
+        margin-bottom: 32px;
+        box-shadow: var(--at-shadow);
+        border: 1px solid var(--at-border);
+        position: sticky;
+        top: 80px;
+        z-index: 100;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .at-tabs-nav::-webkit-scrollbar { display: none; }
+
+    .at-tab-btn {
+        flex: 1;
+        min-width: 140px;
+        padding: 12px 24px;
+        border-radius: 40px;
+        border: none;
+        background: transparent;
+        color: var(--at-muted);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        white-space: nowrap;
+    }
+    .at-tab-btn.active {
+        background: var(--at-brand);
+        color: white;
+        box-shadow: 0 4px 12px rgba(29, 158, 117, 0.25);
+    }
+
+    /* --- BENTO GRID SYSTEM --- */
+    .at-bento {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 20px;
+    }
+    .at-card {
+        grid-column: span 12;
+        background: var(--at-surface);
+        border-radius: var(--at-radius);
+        padding: 24px;
+        box-shadow: var(--at-shadow);
+        border: 1px solid var(--at-border);
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .at-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(8,80,65,0.12); }
+    .at-card--md { grid-column: span 6; }
+    .at-card--lg { grid-column: span 8; }
+    .at-card--sm { grid-column: span 4; }
+
+    .at-card-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--at-muted);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .at-card-title i { color: var(--at-brand); }
+
+    /* --- KPI COMPONENTS --- */
+    .at-stat-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+    .at-stat { background: var(--at-bg); padding: 18px; border-radius: var(--at-radius-sm); border: 1px solid var(--at-border); }
+    .at-stat__label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--at-muted); display: block; margin-bottom: 4px; }
+    .at-stat__value { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--at-brand-deep); line-height: 1; }
+    .at-stat__hint { font-size: 11px; color: var(--at-brand); font-weight: 600; margin-top: 4px; }
+
+    /* --- PROJECT ROWS --- */
+    .at-project-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 16px; border-radius: 14px; background: var(--at-bg); margin-bottom: 8px;
+        transition: 0.2s; text-decoration: none; color: inherit;
+    }
+    .at-project-row:hover { transform: translateX(5px); background: #f0f4f2; }
+    .at-project-name { font-weight: 700; font-size: 14px; }
+    .at-project-meta { font-size: 11px; color: var(--at-muted); }
+
+    /* --- ACTIVITY FEED --- */
+    .at-feed-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+    .at-feed-item::after { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: var(--at-border); }
+    .at-feed-item:last-child::after { display: none; }
+    .at-feed-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--at-brand); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; z-index: 1; }
+
+    /* --- TASK ITEMS --- */
+    .at-task-item {
+        display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: var(--at-radius-sm);
+        background: var(--at-bg); margin-bottom: 12px; border-left: 4px solid var(--at-brand);
+    }
+    .at-task-item--urgent { border-left-color: #ef4444; }
+    .at-task-info { flex: 1; }
+    .at-task-title { font-weight: 700; font-size: 14px; }
+    .at-task-meta { font-size: 12px; color: var(--at-muted); }
+
+    /* --- TABLES --- */
+    .at-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+    .at-table th { padding: 12px; font-size: 11px; text-transform: uppercase; color: var(--at-muted); font-weight: 700; }
+    .at-table td { padding: 14px 12px; background: var(--at-bg); }
+    .at-table tr td:first-child { border-radius: 12px 0 0 12px; }
+    .at-table tr td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* --- ACTION HUB (FAB) --- */
+    .at-action-hub { position: fixed; bottom: 32px; right: 32px; z-index: 9999; }
+    .at-fab {
+        width: 60px; height: 60px; border-radius: 50%; background: var(--at-accent); color: white;
+        display: flex; align-items: center; justify-content: center; font-size: 24px;
+        box-shadow: 0 8px 24px rgba(239, 159, 39, 0.4); cursor: pointer; transition: 0.3s; border: none;
+    }
+    .at-fab:hover { transform: scale(1.1) rotate(90deg); }
+    .at-fab-menu {
+        position: absolute; bottom: 80px; right: 0; display: flex; flex-direction: column; gap: 12px;
+        opacity: 0; pointer-events: none; transition: 0.3s; transform: translateY(20px);
+    }
+    .at-fab-menu.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .at-fab-item {
+        background: white; padding: 10px 20px; border-radius: 50px; box-shadow: var(--at-shadow);
+        display: flex; align-items: center; gap: 12px; white-space: nowrap; text-decoration: none; color: var(--at-text);
+        font-weight: 700; font-size: 14px; border: 1px solid var(--at-border);
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 992px) {
+        .at-card--md, .at-card--sm, .at-card--lg { grid-column: span 12; }
+        .at-tabs-nav { top: 60px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="at-dashboard"
+     x-data="{
+        activeTab: new URLSearchParams(window.location.search).get('tab') || 'overview',
+        fabActive: false,
+        updateTab(tab) {
+            this.activeTab = tab;
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tab);
+            window.history.pushState({}, '', url);
+        }
+     }">
+
+    <!-- ═══════════ TOPBAR ═══════════ -->
+    <header class="at-topbar">
+        <div class="at-topbar__title">
+            <p>Tableau de bord stratégique</p>
+            <h1>{% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Bonjour, {{ user.first_name|default:user.username }}{% endif %}</h1>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-light rounded-pill px-4 dropdown-toggle border" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-warehouse me-2 text-at-brand"></i> {% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Toutes mes fermes{% endif %}
+                </button>
+                <ul class="dropdown-menu shadow-lg border-0 rounded-4">
+                    <li><a class="dropdown-item" href="?">Toutes les fermes</a></li>
+                    {% for f in fermes %}
+                    <li><a class="dropdown-item" href="?ferme={{ f.id }}">{{ f.nom }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <a href="{% url 'creer_projet' %}" class="btn btn-primary rounded-pill px-4 d-none d-md-inline-flex">
+                <i class="fas fa-plus me-2"></i> Nouveau Projet
+            </a>
+        </div>
+    </header>
+
+    <!-- ═══════════ NAVIGATION ═══════════ -->
+    <nav class="at-tabs-nav">
+        <button class="at-tab-btn" :class="{ 'active': activeTab === 'overview' }" @click="updateTab('overview')">
+            <i class="fas fa-rocket"></i> Cockpit
+        </button>
+        <button class="at-tab-btn" :class="{ 'active': activeTab === 'performance' }" @click="updateTab('performance')">
+            <i class="fas fa-chart-line"></i> Performance
+        </button>
+        <button class="at-tab-btn" :class="{ 'active': activeTab === 'activities' }" @click="updateTab('activities')">
+            <i class="fas fa-list-check"></i> Activités
+        </button>
+    </nav>
+
+    <!-- ═══════════ TAB: COCKPIT (OVERVIEW) ═══════════ -->
+    <div x-show="activeTab === 'overview'" x-transition class="at-bento">
+        <!-- Strategic KPIs -->
+        <div class="at-card at-card--lg">
+            <h3 class="at-card-title"><i class="fas fa-bolt"></i> Indicateurs Clés</h3>
+            <div class="at-stat-group">
+                <div class="at-stat">
+                    <span class="at-stat__label">Projets Actifs</span>
+                    <span class="at-stat__value">{{ projets_en_cours }}</span>
+                    <div class="at-stat__hint">Sur {{ projets.count }} total</div>
+                </div>
+                <div class="at-stat">
+                    <span class="at-stat__label">Surface Totale</span>
+                    <span class="at-stat__value">{{ superficie_totale|floatformat:1 }} <small>ha</small></span>
+                    <div class="at-stat__hint">{{ ferme_utilisation|default:"0" }}% utilisé</div>
+                </div>
+                <div class="at-stat">
+                    <span class="at-stat__label">Récolte à venir</span>
+                    {% if prochaine_recolte %}
+                    <span class="at-stat__value" style="font-size: 18px;">{{ prochaine_recolte.date_recolte_prevue|date:"d M" }}</span>
+                    <div class="at-stat__hint">{{ prochaine_recolte.produit.nom }}</div>
+                    {% else %}
+                    <span class="at-stat__value">--</span>
+                    <div class="at-stat__hint">Aucune planifiée</div>
+                    {% endif %}
+                </div>
+                {% if can_view_investissements %}
+                <div class="at-stat">
+                    <span class="at-stat__label">Bénéfice Net</span>
+                    <span class="at-stat__value">{{ cockpit.quick_stats.benefice_net_total|fcfa }}</span>
+                    <div class="at-stat__hint">ROI : {{ cockpit.quick_stats.roi_moyen_pct|floatformat:1 }}%</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Weather Widget -->
+        <div class="at-card at-card--sm bg-dark text-white">
+            <h3 class="at-card-title text-white-50"><i class="fas fa-cloud-sun"></i> Météo Locale</h3>
+            <div id="weatherContent" class="d-flex align-items-center gap-3 py-2">
+                <div style="font-size: 48px;" id="atWeatherIconContainer"><i class="fas fa-sun text-warning"></i></div>
+                <div>
+                    <div style="font-size: 32px; font-weight: 800;" id="atWeatherTemp">--°C</div>
+                    <div class="text-white-50 small" id="atWeatherDesc">Chargement...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects & Feed Split -->
+        <div class="at-card at-card--md">
+            <h3 class="at-card-title"><i class="fas fa-leaf"></i> Projets Récents</h3>
+            {% for p in projets|slice:":4" %}
+            <a href="{% url 'detail_projet' p.id %}" class="at-project-row">
+                <div>
+                    <div class="at-project-name">{{ p.nom }}</div>
+                    <div class="at-project-meta">{{ p.culture.nom }} • {{ p.superficie }} ha</div>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold text-success">{{ p.taux_avancement }}%</div>
+                    <div class="xsmall text-muted">Avancement</div>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-center py-4 at-muted">Aucun projet.</p>
+            {% endfor %}
+        </div>
+
+        <div class="at-card at-card--md">
+            <h3 class="at-card-title"><i class="fas fa-comment-dots"></i> Conversations</h3>
+            <div id="overviewMessagesContainer">
+                <p class="text-center py-4 at-muted small">Chargement des messages...</p>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="at-card">
+            <h3 class="at-card-title"><i class="fas fa-map-marked-alt"></i> Sites d'exploitation</h3>
+            <div id="dashboardMap" style="height: 300px; border-radius: 14px; background: #f0f0f0;"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB: PERFORMANCE (ANALYTICS) ═══════════ -->
+    <div x-show="activeTab === 'performance'" x-transition class="at-bento">
+        <!-- High Level Analytics -->
+        <div class="at-card at-card--lg">
+            <h3 class="at-card-title"><i class="fas fa-chart-line"></i> Évolution des Rendements</h3>
+            <div style="height: 300px;">
+                <canvas id="yieldChart"></canvas>
+            </div>
+        </div>
+
+        <div class="at-card at-card--sm">
+            <h3 class="at-card-title"><i class="fas fa-chart-pie"></i> Mix Cultural (ha)</h3>
+            <div style="height: 250px;">
+                <canvas id="cultureChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Répartition par Statut -->
+        <div class="at-card at-card--sm">
+            <h3 class="at-card-title"><i class="fas fa-tasks"></i> États des Projets</h3>
+            <div style="height: 220px;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Productivity Tables -->
+        <div class="at-card at-card--lg">
+            <h3 class="at-card-title"><i class="fas fa-users"></i> Productivité des Agents</h3>
+            <div class="table-responsive">
+                <table class="at-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th class="text-center">Tâches</th>
+                            <th class="text-center">Score Global</th>
+                            <th class="text-end">Complétion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agent in agents_performance %}
+                        <tr>
+                            <td class="fw-bold">{{ agent.nom }} <span class="text-muted small d-block">@{{ agent.username }}</span></td>
+                            <td class="text-center">{{ agent.total_taches }}</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill {% if agent.score_global > 80 %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ agent.score_global }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-at-brand">{{ agent.taux_completion|floatformat:0 }}%</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center py-4 at-muted">Aucune donnée d'agent.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="at-card at-card--sm">
+            <h3 class="at-card-title"><i class="fas fa-tachometer-alt"></i> Efficacité Sols</h3>
+            <div class="d-flex flex-column gap-3">
+                {% for cd in cultures_data|slice:":5" %}
+                <div>
+                    <div class="d-flex justify-content-between xsmall fw-bold mb-1">
+                        <span>{{ cd.culture.nom }}</span>
+                        <span class="text-at-brand">{{ cd.efficiency_score }}%</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-at-brand" style="width: {{ cd.efficiency_score }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tableau Performance Cultures -->
+        <div class="at-card">
+            <h3 class="at-card-title"><i class="fas fa-seedling"></i> Détail des Performances par Culture</h3>
+            <div class="table-responsive">
+                <table class="at-table">
+                    <thead>
+                        <tr>
+                            <th>Culture</th>
+                            <th class="text-end">Superficie</th>
+                            <th class="text-end">Rendement Total</th>
+                            <th class="text-end">Moyenne (kg/ha)</th>
+                            <th class="text-end">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cd in cultures_data %}
+                        <tr>
+                            <td class="fw-bold">{{ cd.culture.nom }}</td>
+                            <td class="text-end">{{ cd.superficie|floatformat:1 }} ha</td>
+                            <td class="text-end">{{ cd.rendement_total|floatformat:0 }} kg</td>
+                            <td class="text-end">{{ cd.rendement_par_ha|floatformat:1 }}</td>
+                            <td class="text-end">
+                                <span class="badge {% if cd.efficiency_score >= 100 %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+                                    {{ cd.efficiency_score }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Financial Flow -->
+        {% if can_view_investissements %}
+        <div class="at-card at-card--lg">
+            <h3 class="at-card-title"><i class="fas fa-coins"></i> Flux de Trésorerie (12 mois)</h3>
+            <div style="height: 280px;">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+        </div>
+        <div class="at-card at-card--sm">
+            <h3 class="at-card-title"><i class="fas fa-tags"></i> Investissements</h3>
+            <div style="height: 220px;">
+                <canvas id="investCatChart"></canvas>
+            </div>
+        </div>
+
+        <div class="at-card at-card--md">
+            <h3 class="at-card-title"><i class="fas fa-fire"></i> Burn Rate Budgetaire</h3>
+            <div class="at-stat-group">
+                {% for br in burn_rates %}
+                <div class="at-stat">
+                    <span class="at-stat__label">{{ br.projet.nom|truncatechars:15 }}</span>
+                    <span class="at-stat__value" style="font-size: 18px;">{{ br.burn_rate|floatformat:0|intcomma }} <small>F/j</small></span>
+                </div>
+                {% empty %}
+                <p class="small at-muted">Données insuffisantes.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Performance par ferme -->
+        <div class="at-card">
+            <h3 class="at-card-title"><i class="fas fa-warehouse"></i> État des Exploitations</h3>
+            <div class="row g-3">
+                {% for fp in fermes_performance %}
+                <div class="col-md-4">
+                    <div class="at-stat">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="fw-bold text-at-brand">{{ fp.ferme.nom }}</span>
+                            <span class="badge bg-light text-dark">{{ fp.projets_actifs }} actifs</span>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar bg-at-brand" style="width: {{ fp.taux_utilisation }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between xsmall text-muted">
+                            <span>Utilisation: {{ fp.taux_utilisation }}%</span>
+                            <span>{{ fp.rendement_total|floatformat:0 }} kg</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB: ACTIVITIES (TASKS & FEED) ═══════════ -->
+    <div x-show="activeTab === 'activities'" x-transition class="at-bento">
+        <!-- Urgent Tasks -->
+        <div class="at-card at-card--lg">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="at-card-title m-0"><i class="fas fa-tasks"></i> Interventions Critiques</h3>
+                <span class="badge bg-danger rounded-pill">{{ stats_taches.en_retard }} en retard</span>
+            </div>
+
+            <div class="at-task-list">
+                {% for t in taches_retard %}
+                <div class="at-task-item at-task-item--urgent">
+                    <div class="at-task-info">
+                        <div class="at-task-title">{{ t.titre }}</div>
+                        <div class="at-task-meta">{{ t.projet.nom }} • Échéance : {{ t.date_echeance|date:"d M" }} • Assigné à {{ t.assigne_a.user.username }}</div>
+                    </div>
+                    <a href="{% url 'tache_detail' t.id %}" class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-chevron-right"></i></a>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3 opacity-25"></i>
+                    <p class="at-muted">Aucune tâche en retard !</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="at-card at-card--sm">
+            <h3 class="at-card-title"><i class="fas fa-stream"></i> Flux d'Activité</h3>
+            <div class="at-activity-feed">
+                {% for msg in messages_recents %}
+                <div class="at-feed-item">
+                    <div class="at-feed-icon"><i class="fas fa-comment"></i></div>
+                    <div class="at-feed-info">
+                        <div class="at-feed-content small"><strong>{{ msg.expediteur.user.username }}</strong> a posté dans <em>{{ msg.conversation.sujet|default:"Groupe" }}</em></div>
+                        <div class="at-feed-time xsmall text-muted">{{ msg.date_envoi|naturaltime }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center py-4 at-muted small">Calme plat sur la ferme.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Upcoming & Velocity -->
+        <div class="at-card at-card--md">
+            <h3 class="at-card-title"><i class="fas fa-calendar-check"></i> À venir (7 jours)</h3>
+            {% for t in taches_urgentes %}
+            <div class="at-task-item">
+                <div class="at-task-info">
+                    <div class="at-task-title">{{ t.titre }}</div>
+                    <div class="at-task-meta">{{ t.projet.nom }} • {{ t.date_echeance|date:"d M" }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center py-3 at-muted small">Rien à signaler pour les 7 prochains jours.</p>
+            {% endfor %}
+        </div>
+
+        <div class="at-card at-card--md">
+            <h3 class="at-card-title"><i class="fas fa-bolt"></i> Vélocité de l'Équipe</h3>
+            <div class="text-center py-4">
+                <div class="display-3 fw-bold text-at-brand">{{ tasks_velocity }}</div>
+                <div class="text-muted fw-bold">Tâches terminées cette semaine</div>
+                <p class="xsmall text-muted mt-2">Continuez ainsi pour atteindre vos objectifs de récolte.</p>
+            </div>
+
+            {% if alertes_projets %}
+            <div class="mt-4">
+                <div class="at-card-title small mb-2"><i class="fas fa-bell text-warning"></i> Alertes Projets</div>
+                {% for alerte in alertes_projets %}
+                <div class="alert alert-warning border-0 small py-2 px-3 rounded-pill mb-2">
+                    <i class="fas fa-pause-circle me-2"></i> {{ alerte.message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ═══════════ ACTION HUB (FAB) ═══════════ -->
+    <div class="at-action-hub">
+        <div class="at-fab-menu" :class="{ 'active': fabActive }">
+            <a href="{% url 'creer_projet' %}" class="at-fab-item"><i class="fas fa-seedling"></i> Nouveau Projet</a>
+            <a href="{% url 'creer_tache' %}" class="at-fab-item"><i class="fas fa-tasks"></i> Nouvelle Tâche</a>
+            {% if can_view_investissements %}
+            <a href="{% url 'finance_hub' %}" class="at-fab-item"><i class="fas fa-wallet"></i> Finances</a>
+            {% endif %}
+        </div>
+        <button class="at-fab" @click="fabActive = !fabActive">
+            <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>
+        </button>
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
+<script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
+<!-- Charting & Logic -->
+<script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 0. Map Logic
+        const markers = {{ map_markers|safe }};
+        if (markers.length > 0) {
+            const map = L.map('dashboardMap', { zoomControl: false, attributionControl: false }).setView([markers[0].lat, markers[0].lng], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            markers.forEach(m => {
+                L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.title);
+            });
+            if (markers.length > 1) {
+                const group = new L.featureGroup(markers.map(m => L.marker([m.lat, m.lng])));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+        // 1. Weather Logic
+        const weatherFermeId = "{{ dashboard_weather_ferme_id|default:'' }}";
+        if (weatherFermeId) {
+            fetch('/api/dashboard/weather/?ferme=' + weatherFermeId)
+                .then(r => r.json())
+                .then(payload => {
+                    if (payload.ok && payload.data) {
+                        const d = payload.data;
+                        document.getElementById('atWeatherTemp').textContent = Math.round(d.temperature) + '°C';
+                        document.getElementById('atWeatherDesc').textContent = d.description;
+                    }
+                });
+        }
+
+        // 2. Messages Async Feed
+        fetch('{% url "dashboard_partial_messages" %}')
+            .then(r => r.text())
+            .then(html => {
+                const container = document.getElementById('overviewMessagesContainer');
+                if (container) container.innerHTML = html;
+            });
+
+        // 3. Analytics Charts
+        const yieldCtx = document.getElementById('yieldChart');
+        if (yieldCtx) {
+            new Chart(yieldCtx, {
+                type: 'bar',
+                data: {
+                    labels: [{% for cd in cultures_data %}'{{ cd.culture.nom }}',{% endfor %}],
+                    datasets: [{
+                        label: 'Production (kg)',
+                        data: [{% for cd in cultures_data %}{{ cd.rendement_total|unlocalize }},{% endfor %}],
+                        backgroundColor: '#1D9E75',
+                        borderRadius: 8
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        const cultureCtx = document.getElementById('cultureChart');
+        if (cultureCtx) {
+            new Chart(cultureCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [{% for cd in cultures_data %}'{{ cd.culture.nom }}',{% endfor %}],
+                    datasets: [{
+                        data: [{% for cd in cultures_data %}{{ cd.superficie|unlocalize }},{% endfor %}],
+                        backgroundColor: ['#1D9E75', '#085041', '#EF9F27', '#D4AF37', '#795548'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+            });
+        }
+
+        {% if can_view_investissements %}
+        const cashflowCtx = document.getElementById('cashflowChart');
+        if (cashflowCtx) {
+            const financeData = {{ cockpit.finance_monthly|safe }};
+            new Chart(cashflowCtx, {
+                type: 'line',
+                data: {
+                    labels: financeData.labels,
+                    datasets: [
+                        { label: 'Recettes', data: financeData.recettes, borderColor: '#1D9E75', tension: 0.4, fill: true, backgroundColor: 'rgba(29, 158, 117, 0.05)', borderWidth: 3 },
+                        { label: 'Sorties Cash', data: financeData.depenses, borderColor: '#EF9F27', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 159, 39, 0.05)', borderWidth: 3, borderDash: [5, 5] }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { legend: { position: 'top', align: 'end' } }
+                }
+            });
+        }
+
+        const investCtx = document.getElementById('investCatChart');
+        if (investCtx) {
+            const investData = {{ cockpit.invest_by_category|safe }};
+            new Chart(investCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: investData.labels,
+                    datasets: [{
+                        data: investData.values,
+                        backgroundColor: ['#1D9E75', '#EF9F27', '#085041', '#D4AF37', '#795548'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+            });
+        }
+        {% endif %}
+
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx) {
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['En cours', 'Terminés', 'En pause'],
+                    datasets: [{
+                        data: [
+                            {{ projets_en_cours }},
+                            {{ projects_finis|default:0 }},
+                            {{ projets_en_pause|default:0 }}
+                        ],
+                        backgroundColor: ['#1D9E75', '#085041', '#EF9F27'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+            });
+        }
+    });
+</script>
+{% endblock %}

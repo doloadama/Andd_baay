@@ -43,6 +43,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.vary import vary_on_headers
 
 from Andd_Baayi import settings
+from .dashboard_logic import get_unified_dashboard_context
 from baay.forms import (
     CustomUserCreationForm,
     EmailOrUsernameAuthenticationForm,
@@ -1395,37 +1396,8 @@ def dashboard(request):
                 weather_ferme_id = str(wf.id)
                 break
 
-    context = {
-        'projets': projets_qs,
-        'superficie_totale': superficie_totale,
-        'rendement_total': rendement_total,
-        'investissement_total': investissement_total,
-        'can_view_investissements': can_view_investissements,
-        'utilisateur': utilisateur,
-        'projets_en_cours': projets_en_cours,
-        'projets_en_pause': projets_en_pause,
-        'projets_finis': projets_finis,
-        'completion_rate': completion_rate,
-        'cultures': cultures,
-        'localites': localites,
-        'fermes': user_fermes,
-        'selected_ferme': selected_ferme,
-        'fermes_data': fermes_data,
-        'nombre_fermes': nombre_fermes,
-        'total_membres': total_membres,
-        'avg_projets_par_ferme': avg_projets_par_ferme,
-        'fermes_inactives': fermes_inactives,
-        'fermes_chart_data_json': json.dumps(locals().get('fermes_chart_data', [])),
-        'ferme_superficie': f_sup,
-        'ferme_superficie_utilisee': f_sup_u,
-        'ferme_utilisation': f_util,
-        'ferme_membres': f_mem,
-        'ferme_rendement': f_rend,
-        'cockpit': cockpit_dashboard,
-        'dashboard_weather_ferme_id': weather_ferme_id,
-    }
-
-    return render(request, 'projets/dashboard.html', context)
+    context = get_unified_dashboard_context(request, utilisateur, selected_ferme)
+    return render(request, 'projets/dashboard_unified.html', context)
 
 
 @login_required
@@ -2945,41 +2917,8 @@ def _dashboard_manager(request, utilisateur, memberships):
     utilisation_pct = round((float(superficie_active) / float(superficie_ferme)) * 100, 1) if superficie_ferme else 0
     nombre_membres = (getattr(selected, 'membres_n', None) or 0) + 1
 
-    # Tâches de cette ferme
-    today_d = timezone.now().date()
-    taches_base = Tache.objects.filter(ferme=selected)
-    taches_a_faire = taches_base.filter(statut='a_faire').count()
-    taches_en_cours = taches_base.filter(statut='en_cours').count()
-    taches_terminees = taches_base.filter(statut='terminee').count()
-    taches_en_retard = taches_base.filter(
-        statut__in=['a_faire', 'en_cours'],
-        date_echeance__isnull=False,
-        date_echeance__lt=today_d,
-    ).count()
-    taches_recentes = (
-        taches_base.select_related('assigne_a__user', 'projet').order_by('-date_creation')[:8]
-    )
-
-    return render(request, 'projets/dashboard_manager.html', {
-        'utilisateur': utilisateur,
-        'fermes': fermes_managees,
-        'ferme': selected,
-        'projets': projets[:10],
-        'projets_total': projets.count(),
-        'projets_actifs': projets_actifs,
-        'projets_finis': projets_finis,
-        'projets_pause': projets_pause,
-        'superficie_totale': superficie_totale,
-        'superficie_active': superficie_active,
-        'superficie_ferme': superficie_ferme,
-        'utilisation_pct': utilisation_pct,
-        'nombre_membres': nombre_membres,
-        'taches_a_faire': taches_a_faire,
-        'taches_en_cours': taches_en_cours,
-        'taches_terminees': taches_terminees,
-        'taches_en_retard': taches_en_retard,
-        'taches_recentes': taches_recentes,
-    })
+    context = get_unified_dashboard_context(request, utilisateur, selected, farms_qs=fermes_qs)
+    return render(request, 'projets/dashboard_unified.html', context)
 
 
 def _dashboard_technicien(request, utilisateur, memberships):
@@ -3056,16 +2995,8 @@ def _dashboard_technicien(request, utilisateur, memberships):
         'assigne_a__user', 'assigne_par__user', 'projet'
     ).order_by('statut', '-date_creation')[:10]
 
-    return render(request, 'projets/dashboard_technicien.html', {
-        'utilisateur': utilisateur,
-        'fermes': fermes_user,
-        'ferme': selected,
-        'projets_data': projets_data[:10],
-        'nb_projets_actifs': nb_projets_actifs,
-        'cultures_distinctes': cultures_distinctes,
-        'recoltes_a_venir': recoltes_a_venir,
-        'mes_taches': mes_taches,
-    })
+    context = get_unified_dashboard_context(request, utilisateur, selected, farms_qs=fermes_user)
+    return render(request, 'projets/dashboard_unified.html', context)
 
 
 def _dashboard_ouvrier(request, utilisateur, memberships):
@@ -3109,17 +3040,8 @@ def _dashboard_ouvrier(request, utilisateur, memberships):
     fermes_map = {f.id: f for f in fermes_qs}
     fermes_display = [fermes_map[i] for i in ordered_ids if i in fermes_map]
 
-    return render(request, 'projets/dashboard_ouvrier.html', {
-        'utilisateur': utilisateur,
-        'fermes': fermes_display,
-        'a_faire': a_faire,
-        'en_cours': en_cours,
-        'terminees': terminees,
-        'a_faire_count': a_faire.count(),
-        'en_cours_count': en_cours.count(),
-        'terminees_count': taches.filter(statut='terminee').count(),
-        'en_retard_count': en_retard,
-    })
+    context = get_unified_dashboard_context(request, utilisateur, farms_qs=fermes_display)
+    return render(request, 'projets/dashboard_unified.html', context)
 
 
 def _notifier_tache_terminee(tache, executant_user):
@@ -4152,245 +4074,17 @@ def historique_sol_ferme(request, ferme_id):
 
 @login_required
 def performance(request):
-    """
-    Vue Performance - Métriques de production et rendements agricoles.
-    Affiche les rendements par culture, utilisation des superficies,
-    et comparatifs de performance entre fermes.
-    """
-    try:
-        utilisateur = request.user.profile
-    except Profile.DoesNotExist:
-        utilisateur = Profile.objects.create(user=request.user)
-
-    # Fermes accessibles
-    user_fermes = fermes_accessibles_qs(utilisateur).distinct().order_by('nom')
-
-    # Filtrage par ferme optionnel
-    selected_ferme_id = request.GET.get('ferme')
-    selected_ferme = None
-    if selected_ferme_id:
-        try:
-            selected_ferme = user_fermes.get(id=selected_ferme_id)
-        except Ferme.DoesNotExist:
-            pass
-
-    # Projets pour calcul des rendements
-    projets_qs = projets_accessibles_qs(utilisateur).select_related(
-        'culture', 'ferme', 'ferme__localite'
-    ).prefetch_related('projet_produits__produit')
-
-    if selected_ferme:
-        projets_qs = projets_qs.filter(ferme=selected_ferme)
-
-    # Calcul des métriques de performance
-    rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-    superficie_totale = projets_qs.aggregate(Sum('superficie'))['superficie__sum'] or 0
-    rendement_moyen = rendement_total / superficie_totale if superficie_totale > 0 else 0
-
-    # Rendements par culture
-    cultures_data = []
-    cultures = ProduitAgricole.objects.filter(
-        projet__in=projets_qs
-    ).distinct()
-
-    for culture in cultures:
-        projets_culture = projets_qs.filter(culture=culture)
-        sup_culture = projets_culture.aggregate(Sum('superficie'))['superficie__sum'] or 0
-        rend_culture = projets_culture.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-        rendement_par_ha = rend_culture / sup_culture if sup_culture > 0 else 0
-
-        cultures_data.append({
-            'culture': culture,
-            'superficie': sup_culture,
-            'rendement_total': rend_culture,
-            'rendement_par_ha': round(rendement_par_ha, 1),
-            'projets_count': projets_culture.count(),
-        })
-
-    # Données par ferme pour comparaison
-    fermes_performance = []
-    for ferme in user_fermes:
-        f_projets = projets_qs.filter(ferme=ferme) if not selected_ferme else projets_qs
-        if selected_ferme and ferme.id != selected_ferme.id:
-            continue
-
-        f_superficie = f_projets.aggregate(Sum('superficie'))['superficie__sum'] or 0
-        f_rendement = f_projets.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-        f_utilisation = 0
-
-        if ferme.superficie_totale:
-            f_utilisation = round((f_superficie / ferme.superficie_totale) * 100, 1)
-
-        fermes_performance.append({
-            'ferme': ferme,
-            'superficie_utilisee': f_superficie,
-            'rendement_total': f_rendement,
-            'taux_utilisation': f_utilisation,
-            'projets_actifs': f_projets.filter(statut='en_cours').count(),
-        })
-
-    # --- Productivite des employes (agents) ---
-    taches_qs = Tache.objects.filter(ferme__in=user_fermes)
-    if selected_ferme:
-        taches_qs = taches_qs.filter(ferme=selected_ferme)
-
-    agents_stats = (
-        taches_qs.values(
-            'assigne_a__id',
-            'assigne_a__user__username',
-            'assigne_a__user__first_name',
-            'assigne_a__user__last_name',
-        )
-        .annotate(
-            total_taches=Count('id'),
-            terminees=Count('id', filter=Q(statut='terminee')),
-            a_temps=Count(
-                'id',
-                filter=Q(
-                    statut='terminee',
-                    date_terminee__lte=F('date_echeance'),
-                ),
-            ),
-            en_retard=Count(
-                'id',
-                filter=Q(
-                    date_echeance__lt=timezone.now().date(),
-                    statut__in=['a_faire', 'en_cours'],
-                ),
-            ),
-        )
-        .order_by('-terminees')
-    )
-
-    agents_performance = []
-    max_terminees = max((a['terminees'] for a in agents_stats), default=0)
-    for agent in agents_stats:
-        nom = (
-            f"{agent['assigne_a__user__first_name'] or ''} {agent['assigne_a__user__last_name'] or ''}".strip()
-            or agent['assigne_a__user__username']
-        )
-        term = agent['terminees']
-        taux = (term / agent['total_taches'] * 100) if agent['total_taches'] > 0 else 0
-        taux_temps = (agent['a_temps'] / term * 100) if term > 0 else 0
-        volume_score = (term / max_terminees * 100) if max_terminees > 0 else 0
-        score_global = round((taux_temps * 0.6) + (volume_score * 0.4), 1)
-        agents_performance.append(
-            {
-                'nom': nom,
-                'username': agent['assigne_a__user__username'],
-                'total_taches': agent['total_taches'],
-                'terminees': term,
-                'a_temps': agent['a_temps'],
-                'en_retard': agent['en_retard'],
-                'taux_completion': round(taux, 1),
-                'taux_a_temps': round(taux_temps, 1),
-                'score_global': score_global,
-            }
-        )
-
-    context = {
-        'utilisateur': utilisateur,
-        'fermes': user_fermes,
-        'selected_ferme': selected_ferme,
-        'rendement_total': rendement_total,
-        'superficie_totale': superficie_totale,
-        'rendement_moyen': round(rendement_moyen, 1),
-        'cultures_data': cultures_data,
-        'fermes_performance': fermes_performance,
-        'projets_count': projets_qs.count(),
-        'agents_performance': agents_performance,
-    }
-
-    return render(request, 'projets/performance.html', context)
+    """Vue Performance - Redirige vers le dashboard unifié avec l'onglet performance."""
+    url = reverse('dashboard') + "?tab=performance"
+    if request.GET.get('ferme'):
+        url += f"&ferme={request.GET.get('ferme')}"
+    return redirect(url)
 
 
 @login_required
 def activites(request):
-    """
-    Vue Activités - Flux des tâches, alertes et notifications récentes.
-    Dashboard opérationnel pour le suivi des activités quotidiennes.
-    """
-    try:
-        utilisateur = request.user.profile
-    except Profile.DoesNotExist:
-        utilisateur = Profile.objects.create(user=request.user)
-
-    # Fermes accessibles
-    user_fermes = fermes_accessibles_qs(utilisateur).distinct()
-
-    # Filtrage par ferme optionnel
-    selected_ferme_id = request.GET.get('ferme')
-    selected_ferme = None
-    if selected_ferme_id:
-        try:
-            selected_ferme = user_fermes.get(id=selected_ferme_id)
-        except Ferme.DoesNotExist:
-            pass
-
-    # Projets pour les tâches
-    projets_qs = projets_accessibles_qs(utilisateur).prefetch_related('taches')
-    if selected_ferme:
-        projets_qs = projets_qs.filter(ferme=selected_ferme)
-
-    # Tâches récentes et critiques
-    from django.utils import timezone
-    from datetime import timedelta
-
-    taches_qs = Tache.objects.filter(
-        projet__in=projets_qs
-    ).exclude(statut__in=['terminee', 'annulee']).select_related('projet')
-
-    # Tâches en retard
-    taches_retard = taches_qs.filter(
-        date_echeance__lt=timezone.now()
-    ).order_by('date_echeance')[:10]
-
-    # Tâches à venir (7 prochains jours)
-    date_limite = timezone.now() + timedelta(days=7)
-    taches_urgentes = taches_qs.filter(
-        date_echeance__gte=timezone.now(),
-        date_echeance__lte=date_limite
-    ).order_by('date_echeance')[:10]
-
-    # Statistiques des tâches
-    stats_taches = {
-        'total': taches_qs.count(),
-        'en_retard': taches_qs.filter(date_echeance__lt=timezone.now()).count(),
-        'a_venir': taches_qs.filter(date_echeance__gte=timezone.now(), date_echeance__lte=date_limite).count(),
-        'en_cours': taches_qs.filter(statut='en_cours').count(),
-    }
-
-    # Messages récents non lus
-    recent_messages = []
-    try:
-        recent_messages = Message.objects.filter(
-            conversation__participations__utilisateur=utilisateur
-        ).exclude(
-            expediteur=utilisateur
-        ).order_by('-date_envoi')[:5]
-    except:
-        pass
-
-    # Alertes projets (projets en pause ou avec budget dépassé)
-    alertes_projets = []
-    projets_alertes = projets_qs.filter(statut='en_pause')
-    for projet in projets_alertes[:5]:
-        alertes_projets.append({
-            'type': 'pause',
-            'projet': projet,
-            'message': f"Projet en pause : {projet.nom}",
-        })
-
-    context = {
-        'utilisateur': utilisateur,
-        'fermes': user_fermes,
-        'selected_ferme': selected_ferme,
-        'taches_retard': taches_retard,
-        'taches_urgentes': taches_urgentes,
-        'stats_taches': stats_taches,
-        'recent_messages': recent_messages,
-        'alertes_projets': alertes_projets,
-        'projets_count': projets_qs.count(),
-    }
-
-    return render(request, 'projets/activites.html', context)
+    """Vue Activités - Redirige vers le dashboard unifié avec l'onglet activités."""
+    url = reverse('dashboard') + "?tab=activities"
+    if request.GET.get('ferme'):
+        url += f"&ferme={request.GET.get('ferme')}"
+    return redirect(url)
