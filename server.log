@@ -1,0 +1,109 @@
+Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+WARNING ML dependencies (numpy, pandas, scikit-learn) not available. ML features disabled.
+HTTP HEAD /accounts/login/ 200 [0.38, 127.0.0.1:37354]
+INFO HTTP HEAD /accounts/login/ 200 [0.38, 127.0.0.1:37354]
+CRITICAL Listen failure: Couldn't listen on 0.0.0.0:8000: [Errno 98] Address already in use.
+HTTP GET /accounts/login/ 200 [0.04, 127.0.0.1:50700]
+INFO HTTP GET /accounts/login/ 200 [0.04, 127.0.0.1:50700]
+HTTP GET /static/debug_toolbar/css/toolbar.css 200 [0.01, 127.0.0.1:50700]
+INFO HTTP GET /static/debug_toolbar/css/toolbar.css 200 [0.01, 127.0.0.1:50700]
+HTTP GET /static/debug_toolbar/js/toolbar.js 200 [0.01, 127.0.0.1:50716]
+INFO HTTP GET /static/debug_toolbar/js/toolbar.js 200 [0.01, 127.0.0.1:50716]
+HTTP GET /static/debug_toolbar/css/print.css 200 [0.00, 127.0.0.1:50716]
+INFO HTTP GET /static/debug_toolbar/css/print.css 200 [0.00, 127.0.0.1:50716]
+HTTP GET /static/debug_toolbar/js/utils.js 200 [0.00, 127.0.0.1:50716]
+INFO HTTP GET /static/debug_toolbar/js/utils.js 200 [0.00, 127.0.0.1:50716]
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 16, 2026 - 16:36:34
+Django version 5.2.14, using settings 'Andd_Baayi.settings'
+Starting ASGI/Daphne version 4.2.1 development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: [example.com] Confirmez votre adresse e-mail
+From: no-reply@anddbaay.local
+To: admin@example.com
+Date: Sat, 16 May 2026 16:37:18 -0000
+Message-ID: <177894943894.113806.15773976598377150227@devbox>
+
+Bonjour, c'est example.com !
+
+Vous recevez cet e-mail car l'utilisateur admin a indiqué votre adresse pour se connecter à son compte sur example.com.
+
+Pour confirmer que cela est correct, allez sur http://localhost:8000/accounts/confirm-email/MQ:1wOI0s:6MUR6JwPf57_c8gXJep56EvJ3_rszzYDL5U4ZB8Tszw/
+
+Merci d'utiliser example.com !
+example.com
+-------------------------------------------------------------------------------
+HTTP POST /accounts/login/ 302 [0.98, 127.0.0.1:50716]
+INFO HTTP POST /accounts/login/ 302 [0.98, 127.0.0.1:50716]
+HTTP GET /accounts/confirm-email/ 200 [0.07, 127.0.0.1:50716]
+INFO HTTP GET /accounts/confirm-email/ 200 [0.07, 127.0.0.1:50716]
+HTTP GET /accounts/login/ 200 [0.05, 127.0.0.1:41028]
+INFO HTTP GET /accounts/login/ 200 [0.05, 127.0.0.1:41028]
+HTTP GET /static/debug_toolbar/css/toolbar.css 200 [0.01, 127.0.0.1:41028]
+INFO HTTP GET /static/debug_toolbar/css/toolbar.css 200 [0.01, 127.0.0.1:41028]
+HTTP GET /static/debug_toolbar/js/toolbar.js 200 [0.01, 127.0.0.1:41034]
+INFO HTTP GET /static/debug_toolbar/js/toolbar.js 200 [0.01, 127.0.0.1:41034]
+HTTP GET /static/debug_toolbar/css/print.css 200 [0.00, 127.0.0.1:41028]
+INFO HTTP GET /static/debug_toolbar/css/print.css 200 [0.00, 127.0.0.1:41028]
+HTTP GET /static/debug_toolbar/js/utils.js 200 [0.00, 127.0.0.1:41028]
+INFO HTTP GET /static/debug_toolbar/js/utils.js 200 [0.00, 127.0.0.1:41028]
+HTTP POST /accounts/login/ 302 [0.87, 127.0.0.1:41028]
+INFO HTTP POST /accounts/login/ 302 [0.87, 127.0.0.1:41028]
+HTTP GET /accounts/confirm-email/ 200 [0.04, 127.0.0.1:41028]
+INFO HTTP GET /accounts/confirm-email/ 200 [0.04, 127.0.0.1:41028]
+HTTP GET /accounts/login/ 200 [0.04, 127.0.0.1:37588]
+INFO HTTP GET /accounts/login/ 200 [0.04, 127.0.0.1:37588]
+HTTP GET /static/debug_toolbar/css/toolbar.css 200 [0.01, 127.0.0.1:37588]
+INFO HTTP GET /static/debug_toolbar/css/toolbar.css 200 [0.01, 127.0.0.1:37588]
+HTTP GET /static/debug_toolbar/js/toolbar.js 200 [0.01, 127.0.0.1:37600]
+INFO HTTP GET /static/debug_toolbar/js/toolbar.js 200 [0.01, 127.0.0.1:37600]
+HTTP GET /static/debug_toolbar/css/print.css 200 [0.00, 127.0.0.1:37600]
+INFO HTTP GET /static/debug_toolbar/css/print.css 200 [0.00, 127.0.0.1:37600]
+HTTP GET /static/debug_toolbar/js/utils.js 200 [0.00, 127.0.0.1:37600]
+INFO HTTP GET /static/debug_toolbar/js/utils.js 200 [0.00, 127.0.0.1:37600]
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: [example.com] Confirmez votre adresse e-mail
+From: no-reply@anddbaay.local
+To: admin@example.com
+Date: Sat, 16 May 2026 16:41:40 -0000
+Message-ID: <177894970095.113806.3501695240252601933@devbox>
+
+Bonjour, c'est example.com !
+
+Vous recevez cet e-mail car l'utilisateur admin a indiqué votre adresse pour se connecter à son compte sur example.com.
+
+Pour confirmer que cela est correct, allez sur http://localhost:8000/accounts/confirm-email/MQ:1wOI56:1ncDiahPnpJUKq6TecVn5J3pbZRLPSL3dGURroRXDbs/
+
+Merci d'utiliser example.com !
+example.com
+-------------------------------------------------------------------------------
+HTTP POST /accounts/login/ 302 [0.85, 127.0.0.1:37600]
+INFO HTTP POST /accounts/login/ 302 [0.85, 127.0.0.1:37600]
+HTTP GET /accounts/confirm-email/ 200 [0.03, 127.0.0.1:37600]
+INFO HTTP GET /accounts/confirm-email/ 200 [0.03, 127.0.0.1:37600]
+/app/Andd_Baayi/settings.py changed, reloading.
+INFO /app/Andd_Baayi/settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 16, 2026 - 16:36:41
+Django version 5.2.14, using settings 'Andd_Baayi.settings'
+Starting ASGI/Daphne version 4.2.1 development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+/app/Andd_Baayi/settings.py changed, reloading.
+INFO /app/Andd_Baayi/settings.py changed, reloading.
+Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+INFO Watching for file changes with StatReloader
+WARNING ML dependencies (numpy, pandas, scikit-learn) not available. ML features disabled.
+WARNING ML dependencies (numpy, pandas, scikit-learn) not available. ML features disabled.
+CRITICAL Listen failure: Couldn't listen on 127.0.0.1:8000: [Errno 98] Address already in use.
