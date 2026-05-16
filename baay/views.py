@@ -1158,6 +1158,14 @@ def detail_projet(request, projet_id):
                 logger.error("Erreur récupération photo", exc_info=True)
                 pass
 
+    role_ferme = role_dans_ferme(request.user.profile, projet.ferme)
+    peut_creer_tache = bool(role_ferme and roles_assignables_par(role_ferme))
+    taches_projet = (
+        Tache.objects.filter(projet=projet)
+        .select_related("assigne_a__user", "assigne_par__user")
+        .order_by("statut", "date_echeance", "-date_creation")[:10]
+    )
+
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'can_view_investissements': can_view_investissements,
@@ -1177,6 +1185,8 @@ def detail_projet(request, projet_id):
         'superficie_overallocated': superficie_overallocated,
         'ferme_superficie_totale': ferme_superficie_totale,
         'plant_photos': plant_photos,
+        'taches_projet': taches_projet,
+        'peut_creer_tache': peut_creer_tache,
     })
 
 @login_required

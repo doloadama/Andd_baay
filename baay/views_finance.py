@@ -18,7 +18,7 @@ from django.utils.timezone import now
 from django.views import View
 
 from baay.forms import FinanceDepenseForm, FinanceRecetteForm
-from baay.models import Depense, Investissement, Projet, ProjetProduit, Recette
+from baay.models import Depense, Investissement, Projet, ProjetProduit, ProduitAgricole, Recette
 from baay.permissions import (
     peut_acceder_menu_finance,
     peut_modifier_investissement,
@@ -203,6 +203,66 @@ def _querystring_without_pages(request):
     return q.urlencode()
 
 
+def _finance_chart_year(request) -> int:
+    annee = request.GET.get("annee")
+    if annee:
+        try:
+            return int(annee)
+        except (TypeError, ValueError):
+            pass
+    return now().year
+
+
+def _build_finance_charts_data(request, depense_qs, recette_qs) -> dict:
+    """Agrégats pour les graphiques (catégories + série mensuelle)."""
+    year = _finance_chart_year(request)
+    cat_labels = dict(Investissement.CATEGORIE_CHOICES)
+
+    cat_rows = (
+        depense_qs.values("categorie")
+        .annotate(total=Coalesce(Sum(investissement_montant_expr()), Value(Decimal("0"))))
+        .order_by("-total")
+    )
+    expenses_by_category = [
+        {
+            "label": cat_labels.get(row["categorie"], row["categorie"] or "Autre"),
+            "amount": float(row["total"] or 0),
+        }
+        for row in cat_rows
+        if row["total"] and row["total"] > 0
+    ]
+
+    monthly_recettes = []
+    monthly_depenses = []
+    for month in range(1, 13):
+        monthly_depenses.append(
+            float(
+                _total_montant(
+                    depense_qs.filter(
+                        date_investissement__year=year,
+                        date_investissement__month=month,
+                    )
+                )
+            )
+        )
+        monthly_recettes.append(
+            float(
+                _total_recettes(
+                    recette_qs.filter(date_vente__year=year, date_vente__month=month)
+                )
+            )
+        )
+
+    return {
+        "chart_year": year,
+        "chart_expenses": expenses_by_category,
+        "chart_monthly": {
+            "recettes": monthly_recettes,
+            "depenses": monthly_depenses,
+        },
+    }
+
+
 def _finance_hub_template_context(
     request,
     *,
@@ -236,6 +296,10 @@ def _finance_hub_template_context(
         dep_pp = request.POST.get("projet_produit", "")
         rec_pp = request.POST.get("recette-projet_produit", "")
 
+    charts = _build_finance_charts_data(request, qs, qs_r)
+    current_year = now().year
+    years = list(range(current_year, current_year - 6, -1))
+
     return {
         "page_obj": page_obj,
         "depenses": page_obj,
@@ -258,6 +322,17 @@ def _finance_hub_template_context(
         "culture_partial_produits_recette": culture_partial_produits_recette,
         "selected_depense_projet_produit": dep_pp,
         "selected_recette_projet_produit": rec_pp,
+        "total_depenses": _total_montant(qs),
+        "total_recettes": _total_recettes(qs_r),
+        "chart_year": charts["chart_year"],
+        "chart_expenses": charts["chart_expenses"],
+        "chart_monthly": charts["chart_monthly"],
+        "years": years,
+        "cultures": ProduitAgricole.objects.filter(
+            projet__in=projets_avec_vue_depenses_qs(profile)
+        )
+        .distinct()
+        .order_by("nom"),
         **_finance_hub_extra_context(request),
     }
 
