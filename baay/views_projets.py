@@ -7,6 +7,7 @@ from .views import (
     get_produit_agricole_details,
     liste_projets,
     modifier_projet,
+    reprendre_campagne_projet,
     supprimer_projet,
     supprimer_projets,
     update_projet_statut_api,

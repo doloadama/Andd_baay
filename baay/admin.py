@@ -15,6 +15,7 @@ from baay.dashboard_services import DashboardChangelistMixin
 
 from .models import (
     Conversation,
+    CampagneProjet,
     DemandeAccesFerme,
     Depense,
     Ferme,
@@ -132,8 +133,9 @@ class PhotoProduitAgricoleAdmin(ModelAdmin):
 class ProjetAdmin(DashboardChangelistMixin, ModelAdmin):
     list_before_template = "admin/baay/changelist_dashboard_note.html"
     baay_dashboard_slug = "projet"
-    list_display = ("nom", "ferme", "statut", "budget_alloue", "date_lancement")
+    list_display = ("nom", "ferme", "type_cycle", "statut", "budget_alloue", "date_lancement")
     list_filter = [
+        ("type_cycle", ChoicesDropdownFilter),
         ("statut", ChoicesDropdownFilter),
         ("ferme", AutocompleteSelectFilter),
         ("pays", AutocompleteSelectFilter),
@@ -143,6 +145,19 @@ class ProjetAdmin(DashboardChangelistMixin, ModelAdmin):
     search_fields = ("nom", "ferme__nom")
     ordering = ("-date_lancement",)
     list_select_related = ("ferme", "culture", "localite", "pays", "utilisateur__user")
+    list_filter_submit = True
+
+
+@admin.register(CampagneProjet)
+class CampagneProjetAdmin(ModelAdmin):
+    list_display = ("nom", "projet", "saison", "statut", "date_debut", "date_fin", "rendement_total")
+    list_filter = [
+        ("statut", ChoicesDropdownFilter),
+        ("projet", AutocompleteSelectFilter),
+    ]
+    search_fields = ("nom", "saison", "projet__nom")
+    ordering = ("-date_debut",)
+    list_select_related = ("projet", "projet__ferme")
     list_filter_submit = True
 
 

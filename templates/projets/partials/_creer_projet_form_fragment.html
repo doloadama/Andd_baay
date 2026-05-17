@@ -191,6 +191,19 @@ Fragment HTMX (422) ou inclusion dans creer_projet.html — champs type hub Fina
             </div>
 
             <div class="input-modern-group">
+                <label for="{{ projet_form.type_cycle.id_for_label }}" class="finance-ft-field-label">Type de projet</label>
+                <div class="projet-input-shell">
+                    {{ projet_form.type_cycle }}
+                </div>
+                {% if projet_form.type_cycle.help_text %}
+                    <p class="finance-ft-help">{{ projet_form.type_cycle.help_text }}</p>
+                {% endif %}
+                {% if projet_form.type_cycle.errors %}
+                    <div class="text-danger small mt-1">{{ projet_form.type_cycle.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="input-modern-group">
                 <label for="{{ projet_form.date_lancement.id_for_label }}" class="finance-ft-field-label">Date de lancement <span class="required">*</span></label>
                 <div class="projet-input-shell">
                     {{ projet_form.date_lancement }}

@@ -342,6 +342,13 @@ class Projet(models.Model):
         (STATUT_CLOTURE, 'Clôturé'),
     ]
 
+    TYPE_CYCLE_CAMPAGNE = "campagne"
+    TYPE_CYCLE_PERENNE = "perenne"
+    TYPE_CYCLE_CHOICES = [
+        (TYPE_CYCLE_CAMPAGNE, "Campagne saisonniere"),
+        (TYPE_CYCLE_PERENNE, "Projet perenne"),
+    ]
+
     class TypeIrrigation(models.TextChoices):
         AUCUNE = 'Aucune', 'Aucune (Pluvial)'
         GOUTTE_A_GOUTTE = 'Goutte-à-goutte', 'Goutte-à-goutte'
@@ -360,6 +367,12 @@ class Projet(models.Model):
     nom = models.CharField(max_length=200)
     ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='projets')
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
+    type_cycle = models.CharField(
+        max_length=20,
+        choices=TYPE_CYCLE_CHOICES,
+        default=TYPE_CYCLE_CAMPAGNE,
+        help_text="Campagne courte (riz, mais...) ou projet perenne avec campagnes successives.",
+    )
     utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE)
     pays = models.ForeignKey(Pays, on_delete=models.SET_NULL, null=True, blank=True)
     culture = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE, null=True, blank=True)
@@ -451,7 +464,7 @@ class Projet(models.Model):
             if self.statut not in ('fini', self.STATUT_CLOTURE) and date_fin < timezone.localdate():
                 raise ValidationError({"date_fin": "La date de fin ne peut pas être dans le passé pour un projet actif."})
             # Durée raisonnable ≤ 2 ans
-            if (date_fin - date_lancement).days > 730:
+            if self.type_cycle != self.TYPE_CYCLE_PERENNE and (date_fin - date_lancement).days > 730:
                 raise ValidationError({"date_fin": "La durée d'un projet ne doit pas excéder 2 ans."})
         else:
             # Projet en cours: ne pas démarrer dans un futur lointain (> 2 ans)
@@ -603,6 +616,103 @@ class Projet(models.Model):
         if d.get("is_manual"):
             out["taux_avancement_calcule"] = calc
         return out
+
+    @property
+    def est_perenne(self) -> bool:
+        return self.type_cycle == self.TYPE_CYCLE_PERENNE
+
+
+class CampagneProjet(models.Model):
+    """Cycle saisonnier rattache a un projet, surtout utile aux cultures perennes."""
+
+    STATUT_PREPARATION = "preparation"
+    STATUT_EN_COURS = "en_cours"
+    STATUT_FINI = "fini"
+    STATUT_CHOICES = [
+        (STATUT_PREPARATION, "Preparation"),
+        (STATUT_EN_COURS, "En cours"),
+        (STATUT_FINI, "Terminee"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE, related_name="campagnes")
+    nom = models.CharField(max_length=120)
+    saison = models.CharField(max_length=80, blank=True, default="")
+    date_debut = models.DateField()
+    date_fin = models.DateField(null=True, blank=True)
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default=STATUT_EN_COURS)
+    rendement_total = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Rendement total obtenu pendant cette campagne (kg).",
+    )
+    cout_total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Cout total estime de cette campagne (FCFA).",
+    )
+    recette_totale = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Recette totale estimee de cette campagne (FCFA).",
+    )
+    notes = models.TextField(blank=True, default="")
+    campagne_precedente = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="campagnes_suivantes",
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date_debut", "-date_creation"]
+        constraints = [
+            models.UniqueConstraint(fields=["projet", "nom"], name="unique_campagne_nom_par_projet"),
+        ]
+        indexes = [
+            models.Index(fields=["projet", "statut"], name="baay_campag_projet_stat_idx"),
+            models.Index(fields=["projet", "date_debut"], name="baay_campag_projet_debut_idx"),
+        ]
+        verbose_name = "Campagne de projet"
+        verbose_name_plural = "Campagnes de projet"
+
+    def __str__(self):
+        return f"{self.nom} - {self.projet.nom}"
+
+    @property
+    def benefice(self):
+        if self.recette_totale is None and self.cout_total is None:
+            return None
+        return (self.recette_totale or Decimal("0")) - (self.cout_total or Decimal("0"))
+
+    @property
+    def rendement_par_hectare(self):
+        if not self.rendement_total or not self.projet.superficie:
+            return None
+        return self.rendement_total / self.projet.superficie
+
+    def clean(self):
+        super().clean()
+        if self.date_fin and self.date_fin < self.date_debut:
+            raise ValidationError({"date_fin": "La date de fin ne peut pas etre anterieure a la date de debut."})
+        if self.statut == self.STATUT_FINI and not self.date_fin:
+            raise ValidationError({"date_fin": "Une campagne terminee doit avoir une date de fin."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class ProjetProduit(models.Model):

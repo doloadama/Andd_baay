@@ -73,6 +73,7 @@ from baay.services import (
     product_placeholder_data_uri,
 )
 from baay.models import (
+    CampagneProjet,
     HistoriqueSol,
     Profile,
     Projet,
@@ -132,6 +133,35 @@ from baay.services import (
     transition_demande_acces,
     update_prediction_for_projet_produit,
 )
+
+
+def _campagne_nom_unique(projet, base_nom):
+    nom = base_nom
+    suffix = 2
+    while CampagneProjet.objects.filter(projet=projet, nom=nom).exists():
+        nom = f"{base_nom} ({suffix})"
+        suffix += 1
+    return nom
+
+
+def _creer_campagne_initiale_si_perenne(projet):
+    if projet.type_cycle != Projet.TYPE_CYCLE_PERENNE or projet.campagnes.exists():
+        return None
+    annee = projet.date_lancement.year if projet.date_lancement else timezone.localdate().year
+    statut_campagne = (
+        CampagneProjet.STATUT_FINI
+        if projet.statut in Projet.statuts_fin_activite()
+        else CampagneProjet.STATUT_EN_COURS
+    )
+    return CampagneProjet.objects.create(
+        projet=projet,
+        nom=_campagne_nom_unique(projet, f"Campagne {annee}"),
+        saison=str(annee),
+        date_debut=projet.date_lancement or timezone.localdate(),
+        date_fin=projet.date_fin or (timezone.localdate() if statut_campagne == CampagneProjet.STATUT_FINI else None),
+        statut=statut_campagne,
+        rendement_total=projet.rendement_total_final or None,
+    )
 from baay.core_services import compute_previsions_for_projet, get_weather_by_coords
 
 # Optional ML imports - these are large dependencies that may not be available in serverless
@@ -689,6 +719,7 @@ def creer_projet(request):
                     projet.rendement_estime = rendement_total
 
             projet.save()
+            _creer_campagne_initiale_si_perenne(projet)
 
             messages.success(request, "Le projet a ete cree avec succes.")
             if _htmx_request(request):
@@ -853,6 +884,8 @@ def modifier_projet(request, projet_id):
                     projet.culture = produits[0]
                     projet.save()
 
+                _creer_campagne_initiale_si_perenne(projet)
+
                 messages.success(request, "Le projet a ete modifie avec succes.")
                 return redirect("detail_projet", projet_id=projet.id)
             else:
@@ -901,6 +934,53 @@ def modifier_projet(request, projet_id):
         'plants_data': plants_data,
         'produits': ProduitAgricole.objects.all(),
     })
+
+
+@login_required
+@require_POST
+def reprendre_campagne_projet(request, projet_id):
+    projet = get_object_or_404(
+        Projet.objects.prefetch_related("campagnes"),
+        id=projet_id,
+    )
+    if not peut_modifier_projet(request.user.profile, projet):
+        messages.error(request, "Vous n'avez pas le droit de modifier ce projet.")
+        return redirect("detail_projet", projet_id=projet.id)
+    if projet.type_cycle != Projet.TYPE_CYCLE_PERENNE:
+        messages.error(request, "Seuls les projets perennes peuvent etre repris par campagne.")
+        return redirect("detail_projet", projet_id=projet.id)
+
+    precedente = projet.campagnes.order_by("-date_debut", "-date_creation").first()
+    today = timezone.localdate()
+    date_debut = precedente.date_fin + timedelta(days=1) if precedente and precedente.date_fin else today
+
+    campagne = CampagneProjet.objects.create(
+        projet=projet,
+        nom=_campagne_nom_unique(projet, f"Campagne {date_debut.year}"),
+        saison=str(date_debut.year),
+        date_debut=date_debut,
+        statut=CampagneProjet.STATUT_EN_COURS,
+        campagne_precedente=precedente,
+        notes=(
+            f"Relance depuis {precedente.nom}."
+            if precedente
+            else "Premiere campagne suivie pour ce projet perenne."
+        ),
+    )
+
+    update_fields = []
+    if projet.statut in Projet.statuts_fin_activite():
+        projet.statut = "en_cours"
+        update_fields.append("statut")
+    if projet.date_fin:
+        projet.date_fin = None
+        update_fields.append("date_fin")
+    if update_fields:
+        projet.save(update_fields=update_fields)
+
+    messages.success(request, f"{campagne.nom} a ete creee pour reprendre le suivi.")
+    return redirect("detail_projet", projet_id=projet.id)
+
 
 @login_required
 def supprimer_projet(request, projet_id):
@@ -1166,6 +1246,8 @@ def detail_projet(request, projet_id):
         .select_related("assigne_a__user", "assigne_par__user")
         .order_by("statut", "date_echeance", "-date_creation")[:10]
     )
+    campagnes = list(projet.campagnes.select_related("campagne_precedente").all())
+    derniere_campagne = campagnes[0] if campagnes else None
 
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
@@ -1188,6 +1270,9 @@ def detail_projet(request, projet_id):
         'plant_photos': plant_photos,
         'taches_projet': taches_projet,
         'peut_creer_tache': peut_creer_tache,
+        'campagnes': campagnes,
+        'derniere_campagne': derniere_campagne,
+        'peut_reprendre_campagne': projet.est_perenne and peut_modifier_projet(request.user.profile, projet),
     })
 
 @login_required

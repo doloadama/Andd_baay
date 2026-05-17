@@ -529,6 +529,7 @@ class ProjetForm(forms.ModelForm):
             'nom',
             'ferme',
             'image_fond',
+            'type_cycle',
             'pays',
             'localite',
             'superficie',
@@ -549,6 +550,7 @@ class ProjetForm(forms.ModelForm):
             'nom': forms.TextInput(attrs={'class': 'fh-field', 'placeholder': 'Ex. Rizière Nord 2024'}),
             'ferme': forms.Select(attrs={'class': 'fh-field'}),
             'image_fond': forms.ClearableFileInput(attrs={'class': 'fh-field', 'accept': 'image/*', 'capture': 'environment'}),
+            'type_cycle': forms.Select(attrs={'class': 'fh-field'}),
             'pays': forms.Select(attrs={'class': 'fh-field'}),
             'localite': forms.Select(attrs={'class': 'fh-field'}),
             'superficie': forms.NumberInput(attrs={'class': 'fh-field', 'step': '0.01', 'min': '0'}),
@@ -589,6 +591,11 @@ class ProjetForm(forms.ModelForm):
         # ici et la validation finale se fait dans clean().
         if "superficie" in self.fields:
             self.fields["superficie"].required = False
+        if "type_cycle" in self.fields:
+            self.fields["type_cycle"].label = "Type de projet"
+            self.fields["type_cycle"].help_text = (
+                "Choisissez projet perenne pour les vergers, vignes et plantations suivies sur plusieurs saisons."
+            )
         if 'pays' in self.fields:
             self.fields['pays'].queryset = Pays.objects.all().order_by('nom')
             self.fields['pays'].label_from_instance = lambda obj: obj.nom
@@ -661,8 +668,16 @@ class ProjetForm(forms.ModelForm):
         ferme = cleaned_data.get('ferme')
         date_lancement = cleaned_data.get('date_lancement')
         date_fin = cleaned_data.get('date_fin')
+        type_cycle = cleaned_data.get('type_cycle')
         if date_lancement and date_fin and date_fin <= date_lancement:
             self.add_error('date_fin', "La date de fin doit etre posterieure a la date de debut.")
+        if (
+            type_cycle != Projet.TYPE_CYCLE_PERENNE
+            and date_lancement
+            and date_fin
+            and (date_fin - date_lancement).days > 730
+        ):
+            self.add_error('date_fin', "La duree d'un projet saisonnier ne doit pas exceder 2 ans.")
         if not produits:
             raise forms.ValidationError("Vous devez selectionner au moins un produit.")
 

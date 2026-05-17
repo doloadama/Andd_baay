@@ -464,6 +464,20 @@
 
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
+                                <label for="{{ projet_form.type_cycle.id_for_label }}" class="form-label-modern">Type de projet</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-repeat input-icon"></i>
+                                    {{ projet_form.type_cycle }}
+                                </div>
+                                {% if projet_form.type_cycle.errors %}
+                                <div class="text-danger small mt-1">{{ projet_form.type_cycle.errors }}</div>
+                                {% endif %}
+                                {% if projet_form.type_cycle.help_text %}
+                                <p class="text-muted small mt-1 mb-0">{{ projet_form.type_cycle.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
                                 <label for="rendement_estime" class="form-label-modern">Rendement Estime (kg)</label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-chart-line input-icon"></i>
