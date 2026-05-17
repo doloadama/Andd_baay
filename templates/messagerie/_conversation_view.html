@@ -15,7 +15,10 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             {% else %}
-            <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost chat-back-btn" title="Retour" aria-label="Retour à la liste">
+            <button type="button" class="btn-nav btn-nav-ghost chat-back-btn d-md-none" title="Retour" aria-label="Retour à la liste" @click="view = 'list'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost chat-back-btn d-none d-md-flex" title="Retour" aria-label="Retour à la liste">
                 <i class="fas fa-arrow-left"></i>
             </a>
             {% endif %}

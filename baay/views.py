@@ -3361,7 +3361,9 @@ def conversation_detail(request, conversation_id):
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
     is_mini = request.GET.get('mini') == 'true'
 
-    resp = render(request, 'messagerie/conversation.html', {
+    template = 'messagerie/_conversation_view.html' if _htmx_request(request) else 'messagerie/conversation.html'
+
+    resp = render(request, template, {
         'conversation': conversation,
         'messages_list': messages_list,
         'titre': titre,
@@ -3376,6 +3378,36 @@ def conversation_detail(request, conversation_id):
         try:
             from django.db import connection
 
+            resp.headers["X-DB-Queries"] = str(len(getattr(connection, "queries", []) or []))
+        except Exception:
+            pass
+    return resp
+
+
+@login_required
+@require_GET
+def conversation_context_fragment(request, conversation_id):
+    """Fragment HTMX : charge le panneau de contexte (droite) pour une discussion."""
+    profile = ensure_profile_for_user(request.user)
+    conversation = get_object_or_404(
+        Conversation.objects.select_related('ferme', 'ferme__localite', 'ferme__pays').prefetch_related(
+            Prefetch('participants', queryset=Profile.objects.select_related('user')),
+            Prefetch('messages', queryset=Message.objects.exclude(piece_jointe='').order_by('-date_envoi')[:9])
+        ),
+        id=conversation_id,
+        participants=profile,
+    )
+    autres = [p for p in conversation.participants.all() if p.id != profile.id]
+    titre = conversation.sujet or (autres[0].user.username if autres else 'Détails')
+
+    resp = render(request, 'messagerie/_conversation_context.html', {
+        'conversation': conversation,
+        'titre': titre,
+        'profile': profile,
+    })
+    if settings.DEBUG:
+        try:
+            from django.db import connection
             resp.headers["X-DB-Queries"] = str(len(getattr(connection, "queries", []) or []))
         except Exception:
             pass

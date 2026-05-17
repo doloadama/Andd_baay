@@ -1,0 +1,76 @@
+{% load static %}
+<div class="h-100 d-flex flex-column bg-white">
+    <!-- Context Header -->
+    <div class="p-4 border-bottom text-center">
+        <div class="avatar-pill mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem; background: var(--brand-deep); color: white;">
+            {{ titre|make_list|first|upper }}
+        </div>
+        <h5 class="fw-bold mb-1">{{ titre }}</h5>
+        {% if conversation.ferme %}
+            <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i> {{ conversation.ferme.localite.nom }}, {{ conversation.ferme.pays.nom }}</p>
+        {% endif %}
+    </div>
+
+    <div class="flex-grow-1 overflow-auto p-4">
+        <!-- Farm Info -->
+        {% if conversation.ferme %}
+        <div class="context-section mb-4">
+            <h6 class="context-label">Détails de la ferme</h6>
+            <div class="at-glass-card p-3 rounded-3 mb-2">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Superficie</span>
+                    <span class="fw-bold small">{{ conversation.ferme.superficie_totale }} ha</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted small">Type de sol</span>
+                    <span class="fw-bold small">{{ conversation.ferme.localite.type_sol|default:"Sableux" }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Members -->
+        <div class="context-section mb-4">
+            <h6 class="context-label">Membres ({{ conversation.participants.count }})</h6>
+            <div class="list-group list-group-flush small">
+                {% for participant in conversation.participants.all %}
+                <div class="list-group-item px-0 border-0 d-flex align-items-center gap-2">
+                    <div class="avatar-pill-sm" style="width: 32px; height: 32px; font-size: 0.8rem; background: #eee;">
+                        {{ participant.user.username|make_list|first|upper }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ participant.user.get_full_name|default:participant.user.username }}</div>
+                        <div class="text-muted x-small">Actif récemment</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Shared Media -->
+        <div class="context-section">
+            <h6 class="context-label">Médias partagés</h6>
+            <div class="row g-2">
+                {% for msg in conversation.messages.all %}
+                    {% if msg.piece_jointe %}
+                    <div class="col-4">
+                        <a href="{{ msg.piece_jointe.url }}" target="_blank" class="d-block ratio ratio-1x1 rounded overflow-hidden border">
+                            {% if msg.piece_jointe.url|lower|slice:"-4:" == ".jpg" or msg.piece_jointe.url|lower|slice:"-4:" == ".png" or msg.piece_jointe.url|lower|slice:"-5:" == ".jpeg" %}
+                                <img src="{{ msg.piece_jointe.url }}" class="object-fit-cover" alt="Media shared">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center text-muted">
+                                    <i class="fas fa-file"></i>
+                                </div>
+                            {% endif %}
+                        </a>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="col-12 text-center py-3 text-muted small">
+                        Aucun média partagé
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

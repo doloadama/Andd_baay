@@ -1,4 +1,5 @@
 from .views import (
+    conversation_context_fragment,
     conversation_detail,
     conversation_messages_older,
     derniere_conversation,
