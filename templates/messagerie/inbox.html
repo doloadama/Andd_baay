@@ -3,192 +3,90 @@
 
 {% block title %}Messagerie — Andd Baay{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/messagerie-inbox.css' %}">
+<link rel="stylesheet" href="{% static 'css/messagerie-conversation.css' %}">
+{% endblock %}
+
 {% block content %}
-<!-- Premium Afro-Tech Messagerie Shell -->
-<div class="msg-shell-container h-100"
+<div class="container-fluid msg-page px-0">
+<div class="msg-shell-container"
+     :class="{ 'msg-shell--chat': !isWide && view === 'chat' }"
      x-data="{
-        view: 'list',
+        view: {% if conversation %}'chat'{% else %}'list'{% endif %},
+        isWide: window.matchMedia('(min-width: 1200px)').matches,
         hasActiveChat: {% if conversation %}true{% else %}false{% endif %},
         showContext: true,
+        contextMobileOpen: false,
         init() {
-            if (window.innerWidth < 1200 && this.hasActiveChat) {
+            const mq = window.matchMedia('(min-width: 1200px)');
+            const sync = () => {
+                this.isWide = mq.matches;
+                if (this.isWide) this.closeContextMobile();
+            };
+            mq.addEventListener('change', sync);
+            sync();
+            if (!this.isWide && this.hasActiveChat) {
                 this.view = 'chat';
             }
+        },
+        openChat() {
+            this.hasActiveChat = true;
+            if (!this.isWide) this.view = 'chat';
+        },
+        backToList() {
+            if (!this.isWide) this.view = 'list';
+            this.closeContextMobile();
+        },
+        openContextMobile() {
+            if (this.isWide || !this.hasActiveChat) return;
+            this.contextMobileOpen = true;
+            document.body.classList.add('msg-sheet-open');
+        },
+        closeContextMobile() {
+            this.contextMobileOpen = false;
+            document.body.classList.remove('msg-sheet-open');
         }
      }"
-     @resize.window.debounce.100ms="if(window.innerWidth >= 1200) { if(view === 'list' && hasActiveChat) view = 'chat'; }">
+     @htmx:after-swap.window="if ($event.detail.target.id === 'chatMainPanel') { openChat(); if (typeof window.initMessagerieConversation === 'function') window.initMessagerieConversation(); }">
 
-    <style>
-        :root {
-            --at-deep-green: #085041;
-            --at-primary-green: #1D9E75;
-            --at-saffron: #EF9F27;
-            --at-glass: rgba(255, 255, 255, 0.08);
-            --at-border: rgba(255, 255, 255, 0.12);
-        }
-
-        .msg-shell-container {
-            display: flex;
-            height: calc(100vh - 72px); /* Subtract top bar height approx */
-            background-color: #f0f4f3;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* 3-Column Layout */
-        .msg-col-list {
-            width: 380px;
-            border-right: 1px solid rgba(0,0,0,0.08);
-            background: white;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-
-        .msg-col-chat {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            position: relative;
-        }
-
-        .msg-col-context {
-            width: 320px;
-            border-left: 1px solid rgba(0,0,0,0.08);
-            background: #fdfdfd;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-
-        /* Responsive Logic via Alpine */
-        @media (max-width: 1199px) {
-            .msg-col-list {
-                width: 100%;
-                position: absolute; left: 0; top: 0; bottom: 0;
-                transform: translateX(0);
-            }
-            .msg-col-chat {
-                width: 100%;
-                position: absolute; left: 0; top: 0; bottom: 0;
-                transform: translateX(100%);
-                z-index: 20;
-            }
-            .msg-col-context {
-                display: none; /* Mobile usually hides context until requested */
-            }
-
-            .view-chat .msg-col-list { transform: translateX(-100%); }
-            .view-chat .msg-col-chat { transform: translateX(0); }
-        }
-
-        /* Aesthetic Touches */
-        .at-header-gradient {
-            background: linear-gradient(135deg, var(--at-deep-green), var(--at-primary-green));
-            color: white;
-            padding: 1.5rem 1rem;
-        }
-
-        .at-search-container {
-            padding: 1rem;
-            background: white;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .at-search-input {
-            background: #f3f7f6;
-            border: 1px solid transparent;
-            border-radius: 12px;
-            padding: 0.6rem 1rem 0.6rem 2.5rem;
-            width: 100%;
-            transition: all 0.2s;
-        }
-
-        .at-search-input:focus {
-            background: white;
-            border-color: var(--at-primary-green);
-            box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1);
-            outline: none;
-        }
-
-        /* Empty State Hero */
-        .msg-hero-empty {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            padding: 2rem;
-            background: linear-gradient(180deg, #ffffff 0%, #f4f8f7 100%);
-        }
-
-        .at-bento-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-top: 2rem;
-            max-width: 400px;
-        }
-
-        .at-bento-item {
-            background: white;
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 16px;
-            padding: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-            transition: transform 0.2s;
-        }
-
-        .at-bento-item:hover {
-            transform: translateY(-4px);
-            border-color: var(--at-primary-green);
-        }
-    </style>
-
-    <!-- Column 1: Conversations List -->
-    <aside class="msg-col-list" :class="{ 'hidden': view !== 'list' && window.innerWidth < 1200 }">
-        <div class="at-header-gradient">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="m-0 fw-bold" style="font-family: 'DM Serif Display', serif;">Messages</h4>
-                <a href="{% url 'nouvelle_conversation' %}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Nouveau message">
-                    <i class="fas fa-plus text-success"></i>
+    <aside class="msg-col-list" aria-label="Liste des conversations">
+        <header class="msg-sidebar-header">
+            <div class="msg-sidebar-header__row">
+                <h1 class="msg-sidebar-title">Messages</h1>
+                <a href="{% url 'nouvelle_conversation' %}" class="msg-sidebar-new" title="Nouvelle conversation" aria-label="Nouvelle conversation">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
                 </a>
             </div>
-        </div>
-
-        <div class="flex-grow-1 overflow-auto" id="inboxSidebar">
+        </header>
+        <div id="inboxSidebar" class="flex-grow-1 d-flex flex-column min-h-0 overflow-hidden">
             {% include 'messagerie/_inbox_list.html' %}
         </div>
     </aside>
 
-    <!-- Column 2: Active Chat -->
-    <main class="msg-col-chat" :class="{ 'view-chat': view === 'chat' }">
-        <div id="chatMainPanel" class="h-100 d-flex flex-column">
+    <main class="msg-col-chat" aria-label="Discussion">
+        <div id="chatMainPanel" class="h-100 d-flex flex-column min-h-0">
             {% if conversation %}
                 {% include 'messagerie/_conversation_view.html' %}
             {% else %}
                 <div class="msg-hero-empty">
-                    <div class="mb-4">
-                        <img src="{% static 'img/illustrations/messaging_afro.svg' %}" alt="Messaging" style="width: 280px; opacity: 0.9;" onerror="this.src='https://illustrations.popsy.co/green/remote-work.svg'">
+                    <div class="mb-3">
+                        <img src="{% static 'img/illustrations/messaging_afro.svg' %}" alt="" width="240" height="180" style="max-width: 70vw; height: auto; opacity: 0.92;" onerror="this.style.display='none'">
                     </div>
-                    <h2 class="fw-bold mb-2" style="color: var(--at-deep-green);">Restez connecté à vos fermes</h2>
-                    <p class="text-muted mb-4" style="max-width: 450px;">
-                        Communiquez instantanément avec vos techniciens, ouvriers et partenaires pour une gestion agricole optimisée.
+                    <h2 class="msg-hero-empty__title">Restez connecté à vos fermes</h2>
+                    <p class="text-muted mb-0" style="max-width: 420px;">
+                        Échangez avec vos équipes sur les projets, les récoltes et les alertes terrain.
                     </p>
-
-                    <div class="at-bento-grid">
-                        <div class="at-bento-item">
-                            <i class="fas fa-seedling text-success mb-2"></i>
-                            <div class="small fw-bold">Contextuel</div>
-                            <div class="text-muted" style="font-size: 0.7rem;">Données de ferme intégrées</div>
+                    <div class="msg-hero-bento">
+                        <div class="msg-hero-bento__item">
+                            <i class="fas fa-seedling text-success mb-2" aria-hidden="true"></i>
+                            <div class="small fw-bold">Contexte ferme</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Infos exploitation à droite</div>
                         </div>
-                        <div class="at-bento-item">
-                            <i class="fas fa-bolt text-warning mb-2"></i>
-                            <div class="small fw-bold">Rapide</div>
-                            <div class="text-muted" style="font-size: 0.7rem;">Réponses en temps réel</div>
+                        <div class="msg-hero-bento__item">
+                            <i class="fas fa-bolt text-warning mb-2" aria-hidden="true"></i>
+                            <div class="small fw-bold">Temps réel</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Notifications instantanées</div>
                         </div>
                     </div>
                 </div>
@@ -196,40 +94,32 @@
         </div>
     </main>
 
-    <!-- Column 3: Contextual Sidebar (Desktop only) -->
-    <aside class="msg-col-context"
-           x-show="showContext"
-           x-transition:enter="transition ease-out duration-300"
-           x-transition:enter-start="opacity-0 translate-x-4"
-           x-transition:enter-end="opacity-100 translate-x-0"
-           id="chatContextPanel">
+    <aside class="msg-col-context" aria-label="Détails de la discussion"
+           x-show="showContext && isWide"
+           x-cloak>
+        <div id="chatContextPanel" class="h-100 min-h-0">
         {% if conversation %}
-            {% include 'messagerie/_conversation_context.html' %}
+            <div class="msg-context-panel">
+                {% include 'messagerie/_conversation_context.html' %}
+            </div>
         {% else %}
-            <div class="p-4 text-center h-100 d-flex flex-column justify-content-center">
-                <i class="fas fa-info-circle text-muted mb-3 opacity-25" style="font-size: 3rem;"></i>
-                <h6 class="text-muted">Sélectionnez une discussion pour voir les détails de la ferme</h6>
+            <div class="msg-context-empty">
+                <i class="fas fa-info-circle mb-3 opacity-25" style="font-size: 2.5rem;" aria-hidden="true"></i>
+                <p class="small mb-0">Sélectionnez une discussion pour voir les détails de la ferme et les membres.</p>
             </div>
         {% endif %}
+        </div>
     </aside>
 
 </div>
-
-{% block extra_js %}
-<script>
-    document.addEventListener('htmx:afterSwap', function(evt) {
-        if (evt.detail.target.id === 'chatMainPanel') {
-            // Update Alpine state when content swapped via HTMX
-            const container = document.querySelector('.msg-shell-container');
-            if (container && container.__x) {
-                container.__x.$data.hasActiveChat = true;
-                if (window.innerWidth < 1200) {
-                    container.__x.$data.view = 'chat';
-                }
-            }
-        }
-    });
-</script>
+</div>
 {% endblock %}
 
+{% block extra_scripts %}
+<script src="{% static 'js/messagerie-conversation.js' %}" defer></script>
+{% if conversation %}
+<script>document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.initMessagerieConversation === 'function') window.initMessagerieConversation();
+});</script>
+{% endif %}
 {% endblock %}

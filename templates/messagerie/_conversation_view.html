@@ -15,7 +15,7 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             {% else %}
-            <button type="button" class="btn-nav btn-nav-ghost chat-back-btn d-md-none" title="Retour" aria-label="Retour à la liste" @click="view = 'list'">
+            <button type="button" class="btn-nav btn-nav-ghost chat-back-btn d-xl-none" title="Retour" aria-label="Retour à la liste" @click="backToList()">
                 <i class="fas fa-arrow-left"></i>
             </button>
             <a href="{% url 'messagerie_inbox' %}" class="btn-nav btn-nav-ghost chat-back-btn d-none d-md-flex" title="Retour" aria-label="Retour à la liste">
@@ -33,11 +33,10 @@
             <div class="chat-header-meta min-w-0">
                 <h6 class="chat-header-title">{{ titre }}</h6>
                 <small class="chat-header-status">
-                    <span class="online-dot"></span>
                     {% if autres|length > 1 %}
-                    {{ autres|length|add:1 }} membres · En ligne
+                    <i class="fas fa-users me-1 opacity-75" aria-hidden="true"></i>{{ autres|length|add:1 }} participants
                     {% else %}
-                    En ligne
+                    <i class="fas fa-comment-dots me-1 opacity-75" aria-hidden="true"></i>Discussion directe
                     {% endif %}
                 </small>
             </div>
@@ -46,7 +45,12 @@
             <button type="button" class="btn-nav btn-nav-ghost" title="Rechercher dans la discussion" onclick="chatQuickSearch()" aria-label="Rechercher">
                 <i class="fas fa-search"></i>
             </button>
-            <button type="button" class="btn-nav btn-nav-ghost" title="Infos discussion" onclick="chatInfo('{{ titre|escapejs }}', '{{ autres|length }}')" aria-label="Informations sur la discussion">
+            {% if not drawer and not is_mini %}
+            <button type="button" class="btn-nav btn-nav-ghost d-xl-none" title="Détails ferme et membres" @click="openContextMobile()" aria-label="Détails de la discussion">
+                <i class="fas fa-sliders-h"></i>
+            </button>
+            {% endif %}
+            <button type="button" class="btn-nav btn-nav-ghost d-none d-xl-inline-flex" title="Infos discussion" onclick="chatInfo('{{ titre|escapejs }}', '{{ autres|length }}')" aria-label="Informations sur la discussion">
                 <i class="fas fa-circle-info"></i>
             </button>
             {% if is_mini and not drawer %}
@@ -117,6 +121,32 @@
             <button type="button" class="emoji-btn" onclick="insertEmoji('✅')">✅</button>
         </div>
     </div>
+
+    {% if not drawer and not is_mini %}
+    <div class="msg-context-sheet d-xl-none"
+         x-show="contextMobileOpen"
+         x-cloak
+         @keydown.escape.window="closeContextMobile()"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Détails de la discussion">
+        <div class="msg-context-sheet__backdrop" @click="closeContextMobile()" aria-hidden="true"></div>
+        <div class="msg-context-sheet__panel">
+            <div class="msg-context-sheet__handle" aria-hidden="true"></div>
+            <header class="msg-context-sheet__head">
+                <h2 class="msg-context-sheet__title">Détails</h2>
+                <button type="button" class="btn-nav btn-nav-ghost" @click="closeContextMobile()" aria-label="Fermer">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </header>
+            <div class="msg-context-sheet__body">
+                <div class="msg-context-panel">
+                    {% include 'messagerie/_conversation_context.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% include 'messagerie/_conversation_view_scripts.html' %}

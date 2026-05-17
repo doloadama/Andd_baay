@@ -1,0 +1,37 @@
+{# Expected: ferme, role ('owner'|'member') #}
+<a href="{% url 'detail_ferme' ferme.id %}"
+   class="fl-card"
+   data-ferme-card
+   data-role="{{ role }}"
+   data-search="{{ ferme.nom|lower }} {% if ferme.localite %}{{ ferme.localite.nom|lower }}{% endif %} {% if ferme.pays %}{{ ferme.pays.nom|lower }}{% endif %}">
+    <div class="fl-card__media">
+        {% if ferme.image_couverture %}
+        <img src="{{ ferme.image_couverture.url }}" alt="" loading="lazy" width="400" height="140">
+        {% else %}
+        <div class="fl-card__media-placeholder" aria-hidden="true">{{ ferme.nom|make_list|first|upper }}</div>
+        {% endif %}
+        {% if role == 'owner' %}
+        <span class="fl-card__badge fl-card__badge--owner">Propriétaire</span>
+        {% else %}
+        <span class="fl-card__badge fl-card__badge--member">Membre</span>
+        {% endif %}
+    </div>
+    <div class="fl-card__body">
+        <h3 class="fl-card__title">{{ ferme.nom }}</h3>
+        {% if ferme.localite or ferme.pays %}
+        <p class="fl-card__location">
+            <i class="fas fa-location-dot" aria-hidden="true"></i>
+            {% if ferme.localite %}{{ ferme.localite.nom }}{% endif %}{% if ferme.localite and ferme.pays %}, {% endif %}{% if ferme.pays %}{{ ferme.pays.nom }}{% endif %}
+        </p>
+        {% endif %}
+        <p class="fl-card__desc">{{ ferme.description|default:"Aucune description pour cette exploitation." }}</p>
+        <div class="fl-card__meta">
+            <span><i class="fas fa-project-diagram" aria-hidden="true"></i>{{ ferme.projets_count }} projet{{ ferme.projets_count|pluralize }}</span>
+            <span><i class="fas fa-users" aria-hidden="true"></i>{{ ferme.membres_count }} membre{{ ferme.membres_count|pluralize }}</span>
+            {% if ferme.superficie_totale %}
+            <span><i class="fas fa-ruler-combined" aria-hidden="true"></i>{{ ferme.superficie_totale }} ha</span>
+            {% endif %}
+        </div>
+        <span class="fl-card__cta">Ouvrir la ferme <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+    </div>
+</a>

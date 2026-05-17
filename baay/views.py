@@ -2372,9 +2372,25 @@ def update_semis_statut(request, semis_id):
 @login_required
 def liste_fermes(request):
     """List all farms the user owns or is a member of."""
+    from django.db.models import Count
+
     profile = request.user.profile
-    fermes_proprietaire = Ferme.objects.filter(proprietaire=profile).select_related('pays', 'localite').prefetch_related('membres__utilisateur__user')
-    fermes_membre = Ferme.objects.filter(membres__utilisateur=profile).select_related('pays', 'localite').prefetch_related('membres__utilisateur__user').distinct()
+    ferme_annotations = {
+        'projets_count': Count('projets', distinct=True),
+        'membres_count': Count('membres', distinct=True),
+    }
+    fermes_proprietaire = (
+        Ferme.objects.filter(proprietaire=profile)
+        .select_related('pays', 'localite')
+        .annotate(**ferme_annotations)
+    )
+    fermes_membre = (
+        Ferme.objects.filter(membres__utilisateur=profile)
+        .exclude(proprietaire=profile)
+        .select_related('pays', 'localite')
+        .annotate(**ferme_annotations)
+        .distinct()
+    )
     return render(request, 'fermes/liste_fermes.html', {
         'fermes_proprietaire': fermes_proprietaire,
         'fermes_membre': fermes_membre,
@@ -3127,11 +3143,8 @@ def _membres_ferme_communs(profile):
     return Profile.objects.filter(id__in=tous).select_related('user').order_by('user__username')
 
 
-@login_required
-def messagerie_inbox(request):
-    """Liste des conversations de l'utilisateur."""
-    profile = ensure_profile_for_user(request.user)
-
+def _messagerie_conv_data_for_profile(profile):
+    """Liste des conversations pour la barre latérale messagerie."""
     unread_rows = (
         Message.objects.filter(conversation__participants=profile)
         .exclude(expediteur=profile)
@@ -3189,14 +3202,21 @@ def messagerie_inbox(request):
             'avatar_initial': avatar_initial,
             'is_online': is_online,
         })
+    return conv_data
 
+
+@login_required
+def messagerie_inbox(request):
+    """Liste des conversations de l'utilisateur."""
+    profile = ensure_profile_for_user(request.user)
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
 
     resp = render(request, 'messagerie/inbox.html', {
-        'conv_data': conv_data,
+        'conv_data': _messagerie_conv_data_for_profile(profile),
         'profile': profile,
         'base_template': base_template,
         'is_mini': request.GET.get('mini') == 'true',
+        'active_conversation_id': None,
     })
     if settings.DEBUG:
         try:
@@ -3361,19 +3381,48 @@ def conversation_detail(request, conversation_id):
     base_template = 'base_mini.html' if request.GET.get('mini') == 'true' else 'base.html'
     is_mini = request.GET.get('mini') == 'true'
 
-    template = 'messagerie/_conversation_view.html' if _htmx_request(request) else 'messagerie/conversation.html'
+    if _htmx_request(request):
+        template = 'messagerie/_conversation_view.html'
+        context = {
+            'conversation': conversation,
+            'messages_list': messages_list,
+            'titre': titre,
+            'autres': autres,
+            'profile': profile,
+            'is_mini': is_mini,
+            'has_older_messages': has_older_messages,
+            'oldest_loaded_message_id': oldest_loaded_message_id,
+        }
+    elif is_mini:
+        template = 'messagerie/conversation.html'
+        context = {
+            'conversation': conversation,
+            'messages_list': messages_list,
+            'titre': titre,
+            'autres': autres,
+            'profile': profile,
+            'base_template': base_template,
+            'is_mini': is_mini,
+            'has_older_messages': has_older_messages,
+            'oldest_loaded_message_id': oldest_loaded_message_id,
+        }
+    else:
+        template = 'messagerie/inbox.html'
+        context = {
+            'conv_data': _messagerie_conv_data_for_profile(profile),
+            'conversation': conversation,
+            'messages_list': messages_list,
+            'titre': titre,
+            'autres': autres,
+            'profile': profile,
+            'base_template': base_template,
+            'is_mini': False,
+            'active_conversation_id': conversation.id,
+            'has_older_messages': has_older_messages,
+            'oldest_loaded_message_id': oldest_loaded_message_id,
+        }
 
-    resp = render(request, template, {
-        'conversation': conversation,
-        'messages_list': messages_list,
-        'titre': titre,
-        'autres': autres,
-        'profile': profile,
-        'base_template': base_template,
-        'is_mini': is_mini,
-        'has_older_messages': has_older_messages,
-        'oldest_loaded_message_id': oldest_loaded_message_id,
-    })
+    resp = render(request, template, context)
     if settings.DEBUG:
         try:
             from django.db import connection
