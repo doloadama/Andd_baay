@@ -1,0 +1,546 @@
+/* ============================================================
+   Inventaire — liste (Andd Baay)
+   ============================================================ */
+
+.invl-page {
+    --invl-brand: var(--brand-primary, #1d9e75);
+    --invl-deep: var(--brand-deep, #085041);
+    --invl-night: var(--brand-night, #04342c);
+    --invl-accent: #ef9f27;
+    --invl-surface: var(--card-bg-solid, #fff);
+    --invl-border: var(--border-color, rgba(8, 80, 65, 0.1));
+    --invl-muted-bg: var(--bg-secondary, #f3f7f6);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: clamp(12px, 3vw, 28px) clamp(12px, 2.5vw, 20px) 3rem;
+}
+
+.invl-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.invl-back:hover {
+    color: var(--invl-brand);
+}
+
+/* Hero */
+.invl-hero {
+    border-radius: var(--radius-card, 20px);
+    padding: clamp(18px, 4vw, 28px);
+    margin-bottom: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--invl-night), var(--invl-deep) 50%, var(--invl-brand));
+    position: relative;
+    overflow: hidden;
+}
+
+.invl-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 88% 20%, rgba(239, 159, 39, 0.2) 0%, transparent 45%);
+    pointer-events: none;
+}
+
+.invl-hero__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.invl-hero__eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.75;
+    margin: 0 0 6px;
+}
+
+.invl-hero__title {
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: clamp(1.4rem, 4vw, 1.85rem);
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #fff;
+}
+
+.invl-hero__farm {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.88;
+}
+
+.invl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.invl-btn:active {
+    transform: scale(0.98);
+}
+
+.invl-btn--primary {
+    background: #fff;
+    color: var(--invl-deep);
+}
+
+.invl-btn--ghost {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.invl-btn--ghost:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.invl-btn--brand {
+    background: var(--invl-brand);
+    color: #fff;
+}
+
+.invl-btn--brand:hover {
+    color: #fff;
+    filter: brightness(1.05);
+}
+
+.invl-btn--outline {
+    background: var(--invl-surface);
+    color: var(--invl-deep);
+    border: 1px solid var(--invl-border);
+}
+
+/* KPIs */
+.invl-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+    .invl-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.invl-kpi {
+    padding: 12px 14px;
+    border-radius: var(--radius-tight, 14px);
+    border: 1px solid var(--invl-border);
+    background: var(--invl-surface);
+    text-decoration: none;
+    color: inherit;
+}
+
+a.invl-kpi:hover {
+    color: inherit;
+    border-color: rgba(29, 158, 117, 0.35);
+}
+
+.invl-kpi.is-active {
+    border-color: var(--invl-brand);
+    box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15);
+}
+
+.invl-kpi--warn .invl-kpi__value {
+    color: #d97706;
+}
+
+.invl-kpi__value {
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.invl-kpi__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Tabs */
+.invl-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--invl-border);
+    background: var(--invl-muted-bg);
+    border-radius: var(--radius-card, 18px) var(--radius-card, 18px) 0 0;
+}
+
+.invl-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-muted);
+    border: 1px solid transparent;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.invl-tab:hover {
+    color: var(--invl-deep);
+    border-color: var(--invl-border);
+    background: var(--invl-surface);
+}
+
+.invl-tab.is-active {
+    background: var(--invl-brand);
+    color: #fff;
+    border-color: var(--invl-brand);
+}
+
+/* Panel */
+.invl-panel {
+    background: var(--invl-surface);
+    border: 1px solid var(--invl-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-card, 18px) var(--radius-card, 18px);
+    padding: 16px 18px 20px;
+}
+
+/* Alerts banner */
+.invl-alert-banner {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(217, 119, 6, 0.1);
+    border: 1px solid rgba(217, 119, 6, 0.28);
+    margin-bottom: 16px;
+}
+
+.invl-alert-banner__icon {
+    color: #d97706;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.invl-alert-banner ul {
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.invl-alert-banner li {
+    font-size: 0.82rem;
+    padding: 2px 0;
+    color: var(--text-main);
+}
+
+/* Table */
+.invl-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--invl-border);
+    margin-bottom: 16px;
+}
+
+.invl-table {
+    width: 100%;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+    margin: 0;
+    min-width: 520px;
+}
+
+.invl-table thead {
+    background: linear-gradient(135deg, var(--invl-deep), var(--invl-night));
+    color: #fff;
+}
+
+.invl-table th {
+    padding: 10px 12px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.invl-table td {
+    padding: 11px 12px;
+    border-top: 1px solid var(--invl-border);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.invl-table tbody tr:hover {
+    background: rgba(29, 158, 117, 0.04);
+}
+
+.invl-table tr.is-low {
+    background: rgba(217, 119, 6, 0.08);
+}
+
+.invl-cat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(100, 116, 139, 0.12);
+    color: var(--text-muted);
+}
+
+.invl-badge-low {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(217, 119, 6, 0.15);
+    color: #b45309;
+    margin-left: 6px;
+}
+
+.invl-qty {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.invl-adjust {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.invl-adjust__btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--invl-border);
+    background: var(--invl-surface);
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.invl-adjust__btn--minus:hover {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+}
+
+.invl-adjust__btn--plus:hover {
+    border-color: rgba(29, 158, 117, 0.4);
+    background: rgba(29, 158, 117, 0.08);
+    color: var(--invl-deep);
+}
+
+.invl-type-entree {
+    background: rgba(29, 158, 117, 0.12);
+    color: var(--invl-deep);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.invl-type-sortie {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.invl-qualite--a { background: rgba(29, 158, 117, 0.15); color: var(--invl-deep); }
+.invl-qualite--b { background: rgba(14, 165, 233, 0.12); color: #0369a1; }
+.invl-qualite--c { background: rgba(217, 119, 6, 0.12); color: #b45309; }
+.invl-qualite--d,
+.invl-qualite--nc { background: rgba(100, 116, 139, 0.12); color: #475569; }
+
+.invl-qualite {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.invl-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.invl-empty i {
+    font-size: 2rem;
+    opacity: 0.4;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.invl-row-action {
+    color: #ef4444;
+    padding: 6px;
+    opacity: 0.75;
+}
+
+.invl-row-action:hover {
+    opacity: 1;
+}
+
+/* Quick add form */
+.invl-form {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px dashed rgba(29, 158, 117, 0.35);
+    background: rgba(29, 158, 117, 0.04);
+}
+
+.invl-form__title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--invl-deep);
+    margin: 0 0 12px;
+}
+
+.invl-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+
+.invl-field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.invl-field input,
+.invl-field select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--invl-border);
+    background: var(--invl-surface);
+    color: var(--text-main);
+    font-size: 0.88rem;
+}
+
+.invl-field input:focus,
+.invl-field select:focus {
+    outline: none;
+    border-color: rgba(29, 158, 117, 0.5);
+    box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+}
+
+/* Dark mode */
+.dark-mode .invl-kpi,
+.dark-mode .invl-panel,
+.dark-mode .invl-field input,
+.dark-mode .invl-field select,
+.dark-mode .invl-adjust__btn {
+    background: var(--card-bg-solid, #121c19);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .invl-tabs {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .invl-form {
+    background: rgba(29, 158, 117, 0.08);
+}
+
+.dark-mode .invl-table td {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Buttons & tabs — dark mode */
+.dark-mode .invl-btn--outline {
+    background: var(--card-bg-solid, #121c19);
+    color: var(--text-main, #e8f5f0);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.dark-mode .invl-btn--outline:hover {
+    color: var(--brand-light, #5dcaa5);
+    border-color: rgba(29, 158, 117, 0.45);
+}
+
+.dark-mode .invl-btn--brand {
+    color: #fff;
+}
+
+.dark-mode .invl-btn--primary {
+    background: #fff;
+    color: var(--invl-deep, #085041);
+}
+
+.dark-mode .invl-tab:hover {
+    color: var(--text-main, #e8f5f0);
+    background: var(--card-bg-solid, #121c19);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark-mode .invl-tab.is-active {
+    color: #fff;
+}
+
+.dark-mode .invl-adjust__btn {
+    color: var(--text-main, #e8f5f0);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.dark-mode .invl-adjust__btn--minus:hover {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.dark-mode .invl-adjust__btn--plus:hover {
+    color: var(--brand-light, #5dcaa5);
+    background: rgba(29, 158, 117, 0.15);
+    border-color: rgba(29, 158, 117, 0.4);
+}
+
+.dark-mode .invl-tabs {
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}

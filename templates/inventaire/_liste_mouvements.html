@@ -1,0 +1,48 @@
+<div class="invl-table-wrap">
+    <table class="invl-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Article</th>
+                <th class="text-end">Quantité</th>
+                <th>Raison</th>
+                <th>Par</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in mouvements %}
+            <tr>
+                <td class="small text-muted">{{ m.date_mouvement|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if m.type == 'entree' %}
+                    <span class="invl-type-entree">Entrée</span>
+                    {% else %}
+                    <span class="invl-type-sortie">Sortie</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if m.stock_intrant %}{{ m.stock_intrant.nom }}
+                    {% elif m.stock_recolte %}{{ m.stock_recolte.produit.nom }}
+                    {% else %}—{% endif %}
+                </td>
+                <td class="text-end"><span class="invl-qty">{{ m.quantite }}</span></td>
+                <td class="small text-muted">{{ m.raison|default:"—"|truncatechars:48 }}</td>
+                <td class="small text-muted">{{ m.utilisateur.user.username|default:"Système" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">
+                    <div class="invl-empty">
+                        <i class="fas fa-right-left" aria-hidden="true"></i>
+                        <p class="mb-0">Aucun mouvement enregistré.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if mouvements_count > 50 %}
+<p class="small text-muted mt-2 mb-0">Affichage des 50 derniers mouvements sur {{ mouvements_count }} au total.</p>
+{% endif %}

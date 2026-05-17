@@ -1,244 +1,173 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ ferme.nom }} — Andd Baay{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ferme-detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/ferme-inventory-widget.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-            <h2 class="mb-1"><i class="fas fa-warehouse me-2 text-accent"></i>{{ ferme.nom }}</h2>
-            <p class="text-muted small mb-0">{{ ferme.localite.nom|default:"" }} {{ ferme.pays.nom|default:"" }}</p>
-        </div>
-        {% if is_proprietaire %}
-        <div class="d-flex gap-2">
-            <a href="{% url 'modifier_ferme' ferme.id %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-edit me-1"></i> Modifier
-            </a>
-            <a href="{% url 'supprimer_ferme' ferme.id %}" class="btn btn-outline-danger btn-sm">
-                <i class="fas fa-trash me-1"></i> Supprimer
-            </a>
-        </div>
+<div class="fd-page">
+    <a href="{% url 'liste_fermes' %}" class="fd-back">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Mes fermes
+    </a>
+
+    <header class="fd-hero">
+        {% if ferme.image_couverture %}
+        <img class="fd-hero__cover" src="{{ ferme.image_couverture.url }}" alt="" loading="eager" width="1200" height="400">
         {% endif %}
+        <div class="fd-hero__overlay" aria-hidden="true"></div>
+        <div class="fd-hero__body">
+            <div class="fd-hero__top">
+                <div class="fd-hero__meta">
+                    {% if is_proprietaire %}
+                    <span class="fd-hero__badge">Propriétaire</span>
+                    {% elif is_membre %}
+                    <span class="fd-hero__badge">Membre</span>
+                    {% endif %}
+                    <h1 class="fd-hero__title">{{ ferme.nom }}</h1>
+                    {% if ferme.localite or ferme.pays %}
+                    <p class="fd-hero__loc">
+                        <i class="fas fa-location-dot" aria-hidden="true"></i>
+                        {% if ferme.localite %}{{ ferme.localite.nom }}{% endif %}{% if ferme.localite and ferme.pays %}, {% endif %}{% if ferme.pays %}{{ ferme.pays.nom }}{% endif %}
+                    </p>
+                    {% endif %}
+                    {% if ferme.description %}
+                    <p class="fd-hero__desc">{{ ferme.description|truncatechars:220 }}</p>
+                    {% endif %}
+                </div>
+                <div class="fd-hero__actions">
+                    <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="fd-btn fd-btn--primary">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Nouveau projet
+                    </a>
+                    <a href="{% url 'liste_inventaire' ferme.id %}" class="fd-btn fd-btn--ghost">
+                        <i class="fas fa-boxes-stacked" aria-hidden="true"></i> Inventaire
+                    </a>
+                    {% if is_proprietaire %}
+                    <a href="{% url 'modifier_ferme' ferme.id %}" class="fd-btn fd-btn--ghost" title="Modifier la ferme">
+                        <i class="fas fa-pen" aria-hidden="true"></i>
+                    </a>
+                    <a href="{% url 'supprimer_ferme' ferme.id %}" class="fd-btn fd-btn--danger" title="Supprimer la ferme">
+                        <i class="fas fa-trash" aria-hidden="true"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="fd-kpis" role="group" aria-label="Indicateurs de la ferme">
+        <div class="fd-kpi">
+            <div class="fd-kpi__value">{{ projets_count }}</div>
+            <div class="fd-kpi__label">Projet{{ projets_count|pluralize }}{% if projets_en_cours %} · {{ projets_en_cours }} actif{{ projets_en_cours|pluralize }}{% endif %}</div>
+        </div>
+        <div class="fd-kpi">
+            <div class="fd-kpi__value">{{ membres_count }}</div>
+            <div class="fd-kpi__label">Membre{{ membres_count|pluralize }}</div>
+        </div>
+        <div class="fd-kpi">
+            <div class="fd-kpi__value">{% if ferme.superficie_totale %}{{ ferme.superficie_totale }}{% else %}—{% endif %}</div>
+            <div class="fd-kpi__label">{% if ferme.superficie_totale %}hectares{% else %}Superficie{% endif %}</div>
+        </div>
+        <a href="{% url 'liste_inventaire' ferme.id %}?onglet=intrants"
+           class="fd-kpi {% if inventory_alertes_count %}fd-kpi--warn{% endif %}">
+            <div class="fd-kpi__value">{{ inventory_alertes_count }}</div>
+            <div class="fd-kpi__label">Alerte{{ inventory_alertes_count|pluralize }} stock</div>
+        </a>
     </div>
 
-    <div class="row g-4">
-        <!-- Projets -->
-        <div class="col-lg-8">
-            <div class="card-modern">
-                <div class="d-flex justify-content-between align-items-center p-4 border-bottom border-secondary">
-                    <h5 class="mb-0"><i class="fas fa-project-diagram me-2 text-accent"></i>Projets</h5>
-                    <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="btn btn-sm btn-baay-primary">
-                        <i class="fas fa-plus me-1"></i> Nouveau projet
+    <div class="fd-layout">
+        <div class="fd-main">
+            <!-- Projets -->
+            <section class="fd-panel" aria-labelledby="fd-projets-title">
+                <header class="fd-panel__head">
+                    <div class="fd-panel__title-wrap">
+                        <span class="fd-panel__icon" aria-hidden="true"><i class="fas fa-project-diagram"></i></span>
+                        <h2 id="fd-projets-title" class="fd-panel__title">Projets</h2>
+                    </div>
+                    <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="fd-btn fd-btn--brand">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Ajouter
                     </a>
-                </div>
-                <div class="p-4">
+                </header>
+                <div class="fd-panel__body">
                     {% if projets %}
-                    <div class="row g-3">
+                    <div class="fd-projets-grid">
                         {% for projet in projets %}
-                        <div class="col-md-6">
-                            <a href="{% url 'detail_projet' projet.id %}" class="text-decoration-none">
-                                <div class="bento-tile project-item p-3">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="project-name">{{ projet.nom }}</span>
-                                        <span class="status-badge status-{{ projet.statut }}">
-                                            {% if projet.statut == 'en_cours' %}En cours{% elif projet.statut == 'en_pause' %}Pause{% else %}Fini{% endif %}
-                                        </span>
-                                    </div>
-                                    <p class="small text-muted mb-1">{{ projet.culture.nom|default:"Sans culture" }}</p>
-                                    <p class="small text-muted">{{ projet.superficie }} ha</p>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state text-center py-4">
-                        <i class="fas fa-folder-open fa-2x text-muted mb-2"></i>
-                        <p class="text-muted">Aucun projet dans cette ferme.</p>
-                        <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="btn btn-sm btn-outline-light mt-2">Créer un projet</a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Membres -->
-        <div class="col-lg-4">
-            <div class="card-modern">
-                <div class="d-flex justify-content-between align-items-center p-4 border-bottom border-secondary">
-                    <h5 class="mb-0"><i class="fas fa-users me-2 text-accent"></i>Membres</h5>
-                    {% if can_manage_members %}
-                    <a href="{% url 'ajouter_membre_ferme' ferme.id %}" class="btn-baay btn-baay-primary py-2 px-3" title="Ajouter un membre">
-                        <i class="fas fa-user-plus me-1"></i> Ajouter
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="p-4">
-                    {% if membres %}
-                    <div class="d-flex flex-column gap-3">
-                        {% for membre in membres %}
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-bold small">{{ membre.utilisateur.user.username }}</div>
-                                <div class="text-muted small">
-                                    <span class="role-badge role-{{ membre.role }}">{{ membre.get_role_display }}</span>
-                                    {% if membre.peut_gerer_membres %}
-                                    <span class="badge bg-info ms-1">Gestion membres</span>
-                                    {% endif %}
-                                    {% if membre.date_expiration %}
-                                    <span class="badge bg-warning text-dark ms-1" title="Expire le {{ membre.date_expiration|date:'d/m/Y H:i' }}">
-                                        <i class="fas fa-clock me-1"></i>Temporaire
-                                    </span>
-                                    {% endif %}
-                                </div>
+                        <a href="{% url 'detail_projet' projet.id %}" class="fd-projet-card">
+                            <div class="fd-projet-card__head">
+                                <span class="fd-projet-card__name">{{ projet.nom }}</span>
+                                <span class="fd-status fd-status--{{ projet.statut }}">
+                                    {% if projet.statut == 'en_cours' %}En cours
+                                    {% elif projet.statut == 'en_pause' %}Pause
+                                    {% elif projet.statut == 'cloture' %}Clôturé
+                                    {% else %}Fini{% endif %}
+                                </span>
                             </div>
-                            {% if is_proprietaire and membre.utilisateur != ferme.proprietaire %}
-                            <a href="{% url 'retirer_membre_ferme' ferme.id membre.id %}" class="text-danger small" title="Retirer">
-                                <i class="fas fa-times"></i>
-                            </a>
-                            {% endif %}
-                        </div>
+                            <p class="fd-projet-card__meta">{{ projet.culture.nom|default:"Sans culture" }}</p>
+                            <p class="fd-projet-card__meta">{{ projet.superficie }} ha{% if projet.localite %} · {{ projet.localite.nom }}{% endif %}</p>
+                        </a>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p class="text-muted small">Aucun membre.</p>
+                    <div class="fd-empty">
+                        <div class="fd-empty__icon" aria-hidden="true"><i class="fas fa-folder-open"></i></div>
+                        <p>Aucun projet sur cette exploitation.</p>
+                        <a href="{% url 'creer_projet' %}?ferme={{ ferme.id }}" class="fd-btn fd-btn--brand">Créer un projet</a>
+                    </div>
                     {% endif %}
                 </div>
-            </div>
-            <!-- Inventaire -->
-            <div class="card-modern mt-4">
-                <div class="d-flex justify-content-between align-items-center p-4 border-bottom border-secondary">
-                    <h5 class="mb-0"><i class="fas fa-boxes me-2 text-accent"></i>Inventaire</h5>
-                    <a href="{% url 'liste_inventaire' ferme.id %}" class="btn btn-sm btn-baay-primary">Gérer</a>
-                </div>
-                <div class="p-4">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <a href="{% url 'liste_inventaire' ferme.id %}?onglet=intrants" class="text-decoration-none">
-                                <div class="bento-tile inventory-tile p-3">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <i class="fas fa-exclamation-triangle text-warning"></i>
-                                        <span class="small fw-bold">Alertes stock</span>
-                                    </div>
-                                    <strong class="fs-5">{{ alertes_stock|default:"0" }}</strong>
-                                    <span class="small text-muted">intrants bas</span>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'liste_inventaire' ferme.id %}?onglet=recoltes" class="text-decoration-none">
-                                <div class="bento-tile inventory-tile p-3">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <i class="fas fa-seedling text-success"></i>
-                                        <span class="small fw-bold">Récoltes</span>
-                                    </div>
-                                    <strong class="fs-5">{{ volume_recoltes|default:"0" }}</strong>
-                                    <span class="small text-muted">kg total</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% if is_proprietaire %}
-            <div class="card-modern mt-4">
-                <div class="p-4 border-bottom border-secondary">
-                    <h5 class="mb-2"><i class="fas fa-key me-2 text-accent"></i>Code d'accès</h5>
-                    <p class="text-muted small mb-2">Partagez ce code avec un employé ou partenaire inscrit pour qu'il demande l'accès à cette ferme.</p>
-                    <div class="badge bg-dark border border-secondary fs-6 px-3 py-2">{{ ferme.code_acces }}</div>
-                    <form method="post" action="{% url 'regenerer_code_acces_ferme' ferme.id %}" class="mt-3" onsubmit="return confirm('Régénérer le code ? L\'ancien code ne sera plus utilisable pour de nouvelles demandes.');">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-warning btn-sm">
-                            <i class="fas fa-rotate me-1"></i> Régénérer le code
-                        </button>
-                    </form>
-                </div>
-                <div class="p-4">
-                    <h6 class="mb-3">Demandes en attente</h6>
-                    {% if demandes_acces %}
-                    <div class="d-flex flex-column gap-3">
-                        {% for demande in demandes_acces %}
-                        <div class="border border-secondary rounded-3 p-3">
-                            <div class="fw-bold small">{{ demande.utilisateur.user.get_full_name|default:demande.utilisateur.user.username }}</div>
-                            <div class="text-muted small mb-3">{{ demande.utilisateur.user.email }}</div>
-                            <form method="post" action="{% url 'traiter_demande_acces_ferme' ferme.id demande.id 'approuver' %}" class="d-flex flex-wrap gap-2 align-items-center mb-2">
-                                {% csrf_token %}
-                                <select name="role" class="form-select form-select-sm" style="width:auto;">
-                                    <option value="ouvrier" selected>Ouvrier</option>
-                                    <option value="technicien">Technicien</option>
-                                    <option value="manager">Manager</option>
-                                    <option value="consultant">Consultant</option>
-                                    <option value="invite">Invité</option>
-                                </select>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="peut_gerer_membres" id="pgm-{{ demande.id }}">
-                                    <label class="form-check-label small" for="pgm-{{ demande.id }}">Gérer membres</label>
-                                </div>
-                                <button type="submit" class="btn btn-sm btn-success">Approuver</button>
-                            </form>
-                            <form method="post" action="{% url 'traiter_demande_acces_ferme' ferme.id demande.id 'refuser' %}" onsubmit="return confirm('Refuser cette demande d\'accès ?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Refuser</button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="text-muted small mb-0">Aucune demande en attente.</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
+            </section>
 
-    <!-- ═══ Santé des sols ══════════════════════════════════════════════════ -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card dashboard-card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 class="mb-0"><i class="fas fa-leaf me-2" style="color:var(--color-primary,#1D9E75);"></i>Santé des sols</h5>
-                    <a href="{% url 'historique_sol_ferme' ferme.id %}" class="btn btn-sm btn-outline-success">
-                        <i class="fas fa-flask me-1"></i>Voir toutes les analyses
+            <!-- Santé des sols -->
+            <section class="fd-panel" aria-labelledby="fd-sol-title">
+                <header class="fd-panel__head">
+                    <div class="fd-panel__title-wrap">
+                        <span class="fd-panel__icon" aria-hidden="true"><i class="fas fa-flask"></i></span>
+                        <h2 id="fd-sol-title" class="fd-panel__title">Santé des sols</h2>
+                    </div>
+                    <a href="{% url 'historique_sol_ferme' ferme.id %}" class="fd-btn fd-btn--outline">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i> Analyses
                     </a>
-                </div>
-                <div class="card-body">
+                </header>
+                <div class="fd-panel__body">
                     {% if suggestion_sol.suggestion %}
-                    <div class="alert alert-success d-flex align-items-start gap-3 mb-3" role="status">
-                        <i class="fas fa-seedling fa-lg mt-1" aria-hidden="true"></i>
+                    <div class="fd-sol-callout" role="status">
+                        <i class="fas fa-seedling fd-sol-callout__icon" aria-hidden="true"></i>
                         <div>
                             <strong>Culture suggérée :</strong> {{ suggestion_sol.suggestion.nom }}
-                            <span class="badge bg-success ms-2">{{ suggestion_sol.confiance }}% confiance</span><br>
-                            <small class="text-muted">{{ suggestion_sol.raison }}</small>
+                            <span class="fd-confiance">{{ suggestion_sol.confiance }} %</span>
+                            <p class="small text-muted mb-0 mt-1">{{ suggestion_sol.raison }}</p>
                         </div>
                     </div>
                     {% if suggestion_sol.alertes %}
                     <ul class="list-unstyled mb-3">
                         {% for alerte in suggestion_sol.alertes %}
-                        <li class="text-warning small"><i class="fas fa-exclamation-triangle me-1"></i>{{ alerte }}</li>
+                        <li class="small" style="color: #d97706;"><i class="fas fa-triangle-exclamation me-1"></i>{{ alerte }}</li>
                         {% endfor %}
                     </ul>
                     {% endif %}
                     {% elif not historiques_sol %}
                     <p class="text-muted small mb-0">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Aucune analyse de sol enregistrée.
+                        Aucune analyse enregistrée.
                         <a href="{% url 'historique_sol_ferme' ferme.id %}">Commencer le suivi</a>
                     </p>
                     {% else %}
-                    <p class="text-muted small mb-0">
-                        <i class="fas fa-info-circle me-1"></i>{{ suggestion_sol.raison|default:"Données insuffisantes pour une suggestion." }}
-                    </p>
+                    <p class="text-muted small mb-0">{{ suggestion_sol.raison|default:"Données insuffisantes pour une suggestion." }}</p>
                     {% endif %}
 
                     {% if historiques_sol %}
-                    <div class="table-responsive mt-2">
-                        <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.85rem;">
-                            <thead class="table-dark">
+                    <div class="fd-table-wrap mt-3">
+                        <table class="fd-table">
+                            <thead>
                                 <tr>
                                     <th>Date</th>
                                     <th>Parcelle</th>
                                     <th class="text-end">pH</th>
-                                    <th class="text-end">N (ppm)</th>
-                                    <th class="text-end">P (ppm)</th>
-                                    <th class="text-end">K (ppm)</th>
+                                    <th class="text-end">N</th>
+                                    <th class="text-end">P</th>
+                                    <th class="text-end">K</th>
                                     <th>Culture préc.</th>
                                 </tr>
                             </thead>
@@ -259,8 +188,118 @@
                     </div>
                     {% endif %}
                 </div>
-            </div>
+            </section>
         </div>
+
+        <aside class="fd-aside">
+            <!-- Membres -->
+            <section class="fd-panel" aria-labelledby="fd-membres-title">
+                <header class="fd-panel__head">
+                    <div class="fd-panel__title-wrap">
+                        <span class="fd-panel__icon" aria-hidden="true"><i class="fas fa-users"></i></span>
+                        <h2 id="fd-membres-title" class="fd-panel__title">Membres</h2>
+                    </div>
+                    {% if can_manage_members %}
+                    <a href="{% url 'ajouter_membre_ferme' ferme.id %}" class="fd-btn fd-btn--brand" title="Ajouter un membre">
+                        <i class="fas fa-user-plus" aria-hidden="true"></i>
+                    </a>
+                    {% endif %}
+                </header>
+                <div class="fd-panel__body">
+                    {% if membres %}
+                    <div class="fd-member-list">
+                        {% for membre in membres %}
+                        <div class="fd-member">
+                            <span class="fd-member__avatar" aria-hidden="true">
+                                {{ membre.utilisateur.user.first_name|default:membre.utilisateur.user.username|make_list|first|upper }}
+                            </span>
+                            <div class="fd-member__info">
+                                <div class="fd-member__name">
+                                    {{ membre.utilisateur.user.get_full_name|default:membre.utilisateur.user.username }}
+                                </div>
+                                <div class="fd-member__tags">
+                                    <span class="fd-tag fd-tag--role role-{{ membre.role }}">{{ membre.get_role_display }}</span>
+                                    {% if membre.peut_gerer_membres %}
+                                    <span class="fd-tag fd-tag--info">Gestion</span>
+                                    {% endif %}
+                                    {% if membre.date_expiration %}
+                                    <span class="fd-tag fd-tag--warn" title="Expire le {{ membre.date_expiration|date:'d/m/Y H:i' }}">Temporaire</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if is_proprietaire and membre.utilisateur != ferme.proprietaire %}
+                            <a href="{% url 'retirer_membre_ferme' ferme.id membre.id %}"
+                               class="fd-member__remove"
+                               title="Retirer ce membre"
+                               aria-label="Retirer {{ membre.utilisateur.user.username }}">
+                                <i class="fas fa-times"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted small mb-0">Aucun membre pour l'instant.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            {% include 'fermes/_inventory_widget.html' %}
+
+            {% if is_proprietaire %}
+            <section class="fd-panel" aria-labelledby="fd-access-title">
+                <header class="fd-panel__head">
+                    <div class="fd-panel__title-wrap">
+                        <span class="fd-panel__icon" aria-hidden="true"><i class="fas fa-key"></i></span>
+                        <h2 id="fd-access-title" class="fd-panel__title">Accès & invitations</h2>
+                    </div>
+                </header>
+                <div class="fd-panel__body">
+                    <p class="fd-access-hint">Partagez ce code avec une personne inscrite pour qu'elle demande l'accès à cette ferme.</p>
+                    <div class="fd-access-code" id="fermeAccessCode">{{ ferme.code_acces }}</div>
+                    <form method="post" action="{% url 'regenerer_code_acces_ferme' ferme.id %}"
+                          onsubmit="return confirm('Régénérer le code ? L\'ancien code ne sera plus utilisable pour de nouvelles demandes.');">
+                        {% csrf_token %}
+                        <button type="submit" class="fd-btn fd-btn--outline">
+                            <i class="fas fa-rotate" aria-hidden="true"></i> Régénérer
+                        </button>
+                    </form>
+
+                    <h3 class="fd-panel__title mt-4 mb-2" style="font-size: 0.9rem;">Demandes en attente</h3>
+                    {% if demandes_acces %}
+                    {% for demande in demandes_acces %}
+                    <div class="fd-request">
+                        <p class="fd-request__name">{{ demande.utilisateur.user.get_full_name|default:demande.utilisateur.user.username }}</p>
+                        <p class="fd-request__email">{{ demande.utilisateur.user.email }}</p>
+                        <form method="post" action="{% url 'traiter_demande_acces_ferme' ferme.id demande.id 'approuver' %}" class="fd-request__form mb-2">
+                            {% csrf_token %}
+                            <select name="role" class="form-select form-select-sm" aria-label="Rôle">
+                                <option value="ouvrier" selected>Ouvrier</option>
+                                <option value="technicien">Technicien</option>
+                                <option value="manager">Manager</option>
+                                <option value="consultant">Consultant</option>
+                                <option value="invite">Invité</option>
+                            </select>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" name="peut_gerer_membres" id="pgm-{{ demande.id }}">
+                                <label class="form-check-label small" for="pgm-{{ demande.id }}">Gérer membres</label>
+                            </div>
+                            <button type="submit" class="fd-btn fd-btn--brand">Approuver</button>
+                        </form>
+                        <form method="post" action="{% url 'traiter_demande_acces_ferme' ferme.id demande.id 'refuser' %}"
+                              onsubmit="return confirm('Refuser cette demande d\'accès ?');">
+                            {% csrf_token %}
+                            <button type="submit" class="fd-btn fd-btn--outline fd-btn--danger-text">Refuser</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted small mb-0">Aucune demande en attente.</p>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
+        </aside>
     </div>
 </div>
 {% endblock %}

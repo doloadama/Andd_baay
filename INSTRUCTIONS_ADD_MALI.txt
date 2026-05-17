@@ -1,0 +1,18 @@
+Instructions pour ajouter les localités du Mali à la base de données:
+
+Exécutez la commande suivante dans votre terminal:
+
+python manage.py add_mali_localities
+
+Cette commande ajoutera:
+- Le pays Mali
+- Les 9 régions du Mali (Kayes, Koulikoro, Sikasso, Ségou, Mopti, Tombouctou, Gao, Kidal, Bamako)
+- Environ 180 localités/communes réparties dans ces régions
+
+Si des localités existent déjà, elles seront ignorées (idempotent).
+
+Si la commande ne fonctionne pas, vous pouvez également exécuter le script standalone:
+
+python add_mali_final.py
+
+Ces scripts se trouvent dans le répertoire racine du projet (c:\Users\HP\Andd_baay\).

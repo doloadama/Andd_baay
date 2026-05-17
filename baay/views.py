@@ -2425,8 +2425,11 @@ def detail_ferme(request, ferme_id):
         messages.error(request, "Vous n'avez pas accès à cette ferme.")
         return redirect('liste_fermes')
 
-    projets = ferme.projets.select_related('culture', 'localite')
+    projets = ferme.projets.select_related('culture', 'localite').order_by('-date_lancement')
+    projets_count = projets.count()
+    projets_en_cours = projets.filter(statut='en_cours').count()
     membres = ferme.membres.select_related('utilisateur__user')
+    membres_count = membres.count()
     demandes_acces = ferme.demandes_acces.filter(statut='en_attente').select_related('utilisateur__user') if is_proprietaire else []
     historiques_sol = (
         HistoriqueSol.objects.filter(ferme=ferme)
@@ -2434,22 +2437,38 @@ def detail_ferme(request, ferme_id):
         .order_by('-date_mesure')[:10]
     )
     suggestion_sol = suggerer_semis_saison_suivante(ferme_id)
-    # Données inventaire pour la bento card
+    from baay.models import StockIntrant, StockRecolte
+    from baay.permissions import peut_modifier_inventaire
     from baay.services.inventory_service import stocks_en_alerte, volume_total_recoltes
-    alertes_stock = stocks_en_alerte(ferme)
+
+    inventory_alertes = stocks_en_alerte(ferme)
+    inventory_alertes_count = len(inventory_alertes)
+    inventory_alertes_preview = inventory_alertes[:3]
+    inventory_alertes_more = max(0, inventory_alertes_count - len(inventory_alertes_preview))
+    intrants_count = StockIntrant.objects.filter(ferme=ferme).count()
+    recoltes_count = StockRecolte.objects.filter(ferme=ferme).count()
     volume_recoltes = volume_total_recoltes(ferme)
 
     return render(request, 'fermes/detail_ferme.html', {
         'ferme': ferme,
         'projets': projets,
+        'projets_count': projets_count,
+        'projets_en_cours': projets_en_cours,
         'membres': membres,
+        'membres_count': membres_count,
         'demandes_acces': demandes_acces,
         'is_proprietaire': is_proprietaire,
+        'is_membre': is_membre,
         'can_manage_members': can_manage_members,
         'historiques_sol': historiques_sol,
         'suggestion_sol': suggestion_sol,
-        'alertes_stock': alertes_stock,
+        'inventory_alertes_count': inventory_alertes_count,
+        'inventory_alertes_preview': inventory_alertes_preview,
+        'inventory_alertes_more': inventory_alertes_more,
+        'intrants_count': intrants_count,
+        'recoltes_count': recoltes_count,
         'volume_recoltes': volume_recoltes,
+        'peut_modifier_inventaire': peut_modifier_inventaire(request.user.profile, ferme),
     })
 
 

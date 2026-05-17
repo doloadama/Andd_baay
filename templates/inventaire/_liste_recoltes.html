@@ -1,0 +1,84 @@
+<div class="invl-table-wrap">
+    <table class="invl-table">
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Date récolte</th>
+                <th class="text-end">Quantité</th>
+                <th>Qualité</th>
+                {% if peut_modifier %}<th class="text-end" aria-label="Actions"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for recolte in recoltes %}
+            <tr>
+                <td><strong>{{ recolte.produit.nom }}</strong></td>
+                <td>{{ recolte.date_recolte|date:"d/m/Y" }}</td>
+                <td class="text-end"><span class="invl-qty">{{ recolte.quantite }} {{ recolte.get_unite_display }}</span></td>
+                <td><span class="invl-qualite invl-qualite--{{ recolte.qualite|lower }}">{{ recolte.get_qualite_display }}</span></td>
+                {% if peut_modifier %}
+                <td class="text-end text-muted small">—</td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{% if peut_modifier %}5{% else %}4{% endif %}">
+                    <div class="invl-empty">
+                        <i class="fas fa-seedling" aria-hidden="true"></i>
+                        <p class="mb-0">Aucune récolte enregistrée.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if peut_modifier %}
+<form method="post" action="{% url 'ajouter_recolte' ferme.id %}" class="invl-form mt-3">
+    {% csrf_token %}
+    <p class="invl-form__title"><i class="fas fa-plus me-1" aria-hidden="true"></i> Enregistrer une récolte</p>
+    <div class="invl-form__grid">
+        <div class="invl-field">
+            <label for="invl-produit">Produit</label>
+            <select name="produit" id="invl-produit" required>
+                {% for p in produits_disponibles %}
+                <option value="{{ p.id }}">{{ p.nom }}</option>
+                {% empty %}
+                <option value="" disabled>Aucun produit lié à la ferme</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="invl-field">
+            <label for="invl-recolte-qte">Quantité</label>
+            <input type="number" name="quantite" id="invl-recolte-qte" step="0.01" value="0" required>
+        </div>
+        <div class="invl-field">
+            <label for="invl-recolte-unite">Unité</label>
+            <select name="unite" id="invl-recolte-unite">
+                <option value="kg">kg</option>
+                <option value="tonnes">Tonnes</option>
+                <option value="sacs">Sacs</option>
+            </select>
+        </div>
+        <div class="invl-field">
+            <label for="invl-date">Date</label>
+            <input type="date" name="date_recolte" id="invl-date" required>
+        </div>
+        <div class="invl-field">
+            <label for="invl-qualite">Qualité</label>
+            <select name="qualite" id="invl-qualite">
+                <option value="A">Grade A</option>
+                <option value="B">Grade B</option>
+                <option value="C">Grade C</option>
+                <option value="D">Grade D</option>
+                <option value="NC" selected>Non classé</option>
+            </select>
+        </div>
+        <div class="invl-field">
+            <label class="d-block">&nbsp;</label>
+            <button type="submit" class="invl-btn invl-btn--brand w-100" {% if not produits_disponibles %}disabled{% endif %}>Ajouter</button>
+        </div>
+    </div>
+</form>
+{% endif %}

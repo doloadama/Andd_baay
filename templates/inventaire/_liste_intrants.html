@@ -1,0 +1,115 @@
+{% if alertes %}
+<div class="invl-alert-banner" role="alert">
+    <i class="fas fa-triangle-exclamation invl-alert-banner__icon" aria-hidden="true"></i>
+    <div>
+        <strong>Stocks sous le seuil</strong>
+        <ul>
+            {% for a in alertes %}
+            <li>{{ a.nom }} — {{ a.quantite }} {{ a.get_unite_display }} (seuil : {{ a.seuil_alerte }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="invl-table-wrap">
+    <table class="invl-table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th class="text-end">Quantité</th>
+                <th class="text-center">Ajustement</th>
+                <th>Seuil</th>
+                {% if peut_modifier %}<th class="text-end" aria-label="Actions"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for intrant in intrants %}
+            <tr id="intrant-row-{{ intrant.id }}" class="{% if intrant.quantite < intrant.seuil_alerte %}is-low{% endif %}">
+                <td>
+                    <strong>{{ intrant.nom }}</strong>
+                    {% if intrant.quantite < intrant.seuil_alerte %}
+                    <span class="invl-badge-low"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Bas</span>
+                    {% endif %}
+                </td>
+                <td><span class="invl-cat">{{ intrant.get_categorie_display }}</span></td>
+                <td class="text-end"><span class="invl-qty">{{ intrant.quantite }} {{ intrant.get_unite_display }}</span></td>
+                <td class="text-center">
+                    {% if peut_modifier %}
+                    <form method="post" action="{% url 'ajuster_intrant_htmx' ferme.id intrant.id %}"
+                          hx-post="{% url 'ajuster_intrant_htmx' ferme.id intrant.id %}"
+                          hx-target="#intrant-row-{{ intrant.id }}"
+                          hx-swap="outerHTML"
+                          class="invl-adjust">
+                        {% csrf_token %}
+                        <button type="submit" name="delta" value="-1" class="invl-adjust__btn invl-adjust__btn--minus" aria-label="Diminuer">−</button>
+                        <input type="hidden" name="raison" value="Ajustement rapide">
+                        <button type="submit" name="delta" value="1" class="invl-adjust__btn invl-adjust__btn--plus" aria-label="Augmenter">+</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                </td>
+                <td class="small text-muted">{{ intrant.seuil_alerte }}</td>
+                {% if peut_modifier %}
+                <td class="text-end">
+                    <a href="{% url 'supprimer_intrant' ferme.id intrant.id %}" class="invl-row-action" title="Supprimer"
+                       onclick="return confirm('Supprimer {{ intrant.nom|escapejs }} ?');">
+                        <i class="fas fa-trash" aria-hidden="true"></i>
+                    </a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{% if peut_modifier %}6{% else %}5{% endif %}">
+                    <div class="invl-empty">
+                        <i class="fas fa-cubes" aria-hidden="true"></i>
+                        <p class="mb-0">Aucun intrant enregistré.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if peut_modifier %}
+<form method="post" action="{% url 'ajouter_intrant' ferme.id %}" class="invl-form mt-3">
+    {% csrf_token %}
+    <p class="invl-form__title"><i class="fas fa-plus me-1" aria-hidden="true"></i> Ajouter un intrant</p>
+    <div class="invl-form__grid">
+        <div class="invl-field">
+            <label for="invl-nom">Nom</label>
+            <input type="text" name="nom" id="invl-nom" placeholder="Ex. Urée" required>
+        </div>
+        <div class="invl-field">
+            <label for="invl-cat">Catégorie</label>
+            <select name="categorie" id="invl-cat">
+                <option value="engrais">Engrais</option>
+                <option value="semence">Semence</option>
+                <option value="pesticide">Pesticide</option>
+                <option value="autre">Autre</option>
+            </select>
+        </div>
+        <div class="invl-field">
+            <label for="invl-qte">Quantité</label>
+            <input type="number" name="quantite" id="invl-qte" step="0.01" value="0" required>
+        </div>
+        <div class="invl-field">
+            <label for="invl-unite">Unité</label>
+            <select name="unite" id="invl-unite">
+                <option value="kg">kg</option>
+                <option value="L">L</option>
+                <option value="sacs">Sacs</option>
+                <option value="unites">Unités</option>
+            </select>
+        </div>
+        <div class="invl-field">
+            <label class="d-block">&nbsp;</label>
+            <button type="submit" class="invl-btn invl-btn--brand w-100">Ajouter</button>
+        </div>
+    </div>
+</form>
+{% endif %}

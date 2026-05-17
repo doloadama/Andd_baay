@@ -12,7 +12,9 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from baay.models import Ferme, StockIntrant, StockRecolte, MouvementStock
+from django.db.models import Q
+
+from baay.models import Ferme, MouvementStock, ProduitAgricole, StockIntrant, StockRecolte
 from baay.permissions import (
     peut_modifier_inventaire,
     peut_voir_inventaire,
@@ -40,22 +42,42 @@ def liste_inventaire(request, ferme_id):
 
     # Onglet actif (intrants par défaut)
     onglet = request.GET.get('onglet', 'intrants')
+    if onglet not in ('intrants', 'recoltes', 'mouvements'):
+        onglet = 'intrants'
+
+    alertes = stocks_en_alerte(ferme)
+    produits_disponibles = (
+        ProduitAgricole.objects.filter(
+            Q(projet_produits__projet__ferme=ferme) | Q(recoltes_stock__ferme=ferme)
+        )
+        .distinct()
+        .order_by('nom')
+    )
 
     context = {
         'ferme': ferme,
         'onglet': onglet,
         'role': role,
         'peut_modifier': peut_modifier,
+        'alertes': alertes,
+        'alertes_count': len(alertes),
+        'volume_total': volume_total_recoltes(ferme),
+        'intrants_count': StockIntrant.objects.filter(ferme=ferme).count(),
+        'recoltes_count': StockRecolte.objects.filter(ferme=ferme).count(),
+        'mouvements_count': MouvementStock.objects.filter(ferme=ferme).count(),
+        'produits_disponibles': produits_disponibles,
     }
 
     if onglet == 'intrants':
         context['intrants'] = StockIntrant.objects.filter(ferme=ferme).order_by('-date_modification')
-        context['alertes'] = stocks_en_alerte(ferme)
     elif onglet == 'recoltes':
         context['recoltes'] = StockRecolte.objects.filter(ferme=ferme).select_related('produit').order_by('-date_recolte')
-        context['volume_total'] = volume_total_recoltes(ferme)
     elif onglet == 'mouvements':
-        context['mouvements'] = MouvementStock.objects.filter(ferme=ferme).select_related('stock_intrant', 'stock_recolte', 'utilisateur__user').order_by('-date_mouvement')[:50]
+        context['mouvements'] = (
+            MouvementStock.objects.filter(ferme=ferme)
+            .select_related('stock_intrant', 'stock_recolte', 'stock_recolte__produit', 'utilisateur__user')
+            .order_by('-date_mouvement')[:50]
+        )
 
     return render(request, 'inventaire/liste_inventaire.html', context)
 

@@ -533,3 +533,35 @@
 .dark-mode .fl-card:hover {
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
+
+/* Buttons — dark mode */
+.dark-mode .fl-btn--surface {
+    background: var(--card-bg-solid, #121c19);
+    color: var(--text-main, #e8f5f0);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.dark-mode .fl-btn--surface:hover {
+    color: var(--brand-light, #5dcaa5);
+    border-color: rgba(29, 158, 117, 0.45);
+    background: rgba(29, 158, 117, 0.14);
+}
+
+.dark-mode .fl-btn--brand {
+    color: #fff;
+}
+
+.dark-mode .fl-btn--primary {
+    background: #fff;
+    color: var(--fl-deep, #085041);
+}
+
+.dark-mode .fl-filter:hover {
+    color: var(--brand-light, #5dcaa5);
+}
+
+.dark-mode .fl-filter.is-active {
+    color: var(--brand-light, #5dcaa5);
+    background: rgba(29, 158, 117, 0.18);
+    border-color: rgba(29, 158, 117, 0.4);
+}
