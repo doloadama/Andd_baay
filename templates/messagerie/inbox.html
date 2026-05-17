@@ -4,466 +4,232 @@
 {% block title %}Messagerie — Andd Baay{% endblock %}
 
 {% block content %}
-<style>
-    /* ============== Inbox shell ============== */
-    .msg-shell {
-        --msg-radius: 22px;
-        --msg-accent: #22c55e;
-        --msg-accent-dark: #16a34a;
-        --msg-accent-soft: rgba(34, 197, 94, 0.08);
-    }
-    .msg-card {
-        border-radius: var(--msg-radius) !important;
-        border: 1px solid rgba(0, 0, 0, 0.05) !important;
-        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
-        overflow: hidden;
-    }
-    .msg-sidebar-header {
-        padding: 16px 18px 14px;
-        border-bottom: 1px solid var(--border-glass);
-        background: linear-gradient(135deg,
-            rgba(34, 197, 94, 0.10) 0%,
-            rgba(14, 165, 233, 0.04) 100%);
-    }
-    .msg-sidebar-title {
-        display: flex; align-items: center; gap: 10px;
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 1.05rem;
-        color: var(--text-main);
-        margin: 0;
-    }
-    .msg-sidebar-title-icon {
-        width: 32px; height: 32px;
-        border-radius: var(--radius-sm);
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #fff;
-        display: inline-flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
-    }
-    .msg-sidebar-count {
-        background: rgba(34, 197, 94, 0.15);
-        color: var(--msg-accent-dark);
-        border-radius: 999px;
-        padding: 2px 9px;
-        font-size: 0.72rem;
-        font-weight: 700;
-    }
-    .msg-new-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #fff;
-        border: none;
-        border-radius: 999px;
-        padding: 8px 14px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        text-decoration: none;
-        box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .msg-new-btn:hover {
-        transform: translateY(-1px);
-        color: #fff;
-        box-shadow: 0 6px 18px rgba(34, 197, 94, 0.4);
-    }
+<!-- Premium Afro-Tech Messagerie Shell -->
+<div class="msg-shell-container h-100"
+     x-data="{
+        view: 'list',
+        hasActiveChat: {% if conversation %}true{% else %}false{% endif %},
+        showContext: true,
+        init() {
+            if (window.innerWidth < 1200 && this.hasActiveChat) {
+                this.view = 'chat';
+            }
+        }
+     }"
+     @resize.window.debounce.100ms="if(window.innerWidth >= 1200) { if(view === 'list' && hasActiveChat) view = 'chat'; }">
 
-    /* ============== Search ============== */
-    .msg-search-wrap {
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--border-glass);
-        position: sticky; top: 0; z-index: 2;
-        background: var(--card-bg-solid);
-    }
-    .msg-search-input {
-        background: var(--bg-main, #f8fafc);
-        border: 1px solid transparent;
-        border-radius: var(--radius-input);
-        color: var(--text-main);
-        padding: 11px 12px 11px 38px;
-        width: 100%;
-        font-size: 0.88rem;
-        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-    }
-    .msg-search-input:focus {
-        outline: none;
-        background: var(--card-bg-solid);
-        border-color: rgba(34, 197, 94, 0.4);
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
-    }
-    .msg-search-icon {
-        position: absolute; left: 14px; top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 0.85rem;
-    }
+    <style>
+        :root {
+            --at-deep-green: #085041;
+            --at-primary-green: #1D9E75;
+            --at-saffron: #EF9F27;
+            --at-glass: rgba(255, 255, 255, 0.08);
+            --at-border: rgba(255, 255, 255, 0.12);
+        }
 
-    /* ============== Filter chips ============== */
-    .msg-filter-chips {
-        display: flex; gap: 6px; padding: 10px 14px;
-        border-bottom: 1px solid var(--border-glass);
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-    .msg-filter-chips::-webkit-scrollbar { display: none; }
-    .msg-filter-chip {
-        display: inline-flex; align-items: center; gap: 5px;
-        background: transparent;
-        border: 1px solid var(--border-glass);
-        border-radius: 999px;
-        padding: 5px 11px;
-        font-size: 0.74rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        cursor: pointer;
-        white-space: nowrap;
-        transition: all 0.15s ease;
-    }
-    .msg-filter-chip:hover {
-        color: var(--text-main);
-        border-color: rgba(34, 197, 94, 0.3);
-    }
-    .msg-filter-chip.active {
-        background: var(--msg-accent);
-        border-color: var(--msg-accent);
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
-    }
-    .msg-filter-chip-count {
-        background: rgba(255, 255, 255, 0.25);
-        color: inherit;
-        padding: 1px 6px;
-        border-radius: 999px;
-        font-size: 0.66rem;
-        font-weight: 700;
-    }
-    .msg-filter-chip:not(.active) .msg-filter-chip-count {
-        background: rgba(34, 197, 94, 0.16);
-        color: var(--msg-accent-dark);
-    }
+        .msg-shell-container {
+            display: flex;
+            height: calc(100vh - 72px); /* Subtract top bar height approx */
+            background-color: #f0f4f3;
+            overflow: hidden;
+            position: relative;
+        }
 
-    /* ============== Conversation items ============== */
-    .conv-item {
-        position: relative;
-        transition: background 0.18s ease, transform 0.18s ease;
-        border-bottom: 1px solid var(--border-glass) !important;
-        padding: 12px 16px !important;
-        animation: convFadeIn 0.35s ease both;
-    }
-    @keyframes convFadeIn {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .conv-item::before {
-        content: ""; position: absolute;
-        left: 0; top: 8px; bottom: 8px;
-        width: 3px; border-radius: 99px;
-        background: transparent;
-        transition: background 0.18s ease;
-    }
-    .conv-item:hover {
-        background: rgba(34, 197, 94, 0.05) !important;
-    }
-    .conv-item.unread {
-        background: linear-gradient(90deg, rgba(34, 197, 94, 0.10), transparent 70%) !important;
-    }
-    .conv-item.unread::before {
-        background: var(--msg-accent);
-    }
-    .avatar-pill {
-        width: 46px; height: 46px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: inline-flex; align-items: center; justify-content: center;
-        color: #fff; font-weight: 700; font-size: 1rem;
-        position: relative;
-        background: linear-gradient(135deg, #22c55e, #0ea5e9);
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.10);
-        font-family: var(--font-display);
-    }
-    .avatar-pill.g1 { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .avatar-pill.g2 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
-    .avatar-pill.g3 { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
-    .avatar-pill.g4 { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
-    .avatar-pill.g5 { background: linear-gradient(135deg, #f97316, #fbbf24); }
-    .avatar-pill.g6 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-    .avatar-pill.online::after {
-        content: "";
-        width: 12px; height: 12px;
-        border-radius: 50%;
-        background: #22c55e;
-        border: 2.5px solid var(--card-bg-solid);
-        position: absolute; right: -1px; bottom: -1px;
-        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
-    }
-    .conv-title {
-        font-family: var(--font-display);
-        font-size: 0.95rem;
-        color: var(--text-main);
-    }
-    .conv-item.unread .conv-title { font-weight: 700; }
-    .conv-preview {
-        font-size: 0.82rem;
-        color: var(--text-muted);
-        margin-top: 2px;
-    }
-    .conv-preview.preview-unread {
-        color: var(--text-main);
-        font-weight: 500;
-    }
-    .conv-meta {
-        display: flex; flex-direction: column;
-        align-items: flex-end; gap: 6px;
-        flex-shrink: 0;
-    }
-    .conv-time {
-        font-size: 0.7rem;
-        color: var(--text-muted);
-        white-space: nowrap;
-    }
-    .conv-item.unread .conv-time {
-        color: var(--msg-accent-dark);
-        font-weight: 600;
-    }
-    .unread-badge {
-        background: var(--msg-accent);
-        color: #fff;
-        font-size: 0.66rem;
-        font-weight: 700;
-        padding: 2px 7px;
-        border-radius: 999px;
-        min-width: 20px; text-align: center;
-        box-shadow: 0 2px 6px rgba(34, 197, 94, 0.35);
-    }
+        /* 3-Column Layout */
+        .msg-col-list {
+            width: 380px;
+            border-right: 1px solid rgba(0,0,0,0.08);
+            background: white;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
 
-    /* ============== Empty state (right panel) ============== */
-    .msg-hero {
-        position: relative;
-        overflow: hidden;
-        background:
-            radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.18), transparent 45%),
-            radial-gradient(circle at 80% 30%, rgba(14, 165, 233, 0.10), transparent 50%),
-            radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.08), transparent 55%),
-            linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 253, 244, 0.95));
-    }
-    .msg-hero-blob {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        opacity: 0.55;
-        pointer-events: none;
-        animation: heroBlob 14s ease-in-out infinite alternate;
-    }
-    .msg-hero-blob.b1 { width: 220px; height: 220px; top: -60px; left: -60px; background: #4ade80; }
-    .msg-hero-blob.b2 { width: 280px; height: 280px; bottom: -80px; right: -60px; background: #38bdf8; animation-delay: -5s; }
-    .msg-hero-blob.b3 { width: 160px; height: 160px; top: 30%; right: 18%; background: #c084fc; animation-delay: -9s; opacity: 0.35; }
-    @keyframes heroBlob {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(30px, -20px) scale(1.08); }
-    }
-    .msg-hero-content {
-        position: relative; z-index: 1;
-        display: flex; flex-direction: column;
-        align-items: center; text-align: center;
-        padding: 56px 32px;
-    }
-    .msg-hero-icon {
-        width: 96px; height: 96px;
-        border-radius: var(--radius-xl);
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #fff;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 2.4rem;
-        box-shadow: 0 16px 40px rgba(34, 197, 94, 0.35);
-        margin-bottom: 22px;
-        animation: heroIconFloat 5s ease-in-out infinite;
-    }
-    @keyframes heroIconFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-    }
-    .msg-hero-title {
-        font-family: var(--font-display);
-        font-size: 1.85rem;
-        font-weight: 700;
-        margin: 0 0 10px;
-        background: linear-gradient(135deg, #15803d 0%, #0ea5e9 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    .msg-hero-subtitle {
-        color: var(--text-muted);
-        max-width: 460px;
-        margin: 0 0 28px;
-        font-size: 0.95rem;
-        line-height: 1.55;
-    }
-    .msg-hero-cta {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 12px 24px;
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #fff;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.95rem;
-        box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .msg-hero-cta:hover {
-        transform: translateY(-2px);
-        color: #fff;
-        box-shadow: 0 12px 32px rgba(34, 197, 94, 0.45);
-    }
-    .msg-hero-features {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-        margin-top: 36px;
-        width: 100%; max-width: 520px;
-    }
-    .msg-hero-feature {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(34, 197, 94, 0.14);
-        border-radius: var(--radius-md);
-        padding: 16px 12px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-    .msg-hero-feature:hover {
-        transform: translateY(-3px);
-        border-color: rgba(34, 197, 94, 0.35);
-        box-shadow: 0 10px 24px rgba(34, 197, 94, 0.12);
-    }
-    .msg-hero-feature-icon {
-        width: 40px; height: 40px;
-        border-radius: var(--radius-input);
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 1.05rem;
-        margin: 0 auto 8px;
-    }
-    .msg-hero-feature.f1 .msg-hero-feature-icon { background: rgba(34, 197, 94, 0.18); color: #16a34a; }
-    .msg-hero-feature.f2 .msg-hero-feature-icon { background: rgba(14, 165, 233, 0.18); color: #0284c7; }
-    .msg-hero-feature.f3 .msg-hero-feature-icon { background: rgba(245, 158, 11, 0.20); color: #d97706; }
-    .msg-hero-feature-title {
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 0.85rem;
-        color: var(--text-main);
-        margin: 0 0 2px;
-    }
-    .msg-hero-feature-desc {
-        font-size: 0.72rem;
-        color: var(--text-muted);
-        margin: 0;
-    }
-    .msg-hero-tip {
-        margin-top: 26px;
-        padding: 10px 16px;
-        background: rgba(255, 255, 255, 0.6);
-        border: 1px dashed rgba(34, 197, 94, 0.4);
-        border-radius: var(--radius-input);
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        display: inline-flex; align-items: center; gap: 8px;
-    }
-    .msg-hero-tip kbd {
-        background: var(--card-bg-solid);
-        border: 1px solid var(--border-glass);
-        border-radius: var(--radius-xs);
-        padding: 1px 6px;
-        font-size: 0.72rem;
-        color: var(--text-main);
-    }
+        .msg-col-chat {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            position: relative;
+        }
 
-    /* ============== Empty list state ============== */
-    .conv-empty {
-        display: flex; flex-direction: column; align-items: center;
-        text-align: center; padding: 48px 22px;
-    }
-    .conv-empty-icon {
-        width: 64px; height: 64px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(14, 165, 233, 0.12));
-        color: #16a34a;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 14px;
-    }
-</style>
-<div class="container py-3 py-lg-4 msg-shell">
-    <div class="row g-3 g-lg-4">
-        <!-- Sidebar: Conversations -->
-        <div class="col-12 col-lg-4">
-            <div class="glass-card msg-card h-100 d-flex flex-column" style="min-height: calc(100vh - 160px);">
-                <div class="msg-sidebar-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 class="msg-sidebar-title">
-                        <span class="msg-sidebar-title-icon"><i class="fas fa-comments"></i></span>
-                        Conversations
-                        {% if conv_data %}
-                        <span class="msg-sidebar-count">{{ conv_data|length }}</span>
-                        {% endif %}
-                    </h5>
-                    <a href="{% url 'nouvelle_conversation' %}" class="msg-new-btn">
-                        <i class="fas fa-plus"></i> Nouveau
-                    </a>
-                </div>
-                <div class="glass-card-body p-0 flex-grow-1 overflow-auto d-flex flex-column">
-                    {% include 'messagerie/_inbox_list.html' %}
-                </div>
+        .msg-col-context {
+            width: 320px;
+            border-left: 1px solid rgba(0,0,0,0.08);
+            background: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        /* Responsive Logic via Alpine */
+        @media (max-width: 1199px) {
+            .msg-col-list {
+                width: 100%;
+                position: absolute; left: 0; top: 0; bottom: 0;
+                transform: translateX(0);
+            }
+            .msg-col-chat {
+                width: 100%;
+                position: absolute; left: 0; top: 0; bottom: 0;
+                transform: translateX(100%);
+                z-index: 20;
+            }
+            .msg-col-context {
+                display: none; /* Mobile usually hides context until requested */
+            }
+
+            .view-chat .msg-col-list { transform: translateX(-100%); }
+            .view-chat .msg-col-chat { transform: translateX(0); }
+        }
+
+        /* Aesthetic Touches */
+        .at-header-gradient {
+            background: linear-gradient(135deg, var(--at-deep-green), var(--at-primary-green));
+            color: white;
+            padding: 1.5rem 1rem;
+        }
+
+        .at-search-container {
+            padding: 1rem;
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .at-search-input {
+            background: #f3f7f6;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .at-search-input:focus {
+            background: white;
+            border-color: var(--at-primary-green);
+            box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1);
+            outline: none;
+        }
+
+        /* Empty State Hero */
+        .msg-hero-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(180deg, #ffffff 0%, #f4f8f7 100%);
+        }
+
+        .at-bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+            max-width: 400px;
+        }
+
+        .at-bento-item {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            transition: transform 0.2s;
+        }
+
+        .at-bento-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--at-primary-green);
+        }
+    </style>
+
+    <!-- Column 1: Conversations List -->
+    <aside class="msg-col-list" :class="{ 'hidden': view !== 'list' && window.innerWidth < 1200 }">
+        <div class="at-header-gradient">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="m-0 fw-bold" style="font-family: 'DM Serif Display', serif;">Messages</h4>
+                <a href="{% url 'nouvelle_conversation' %}" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Nouveau message">
+                    <i class="fas fa-plus text-success"></i>
+                </a>
             </div>
         </div>
 
-        <!-- Main: Empty state hero (Hidden on mobile) -->
-        <div class="col-lg-8 d-none d-lg-block">
-            <div class="glass-card msg-card msg-hero h-100 d-flex flex-column justify-content-center align-items-center">
-                <span class="msg-hero-blob b1"></span>
-                <span class="msg-hero-blob b2"></span>
-                <span class="msg-hero-blob b3"></span>
-                <div class="msg-hero-content">
-                    <div class="msg-hero-icon">
-                        <i class="fas fa-comments"></i>
+        <div class="flex-grow-1 overflow-auto" id="inboxSidebar">
+            {% include 'messagerie/_inbox_list.html' %}
+        </div>
+    </aside>
+
+    <!-- Column 2: Active Chat -->
+    <main class="msg-col-chat" :class="{ 'view-chat': view === 'chat' }">
+        <div id="chatMainPanel" class="h-100 d-flex flex-column">
+            {% if conversation %}
+                {% include 'messagerie/_conversation_view.html' %}
+            {% else %}
+                <div class="msg-hero-empty">
+                    <div class="mb-4">
+                        <img src="{% static 'img/illustrations/messaging_afro.svg' %}" alt="Messaging" style="width: 280px; opacity: 0.9;" onerror="this.src='https://illustrations.popsy.co/green/remote-work.svg'">
                     </div>
-                    <h2 class="msg-hero-title">Messagerie interne</h2>
-                    <p class="msg-hero-subtitle">
-                        Échangez avec les membres de vos fermes — propriétaires, managers,
-                        techniciens et ouvriers. Sélectionnez une conversation à gauche
-                        ou démarrez-en une nouvelle.
+                    <h2 class="fw-bold mb-2" style="color: var(--at-deep-green);">Restez connecté à vos fermes</h2>
+                    <p class="text-muted mb-4" style="max-width: 450px;">
+                        Communiquez instantanément avec vos techniciens, ouvriers et partenaires pour une gestion agricole optimisée.
                     </p>
-                    <a href="{% url 'nouvelle_conversation' %}" class="msg-hero-cta">
-                        <i class="fas fa-paper-plane"></i> Démarrer une conversation
-                    </a>
-                    <div class="msg-hero-features">
-                        <div class="msg-hero-feature f1">
-                            <div class="msg-hero-feature-icon"><i class="fas fa-bolt"></i></div>
-                            <p class="msg-hero-feature-title">Temps réel</p>
-                            <p class="msg-hero-feature-desc">Messages instantanés via WebSocket</p>
+
+                    <div class="at-bento-grid">
+                        <div class="at-bento-item">
+                            <i class="fas fa-seedling text-success mb-2"></i>
+                            <div class="small fw-bold">Contextuel</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Données de ferme intégrées</div>
                         </div>
-                        <div class="msg-hero-feature f2">
-                            <div class="msg-hero-feature-icon"><i class="fas fa-users"></i></div>
-                            <p class="msg-hero-feature-title">Groupes</p>
-                            <p class="msg-hero-feature-desc">Discussions à plusieurs par ferme</p>
+                        <div class="at-bento-item">
+                            <i class="fas fa-bolt text-warning mb-2"></i>
+                            <div class="small fw-bold">Rapide</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Réponses en temps réel</div>
                         </div>
-                        <div class="msg-hero-feature f3">
-                            <div class="msg-hero-feature-icon"><i class="fas fa-paperclip"></i></div>
-                            <p class="msg-hero-feature-title">Fichiers</p>
-                            <p class="msg-hero-feature-desc">Partagez photos et documents</p>
-                        </div>
-                    </div>
-                    <div class="msg-hero-tip">
-                        <i class="fas fa-lightbulb text-warning"></i>
-                        Astuce&nbsp;: appuyez sur <kbd>g</kbd> puis <kbd>m</kbd> pour ouvrir la messagerie.
                     </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
-    </div>
+    </main>
+
+    <!-- Column 3: Contextual Sidebar (Desktop only) -->
+    <aside class="msg-col-context"
+           x-show="showContext"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="opacity-0 translate-x-4"
+           x-transition:enter-end="opacity-100 translate-x-0"
+           id="chatContextPanel">
+        {% if conversation %}
+            {% include 'messagerie/_conversation_context.html' %}
+        {% else %}
+            <div class="p-4 text-center h-100 d-flex flex-column justify-content-center">
+                <i class="fas fa-info-circle text-muted mb-3 opacity-25" style="font-size: 3rem;"></i>
+                <h6 class="text-muted">Sélectionnez une discussion pour voir les détails de la ferme</h6>
+            </div>
+        {% endif %}
+    </aside>
+
 </div>
 
-<!-- Floating Action Button: new conversation (mobile only, hidden via CSS on >=md) -->
-<a href="{% url 'nouvelle_conversation' %}" class="msg-fab" aria-label="Nouvelle conversation" title="Nouvelle conversation">
-    <i class="fas fa-pen-to-square"></i>
-</a>
+{% block extra_js %}
+<script>
+    document.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'chatMainPanel') {
+            // Update Alpine state when content swapped via HTMX
+            const container = document.querySelector('.msg-shell-container');
+            if (container && container.__x) {
+                container.__x.$data.hasActiveChat = true;
+                if (window.innerWidth < 1200) {
+                    container.__x.$data.view = 'chat';
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+
 {% endblock %}

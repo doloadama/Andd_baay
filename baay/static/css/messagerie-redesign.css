@@ -1,0 +1,253 @@
+/* ============================================================
+   Messagerie — Redesign (WhatsApp + Premium Afro-Tech)
+   ============================================================ */
+
+:root {
+    --at-whatsapp-bg: #e5ddd5;
+    --at-whatsapp-green: #25d366;
+    --at-whatsapp-teal: #075e54;
+    --at-whatsapp-light: #dcf8c6;
+    --at-safran: #EF9F27;
+}
+
+/* Shell & Columns */
+.msg-shell {
+    height: calc(100vh - 100px);
+    overflow: hidden;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.msg-main-row {
+    height: 100%;
+}
+
+.msg-sidebar-col, .msg-chat-col, .msg-context-col {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.bg-context-subtle {
+    background: rgba(244, 251, 248, 0.5);
+}
+
+/* Sidebar Styling */
+.msg-sidebar-header {
+    background: var(--brand-deep) !important;
+    color: white !important;
+}
+
+.msg-sidebar-title {
+    color: white !important;
+}
+
+.msg-sidebar-title-icon {
+    background: var(--at-safran) !important;
+}
+
+.msg-new-btn {
+    background: var(--at-safran) !important;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+}
+
+.conv-item {
+    border-bottom: 1px solid rgba(8, 80, 65, 0.05) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.conv-item::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: var(--brand-primary);
+    transition: width 0.3s ease;
+}
+
+.conv-item:hover::after {
+    width: 100%;
+}
+
+.conv-item:hover {
+    background: rgba(29, 158, 117, 0.05) !important;
+}
+
+.conv-item.unread {
+    background: rgba(29, 158, 117, 0.08) !important;
+}
+
+/* Chat Area Styling (WhatsApp Vibes + Afro-Tech Patterns) */
+.chat-messages-bg {
+    background-color: var(--at-whatsapp-bg) !important;
+    background-image:
+        radial-gradient(var(--brand-primary) 0.5px, transparent 0.5px),
+        radial-gradient(var(--brand-primary) 0.5px, var(--at-whatsapp-bg) 0.5px) !important;
+    background-size: 20px 20px !important;
+    background-position: 0 0, 10px 10px !important;
+    opacity: 0.9;
+}
+
+.msg-conv-header {
+    background: linear-gradient(135deg, var(--brand-night) 0%, var(--brand-deep) 100%) !important;
+    border-bottom: 2px solid var(--at-safran) !important;
+}
+
+.chat-header-title {
+    color: white !important;
+    font-family: 'Space Grotesk', sans-serif !important;
+    letter-spacing: -0.02em;
+}
+
+.chat-header-status {
+    color: var(--brand-pale) !important;
+}
+
+.msg-bubble-own {
+    background: var(--brand-primary) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.2) !important;
+    border-radius: 12px 0 12px 12px !important;
+    position: relative;
+}
+
+.msg-bubble-own::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -8px;
+    width: 10px;
+    height: 12px;
+    background: var(--brand-primary);
+    clip-path: polygon(0 0, 0 100%, 100% 0);
+}
+
+.msg-meta-own {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.msg-bubble-own .msg-text {
+    color: white !important;
+}
+
+.msg-bubble-other {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 1px 0.5px rgba(0,0,0,0.13) !important;
+    border-radius: 0 12px 12px 12px !important;
+    position: relative;
+}
+
+.msg-bubble-other::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -8px;
+    width: 10px;
+    height: 12px;
+    background: #ffffff;
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+}
+
+.checkmark-icon.read {
+    color: #34b7f1 !important; /* WhatsApp blue ticks */
+}
+
+/* Context Panel Styling */
+.context-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--at-safran);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.context-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(239, 159, 39, 0.2);
+}
+
+.context-section {
+    border-bottom: 1px solid rgba(8, 80, 65, 0.1);
+    padding-bottom: 1.5rem;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 991.98px) {
+    .msg-shell {
+        height: 100vh;
+        height: 100dvh;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: -10px;
+    }
+    .msg-sidebar-col, .msg-chat-col {
+        height: 100%;
+    }
+    .container-fluid.msg-shell {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    .msg-card {
+        border-radius: 0 !important;
+        border: none !important;
+    }
+}
+
+/* Transitions */
+.msg-conv-partial {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Floating Action Button (FAB) for mobile */
+.msg-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: var(--at-safran);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    text-decoration: none;
+}
+
+.msg-fab:hover {
+    color: white;
+    transform: scale(1.1);
+}
+
+@media (min-width: 992px) {
+    .msg-fab {
+        display: none;
+    }
+}

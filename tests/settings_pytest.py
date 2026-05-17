@@ -18,6 +18,9 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# Disable SSL redirect for tests to avoid 301 errors
+SECURE_SSL_REDIRECT = False
+
 # Axes' standalone backend requires a request during authenticate(),
 # which breaks Django's test client `login()` helper.
 AXES_ENABLED = False

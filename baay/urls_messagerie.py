@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views_messagerie import (
+    conversation_context_fragment,
     conversation_detail,
     conversation_messages_older,
     derniere_conversation,
@@ -24,4 +25,5 @@ urlpatterns = [
     path("api/messages/<uuid:message_id>/reaction/", toggle_reaction, name="toggle_reaction"),
     path("api/messagerie/drawer/inbox/", drawer_inbox_fragment, name="drawer_inbox_fragment"),
     path("api/messagerie/drawer/conversation/<uuid:conversation_id>/", drawer_conversation_fragment, name="drawer_conversation_fragment"),
+    path("messagerie/conversation/<uuid:conversation_id>/context/", conversation_context_fragment, name="conversation_context_fragment"),
 ]

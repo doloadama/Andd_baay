@@ -27,6 +27,15 @@
                 {% for item in conv_data %}
                 <a href="{% url 'conversation_detail' item.conv.id %}"
                    class="list-group-item list-group-item-action d-flex align-items-center conv-item {% if item.non_lus > 0 %}unread{% endif %}"
+                   hx-get="{% url 'conversation_detail' item.conv.id %}"
+                   hx-target="#chatMainPanel"
+                   hx-push-url="true"
+                   hx-trigger="click"
+                   hx-on:click="
+                        if(window.innerWidth > 1200) {
+                            htmx.ajax('GET', '{% url 'conversation_context_fragment' item.conv.id %}', '#chatContextPanel');
+                        }
+                   "
                    data-conversation-id="{{ item.conv.id }}"
                    data-drawer-conversation-id="{{ item.conv.id }}"
                    data-search="{{ item.titre|lower }} {% if item.dernier %}{{ item.dernier.contenu|lower }}{% endif %}"
