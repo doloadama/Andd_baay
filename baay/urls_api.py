@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views_api import (
     api_conversation_sync,
+    api_creer_produit,
     api_marquer_tout_lu,
     api_messages_non_lus,
     api_notifications_list,
@@ -36,4 +37,5 @@ urlpatterns = [
     path("api/notifications/clear/", api_marquer_tout_lu, name="api_marquer_tout_lu"),
     path("api/voice/command/", api_voice_command, name="api_voice_command"),
     path("api/vocal-query/", api_vocal_query, name="api_vocal_query"),
+    path("api/produit/creer/", api_creer_produit, name="api_creer_produit"),
 ]

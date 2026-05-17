@@ -2,7 +2,14 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from decimal import Decimal
+import io
 import json
+import logging
+
+from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
+logger = logging.getLogger(__name__)
 from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
 from baay.models import (
@@ -41,6 +48,73 @@ def _validate_upload(
     if allowed_content_type_prefixes and any(ct.startswith(p.lower()) for p in allowed_content_type_prefixes):
         return f
     raise forms.ValidationError("Type de fichier non autorisé.")
+
+
+MAX_CLOUDINARY_BYTES = 10 * 1024 * 1024  # 10 MB (free-tier limit)
+MAX_IMAGE_DIMENSION = 2400               # px — longest edge after resize
+
+
+def _compress_image_if_needed(f, *, max_bytes=MAX_CLOUDINARY_BYTES, max_dim=MAX_IMAGE_DIMENSION):
+    """Resize / re-compress an uploaded image so it stays under *max_bytes*.
+
+    Returns the original file untouched when it is already small enough or
+    when it is not a raster image (PDF, SVG…).
+    """
+    if not f or not getattr(f, "size", 0):
+        return f
+    ct = (getattr(f, "content_type", "") or "").lower()
+    if not ct.startswith("image/") or ct in ("image/svg+xml",):
+        return f
+    if f.size <= max_bytes:
+        return f
+
+    try:
+        f.seek(0)
+        img = Image.open(f)
+        img_format = img.format or "JPEG"
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            img_format = "JPEG"
+
+        # Resize if very large dimensions
+        w, h = img.size
+        if max(w, h) > max_dim:
+            ratio = max_dim / max(w, h)
+            img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+
+        # Iteratively lower quality until under limit
+        quality = 85
+        while quality >= 30:
+            buf = io.BytesIO()
+            save_kwargs = {"format": img_format, "optimize": True}
+            if img_format.upper() in ("JPEG", "JPG"):
+                save_kwargs["quality"] = quality
+            elif img_format.upper() == "WEBP":
+                save_kwargs["quality"] = quality
+            img.save(buf, **save_kwargs)
+            if buf.tell() <= max_bytes:
+                buf.seek(0)
+                return InMemoryUploadedFile(
+                    file=buf,
+                    field_name=getattr(f, "field_name", "image"),
+                    name=getattr(f, "name", "photo.jpg"),
+                    content_type=f"image/{img_format.lower()}",
+                    size=buf.tell(),
+                    charset=None,
+                )
+            quality -= 10
+
+        raise forms.ValidationError(
+            "L'image est trop volumineuse même après compression (max 10 Mo). "
+            "Veuillez utiliser une image plus petite."
+        )
+    except forms.ValidationError:
+        raise
+    except Exception as exc:
+        logger.warning("Compression image échouée : %s", exc)
+        raise forms.ValidationError(
+            "Impossible de traiter l'image. Veuillez réessayer avec un fichier plus petit (max 10 Mo)."
+        )
 
 
 def _aligner_champ_categorie_investissement(form_field, *, instance):
@@ -648,6 +722,9 @@ class ProjetForm(forms.ModelForm):
                 "Réservé au manager de la ferme ou à l'administrateur."
             )
 
+    def clean_image_fond(self):
+        return _compress_image_if_needed(self.cleaned_data.get("image_fond"))
+
     def clean_superficie(self):
         superficie = self.cleaned_data.get('superficie')
         ferme = self.cleaned_data.get('ferme')
@@ -805,6 +882,10 @@ class ProjetProduitForm(forms.ModelForm):
         if superficie is not None and superficie <= 0:
             raise forms.ValidationError("La superficie allouee doit etre positive.")
         return superficie
+
+    def clean_image(self):
+        img = self.cleaned_data.get('image')
+        return _compress_image_if_needed(img)
     
     def clean(self):
         cleaned_data = super().clean()
@@ -996,10 +1077,10 @@ class FermeForm(forms.ModelForm):
         })
 
     def clean_image_couverture(self):
-        return _validate_upload(self.cleaned_data.get("image_couverture"), max_mb=8)
+        return _compress_image_if_needed(self.cleaned_data.get("image_couverture"))
 
     def clean_image_infrastructure(self):
-        return _validate_upload(self.cleaned_data.get("image_infrastructure"), max_mb=8)
+        return _compress_image_if_needed(self.cleaned_data.get("image_infrastructure"))
 
 
 class MembreFermeForm(forms.Form):

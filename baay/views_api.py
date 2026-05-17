@@ -1,5 +1,6 @@
 from .views import (
     api_conversation_sync,
+    api_creer_produit,
     api_marquer_tout_lu,
     api_messages_non_lus,
     api_notifications_list,

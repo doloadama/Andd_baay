@@ -821,7 +821,8 @@ def modifier_projet(request, projet_id):
                         age_key = f"age_plant_{pp.id}"
 
                         if image_key in request.FILES:
-                            pp.image = request.FILES[image_key]
+                            from baay.forms import _compress_image_if_needed
+                            pp.image = _compress_image_if_needed(request.FILES[image_key])
                         elif (
                             image_key in plant_details_form.cleaned_data
                             and plant_details_form.cleaned_data[image_key] is False
@@ -4271,3 +4272,45 @@ def activites(request):
     if request.GET.get('ferme'):
         url += f"&ferme={request.GET.get('ferme')}"
     return redirect(url)
+
+
+@login_required
+@require_POST
+def api_creer_produit(request):
+    """Crée un ProduitAgricole à la volée depuis le formulaire de projet."""
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"ok": False, "error": "Données invalides."}, status=400)
+
+    nom = (data.get("nom") or "").strip()
+    if not nom:
+        return JsonResponse({"ok": False, "error": "Le nom est obligatoire."}, status=400)
+    if len(nom) > 100:
+        return JsonResponse({"ok": False, "error": "Le nom ne doit pas dépasser 100 caractères."}, status=400)
+
+    saison = (data.get("saison") or "").strip() or None
+    description = (data.get("description") or "").strip() or None
+
+    try:
+        produit, created = ProduitAgricole.objects.get_or_create(
+            nom__iexact=nom,
+            defaults={
+                "nom": nom,
+                "saison": saison,
+                "description": description,
+            },
+        )
+    except (IntegrityError, ValidationError):
+        return JsonResponse({"ok": False, "error": f"Le produit « {nom} » existe déjà."}, status=409)
+
+    return JsonResponse({
+        "ok": True,
+        "created": created,
+        "produit": {
+            "id": str(produit.id),
+            "nom": produit.nom,
+            "saison": produit.saison or "",
+            "rendement_moyen": str(produit.rendement_moyen) if produit.rendement_moyen else "",
+        },
+    }, status=201 if created else 200)

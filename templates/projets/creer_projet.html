@@ -1,77 +1,110 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Créer un projet | Andd Baay{% endblock %}
 
-{% block extra_head %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/projet-create.css' %}">
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/finance_hub_ft.css' %}">
+<div class="pc-page pc-root">
 
-<div class="finance-ft-root projet-form-ft-root">
-    <script>
-    (function () {
-        var html = document.documentElement;
-        function sync() {
-            html.setAttribute('data-theme', html.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-        sync();
-        new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['class'] });
-    })();
-    </script>
+    {% if from_ferme %}
+    <a href="{% url 'detail_ferme' from_ferme.id %}" class="pc-back">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Retour à {{ from_ferme.nom }}
+    </a>
+    {% else %}
+    <a href="{% url 'liste_projets' %}" class="pc-back">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Mes projets
+    </a>
+    {% endif %}
 
-    <header class="finance-ft-hero finance-ft-hero--compact">
-        <div class="finance-ft-hero__left">
-            <div class="finance-ft-badge-pill">
-                <i class="finance-ft-dot" aria-hidden="true"></i>
-                Exploitation
+    <header class="pc-hero">
+        <div class="pc-hero__inner">
+            <div>
+                <p class="pc-hero__eyebrow">Nouveau projet</p>
+                <h1 class="pc-hero__title">Planifier une culture</h1>
+                <p class="pc-hero__desc">
+                    Définissez la ferme, les cultures et le calendrier. Les superficies par produit alimentent le suivi parcelle et les estimations de rendement.
+                </p>
+                {% if from_ferme %}
+                <div class="pc-hero__meta">
+                    <span class="pc-hero__chip"><i class="fas fa-tractor" aria-hidden="true"></i> {{ from_ferme.nom }}</span>
+                    {% if from_ferme.superficie_totale %}
+                    <span class="pc-hero__chip"><i class="fas fa-ruler-combined" aria-hidden="true"></i> {{ from_ferme.superficie_totale }} ha</span>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
-            <h1>Nouveau projet</h1>
-            <p class="finance-ft-hero__sub">Formulaire aligné sur le hub Finance : grille, labels, champs et thème clair/sombre unifiés.</p>
         </div>
     </header>
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags or 'danger' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% else %}alert-info{% endif %} mb-3" role="alert">{{ message }}</div>
+        <div class="pc-alert {% if 'success' in message.tags %}pc-alert--success{% elif 'error' in message.tags or 'danger' in message.tags %}pc-alert--danger{% elif 'warning' in message.tags %}pc-alert--warning{% else %}pc-alert--info{% endif %}" role="alert">
+            {{ message }}
+        </div>
         {% endfor %}
     {% endif %}
 
-    <section class="finance-ft-card projet-create-card" aria-labelledby="projet-create-heading">
-        <div class="finance-ft-card__head">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="color:var(--green-500);"><path d="M12 3v3M12 18v3M5.64 5.64l2.12 2.12M14.24 14.24l2.12 2.12M3 12h3M18 12h3M5.64 18.36l2.12-2.12M14.24 9.76l2.12-2.12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.75"/></svg>
-            <h2 id="projet-create-heading" class="finance-ft-card__title">Détails du projet</h2>
-        </div>
+    <div class="pc-layout">
+        <aside class="pc-aside" aria-label="Guide de création">
+            {% if from_ferme %}
+            <div class="pc-context">
+                <p class="pc-context__label">Ferme cible</p>
+                <p class="pc-context__name">{{ from_ferme.nom }}</p>
+                <a href="{% url 'detail_ferme' from_ferme.id %}" class="pc-context__link">
+                    Voir la fiche ferme <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+            {% endif %}
 
-        <div class="form-progress" aria-hidden="true">
-            <div class="progress-step active" data-step="1">
-                <div class="step-circle">1</div>
-                <span class="step-label">Informations</span>
+            <div class="pc-guide">
+                <h3>Étapes clés</h3>
+                <ul>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> Nommez le projet et choisissez au moins une culture.</li>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> Indiquez la superficie (ha) par culture si besoin.</li>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> Renseignez dates, statut et budget pour le suivi.</li>
+                </ul>
             </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="2">
-                <div class="step-circle">2</div>
-                <span class="step-label">Spécifications</span>
-            </div>
-            <div class="step-connector"></div>
-            <div class="progress-step" data-step="3">
-                <div class="step-circle"><i class="fas fa-check"></i></div>
-                <span class="step-label">Validation</span>
-            </div>
-        </div>
+        </aside>
 
-        <div class="finance-ft-card__body">
-            <div id="creer-projet-htmx-indicator" class="tw-mb-3 tw-min-h-[1.25rem] tw-text-center" aria-live="polite">
-                <span class="tw-inline-flex tw-items-center tw-gap-2"><i class="fas fa-spinner fa-spin"></i> Envoi en cours…</span>
+        <section class="pc-panel" aria-labelledby="pc-panel-heading">
+            <div class="pc-panel__head">
+                <div class="pc-panel__icon" aria-hidden="true">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <h2 id="pc-panel-heading" class="pc-panel__title">Détails du projet</h2>
             </div>
-            <div id="creer-projet-swap">
-                {% include 'projets/partials/_creer_projet_form_fragment.html' %}
+
+            <nav class="pc-progress form-progress" aria-label="Progression du formulaire">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Informations</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Spécifications</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-circle"><i class="fas fa-check" aria-hidden="true"></i></div>
+                    <span class="step-label">Validation</span>
+                </div>
+            </nav>
+
+            <div class="pc-panel__body">
+                <div id="creer-projet-htmx-indicator" aria-live="polite">
+                    <span><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Envoi en cours…</span>
+                </div>
+                <div id="creer-projet-swap">
+                    {% include 'projets/partials/_creer_projet_form_fragment.html' %}
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 </div>
 
 <script>
@@ -83,7 +116,7 @@
         const btn = document.getElementById('submitBtn');
         if (!btn) return;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-plus"></i> Créer le projet';
+        btn.innerHTML = '<i class="fas fa-plus" aria-hidden="true"></i> Créer le projet';
     }
 
     document.body.addEventListener('htmx:beforeRequest', function (ev) {
@@ -91,7 +124,7 @@
         const btn = document.getElementById('submitBtn');
         if (!btn) return;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création…';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Création…';
     });
 
     document.body.addEventListener('htmx:afterRequest', function (ev) {
@@ -106,15 +139,15 @@
     }
 
     function updateProgressIndicators() {
-        const progressSteps = document.querySelectorAll('.projet-form-ft-root .form-progress .progress-step');
-        const connectors = document.querySelectorAll('.projet-form-ft-root .form-progress .step-connector');
+        const progressSteps = document.querySelectorAll('.pc-root .form-progress .progress-step');
+        const connectors = document.querySelectorAll('.pc-root .form-progress .step-connector');
         if (!progressSteps.length) return;
 
         const nomInput = document.getElementById('id_nom');
         const fermeInput = document.getElementById('id_ferme');
         const paysInput = document.getElementById(paysId);
         const localiteInput = document.getElementById(locId);
-        const selectedProducts = document.querySelectorAll('.produit-checkbox:checked');
+        const selectedProducts = document.querySelectorAll('#pcSelectedProducts .pc-selected-item');
         const section1Complete =
             !!(nomInput && nomInput.value.trim()) &&
             (fermeInput ? !!fermeInput.value.trim() : true) &&
@@ -154,7 +187,7 @@
         }
     }
 
-    function validateInput(input, updateProgressFn) {
+    function validateInput(input) {
         var wrapper = fieldShell(input);
         if (!wrapper) return;
 
@@ -171,7 +204,7 @@
             wrapper.classList.remove('error');
         }
 
-        updateProgressFn();
+        updateProgressIndicators();
     }
 
     function initCreerProjetFormInteractions() {
@@ -189,7 +222,7 @@
 
         form.querySelectorAll('input, select').forEach(function (input) {
             input.addEventListener('blur', function () {
-                validateInput(input, updateProgressIndicators);
+                validateInput(input);
             });
             input.addEventListener('input', function () {
                 if (input.value && fieldShell(input)) {
@@ -268,13 +301,9 @@
 
         function updateTotalSuperficie() {
             var total = 0;
-            document.querySelectorAll('.produit-checkbox:checked').forEach(function (cb) {
-                var produitId = cb.getAttribute('data-produit-id');
-                var surfInput = document.querySelector('.produit-superficie[data-produit-id="' + produitId + '"]');
-                if (surfInput) {
-                    var v = parseFloat(surfInput.value);
-                    if (!isNaN(v) && v > 0) total += v;
-                }
+            document.querySelectorAll('#pcSelectedProducts .produit-superficie').forEach(function (si) {
+                var v = parseFloat(si.value);
+                if (!isNaN(v) && v > 0) total += v;
             });
             if (totalDisplay) totalDisplay.value = total.toFixed(2);
             if (hiddenSuperficie) {
@@ -282,46 +311,323 @@
             }
         }
 
-        function applyItemStyle(item, checked) {
-            item.style.borderColor = checked ? 'var(--green-500)' : 'var(--fh-border)';
-            item.style.background = checked ? 'rgba(29, 158, 117, 0.1)' : 'var(--fh-surface2)';
-        }
-
-        document.querySelectorAll('.product-checkbox-item').forEach(function (item) {
-            var cb = item.querySelector('.produit-checkbox');
-            var wrapper = item.querySelector('.produit-superficie-wrapper');
-            var surfInput = item.querySelector('.produit-superficie');
-            if (!cb) return;
-
-            applyItemStyle(item, cb.checked);
-            if (cb.checked && wrapper) wrapper.style.display = 'block';
-            if (cb.checked && surfInput) surfInput.disabled = false;
-
-            var newCb = cb.cloneNode(true);
-            cb.parentNode.replaceChild(newCb, cb);
-            newCb.addEventListener('change', function () {
-                applyItemStyle(item, newCb.checked);
-                if (wrapper) wrapper.style.display = newCb.checked ? 'block' : 'none';
-                if (surfInput) {
-                    surfInput.disabled = !newCb.checked;
-                    if (!newCb.checked) surfInput.value = '';
-                    else surfInput.focus();
+        // Wire superficie inputs already in the DOM (edit mode)
+        document.querySelectorAll('#pcSelectedProducts .produit-superficie').forEach(function (si) {
+            si.addEventListener('input', updateTotalSuperficie);
+        });
+        // Wire remove buttons already in the DOM
+        document.querySelectorAll('#pcSelectedProducts .pc-selected-item__remove').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var item = btn.closest('.pc-selected-item');
+                if (item) {
+                    var id = item.getAttribute('data-id');
+                    item.remove();
+                    // Un-mark in dropdown
+                    var opt = document.querySelector('#pcComboList .pc-select-combo__option[data-id="' + id + '"]');
+                    if (opt) opt.removeAttribute('data-selected');
+                    updateTotalSuperficie();
+                    updateProgressIndicators();
+                    document.dispatchEvent(new CustomEvent('pcSelectedProductsChanged'));
                 }
-                updateTotalSuperficie();
-                updateProgressIndicators();
             });
-
-            if (surfInput) {
-                surfInput.addEventListener('input', updateTotalSuperficie);
-            }
         });
 
         updateTotalSuperficie();
     }
 
+    // ── Searchable combo-select + inline create ──
+    function wireComboSelect() {
+        var input = document.getElementById('pcComboInput');
+        var list = document.getElementById('pcComboList');
+        var emptyLi = document.getElementById('pcComboEmpty');
+        var createLi = document.getElementById('pcComboCreate');
+        var createNameSpan = document.getElementById('pcComboCreateName');
+        var selectedWrap = document.getElementById('pcSelectedProducts');
+        var selectedCount = document.getElementById('pcSelectedCount');
+        var selectedEmpty = document.getElementById('pcSelectedEmpty');
+        if (!input || !list || !selectedWrap) return;
+        if (input._pcComboBound) return;
+        input._pcComboBound = true;
+
+        var allOptions = list.querySelectorAll('.pc-select-combo__option');
+
+        function setText(el, text) {
+            if (el) el.textContent = text || '';
+        }
+
+        function updateSelectedState() {
+            var count = selectedWrap.querySelectorAll('.pc-selected-item').length;
+            if (selectedCount) {
+                selectedCount.textContent = count + ' culture' + (count > 1 ? 's' : '') + ' sélectionnée' + (count > 1 ? 's' : '');
+            }
+            if (selectedEmpty) {
+                selectedEmpty.style.display = count ? 'none' : '';
+            }
+        }
+
+        function firstVisibleOption() {
+            return Array.from(list.querySelectorAll('.pc-select-combo__option')).find(function (opt) {
+                return opt.style.display !== 'none' && !opt.hasAttribute('data-selected');
+            });
+        }
+
+        function isAlreadySelected(id) {
+            return !!selectedWrap.querySelector('.pc-selected-item[data-id="' + id + '"]');
+        }
+
+        function openList() {
+            list.style.display = '';
+            input.setAttribute('aria-expanded', 'true');
+        }
+        function closeList() {
+            list.style.display = 'none';
+            input.setAttribute('aria-expanded', 'false');
+        }
+
+        function filterList() {
+            var q = input.value.trim().toLowerCase();
+            var visibleCount = 0;
+            var exactMatch = false;
+            allOptions.forEach(function (opt) {
+                var nom = opt.getAttribute('data-nom-lower') || '';
+                var match = !q || nom.indexOf(q) !== -1;
+                var alreadyPicked = isAlreadySelected(opt.getAttribute('data-id'));
+                if (nom === q) exactMatch = true;
+                var show = match && !alreadyPicked;
+                opt.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+            // Show empty message
+            if (emptyLi) emptyLi.style.display = (visibleCount === 0 && !q) ? '' : 'none';
+            // Show create option
+            if (createLi && q) {
+                if (!exactMatch) {
+                    createLi.style.display = '';
+                    setText(createNameSpan, input.value.trim());
+                } else {
+                    createLi.style.display = 'none';
+                }
+            } else if (createLi) {
+                createLi.style.display = 'none';
+            }
+            if (q || document.activeElement === input) openList();
+        }
+
+        function updateTotalSuperficie() {
+            var total = 0;
+            selectedWrap.querySelectorAll('.produit-superficie').forEach(function (si) {
+                var v = parseFloat(si.value);
+                if (!isNaN(v) && v > 0) total += v;
+            });
+            var td = document.getElementById('id_superficie_total_display');
+            var hs = document.getElementById('id_superficie');
+            if (td) td.value = total.toFixed(2);
+            if (hs) hs.value = total > 0 ? total.toFixed(2) : '';
+        }
+
+        function addSelectedProduct(id, nom, rendement, isNew) {
+            if (isAlreadySelected(id)) return;
+            var div = document.createElement('div');
+            div.className = 'pc-selected-item' + (isNew ? ' pc-selected-item--new' : '');
+            div.setAttribute('data-id', id);
+
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'produits_selection';
+            hidden.value = id;
+            div.appendChild(hidden);
+
+            var header = document.createElement('div');
+            header.className = 'pc-selected-item__header';
+
+            var nameSpan = document.createElement('span');
+            nameSpan.className = 'pc-selected-item__name';
+            var seedIcon = document.createElement('i');
+            seedIcon.className = 'fas fa-seedling';
+            seedIcon.setAttribute('aria-hidden', 'true');
+            nameSpan.appendChild(seedIcon);
+            nameSpan.appendChild(document.createTextNode(' ' + nom));
+            if (isNew) {
+                var badge = document.createElement('span');
+                badge.className = 'pc-new-badge';
+                badge.textContent = 'Nouveau';
+                nameSpan.appendChild(badge);
+            }
+
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'pc-selected-item__remove';
+            removeBtn.title = 'Retirer';
+            removeBtn.setAttribute('aria-label', 'Retirer ' + nom);
+            var removeIcon = document.createElement('i');
+            removeIcon.className = 'fas fa-times';
+            removeIcon.setAttribute('aria-hidden', 'true');
+            removeBtn.appendChild(removeIcon);
+
+            header.appendChild(nameSpan);
+            header.appendChild(removeBtn);
+            div.appendChild(header);
+
+            var body = document.createElement('div');
+            body.className = 'pc-selected-item__body';
+
+            var label = document.createElement('label');
+            label.className = 'pc-label pc-label--sm';
+            label.textContent = 'Superficie (ha)';
+
+            var superficieInput = document.createElement('input');
+            superficieInput.type = 'number';
+            superficieInput.name = 'superficie_' + id;
+            superficieInput.className = 'fh-field fh-field--sm produit-superficie';
+            superficieInput.setAttribute('data-produit-id', id);
+            superficieInput.step = '0.01';
+            superficieInput.min = '0.01';
+            superficieInput.required = true;
+            superficieInput.placeholder = 'Ex. 1,5';
+
+            body.appendChild(label);
+            body.appendChild(superficieInput);
+            div.appendChild(body);
+            selectedWrap.appendChild(div);
+
+            // Wire remove
+            removeBtn.addEventListener('click', function () {
+                div.remove();
+                var opt = list.querySelector('.pc-select-combo__option[data-id="' + id + '"]');
+                if (opt) opt.removeAttribute('data-selected');
+                updateTotalSuperficie();
+                updateSelectedState();
+                updateProgressIndicators();
+                filterList();
+            });
+            // Wire superficie
+            superficieInput.addEventListener('input', updateTotalSuperficie);
+
+            // Mark in dropdown
+            var opt = list.querySelector('.pc-select-combo__option[data-id="' + id + '"]');
+            if (opt) opt.setAttribute('data-selected', '1');
+
+            input.value = '';
+            closeList();
+            updateTotalSuperficie();
+            updateSelectedState();
+            updateProgressIndicators();
+
+            // Focus the superficie input for convenience
+            setTimeout(function () { superficieInput.focus(); }, 80);
+        }
+
+        // Input events
+        input.addEventListener('input', filterList);
+        input.addEventListener('focus', function () {
+            filterList();
+            openList();
+        });
+
+        // Click on option
+        list.addEventListener('click', function (e) {
+            var optEl = e.target.closest('.pc-select-combo__option');
+            if (optEl) {
+                addSelectedProduct(
+                    optEl.getAttribute('data-id'),
+                    optEl.getAttribute('data-nom'),
+                    optEl.getAttribute('data-rendement'),
+                    false
+                );
+                return;
+            }
+            // Click on "create"
+            if (e.target.closest('.pc-select-combo__create')) {
+                var nom = input.value.trim();
+                if (!nom) return;
+                createLi.style.display = 'none';
+                input.disabled = true;
+                input.value = 'Création en cours…';
+
+                fetch('{% url "api_creer_produit" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: JSON.stringify({ nom: nom }),
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    input.disabled = false;
+                    input.value = '';
+                    if (data.ok) {
+                        var p = data.produit;
+                        // Add option to dropdown for future use
+                        var newLi = document.createElement('li');
+                        newLi.className = 'pc-select-combo__option';
+                        newLi.setAttribute('role', 'option');
+                        newLi.setAttribute('data-id', p.id);
+                        newLi.setAttribute('data-nom', p.nom);
+                        newLi.setAttribute('data-nom-lower', p.nom.toLowerCase());
+                        newLi.setAttribute('data-rendement', p.rendement_moyen || '');
+                        newLi.setAttribute('data-saison', p.saison || '');
+                        var optName = document.createElement('span');
+                        optName.className = 'pc-select-combo__opt-name';
+                        optName.textContent = p.nom;
+                        newLi.appendChild(optName);
+                        if (p.saison) {
+                            var optMeta = document.createElement('span');
+                            optMeta.className = 'pc-select-combo__opt-meta';
+                            optMeta.textContent = p.saison;
+                            newLi.appendChild(optMeta);
+                        }
+                        list.insertBefore(newLi, emptyLi);
+                        allOptions = list.querySelectorAll('.pc-select-combo__option');
+                        addSelectedProduct(p.id, p.nom, p.rendement_moyen, true);
+                    } else {
+                        alert(data.error || 'Erreur lors de la création.');
+                    }
+                })
+                .catch(function () {
+                    input.disabled = false;
+                    input.value = '';
+                    alert('Erreur réseau. Réessayez.');
+                });
+            }
+        });
+
+        // Keyboard navigation
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeList();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Select first visible option
+                var first = firstVisibleOption();
+                if (first) {
+                    first.click();
+                } else if (createLi && createLi.style.display !== 'none') {
+                    createLi.click();
+                }
+            }
+        });
+
+        // Close on outside click
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#pcSelectCombo')) closeList();
+        });
+
+        // Initial state: hide list
+        closeList();
+        // Mark already-selected options
+        selectedWrap.querySelectorAll('.pc-selected-item').forEach(function (item) {
+            var id = item.getAttribute('data-id');
+            var opt = list.querySelector('.pc-select-combo__option[data-id="' + id + '"]');
+            if (opt) opt.setAttribute('data-selected', '1');
+        });
+        document.addEventListener('pcSelectedProductsChanged', updateSelectedState);
+        updateSelectedState();
+    }
+
     function initCreerProjetPageAll() {
         initCreerProjetFormInteractions();
         wirePaysLocaliteFermeEtProduits();
+        wireComboSelect();
     }
 
     document.addEventListener('DOMContentLoaded', initCreerProjetPageAll);

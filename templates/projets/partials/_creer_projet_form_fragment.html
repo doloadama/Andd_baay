@@ -1,8 +1,8 @@
 {% comment %}
-Fragment HTMX (422) ou inclusion dans creer_projet.html — champs type hub Finance (fh-field).
+Fragment HTMX (422) ou inclusion dans creer_projet.html
 {% endcomment %}
 <form method="post" enctype="multipart/form-data" novalidate autocomplete="off"
-      class="projet-ft-form tw-w-full"
+      class="projet-ft-form"
       id="projectForm"
       hx-post="{% url 'creer_projet' %}{% if from_ferme %}?ferme={{ from_ferme.id }}{% elif request.GET.ferme %}?ferme={{ request.GET.ferme }}{% endif %}"
       hx-target="#creer-projet-swap"
@@ -15,154 +15,202 @@ Fragment HTMX (422) ou inclusion dans creer_projet.html — champs type hub Fina
         <div class="projet-info-tip__ico" aria-hidden="true"><i class="fas fa-lightbulb"></i></div>
         <div>
             <h5>Conseil</h5>
-            <p>Plus vos informations sont précises, plus les prédictions IA seront utiles pour optimiser le rendement.</p>
+            <p>Plus vos informations sont précises, plus les prédictions et estimations de rendement seront utiles au quotidien.</p>
         </div>
     </div>
 
-    <div class="form-section visible mb-4" data-section="1">
-        <h5 class="form-section-title">
-            <i class="fas fa-info-circle"></i>
+    <div class="form-section visible" data-section="1">
+        <h3 class="form-section-title">
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
             Informations générales
-        </h5>
-        <div class="finance-ft-form-grid">
-            <div class="finance-ft-span2 input-modern-group">
-                <label for="{{ projet_form.nom.id_for_label }}" class="finance-ft-field-label">Nom du projet <span class="required">*</span> <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">Ex. rizière Nord 2024</span></label>
+        </h3>
+        <div class="pc-form-grid">
+            <div class="pc-span-2 input-modern-group">
+                <label for="{{ projet_form.nom.id_for_label }}" class="pc-label">
+                    Nom du projet <span class="required">*</span>
+                    <span class="pc-label-hint"> — ex. rizière Nord 2026</span>
+                </label>
                 <div class="projet-input-shell" id="nomWrapper">
                     {{ projet_form.nom }}
                 </div>
                 {% if projet_form.nom.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.nom.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.nom.errors.0 }}</p>
                 {% endif %}
             </div>
 
             {% if from_ferme %}
-            <div class="finance-ft-span2 input-modern-group">
-                <label class="finance-ft-field-label">Ferme <span class="required">*</span></label>
+            <div class="pc-span-2 input-modern-group">
+                <label class="pc-label">Ferme <span class="required">*</span></label>
                 <div class="projet-input-shell">
-                    <input type="text" class="fh-field" value="{{ from_ferme.nom }}" disabled readonly aria-readonly="true" style="opacity:0.85;cursor:not-allowed;">
+                    <input type="text" class="fh-field" value="{{ from_ferme.nom }}" disabled readonly aria-readonly="true">
                 </div>
                 {{ projet_form.ferme.as_hidden }}
             </div>
             {% else %}
-            <div class="finance-ft-span2 input-modern-group">
-                <label for="id_ferme" class="finance-ft-field-label">Ferme <span class="required">*</span></label>
+            <div class="pc-span-2 input-modern-group">
+                <label for="id_ferme" class="pc-label">Ferme <span class="required">*</span></label>
                 <div class="projet-input-shell">
                     <select name="ferme" id="id_ferme" class="fh-field" required>
                         <option value="">Choisir une ferme…</option>
                         {% for f in projet_form.fields.ferme.queryset %}
-                        <option value="{{ f.id }}" data-pays="{{ f.pays.id|default:'' }}" data-localite="{{ f.localite.id|default:'' }}" data-superficie="{{ f.superficie_totale|default:'' }}" {% if projet_form.ferme.value|stringformat:"s" == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
+                        <option value="{{ f.id }}"
+                                data-pays="{{ f.pays.id|default:'' }}"
+                                data-localite="{{ f.localite.id|default:'' }}"
+                                data-superficie="{{ f.superficie_totale|default:'' }}"
+                                {% if projet_form.ferme.value|stringformat:"s" == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 {% if projet_form.ferme.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.ferme.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.ferme.errors.0 }}</p>
                 {% endif %}
             </div>
             {% endif %}
 
-            <div class="finance-ft-span2">
-                <label for="{{ projet_form.image_fond.id_for_label }}" class="finance-ft-field-label">Photo de la ferme / du projet <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+            <div class="pc-span-2">
+                <label for="{{ projet_form.image_fond.id_for_label }}" class="pc-label">
+                    Photo du projet <span class="pc-label-hint">(optionnel)</span>
+                </label>
                 <div class="projet-input-shell">
                     {{ projet_form.image_fond }}
                 </div>
                 {% if projet_form.image_fond.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.image_fond.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.image_fond.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <div class="finance-ft-span2 input-modern-group">
-                <label class="finance-ft-field-label">Produits cultivés <span class="required">*</span></label>
-                <p class="finance-ft-help" style="margin-top:0;">Cocher au moins une culture ; saisissez la superficie (ha) par ligne si vous utilisez le mode par parcelle.</p>
-                <div class="product-checkbox-grid tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 xl:tw-grid-cols-3 tw-gap-3 tw-mt-2">
+            <div class="pc-span-2 input-modern-group">
+                <label class="pc-label">Produits cultivés <span class="required">*</span></label>
+                <p class="pc-help">Sélectionnez vos cultures. Vous pouvez en ajouter plusieurs et préciser la superficie par produit.</p>
+
+                <!-- Searchable select -->
+                <div class="pc-select-combo" id="pcSelectCombo">
+                    <div class="pc-select-combo__input-wrap">
+                        <i class="fas fa-search pc-select-combo__icon" aria-hidden="true"></i>
+                        <input type="text"
+                               id="pcComboInput"
+                               class="fh-field pc-select-combo__input"
+                               placeholder="Tapez pour rechercher une culture…"
+                               autocomplete="off"
+                               role="combobox"
+                               aria-expanded="false"
+                               aria-controls="pcComboList"
+                               aria-autocomplete="list">
+                    </div>
+                    <ul class="pc-select-combo__list" id="pcComboList" role="listbox">
+                        {% for produit in produits %}
+                        <li class="pc-select-combo__option"
+                            role="option"
+                            data-id="{{ produit.id }}"
+                            data-nom="{{ produit.nom }}"
+                            data-nom-lower="{{ produit.nom|lower }}"
+                            data-rendement="{{ produit.rendement_moyen|default:'' }}"
+                            data-saison="{{ produit.saison|default:'' }}"
+                            {% if produit.selected_on_form %}data-selected="1"{% endif %}>
+                            <span class="pc-select-combo__opt-name">{{ produit.nom }}</span>
+                            {% if produit.saison %}<span class="pc-select-combo__opt-meta">{{ produit.saison }}</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                        <li class="pc-select-combo__empty" id="pcComboEmpty" style="display:none;">
+                            Aucune culture trouvée
+                        </li>
+                        <li class="pc-select-combo__create" id="pcComboCreate" style="display:none;" role="option">
+                            <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                            Créer « <span id="pcComboCreateName"></span> »
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Selected products (chips + superficie) -->
+                <div class="pc-selected-summary" aria-live="polite">
+                    <span id="pcSelectedCount">0 culture sélectionnée</span>
+                </div>
+                <div class="pc-selected-products" id="pcSelectedProducts">
                     {% for produit in produits %}
-                    <label class="product-checkbox-item product-checkbox-item--ft tw-block tw-rounded-xl tw-border-2 tw-p-4 tw-cursor-pointer tw-transition-colors tw-touch-manipulation tw-min-h-[44px]"
-                           data-produit-id="{{ produit.id }}">
-                        <div class="tw-flex tw-items-center tw-gap-3">
-                            <input type="checkbox"
-                                   class="produit-checkbox tw-h-11 tw-w-11 tw-shrink-0"
-                                   name="produits_selection"
-                                   value="{{ produit.id }}"
-                                   data-produit-id="{{ produit.id }}"
-                                   {% if produit.selected_on_form %}checked{% endif %}
-                                   style="accent-color: var(--green-500);">
-                            <div class="tw-flex-1 tw-min-w-0 tw-overflow-visible">
-                                <div class="fw-bold tw-break-words" style="font-size: 0.95rem; line-height: 1.3; color: var(--fh-text1);">{{ produit.nom }}</div>
-                                {% if produit.rendement_moyen %}
-                                <small style="color: var(--fh-text3);">~{{ produit.rendement_moyen }} kg/ha</small>
-                                {% endif %}
-                            </div>
+                    {% if produit.selected_on_form %}
+                    <div class="pc-selected-item" data-id="{{ produit.id }}">
+                        <input type="hidden" name="produits_selection" value="{{ produit.id }}">
+                        <div class="pc-selected-item__header">
+                            <span class="pc-selected-item__name"><i class="fas fa-seedling" aria-hidden="true"></i> {{ produit.nom }}</span>
+                            <button type="button" class="pc-selected-item__remove" title="Retirer" aria-label="Retirer {{ produit.nom }}">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                        <div class="produit-superficie-wrapper mt-3" style="display: none;">
-                            <label class="finance-ft-field-label tw-text-sm tw-mb-1" style="text-transform:none;letter-spacing:0;">Superficie (ha)</label>
+                        <div class="pc-selected-item__body">
+                            <label class="pc-label pc-label--sm">Superficie (ha)</label>
                             <input type="number"
                                    name="superficie_{{ produit.id }}"
-                                   class="fh-field produit-superficie tw-min-h-[44px]"
+                                   class="fh-field fh-field--sm produit-superficie"
                                    data-produit-id="{{ produit.id }}"
                                    step="0.01"
                                    min="0.01"
+                                   required
                                    placeholder="Ex. 1,5"
-                                   value="{{ produit.superficie_saisie|default:'' }}"
-                                   disabled
-                                   onclick="event.stopPropagation();">
+                                   value="{{ produit.superficie_saisie|default:'' }}">
                         </div>
-                    </label>
+                    </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
+                <p class="pc-selected-empty" id="pcSelectedEmpty">
+                    Aucune culture sélectionnée pour le moment.
+                </p>
+
                 {% if projet_form.errors.produits_selection %}
-                    <div class="text-danger small mt-2">{{ projet_form.errors.produits_selection.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.errors.produits_selection.0 }}</p>
                 {% endif %}
                 {% for error in projet_form.non_field_errors %}
-                    <div class="text-danger small mt-2">{{ error }}</div>
+                    <p class="pc-field-error">{{ error }}</p>
                 {% endfor %}
             </div>
 
             {% if from_ferme %}
             <div>
-                <label class="finance-ft-field-label">Pays</label>
+                <label class="pc-label">Pays</label>
                 <div class="projet-input-shell">
-                    <input type="text" class="fh-field" value="{{ from_ferme.pays.nom|default:'Non renseigné' }}" disabled readonly style="opacity:0.85;cursor:not-allowed;">
+                    <input type="text" class="fh-field" value="{{ from_ferme.pays.nom|default:'Non renseigné' }}" disabled readonly>
                 </div>
                 {{ projet_form.pays.as_hidden }}
             </div>
             <div>
-                <label class="finance-ft-field-label">Localité</label>
+                <label class="pc-label">Localité</label>
                 <div class="projet-input-shell">
-                    <input type="text" class="fh-field" value="{{ from_ferme.localite.nom|default:'Non renseignée' }}" disabled readonly style="opacity:0.85;cursor:not-allowed;">
+                    <input type="text" class="fh-field" value="{{ from_ferme.localite.nom|default:'Non renseignée' }}" disabled readonly>
                 </div>
                 {{ projet_form.localite.as_hidden }}
             </div>
             {% else %}
             <div class="input-modern-group">
-                <label for="{{ projet_form.pays.id_for_label }}" class="finance-ft-field-label">Pays <span class="required">*</span></label>
+                <label for="{{ projet_form.pays.id_for_label }}" class="pc-label">Pays <span class="required">*</span></label>
                 <div class="projet-input-shell">
                     {{ projet_form.pays }}
                 </div>
                 {% if projet_form.pays.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.pays.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.pays.errors.0 }}</p>
                 {% endif %}
             </div>
             <div class="input-modern-group">
-                <label for="{{ projet_form.localite.id_for_label }}" class="finance-ft-field-label">Localité <span class="required">*</span></label>
+                <label for="{{ projet_form.localite.id_for_label }}" class="pc-label">Localité <span class="required">*</span></label>
                 <div class="projet-input-shell">
                     {{ projet_form.localite }}
                 </div>
                 {% if projet_form.localite.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.localite.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.localite.errors.0 }}</p>
                 {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="form-section visible mb-4" data-section="2">
-        <h5 class="form-section-title">
-            <i class="fas fa-chart-area"></i>
+    <div class="form-section visible" data-section="2">
+        <h3 class="form-section-title">
+            <i class="fas fa-chart-area" aria-hidden="true"></i>
             Spécifications techniques
-        </h5>
-        <div class="finance-ft-form-grid">
+        </h3>
+        <div class="pc-form-grid">
             <div class="input-modern-group">
-                <label for="id_superficie_total_display" class="finance-ft-field-label">Superficie totale (ha)</label>
-                <p class="finance-ft-help" style="margin-top:0;">Somme des surfaces par produit, ou saisie manuelle si une seule ligne.</p>
+                <label for="id_superficie_total_display" class="pc-label">Superficie totale (ha)</label>
+                <p class="pc-help">Somme automatique des surfaces renseignées pour chaque culture sélectionnée.</p>
                 <div class="projet-input-shell">
                     <input type="number"
                            id="id_superficie_total_display"
@@ -170,88 +218,89 @@ Fragment HTMX (422) ou inclusion dans creer_projet.html — champs type hub Fina
                            value="0"
                            step="0.01"
                            readonly
-                           style="opacity:0.9;cursor:default;">
+                           aria-readonly="true">
                 </div>
                 {% if projet_form.superficie.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.superficie.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.superficie.errors.0 }}</p>
                 {% endif %}
-                {% for error in projet_form.non_field_errors %}
-                    <div class="text-danger small mt-1">{{ error }}</div>
-                {% endfor %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.rendement_estime.id_for_label }}" class="finance-ft-field-label">Rendement estimé (kg) <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                <label for="{{ projet_form.rendement_estime.id_for_label }}" class="pc-label">
+                    Rendement estimé (kg) <span class="pc-label-hint">(optionnel)</span>
+                </label>
                 <div class="projet-input-shell">
                     {{ projet_form.rendement_estime }}
                 </div>
                 {% if projet_form.rendement_estime.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.rendement_estime.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.rendement_estime.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.type_cycle.id_for_label }}" class="finance-ft-field-label">Type de projet</label>
+                <label for="{{ projet_form.type_cycle.id_for_label }}" class="pc-label">Type de projet</label>
                 <div class="projet-input-shell">
                     {{ projet_form.type_cycle }}
                 </div>
                 {% if projet_form.type_cycle.help_text %}
-                    <p class="finance-ft-help">{{ projet_form.type_cycle.help_text }}</p>
+                    <p class="pc-help">{{ projet_form.type_cycle.help_text }}</p>
                 {% endif %}
                 {% if projet_form.type_cycle.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.type_cycle.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.type_cycle.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.date_lancement.id_for_label }}" class="finance-ft-field-label">Date de lancement <span class="required">*</span></label>
+                <label for="{{ projet_form.date_lancement.id_for_label }}" class="pc-label">Date de lancement <span class="required">*</span></label>
                 <div class="projet-input-shell">
                     {{ projet_form.date_lancement }}
                 </div>
                 {% if projet_form.date_lancement.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.date_lancement.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.date_lancement.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.statut.id_for_label }}" class="finance-ft-field-label">Statut <span class="required">*</span></label>
+                <label for="{{ projet_form.statut.id_for_label }}" class="pc-label">Statut <span class="required">*</span></label>
                 <div class="projet-input-shell">
                     {{ projet_form.statut }}
                 </div>
                 {% if projet_form.statut.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.statut.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.statut.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.date_fin.id_for_label }}" class="finance-ft-field-label">Date de fin prévue <span style="font-weight:400;color:var(--fh-text3);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                <label for="{{ projet_form.date_fin.id_for_label }}" class="pc-label">
+                    Date de fin prévue <span class="pc-label-hint">(optionnel)</span>
+                </label>
                 <div class="projet-input-shell">
                     {{ projet_form.date_fin }}
                 </div>
                 {% if projet_form.date_fin.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.date_fin.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.date_fin.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.budget_alloue.id_for_label }}" class="finance-ft-field-label">{{ projet_form.budget_alloue.label }}</label>
+                <label for="{{ projet_form.budget_alloue.id_for_label }}" class="pc-label">{{ projet_form.budget_alloue.label }}</label>
                 <div class="projet-input-shell">
                     {{ projet_form.budget_alloue }}
                 </div>
                 {% if projet_form.budget_alloue.errors %}
-                    <div class="text-danger small mt-1">{{ projet_form.budget_alloue.errors.0 }}</div>
+                    <p class="pc-field-error">{{ projet_form.budget_alloue.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.type_irrigation.id_for_label }}" class="finance-ft-field-label">Type d'irrigation</label>
+                <label for="{{ projet_form.type_irrigation.id_for_label }}" class="pc-label">Type d'irrigation</label>
                 <div class="projet-input-shell">
                     {{ projet_form.type_irrigation }}
                 </div>
             </div>
 
             <div class="input-modern-group">
-                <label for="{{ projet_form.type_engrais.id_for_label }}" class="finance-ft-field-label">Type d'engrais</label>
+                <label for="{{ projet_form.type_engrais.id_for_label }}" class="pc-label">Type d'engrais</label>
                 <div class="projet-input-shell">
                     {{ projet_form.type_engrais }}
                 </div>
@@ -261,12 +310,12 @@ Fragment HTMX (422) ou inclusion dans creer_projet.html — champs type hub Fina
 
     <div class="d-none" aria-hidden="true">{{ projet_form.superficie }}</div>
 
-    <div class="finance-ft-form-actions border-0 pt-3 mt-3" style="border-top: 1px solid var(--fh-border) !important;">
-        <a href="{% url 'liste_projets' %}" class="finance-ft-btn finance-ft-btn--ghost tw-min-h-[48px] tw-inline-flex tw-items-center tw-justify-center">
-            <i class="fas fa-times"></i> Annuler
+    <div class="pc-actions">
+        <a href="{% url 'liste_projets' %}" class="pc-btn pc-btn--ghost">
+            <i class="fas fa-times" aria-hidden="true"></i> Annuler
         </a>
-        <button type="submit" class="finance-ft-btn finance-ft-btn--dark tw-min-h-[48px] tw-px-8 tw-inline-flex tw-items-center tw-justify-center" id="submitBtn">
-            <i class="fas fa-plus"></i> Créer le projet
+        <button type="submit" class="pc-btn pc-btn--primary" id="submitBtn">
+            <i class="fas fa-plus" aria-hidden="true"></i> Créer le projet
         </button>
     </div>
 </form>
