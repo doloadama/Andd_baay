@@ -501,59 +501,23 @@ function updateQuickStripFromStats(data) {
 
 function loadDashboardWeather() {
     const w = document.getElementById('weatherWidget');
-    const inner = w && w.querySelector('.cw-inner');
-    if (!w || !inner) return;
+    if (!w) return;
     let fermeId = w.dataset.weatherFerme || '';
     if (!fermeId) {
         fermeId = document.getElementById('filterFerme')?.value || '';
     }
     if (!fermeId) {
-        w.className = 'cockpit-weather';
-        inner.innerHTML =
-            '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">Coordonnées ferme ou filtre à définir</span>';
+        if (window.WeatherWidget) {
+            WeatherWidget.setError(w, 'Coordonnées ferme ou filtre à définir', { cockpit: true });
+        }
         return;
     }
-    w.className = 'cockpit-weather';
-    inner.innerHTML =
-        '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">Chargement météo…</span>';
-    fetch(`/api/dashboard/weather/?ferme=${encodeURIComponent(fermeId)}`)
-        .then((res) => res.json())
-        .then((payload) => {
-            const resolve = window.resolveOpenWeatherTheme || function () {
-                return { cockpitSkin: '', cockpitIcon: 'fa-cloud-sun' };
-            };
-            if (!payload.ok || !payload.data) {
-                w.className = 'cockpit-weather';
-                const msg =
-                    payload.error === 'coords_absentes'
-                        ? 'GPS ferme à renseigner'
-                        : payload.error === 'api_key_absente'
-                          ? 'Météo : clé API absente'
-                          : 'Météo indisponible';
-                inner.innerHTML =
-                    '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">' +
-                    msg +
-                    '</span>';
-                return;
-            }
-            const d = payload.data;
-            const theme = resolve(d.icone);
-            const skin = theme.cockpitSkin ? ` ${theme.cockpitSkin}` : '';
-            w.className = `cockpit-weather${skin}`;
-            const tmp =
-                d.temperature != null ? `${Math.round(Number(d.temperature))}°C` : '';
-            const desc =
-                ((d.description || '') + '').charAt(0).toUpperCase() + (d.description || '').slice(1);
-            const icon = theme.cockpitIcon || 'fa-cloud-sun';
-            inner.innerHTML =
-                `<i class="fas ${icon} fa-lg cw-weather-icon" aria-hidden="true"></i>` +
-                `<span id="weatherSummary"><span class="cw-temp">${tmp}</span> <span class="cw-desc">${desc}</span></span>`;
-        })
-        .catch(() => {
-            w.className = 'cockpit-weather';
-            inner.innerHTML =
-                '<i class="fas fa-cloud-sun fa-lg cw-weather-icon" aria-hidden="true"></i><span id="weatherSummary">Erreur réseau météo</span>';
-        });
+    w.dataset.weatherFerme = fermeId;
+    const url = `/api/dashboard/weather/?ferme=${encodeURIComponent(fermeId)}`;
+    w.setAttribute('data-weather-fetch', url);
+    if (window.WeatherWidget) {
+        WeatherWidget.load(w, url, { cockpit: true });
+    }
 }
 
 function getCsrfToken() {

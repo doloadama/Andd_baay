@@ -1,372 +1,226 @@
 {% extends 'base.html' %}
-{% block title %}Modifier Produit | Andd Baay{% endblock %}
+{% load static humanize %}
+
+{% block title %}Modifier {{ projet_produit.produit.nom }} | Andd Baay{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/semis-cards.css' %}">
+<link rel="stylesheet" href="{% static 'css/semis-pages.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    .page-header {
-        margin-bottom: 32px;
-    }
-    
-    .page-title {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--text-main);
-        margin-bottom: 8px;
-    }
-    
-    .page-subtitle {
-        color: var(--text-muted);
-        font-size: 1rem;
-    }
-    
-    .form-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        padding: 32px;
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .product-info {
-        background: rgba(163, 230, 53, 0.1);
-        border: 1px solid rgba(163, 230, 53, 0.2);
-        border-radius: var(--radius-card);
-        padding: 20px;
-        margin-bottom: 32px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    
-    .product-icon {
-        width: 56px;
-        height: 56px;
-        background: var(--accent);
-        border-radius: var(--radius-input);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: var(--text-inverse);
-    }
-    
-    .product-details h4 {
-        color: var(--text-main);
-        margin: 0 0 4px 0;
-        font-weight: 700;
-    }
-    
-    .product-details p {
-        color: var(--text-muted);
-        margin: 0;
-        font-size: 0.9rem;
-    }
-    
-    .form-section {
-        margin-bottom: 32px;
-    }
-    
-    .form-section:last-child {
-        margin-bottom: 0;
-    }
-    
-    .section-title {
-        font-family: var(--font-display);
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 20px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .section-title i {
-        color: var(--accent);
-    }
-    
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-    
-    .form-group {
-        margin-bottom: 0;
-    }
-    
-    .form-group.full-width {
-        grid-column: span 2;
-    }
-    
-    .form-label {
-        display: block;
-        font-weight: 600;
-        color: var(--text-main);
-        margin-bottom: 8px;
-        font-size: 0.9rem;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 14px 16px;
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-input);
-        background: var(--bg-secondary);
-        color: var(--text-main);
-        font-size: 0.95rem;
-        transition: all var(--transition-fast);
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: var(--accent);
-        background: var(--card-bg-solid);
-        box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
-    }
-    
-    textarea.form-control {
-        resize: vertical;
-        min-height: 100px;
-    }
-    
-    .form-hint {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-top: 6px;
-    }
-    
-    .form-error {
-        color: var(--danger);
-        font-size: 0.85rem;
-        margin-top: 6px;
-    }
-    
-    .form-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-        margin-top: 32px;
-        padding-top: 24px;
-        border-top: 1px solid var(--border-color);
-    }
-    
-    .btn-submit {
-        padding: 14px 32px;
-        background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
-        color: var(--text-inverse);
-        border: none;
-        border-radius: var(--radius-input);
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(163, 230, 53, 0.3);
-    }
-    
-    .btn-cancel {
-        padding: 14px 32px;
-        background: var(--bg-secondary);
-        color: var(--text-main);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-input);
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all var(--transition);
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .btn-cancel:hover {
-        background: var(--border-color);
-        color: var(--text-main);
-    }
-    
-    @media (max-width: 768px) {
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .form-group.full-width {
-            grid-column: span 1;
-        }
-        
-        .form-card {
-            padding: 20px;
-        }
-        
-        .form-actions {
-            flex-direction: column;
-        }
-        
-        .btn-submit, .btn-cancel {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-</style>
+{% with pp=projet_produit projet=projet_produit.projet produit=projet_produit.produit %}
+<div class="semis-page semis-edit-page">
+    <nav class="semis-crumb" aria-label="Fil d'Ariane">
+        <a href="{% url 'liste_semis' %}">Mes cultures</a>
+        <span class="semis-crumb__sep" aria-hidden="true">/</span>
+        <a href="{% url 'detail_projet' projet.id %}">{{ projet.nom }}</a>
+        <span class="semis-crumb__sep" aria-hidden="true">/</span>
+        <a href="{% url 'detail_semis' pp.id %}">{{ produit.nom }}</a>
+        <span class="semis-crumb__sep" aria-hidden="true">/</span>
+        <span aria-current="page">Modifier</span>
+    </nav>
 
-<div class="form-container">
-    <div class="page-header animate__animated animate__fadeInDown">
-        <h1 class="page-title">Modifier les informations du produit</h1>
-        <p class="page-subtitle">Mettez a jour les details de semis et de recolte</p>
-    </div>
-    
-    <div class="form-card animate__animated animate__fadeInUp">
-        <!-- Product Info Banner -->
-        <div class="product-info">
-            <div class="product-icon">
-                <i class="fas fa-seedling"></i>
-            </div>
-            <div class="product-details">
-                <h4>{{ projet_produit.produit.nom }}</h4>
-                <p>Projet: {{ projet_produit.projet.nom }} | Localite: {{ projet_produit.projet.localite.nom }}</p>
+    <header class="semis-hero semis-hero--compact" style="margin-bottom: 1.25rem;">
+        <div class="semis-hero__body" style="grid-column: 1 / -1;">
+            <div class="semis-hero__top">
+                <div>
+                    <h1 class="semis-hero__title">Modifier la culture</h1>
+                    <p class="semis-hero__meta">
+                        <span><i class="fas fa-seedling" aria-hidden="true"></i>{{ produit.nom }}</span>
+                        <span><i class="fas fa-folder-open" aria-hidden="true"></i>{{ projet.nom }}</span>
+                        <span><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ projet.localite.nom }}</span>
+                    </p>
+                </div>
+                <span class="semis-status status-{{ projet.statut }}">{{ projet.get_statut_display }}</span>
             </div>
         </div>
-        
-        <form method="POST" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            
-            <!-- Section Photo -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-camera"></i> Photo du plant
-                </h3>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        {% if projet_produit.image %}
-                        <div class="mb-3">
+    </header>
+
+    <div class="semis-edit-layout">
+        <div class="semis-form-card semis-form">
+            <div class="semis-form-banner">
+                <div class="semis-form-banner__icon" aria-hidden="true">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div>
+                    <h2>{{ produit.nom }}</h2>
+                    <p>Mettez à jour le semis, la récolte et le suivi terrain de cette culture.</p>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" novalidate id="semisEditForm">
+                {% csrf_token %}
+
+                <section class="semis-form-section" aria-labelledby="semis-photo-title">
+                    <h3 id="semis-photo-title" class="semis-form-section__title">
+                        <i class="fas fa-camera" aria-hidden="true"></i> Photo du plant
+                    </h3>
+                    <div class="semis-form-grid">
+                        <div class="semis-form-group semis-form-group--full">
+                            {% if pp.image %}
                             <img
-                                src="{{ projet_produit.image.url }}"
-                                alt="Photo — {{ projet_produit.produit.nom }}"
-                                style="width: 100%; max-height: 240px; object-fit: cover; border-radius: var(--radius-tight); border: 1px solid var(--border-color);"
+                                id="semisPhotoPreview"
+                                class="semis-photo-preview"
+                                src="{{ pp.image.url }}"
+                                alt="Photo actuelle — {{ produit.nom }}"
                                 loading="lazy"
                                 decoding="async"
                             >
+                            {% else %}
+                            <img
+                                id="semisPhotoPreview"
+                                class="semis-photo-preview"
+                                src=""
+                                alt=""
+                                hidden
+                            >
+                            {% endif %}
+                            <div class="semis-photo-drop">
+                                <label class="semis-form-label" for="{{ form.image.id_for_label }}">Ajouter ou remplacer la photo</label>
+                                {{ form.image }}
+                                <p class="semis-form-hint">Une photo nette en plein jour améliore le suivi de la culture.</p>
+                            </div>
+                            {% if form.image.errors %}
+                            <p class="semis-form-error">{{ form.image.errors.0 }}</p>
+                            {% endif %}
                         </div>
-                        {% endif %}
-                        <label class="form-label">Ajouter / changer la photo</label>
-                        {{ form.image }}
-                        <div class="form-hint">Astuce : une photo nette en plein jour améliore le suivi.</div>
-                        {% if form.image.errors %}
-                        <div class="form-error">{{ form.image.errors.0 }}</div>
-                        {% endif %}
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <!-- Section Semis -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-seedling"></i> Informations de Semis
-                </h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Quantite de semences (kg)</label>
-                        {{ form.quantite_semences }}
-                        {% if form.quantite_semences.errors %}
-                        <div class="form-error">{{ form.quantite_semences.errors.0 }}</div>
+                <section class="semis-form-section" aria-labelledby="semis-sowing-title">
+                    <h3 id="semis-sowing-title" class="semis-form-section__title">
+                        <i class="fas fa-seedling" aria-hidden="true"></i> Informations de semis
+                    </h3>
+                    <div class="semis-form-grid">
+                        <div class="semis-form-group">
+                            <label class="semis-form-label" for="{{ form.quantite_semences.id_for_label }}">Quantité de semences (kg)</label>
+                            {{ form.quantite_semences }}
+                            {% if form.quantite_semences.errors %}
+                            <p class="semis-form-error">{{ form.quantite_semences.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="semis-form-group">
+                            <label class="semis-form-label" for="{{ form.superficie_allouee.id_for_label }}">Superficie allouée (ha)</label>
+                            {{ form.superficie_allouee }}
+                            {% if form.superficie_allouee.errors %}
+                            <p class="semis-form-error">{{ form.superficie_allouee.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="semis-form-group">
+                            <label class="semis-form-label" for="{{ form.date_semis.id_for_label }}">Date du semis</label>
+                            {{ form.date_semis }}
+                            {% if form.date_semis.errors %}
+                            <p class="semis-form-error">{{ form.date_semis.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="semis-form-group">
+                            <label class="semis-form-label" for="{{ form.date_recolte_prevue.id_for_label }}">Date de récolte prévue</label>
+                            {{ form.date_recolte_prevue }}
+                            {% if form.date_recolte_prevue.errors %}
+                            <p class="semis-form-error">{{ form.date_recolte_prevue.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="semis-form-section" aria-labelledby="semis-harvest-title">
+                    <h3 id="semis-harvest-title" class="semis-form-section__title">
+                        <i class="fas fa-trophy" aria-hidden="true"></i> Informations de récolte
+                    </h3>
+                    <div class="semis-form-grid">
+                        <div class="semis-form-group">
+                            <label class="semis-form-label" for="{{ form.rendement_final.id_for_label }}">Rendement final (kg)</label>
+                            {{ form.rendement_final }}
+                            <p class="semis-form-hint">Quantité totale récoltée pour cette culture.</p>
+                            {% if form.rendement_final.errors %}
+                            <p class="semis-form-error">{{ form.rendement_final.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="semis-form-group">
+                            <label class="semis-form-label" for="{{ form.date_recolte_effective.id_for_label }}">Date de récolte effective</label>
+                            {{ form.date_recolte_effective }}
+                            {% if form.date_recolte_effective.errors %}
+                            <p class="semis-form-error">{{ form.date_recolte_effective.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="semis-form-section" aria-labelledby="semis-notes-form-title">
+                    <h3 id="semis-notes-form-title" class="semis-form-section__title">
+                        <i class="fas fa-sticky-note" aria-hidden="true"></i> Notes et observations
+                    </h3>
+                    <div class="semis-form-group semis-form-group--full">
+                        <label class="semis-form-label visually-hidden" for="{{ form.notes.id_for_label }}">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                        <p class="semis-form-error">{{ form.notes.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Superficie allouee (ha)</label>
-                        {{ form.superficie_allouee }}
-                        {% if form.superficie_allouee.errors %}
-                        <div class="form-error">{{ form.superficie_allouee.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date du semis</label>
-                        {{ form.date_semis }}
-                        {% if form.date_semis.errors %}
-                        <div class="form-error">{{ form.date_semis.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date de recolte prevue</label>
-                        {{ form.date_recolte_prevue }}
-                        {% if form.date_recolte_prevue.errors %}
-                        <div class="form-error">{{ form.date_recolte_prevue.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+                </section>
+
+                {% if form.non_field_errors %}
+                <div class="semis-form-alert" role="alert">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="semis-form-actions">
+                    <a href="{% url 'detail_semis' pp.id %}" class="btn-card btn-card-secondary">
+                        <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn-card btn-card-primary">
+                        <i class="fas fa-save" aria-hidden="true"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <aside class="semis-edit-aside" aria-label="Aide à la saisie">
+            <div class="semis-panel">
+                <h2 class="semis-panel__title">
+                    <i class="fas fa-lightbulb" aria-hidden="true"></i> Conseils
+                </h2>
+                <ul class="semis-edit-tips">
+                    <li>
+                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        <span>Renseignez la superficie pour obtenir une estimation de rendement plus fiable.</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        <span>La date de semis doit être postérieure au lancement du projet.</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        <span>Ajoutez le rendement final dès la récolte pour alimenter vos tableaux de bord.</span>
+                    </li>
+                </ul>
+                <div class="semis-aside__actions" style="margin-top: 1.25rem;">
+                    <a href="{% url 'detail_semis' pp.id %}" class="btn-card btn-card-secondary">
+                        <i class="fas fa-eye" aria-hidden="true"></i> Voir la fiche
+                    </a>
                 </div>
             </div>
-            
-            <!-- Section Recolte -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-trophy"></i> Informations de Recolte
-                </h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Rendement final (kg)</label>
-                        {{ form.rendement_final }}
-                        <div class="form-hint">La quantite totale recoltee pour ce produit</div>
-                        {% if form.rendement_final.errors %}
-                        <div class="form-error">{{ form.rendement_final.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date de recolte effective</label>
-                        {{ form.date_recolte_effective }}
-                        {% if form.date_recolte_effective.errors %}
-                        <div class="form-error">{{ form.date_recolte_effective.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Section Notes -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-sticky-note"></i> Notes et Observations
-                </h3>
-                <div class="form-group">
-                    {{ form.notes }}
-                    {% if form.notes.errors %}
-                    <div class="form-error">{{ form.notes.errors.0 }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger" style="margin-top: 20px; padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: var(--radius-sm); color: var(--danger);">
-                {% for error in form.non_field_errors %}
-                <p style="margin: 0;">{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <div class="form-actions">
-                <a href="{% url 'detail_projet' projet_produit.projet.id %}" class="btn-cancel">
-                    <i class="fas fa-times"></i> Annuler
-                </a>
-                <button type="submit" class="btn-submit">
-                    <i class="fas fa-save"></i> Enregistrer
-                </button>
-            </div>
-        </form>
+        </aside>
     </div>
 </div>
+
+<script>
+(function () {
+    var input = document.getElementById('{{ form.image.id_for_label }}');
+    var preview = document.getElementById('semisPhotoPreview');
+    if (!input || !preview) return;
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        preview.src = URL.createObjectURL(file);
+        preview.hidden = false;
+        preview.alt = 'Aperçu — {{ produit.nom|escapejs }}';
+    });
+})();
+</script>
+{% endwith %}
 {% endblock %}

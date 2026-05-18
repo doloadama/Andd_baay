@@ -1,0 +1,59 @@
+{% load weather_tags %}
+{# Widget météo unifié — variant: card | pill | bento | cockpit #}
+{% firstof weather.icone "02d" as weather_icon %}
+{% weather_theme weather_icon as wx %}
+<div
+    class="pd-meteo-widget pd-meteo-widget--{{ variant|default:'card' }}{% if extra_class %} {{ extra_class }}{% endif %}{% if weather %} {{ wx.panel_class }}{% endif %}{% if not weather %} pd-meteo-widget--loading{% endif %}"
+    id="{{ widget_id|default:'weatherWidgetRoot' }}"
+    data-weather-widget
+    {% if fetch_url %}data-weather-fetch="{{ fetch_url }}"{% elif weather_ferme_id %}data-weather-fetch="/api/dashboard/weather/?ferme={{ weather_ferme_id }}"{% endif %}
+    role="region"
+    aria-label="Météo"
+    aria-live="polite"
+    aria-busy="{% if weather %}false{% else %}true{% endif %}"
+    {% if weather_ferme_id %}data-weather-ferme="{{ weather_ferme_id }}"{% endif %}
+>
+    <div class="pd-meteo-widget__sky" data-weather-sky aria-hidden="true">
+        {% if weather %}
+            {% for deco in wx.decos %}
+            <i class="fas {{ deco.i }} {{ deco.c }}" aria-hidden="true"></i>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="pd-meteo-widget__content">
+        <div class="pd-meteo-owm-wrap" data-weather-icon-wrap>
+            {% if weather and weather.icone %}
+            <img
+                class="pd-meteo-owm-img"
+                data-weather-icon
+                src="https://openweathermap.org/img/wn/{{ weather.icone }}@2x.png"
+                alt="{{ weather.description|default:'Météo' }}"
+                width="64"
+                height="64"
+                loading="lazy"
+            >
+            {% else %}
+            <i class="fas {{ wx.cockpit_icon }} pd-meteo-fa-fallback" data-weather-fa aria-hidden="true"></i>
+            {% endif %}
+        </div>
+        <div class="pd-meteo-main">
+            <div class="pd-meteo-temp" data-weather-temp>
+                {% if weather %}{{ weather.temperature|floatformat:0 }}°C{% else %}--°C{% endif %}
+            </div>
+            <p class="pd-meteo-desc" data-weather-desc>
+                {% if weather %}{{ weather.description|capfirst }}{% else %}Chargement météo…{% endif %}
+            </p>
+            {% if show_meta != False %}
+            <p class="pd-meteo-meta" data-weather-meta{% if not weather %} hidden{% endif %}>
+                {% if weather %}
+                    {% if weather.humidite != None %}Humidité {{ weather.humidite }}%{% endif %}
+                    {% if weather.vent != None %}{% if weather.humidite != None %} · {% endif %}Vent {{ weather.vent }} km/h{% endif %}
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    {% if show_credit %}
+    <p class="pd-meteo-credit">Source · OpenWeather</p>
+    {% endif %}
+</div>

@@ -8,6 +8,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard_cockpit.css' %}">
+<link rel="stylesheet" href="{% static 'css/weather-widget.css' %}">
 
 <div class="dashboard-page">
     <!-- Header -->
@@ -21,13 +22,7 @@
                 <span><i class="far fa-calendar-alt" aria-hidden="true"></i> {% now "j F Y" %}</span>
             </div>
         </div>
-        <div class="cockpit-weather" id="weatherWidget" role="status" aria-live="polite"
-             data-weather-ferme="{{ dashboard_weather_ferme_id|default:'' }}">
-            <div class="cw-inner">
-                <i class="fas fa-cloud-sun fa-lg" aria-hidden="true"></i>
-                <span id="weatherSummary">Météo locale…</span>
-            </div>
-        </div>
+        {% include "partials/_weather_widget.html" with variant="cockpit" widget_id="weatherWidget" extra_class="cockpit-weather" weather_ferme_id=dashboard_weather_ferme_id show_meta=False show_credit=False %}
         <div class="db-actions cockpit-topbar__actions">
             <div class="refresh-indicator" id="refreshIndicator">
                 <i class="fas fa-sync-alt refresh-icon"></i>
@@ -231,4 +226,5 @@
 
 <!-- Dashboard Logic -->
 <script src="{% static 'js/weather-theme.js' %}" defer></script>
+<script src="{% static 'js/weather-widget.js' %}" defer></script>
 {% endblock %}

@@ -2388,8 +2388,8 @@ def modifier_semis(request, semis_id):
         form = ProjetProduitForm(request.POST, request.FILES, instance=projet_produit)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Informations mises a jour avec succes!')
-            return redirect('detail_projet', projet_id=projet_produit.projet.id)
+            messages.success(request, 'Informations mises à jour avec succès.')
+            return redirect('detail_semis', semis_id=projet_produit.id)
     else:
         form = ProjetProduitForm(instance=projet_produit)
 

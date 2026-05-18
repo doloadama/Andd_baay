@@ -477,30 +477,24 @@
         </div>
     </footer>
 
-    <!-- Floating actions (desktop): centered stack -->
-    <div class="floating-actions d-none d-lg-flex" aria-label="Actions flottantes">
-        <!-- Messagerie Floating Button -->
-        <div class="chat-bubble-container">
+    <!-- Floating actions: bottom-right stack (messagerie desktop only) -->
+    <div class="floating-actions{% if user.is_authenticated %} floating-actions--authed{% else %} d-none d-lg-flex{% endif %}" aria-label="Actions flottantes">
+        <div class="chat-bubble-container d-none d-lg-block">
             <a href="{% url 'messagerie_inbox' %}" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" data-drawer-toggle="messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
                 <i class="fas fa-envelope chat-icon" aria-hidden="true" style="color: white; font-size: 24px;"></i>
                 <div class="chat-notification" id="floatingNotifBadge" aria-live="polite" aria-atomic="true"></div>
             </a>
         </div>
 
-        <!-- Voice Assistant Floating Mic -->
         {% if user.is_authenticated %}
         <button type="button" class="voice-mic-btn" id="voiceMicBtn" aria-label="Assistant vocal" title="Assistant vocal">
             <i class="fas fa-microphone" id="voiceMicIcon" aria-hidden="true"></i>
         </button>
+        <button type="button" class="guide-fab" id="guideFab" aria-label="Guide utilisateur" title="Guide utilisateur">
+            <i class="fas fa-question-circle" aria-hidden="true"></i>
+        </button>
         {% endif %}
     </div>
-
-    <!-- Guide FAB (always visible for authenticated users) -->
-    {% if user.is_authenticated %}
-    <button type="button" class="guide-fab" id="guideFab" aria-label="Guide utilisateur" title="Guide utilisateur">
-        <i class="fas fa-question-circle" aria-hidden="true"></i>
-    </button>
-    {% endif %}
 
     <!-- Voice Assistant Modal -->
     <div class="voice-modal-overlay" id="voiceModalOverlay" aria-hidden="true">

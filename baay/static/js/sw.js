@@ -22,6 +22,8 @@ const PRECACHE_OPTIONAL = [
   '/static/css/dashboard_cockpit.css',
   '/static/css/projects.css',
   '/static/css/projet-detail-modern.css',
+  '/static/css/weather-widget.css',
+  '/static/js/weather-widget.js',
   '/static/css/mobile.css',
   '/static/css/mobile-agri-pages.css',
   '/static/css/finance_hub_ft.css',

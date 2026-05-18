@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block extra_head %}
+{% include "includes/_weather_assets.html" %}
 <link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
 <style>
     /* ============================================================
@@ -107,21 +108,6 @@
     .at-hero__meta-item { display: inline-flex; align-items: center; gap: 8px; }
 
     .at-hero__widgets { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-
-    /* Weather Widget */
-    .at-weather-pill {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.15);
-        padding: 8px 16px;
-        border-radius: 50px;
-        color: white;
-    }
-    .at-weather-temp { font-size: 20px; font-weight: 800; font-family: 'Space Grotesk', sans-serif; }
-    .at-weather-desc { font-size: 12px; opacity: 0.8; line-height: 1.2; }
 
     .at-status-badge {
         padding: 6px 18px;
@@ -521,7 +507,7 @@
         .at-tabs-nav { top: 60px; }
         .at-hero__content { flex-direction: column; align-items: flex-start; }
         .at-hero__widgets { align-items: flex-start; width: 100%; }
-        .at-weather-pill { width: 100%; justify-content: center; }
+        .at-hero__widgets .pd-meteo-widget--pill { width: 100%; justify-content: center; }
         .at-task-item {
             grid-template-columns: 1fr;
         }
@@ -570,13 +556,8 @@
             </div>
 
             <div class="at-hero__widgets">
-                <div class="at-weather-pill" id="atWeatherPill">
-                    <i class="fas fa-cloud-sun" style="font-size: 24px;" id="atWeatherIcon"></i>
-                    <div>
-                        <div class="at-weather-temp" id="atWeatherTemp">--°C</div>
-                        <div class="at-weather-desc" id="atWeatherDesc">Chargement météo...</div>
-                    </div>
-                </div>
+                {% url 'api_projet_weather' projet.id as weather_api_url %}
+                {% include "partials/_weather_widget.html" with variant="pill" widget_id="atWeatherPill" fetch_url=weather_api_url show_meta=False show_credit=False %}
                 <div class="at-status-badge at-status-badge--{{ projet.statut }}">
                     {{ projet.get_statut_display }}
                 </div>
@@ -967,32 +948,6 @@ document.addEventListener('DOMContentLoaded', function() {
     L.marker([lat, lon]).addTo(map)
         .bindPopup('<strong>{{ projet.ferme.nom|escapejs }}</strong><br>{{ projet.nom|escapejs }}')
         .openPopup();
-
-    // ── Weather API ──
-    fetch('{% url "api_projet_weather" projet.id %}')
-        .then(r => r.json())
-        .then(payload => {
-            if (payload.ok && payload.data) {
-                const d = payload.data;
-                document.getElementById('atWeatherTemp').textContent = Math.round(d.temperature) + '°C';
-                document.getElementById('atWeatherDesc').textContent = d.description;
-
-                // Icon management via FontAwesome mapping (simplified)
-                const iconMap = {
-                    '01d': 'fa-sun', '01n': 'fa-moon',
-                    '02d': 'fa-cloud-sun', '02n': 'fa-cloud-moon',
-                    '03d': 'fa-cloud', '03n': 'fa-cloud',
-                    '04d': 'fa-cloud-meatball', '04n': 'fa-cloud-meatball',
-                    '09d': 'fa-cloud-showers-heavy', '09n': 'fa-cloud-showers-heavy',
-                    '10d': 'fa-cloud-rain', '10n': 'fa-cloud-rain',
-                    '11d': 'fa-bolt', '11n': 'fa-bolt',
-                    '13d': 'fa-snowflake', '13n': 'fa-snowflake',
-                    '50d': 'fa-smog', '50n': 'fa-smog'
-                };
-                const faIcon = iconMap[d.icone] || 'fa-cloud-sun';
-                document.getElementById('atWeatherIcon').className = 'fas ' + faIcon;
-            }
-        });
 
     // ── Growth Chart ──
     const ctx = document.getElementById('growthCurveChart').getContext('2d');

@@ -1803,9 +1803,139 @@ button.fh-form-card__header--toggle:focus-visible {
 .fh-transaction-list::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
+
+/* —— Tabs —— */
+.fh-tabs-nav {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    margin: 0 clamp(8px, 2.5vw, 16px) clamp(16px, 3vw, 22px);
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: calc(72px + env(safe-area-inset-top, 0px));
+    z-index: 90;
+}
+
+.fh-tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.fh-tab-btn {
+    flex: 1;
+    min-width: max-content;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.fh-tab-btn i {
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+.fh-tab-btn.active {
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-deep) 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.28);
+}
+
+.fh-tab-btn.active i {
+    opacity: 1;
+}
+
+.fh-tab-btn:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+}
+
+.fh-tab-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
+}
+
+.fh-tab-btn:not(.active) .fh-tab-badge {
+    background: var(--bg-light);
+    color: var(--text-muted);
+}
+
+.fh-tab-panel {
+    margin: 0 clamp(8px, 2.5vw, 16px);
+}
+
+.fh-bilan-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: clamp(16px, 3vw, 22px);
+}
+
+.fh-bilan-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-card, 14px);
+    padding: 14px 16px;
+    text-align: center;
+}
+
+.fh-bilan-card__label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.fh-bilan-card__value {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.fh-bilan-card__value.income {
+    color: var(--brand-primary);
+}
+
+.fh-bilan-card__value.expense {
+    color: var(--danger-red);
+}
+
+@media (max-width: 576px) {
+    .fh-tabs-nav {
+        top: calc(60px + env(safe-area-inset-top, 0px));
+        border-radius: 16px;
+    }
+
+    .fh-tab-btn {
+        padding: 10px 14px;
+        font-size: 0.75rem;
+    }
+}
 </style>
 
-<div class="finance-hub">
+<div class="finance-hub"
+     x-data="financeHubTabs()"
+     x-cloak>
     <!-- Hero Section -->
     <div class="fh-hero">
         <div class="fh-hero__header">
@@ -1817,6 +1947,12 @@ button.fh-form-card__header--toggle:focus-visible {
                 <p class="fh-hero__subtitle">Suivez vos dépenses et recettes agricoles. Analysez la rentabilité de vos projets en temps réel.</p>
             </div>
             <div class="fh-hero__actions">
+                <button type="button" class="fh-btn fh-btn--light" @click="setTab('saisie')">
+                    <i class="fas fa-plus"></i> Saisir
+                </button>
+                <button type="button" class="fh-btn fh-btn--light" @click="setTab('rentabilite')">
+                    <i class="fas fa-calculator"></i> ROI
+                </button>
                 <button type="button" class="fh-btn fh-btn--light" onclick="window.print()">
                     <i class="fas fa-print"></i> Imprimer
                 </button>
@@ -1857,6 +1993,7 @@ button.fh-form-card__header--toggle:focus-visible {
 
     <!-- Filters Bar -->
     <form method="get" action="{% url 'finance_hub' %}" class="fh-filters-bar">
+        <input type="hidden" name="tab" :value="activeTab">
         <div class="fh-filter-group">
             <label for="filt-ferme">Ferme</label>
             <select name="ferme" id="filt-ferme" onchange="this.form.submit()">
@@ -1905,12 +2042,95 @@ button.fh-form-card__header--toggle:focus-visible {
         <button type="submit" class="fh-btn fh-btn--primary">
             <i class="fas fa-filter"></i> Filtrer
         </button>
-        <a href="{% url 'finance_hub' %}" class="fh-btn fh-btn--ghost">
+        <a href="{% url 'finance_hub' %}?tab=synthese" class="fh-btn fh-btn--ghost">
             <i class="fas fa-undo"></i> Réinitialiser
         </a>
     </form>
 
-    <!-- Saisie dépense / recette -->
+    <nav class="fh-tabs-nav" role="tablist" aria-label="Sections du hub finance">
+        <button type="button" class="fh-tab-btn" role="tab"
+                :class="{ 'active': activeTab === 'synthese' }"
+                :aria-selected="activeTab === 'synthese'"
+                @click="setTab('synthese')">
+            <i class="fas fa-chart-pie" aria-hidden="true"></i>
+            Synthèse
+        </button>
+        <button type="button" class="fh-tab-btn" role="tab"
+                :class="{ 'active': activeTab === 'saisie' }"
+                :aria-selected="activeTab === 'saisie'"
+                @click="setTab('saisie')">
+            <i class="fas fa-pen" aria-hidden="true"></i>
+            Saisie
+        </button>
+        <button type="button" class="fh-tab-btn" role="tab"
+                :class="{ 'active': activeTab === 'mouvements' }"
+                :aria-selected="activeTab === 'mouvements'"
+                @click="setTab('mouvements')">
+            <i class="fas fa-list" aria-hidden="true"></i>
+            Mouvements
+            <span class="fh-tab-badge">{{ count_filtre|default:0|add:count_recettes_filtre|default:0 }}</span>
+        </button>
+        <button type="button" class="fh-tab-btn" role="tab"
+                :class="{ 'active': activeTab === 'rentabilite' }"
+                :aria-selected="activeTab === 'rentabilite'"
+                @click="setTab('rentabilite')">
+            <i class="fas fa-calculator" aria-hidden="true"></i>
+            Rentabilité
+        </button>
+    </nav>
+
+    <!-- Onglet Synthèse -->
+    <div class="fh-tab-panel" x-show="activeTab === 'synthese'" x-transition.opacity.duration.200ms role="tabpanel">
+        <div class="fh-bilan-strip" aria-label="Bilan filtré">
+            <div class="fh-bilan-card">
+                <div class="fh-bilan-card__label">Dépenses</div>
+                <div class="fh-bilan-card__value expense">{{ total_depenses|default:"0"|fcfa }}</div>
+            </div>
+            <div class="fh-bilan-card">
+                <div class="fh-bilan-card__label">Recettes</div>
+                <div class="fh-bilan-card__value income">{{ total_recettes|default:"0"|fcfa }}</div>
+            </div>
+            <div class="fh-bilan-card">
+                <div class="fh-bilan-card__label">Résultat net</div>
+                <div class="fh-bilan-card__value" id="fhBilanNet">—</div>
+            </div>
+        </div>
+
+    <div class="fh-charts-section">
+        <div class="fh-chart-card">
+            <div class="fh-chart-card__header">
+                <div class="fh-chart-card__title">
+                    <i class="fas fa-chart-pie"></i>
+                    Répartition Dépenses
+                </div>
+                <span class="fh-chart-card__badge">{{ count_filtre|default:0 }} ligne{{ count_filtre|pluralize }}</span>
+            </div>
+            <div class="fh-chart-wrap{% if not chart_expenses %} is-empty{% endif %}" id="expensesChartWrap">
+                <canvas id="expensesChart" role="img" aria-label="Répartition des dépenses par catégorie"></canvas>
+                <div class="fh-chart-empty" id="expensesChartEmpty"{% if chart_expenses %} hidden{% endif %}>
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Aucune dépense pour afficher ce graphique.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fh-chart-card">
+            <div class="fh-chart-card__header">
+                <div class="fh-chart-card__title">
+                    <i class="fas fa-chart-bar"></i>
+                    Évolution Mensuelle
+                </div>
+                <span class="fh-chart-card__badge">{{ chart_year }}</span>
+            </div>
+            <div class="fh-chart-wrap" id="monthlyChartWrap">
+                <canvas id="monthlyChart" role="img" aria-label="Recettes et dépenses par mois"></canvas>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Onglet Saisie -->
+    <div class="fh-tab-panel" x-show="activeTab === 'saisie'" x-transition.opacity.duration.200ms role="tabpanel">
     <section class="fh-forms-section fh-forms-section--below-filters" id="financeQuickForms" aria-labelledby="finance-quick-forms-title">
         <header class="fh-forms-quick__intro">
             <h2 id="finance-quick-forms-title">Saisie rapide</h2>
@@ -2152,41 +2372,10 @@ button.fh-form-card__header--toggle:focus-visible {
             </article>
         </div>
     </section>
-
-    <!-- Charts Section -->
-    <div class="fh-charts-section">
-        <div class="fh-chart-card">
-            <div class="fh-chart-card__header">
-                <div class="fh-chart-card__title">
-                    <i class="fas fa-chart-pie"></i>
-                    Répartition Dépenses
-                </div>
-                <span class="fh-chart-card__badge">{{ count_filtre|default:0 }} ligne{{ count_filtre|pluralize }}</span>
-            </div>
-            <div class="fh-chart-wrap{% if not chart_expenses %} is-empty{% endif %}" id="expensesChartWrap">
-                <canvas id="expensesChart" role="img" aria-label="Répartition des dépenses par catégorie"></canvas>
-                <div class="fh-chart-empty" id="expensesChartEmpty"{% if chart_expenses %} hidden{% endif %}>
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Aucune dépense pour afficher ce graphique.</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="fh-chart-card">
-            <div class="fh-chart-card__header">
-                <div class="fh-chart-card__title">
-                    <i class="fas fa-chart-bar"></i>
-                    Évolution Mensuelle
-                </div>
-                <span class="fh-chart-card__badge">{{ chart_year }}</span>
-            </div>
-            <div class="fh-chart-wrap" id="monthlyChartWrap">
-                <canvas id="monthlyChart" role="img" aria-label="Recettes et dépenses par mois"></canvas>
-            </div>
-        </div>
     </div>
 
-    <!-- Transactions Section -->
+    <!-- Onglet Mouvements -->
+    <div class="fh-tab-panel" x-show="activeTab === 'mouvements'" x-transition.opacity.duration.200ms role="tabpanel">
     <div class="fh-transactions">
         <!-- Dépenses -->
         <div class="fh-transaction-card">
@@ -2250,8 +2439,10 @@ button.fh-form-card__header--toggle:focus-visible {
             </div>
         </div>
     </div>
+    </div>
 
-    <!-- ROI Section -->
+    <!-- Onglet Rentabilité -->
+    <div class="fh-tab-panel" x-show="activeTab === 'rentabilite'" x-transition.opacity.duration.200ms role="tabpanel">
     <div class="fh-roi-section">
         <div class="fh-roi-section__header">
             <div class="fh-roi-section__title">
@@ -2343,6 +2534,7 @@ button.fh-form-card__header--toggle:focus-visible {
             </div>
         </div>
     </div>
+    </div>
 
 </div>
 
@@ -2350,6 +2542,36 @@ button.fh-form-card__header--toggle:focus-visible {
 {{ chart_monthly|json_script:"fh-chart-monthly-data" }}
 <script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
 <script>
+
+function financeHubTabs() {
+    const valid = ['synthese', 'saisie', 'mouvements', 'rentabilite'];
+    const params = new URLSearchParams(window.location.search);
+    let tab = params.get('tab') || 'synthese';
+    if (!valid.includes(tab)) {
+        tab = 'synthese';
+    }
+    return {
+        activeTab: tab,
+        setTab(nextTab) {
+            if (!valid.includes(nextTab)) {
+                return;
+            }
+            this.activeTab = nextTab;
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', nextTab);
+            history.replaceState(null, '', url);
+            if (nextTab === 'synthese') {
+                requestAnimationFrame(function () {
+                    window.dispatchEvent(new Event('resize'));
+                });
+            }
+            if (nextTab === 'saisie' && typeof initFinanceQuickFormsLayout === 'function') {
+                requestAnimationFrame(initFinanceQuickFormsLayout);
+            }
+        },
+    };
+}
+
 // Data from Django
 const totalDepenses = {{ total_depenses|default:0|unlocalize }};
 const totalRecettes = {{ total_recettes|default:0|unlocalize }};
@@ -2441,6 +2663,12 @@ function updateROI() {
     const netResultEl = document.getElementById('netResult');
     netResultEl.textContent = formatFCFA(net);
     netResultEl.style.color = isPositive ? 'var(--primary-green)' : 'var(--danger-red)';
+
+    const bilanNetEl = document.getElementById('fhBilanNet');
+    if (bilanNetEl) {
+        bilanNetEl.textContent = formatFCFA(net);
+        bilanNetEl.style.color = isPositive ? 'var(--primary-green)' : 'var(--danger-red)';
+    }
     
     // Initialize simulator with current values
     document.getElementById('simRecettes').value = totalRecettes;
