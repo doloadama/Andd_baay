@@ -403,9 +403,9 @@ if DATABASE_URL:
         # If parsing fails, fall back to the raw value and let Django surface the error.
         pass
 
+    _conn_max_age = 0 if IS_VERCEL else 60  # 0 pour serverless, 60s pour Render (connexions persistantes)
     DATABASES = {
-        # conn_max_age=0: no persistent connections between serverless Vercel invocations.
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=0, ssl_require=True),
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=_conn_max_age, ssl_require=not DEBUG),
     }
 elif os.getenv('ENV') == 'production':
     DATABASES = {
@@ -435,13 +435,38 @@ for _alias, _cfg in DATABASES.items():
         # to avoid InvalidCursorName with PgBouncer transaction pooling (Supabase :6543).
         _cfg["DISABLE_SERVER_SIDE_CURSORS"] = True
 
-# Cache Django — backend locmem par défaut (Axes, etc.)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'anddbaay-locmem-default',
+# Cache Django — Redis si disponible, sinon locmem (dev / plan free sans Redis)
+_redis_cache_url = _redis_url  # défini plus haut à partir de REDIS_URL
+if _redis_cache_url and not IS_VERCEL:
+    try:
+        import django_redis  # noqa: F401
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': _redis_cache_url,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    'SOCKET_CONNECT_TIMEOUT': 5,
+                    'SOCKET_TIMEOUT': 5,
+                    'IGNORE_EXCEPTIONS': True,
+                },
+                'KEY_PREFIX': 'anddbaay',
+            }
+        }
+    except ImportError:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                'LOCATION': 'anddbaay-locmem-default',
+            }
+        }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'anddbaay-locmem-default',
+        }
     }
-}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -487,15 +512,18 @@ if IS_VERCEL or not DEBUG:
 # ============================================================
 
 # Account settings
-ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 # email* / username* / password* = champs obligatoires (remplace ACCOUNT_EMAIL_REQUIRED déprécié)
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 
-# Skip email verification for social logins (Google already verified the email)
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# Vérification email : 'mandatory' si SMTP configuré, sinon 'none' pour éviter le blocage
+if os.getenv('EMAIL_HOST_USER', '').strip() and os.getenv('EMAIL_HOST_PASSWORD', '').strip():
+    ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+    SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Google a déjà vérifié l'email
+else:
+    ACCOUNT_EMAIL_VERIFICATION = 'none'
+    SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Social account settings
 # GOOGLE_OAUTH_PROMPT :
