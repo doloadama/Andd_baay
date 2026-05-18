@@ -204,7 +204,9 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
     # ── 6. Alertes projets ───────────────────────────────────────────────────
     alertes_projets = [
         {'type': 'pause', 'projet': p, 'message': f"Projet en pause : {p.nom}"}
-        for p in projets_qs.filter(statut='en_pause').only('id', 'nom')[:5]
+        for p in Projet.objects.filter(
+            id__in=projets_qs.filter(statut='en_pause').values('id')[:5]
+        ).only('id', 'nom')
     ]
 
     # ── 7. Burn rates — 1 requête agrégée au lieu de N×1 ────────────────────
@@ -217,7 +219,9 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
             .annotate(s=Coalesce(Sum(inv_expr), Value(Decimal('0'))))
             .values_list('projet_id', 's')
         )
-        for p in roi_scope_projets.only('id', 'nom', 'date_lancement'):
+        for p in Projet.objects.filter(
+            id__in=roi_scope_projets.values('id')
+        ).only('id', 'nom', 'date_lancement'):
             if not p.date_lancement:
                 continue
             days_elapsed = max((today - p.date_lancement).days, 1)
