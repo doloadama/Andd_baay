@@ -1,17 +1,26 @@
-from django.db.models import Sum, Count, Q, F, Avg
+from django.db.models import Sum, Count, Q, F, Avg, Value
+from django.db.models.functions import Coalesce
 from decimal import Decimal
 from datetime import timedelta
 from django.utils import timezone
-from baay.models import Projet, Ferme, MembreFerme, Tache, ProduitAgricole, Investissement, Message, ParticipationConversation, ProjetProduit
-from baay.permissions import projets_accessibles_qs, projets_accessibles_kpi_roi_qs, peut_voir_investissements_any, fermes_accessibles_qs
+from django.core.cache import cache
+
+from baay.models import (
+    Projet, Ferme, MembreFerme, Tache, ProduitAgricole,
+    Investissement, Message, ParticipationConversation, ProjetProduit
+)
+from baay.permissions import (
+    projets_accessibles_qs, projets_accessibles_kpi_roi_qs,
+    peut_voir_investissements_any, fermes_accessibles_qs
+)
 from baay import dashboard_services
 from baay.core_services import investissement_montant_expr, calculer_kpis_financiers_par_projet
-from django.db.models.functions import Coalesce
+
 
 def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, farms_qs=None):
     today = timezone.now().date()
 
-    # 1. Base Querysets
+    # ── 1. Base Querysets ────────────────────────────────────────────────────
     if farms_qs is None:
         user_fermes = fermes_accessibles_qs(utilisateur).distinct().order_by('nom')
     else:
@@ -24,82 +33,131 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
     if selected_ferme:
         projets_qs = projets_qs.filter(ferme=selected_ferme)
 
-    # 2. Strategic Aggregates (Cockpit)
-    superficie_totale = projets_qs.aggregate(Sum('superficie'))['superficie__sum'] or 0
-    rendement_total = projets_qs.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-    rendement_moyen_global = float(rendement_total) / float(superficie_totale) if superficie_totale > 0 else 0
-
-    projets_en_cours = projets_qs.filter(statut='en_cours').count()
-    projets_en_pause = projets_qs.filter(statut='en_pause').count()
-    projets_finis = projets_qs.filter(statut__in=('fini', Projet.STATUT_CLOTURE)).count()
-    total_count = projets_qs.count()
+    # ── 2. Strategic Aggregates — une seule requête DB ───────────────────────
+    agg = projets_qs.aggregate(
+        superficie_sum=Coalesce(Sum('superficie'), Value(Decimal('0'))),
+        rendement_sum=Coalesce(Sum('rendement_estime'), Value(Decimal('0'))),
+        total=Count('id'),
+        en_cours=Count('id', filter=Q(statut='en_cours')),
+        en_pause=Count('id', filter=Q(statut='en_pause')),
+        finis=Count('id', filter=Q(statut__in=('fini', Projet.STATUT_CLOTURE))),
+    )
+    superficie_totale = float(agg['superficie_sum'])
+    rendement_total = float(agg['rendement_sum'])
+    rendement_moyen_global = rendement_total / superficie_totale if superficie_totale > 0 else 0
+    projets_en_cours = agg['en_cours']
+    projets_en_pause = agg['en_pause']
+    projets_finis = agg['finis']
+    total_count = agg['total']
     completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
 
     roi_scope_projets = projets_accessibles_kpi_roi_qs(utilisateur, projets_qs)
     cockpit_payload = dashboard_services.cockpit_payload(projets_qs, roi_scope_projets)
 
-    # 3. Performance Data (Analytics)
+    # ── 3a. Cultures data — 1 requête agrégée au lieu de N×3 ────────────────
+    culture_agg_rows = (
+        projets_qs
+        .filter(culture__isnull=False)
+        .values('culture__id', 'culture__nom', 'culture__rendement_moyen')
+        .annotate(
+            superficie=Coalesce(Sum('superficie'), Value(Decimal('0'))),
+            rendement_total=Coalesce(Sum('rendement_estime'), Value(Decimal('0'))),
+            projets_count=Count('id'),
+        )
+        .order_by('-superficie')
+    )
     cultures_data = []
-    cultures = ProduitAgricole.objects.filter(projet__in=projets_qs).distinct()
-    for culture in cultures:
-        p_culture = projets_qs.filter(culture=culture)
-        sup = p_culture.aggregate(Sum('superficie'))['superficie__sum'] or 0
-        rend = p_culture.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-        rend_ha = round(float(rend) / float(sup), 1) if sup > 0 else 0
-
-        # New KPI: Surface Efficiency (Performance relative to culture average)
-        efficiency = 100
-        if culture.rendement_moyen and rend_ha > 0:
-            efficiency = round((rend_ha / float(culture.rendement_moyen)) * 100)
-
+    for row in culture_agg_rows:
+        sup = float(row['superficie'])
+        rend = float(row['rendement_total'])
+        rend_ha = round(rend / sup, 1) if sup > 0 else 0
+        rend_moyen = float(row['culture__rendement_moyen'] or 0)
+        efficiency = round((rend_ha / rend_moyen) * 100) if rend_moyen and rend_ha > 0 else 100
         cultures_data.append({
-            'culture': culture,
+            'culture': {'nom': row['culture__nom'], 'id': row['culture__id']},
             'superficie': sup,
             'rendement_total': rend,
             'rendement_par_ha': rend_ha,
             'efficiency_score': efficiency,
-            'projets_count': p_culture.count(),
+            'projets_count': row['projets_count'],
         })
 
-    fermes_performance = []
-    for f in user_fermes:
-        f_proj = projets_qs.filter(ferme=f)
-        f_sup = f_proj.aggregate(Sum('superficie'))['superficie__sum'] or 0
-        f_rend = f_proj.aggregate(Sum('rendement_estime'))['rendement_estime__sum'] or 0
-        f_total_sup = float(f.superficie_totale) if f.superficie_totale else 1.0
-        f_util = round((float(f_sup) / f_total_sup) * 100, 1)
+    # ── 3b. Fermes performance — 1 requête agrégée au lieu de N×3 ───────────
+    ferme_agg_rows = (
+        projets_qs
+        .values('ferme__id', 'ferme__nom', 'ferme__superficie_totale',
+                'ferme__latitude', 'ferme__longitude')
+        .annotate(
+            superficie_utilisee=Coalesce(Sum('superficie'), Value(Decimal('0'))),
+            rendement_total=Coalesce(Sum('rendement_estime'), Value(Decimal('0'))),
+            projets_actifs=Count('id', filter=Q(statut='en_cours')),
+        )
+        .order_by('ferme__nom')
+    )
+    ferme_agg_map = {
+        row['ferme__id']: row for row in ferme_agg_rows
+    }
 
+    fermes_performance = []
+    map_markers = []
+    weather_ferme_id = None
+    for f in user_fermes:
+        row = ferme_agg_map.get(f.id, {})
+        f_sup = float(row.get('superficie_utilisee') or 0)
+        f_rend = float(row.get('rendement_total') or 0)
+        f_total_sup = float(f.superficie_totale) if f.superficie_totale else 1.0
+        f_util = round((f_sup / f_total_sup) * 100, 1)
         fermes_performance.append({
             'ferme': f,
             'superficie_utilisee': f_sup,
             'rendement_total': f_rend,
             'taux_utilisation': f_util,
-            'projets_actifs': f_proj.filter(statut='en_cours').count(),
+            'projets_actifs': row.get('projets_actifs') or 0,
         })
+        if f.latitude and f.longitude:
+            map_markers.append({
+                'lat': float(f.latitude),
+                'lng': float(f.longitude),
+                'title': f.nom,
+            })
+            if weather_ferme_id is None:
+                weather_ferme_id = str(f.id)
 
-    # Agent Productivity
+    # Ferme sélectionnée : override map_markers et weather
+    if selected_ferme and selected_ferme.latitude and selected_ferme.longitude:
+        map_markers = [{
+            'lat': float(selected_ferme.latitude),
+            'lng': float(selected_ferme.longitude),
+            'title': selected_ferme.nom,
+        }]
+        weather_ferme_id = str(selected_ferme.id)
+
+    # ── 4. Agent Productivity — 1 requête agrégée ───────────────────────────
     taches_global_qs = Tache.objects.filter(ferme__in=user_fermes)
     if selected_ferme:
         taches_global_qs = taches_global_qs.filter(ferme=selected_ferme)
 
-    agents_stats = taches_global_qs.values(
-        'assigne_a__id', 'assigne_a__user__username', 'assigne_a__user__first_name', 'assigne_a__user__last_name'
+    agents_stats = list(taches_global_qs.values(
+        'assigne_a__id', 'assigne_a__user__username',
+        'assigne_a__user__first_name', 'assigne_a__user__last_name'
     ).annotate(
         total_taches=Count('id'),
         terminees=Count('id', filter=Q(statut='terminee')),
         a_temps=Count('id', filter=Q(statut='terminee', date_terminee__lte=F('date_echeance'))),
         en_retard=Count('id', filter=Q(date_echeance__lt=today, statut__in=['a_faire', 'en_cours'])),
-    ).order_by('-terminees')
+    ).order_by('-terminees'))
 
     agents_performance = []
     max_terminees = max((a['terminees'] for a in agents_stats), default=0)
     for a in agents_stats:
-        nom = f"{a['assigne_a__user__first_name'] or ''} {a['assigne_a__user__last_name'] or ''}".strip() or a['assigne_a__user__username']
-        taux = round((a['terminees'] / a['total_taches'] * 100), 1) if a['total_taches'] > 0 else 0
+        nom = (
+            f"{a['assigne_a__user__first_name'] or ''} {a['assigne_a__user__last_name'] or ''}".strip()
+            or a['assigne_a__user__username']
+        )
+        taux = round(a['terminees'] / a['total_taches'] * 100, 1) if a['total_taches'] > 0 else 0
         taux_temps = (a['a_temps'] / a['terminees'] * 100) if a['terminees'] > 0 else 0
         vol_score = (a['terminees'] / max_terminees * 100) if max_terminees > 0 else 0
         score = round((taux_temps * 0.6) + (vol_score * 0.4), 1)
-
         agents_performance.append({
             'nom': nom,
             'username': a['assigne_a__user__username'],
@@ -108,57 +166,73 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
             'a_temps': a['a_temps'],
             'en_retard': a['en_retard'],
             'taux_completion': taux,
-            'score_global': score
+            'score_global': score,
         })
 
-    # 4. Activities & Tasks
-    taches_activite_qs = Tache.objects.filter(
-        projet__in=projets_qs
-    ).exclude(statut__in=['terminee', 'annulee']).select_related('projet', 'assigne_a__user')
-
-    taches_retard = taches_activite_qs.filter(date_echeance__lt=today).order_by('date_echeance')[:10]
-    taches_urgentes = taches_activite_qs.filter(
+    # ── 5. Activities & Tasks — agrégation unique ────────────────────────────
+    taches_activite_qs = (
+        Tache.objects.filter(projet__in=projets_qs)
+        .exclude(statut__in=['terminee', 'annulee'])
+        .select_related('projet', 'assigne_a__user')
+    )
+    taches_retard = list(taches_activite_qs.filter(date_echeance__lt=today).order_by('date_echeance')[:10])
+    taches_urgentes = list(taches_activite_qs.filter(
         date_echeance__gte=today,
         date_echeance__lte=today + timedelta(days=7)
-    ).order_by('date_echeance')[:10]
+    ).order_by('date_echeance')[:10])
 
+    stats_taches_agg = taches_activite_qs.aggregate(
+        total=Count('id'),
+        en_retard=Count('id', filter=Q(date_echeance__lt=today)),
+        a_venir=Count('id', filter=Q(date_echeance__gte=today, date_echeance__lte=today + timedelta(days=7))),
+        en_cours=Count('id', filter=Q(statut='en_cours')),
+    )
     stats_taches = {
-        'total': taches_activite_qs.count(),
-        'en_retard': taches_activite_qs.filter(date_echeance__lt=today).count(),
-        'a_venir': taches_activite_qs.filter(date_echeance__gte=today, date_echeance__lte=today + timedelta(days=7)).count(),
-        'en_cours': taches_activite_qs.filter(statut='en_cours').count(),
+        'total': stats_taches_agg['total'],
+        'en_retard': stats_taches_agg['en_retard'],
+        'a_venir': stats_taches_agg['a_venir'],
+        'en_cours': stats_taches_agg['en_cours'],
     }
 
-    # New KPI: Task Velocity (completed last 7 days)
     last_week = timezone.now() - timedelta(days=7)
     tasks_done_last_week = Tache.objects.filter(
         ferme__in=user_fermes,
         statut='terminee',
-        date_terminee__gte=last_week
+        date_terminee__gte=last_week,
     ).count()
 
-    # Alerts
-    alertes_projets = []
-    for p in projets_qs.filter(statut='en_pause')[:5]:
-        alertes_projets.append({'type': 'pause', 'projet': p, 'message': f"Projet en pause : {p.nom}"})
+    # ── 6. Alertes projets ───────────────────────────────────────────────────
+    alertes_projets = [
+        {'type': 'pause', 'projet': p, 'message': f"Projet en pause : {p.nom}"}
+        for p in projets_qs.filter(statut='en_pause').only('id', 'nom')[:5]
+    ]
 
-    # 5. New KPI: Budget Burn Rate
-    # (Simplified: sum of all investments vs time elapsed)
+    # ── 7. Burn rates — 1 requête agrégée au lieu de N×1 ────────────────────
     burn_rates = []
     if roi_scope_projets.exists():
-        for p in roi_scope_projets:
-            days_elapsed = (today - p.date_lancement).days
-            if days_elapsed <= 0: days_elapsed = 1
-            total_spent = Investissement.objects.filter(projet=p).aggregate(s=Sum(investissement_montant_expr()))['s'] or 0
-            burn_rate = float(total_spent) / days_elapsed
-            burn_rates.append({'projet': p, 'burn_rate': round(burn_rate, 0)})
+        inv_expr = investissement_montant_expr()
+        inv_by_projet = dict(
+            Investissement.objects.filter(projet__in=roi_scope_projets)
+            .values('projet_id')
+            .annotate(s=Coalesce(Sum(inv_expr), Value(Decimal('0'))))
+            .values_list('projet_id', 's')
+        )
+        for p in roi_scope_projets.only('id', 'nom', 'date_lancement'):
+            if not p.date_lancement:
+                continue
+            days_elapsed = max((today - p.date_lancement).days, 1)
+            total_spent = float(inv_by_projet.get(p.id, 0))
+            burn_rates.append({'projet': p, 'burn_rate': round(total_spent / days_elapsed, 0)})
 
-    # 6. Messaging feed
-    messages_recents = Message.objects.filter(
-        conversation__participants=utilisateur
-    ).exclude(expediteur=utilisateur).select_related('expediteur__user', 'conversation').order_by('-date_envoi')[:5]
+    # ── 8. Messaging feed ───────────────────────────────────────────────────
+    messages_recents = (
+        Message.objects.filter(conversation__participants=utilisateur)
+        .exclude(expediteur=utilisateur)
+        .select_related('expediteur__user', 'conversation')
+        .order_by('-date_envoi')[:5]
+    )
 
-    # 7. Next Harvest
+    # ── 9. Next Harvest ──────────────────────────────────────────────────────
     prochaine_recolte = (
         ProjetProduit.objects.filter(
             projet__in=projets_qs,
@@ -168,33 +242,6 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
         .order_by('date_recolte_prevue')
         .first()
     )
-
-    # 8. Map Data
-    map_markers = []
-    if selected_ferme and selected_ferme.latitude and selected_ferme.longitude:
-        map_markers.append({
-            'lat': float(selected_ferme.latitude),
-            'lng': float(selected_ferme.longitude),
-            'title': selected_ferme.nom
-        })
-    else:
-        for f in user_fermes:
-            if f.latitude and f.longitude:
-                map_markers.append({
-                    'lat': float(f.latitude),
-                    'lng': float(f.longitude),
-                    'title': f.nom
-                })
-
-    # 9. Weather Logic
-    weather_ferme_id = None
-    if selected_ferme and selected_ferme.latitude:
-        weather_ferme_id = str(selected_ferme.id)
-    else:
-        for wf in user_fermes:
-            if wf.latitude:
-                weather_ferme_id = str(wf.id)
-                break
 
     return {
         'projets': projets_qs.order_by('-date_lancement'),
@@ -215,9 +262,10 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
         'dashboard_weather_ferme_id': weather_ferme_id,
         'nombre_fermes': user_fermes.count() if hasattr(user_fermes, 'count') else len(user_fermes),
         'messages_recents': messages_recents,
-        'ferme_utilisation': round(sum(f['taux_utilisation'] for f in fermes_performance)/len(fermes_performance), 1) if fermes_performance else 0,
-
-        # Activities components
+        'ferme_utilisation': (
+            round(sum(f['taux_utilisation'] for f in fermes_performance) / len(fermes_performance), 1)
+            if fermes_performance else 0
+        ),
         'taches_retard': taches_retard,
         'taches_urgentes': taches_urgentes,
         'stats_taches': stats_taches,

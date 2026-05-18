@@ -1786,17 +1786,27 @@ def evaluer_modele(model, X_test, y_test):
 @require_GET
 def dashboard_stats_api(request):
     """API endpoint for dashboard statistics with filtering (including ferme)"""
+    from django.core.cache import cache as _cache
     try:
         utilisateur = request.user.profile
     except Profile.DoesNotExist:
         utilisateur = Profile.objects.create(user=request.user)
-    
+
     # Get filter parameters
     ferme_filter = request.GET.get('ferme', '')
     statut_filter = request.GET.get('statut', '')
     culture_filter = request.GET.get('culture', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+
+    # Cache key — unique par utilisateur + filtres actifs (TTL 90s)
+    _cache_key = (
+        f"dash_stats:{utilisateur.pk}:{ferme_filter}:{statut_filter}:"
+        f"{culture_filter}:{date_from}:{date_to}"
+    )
+    _cached = _cache.get(_cache_key)
+    if _cached is not None:
+        return JsonResponse(_cached)
     
     # Resolve selected farm
     user_fermes = (
@@ -1884,14 +1894,19 @@ def dashboard_stats_api(request):
         )
         investissement_total = inv_agg['total'] or Decimal('0')
 
-    # Projects by status
-    projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))
-    
-    projets_en_cours = projets.filter(statut='en_cours').count()
-    projets_en_pause = projets.filter(statut='en_pause').count()
-    projets_finis = projets.filter(statut__in=("fini", Projet.STATUT_CLOTURE)).count()
-    total_count = projets.count()
+    # Projects by status — une seule requête d'agrégation au lieu de 4 COUNT séparés
+    proj_agg = projets.aggregate(
+        total=Count('id'),
+        en_cours=Count('id', filter=Q(statut='en_cours')),
+        en_pause=Count('id', filter=Q(statut='en_pause')),
+        finis=Count('id', filter=Q(statut__in=('fini', Projet.STATUT_CLOTURE))),
+    )
+    total_count = proj_agg['total']
+    projets_en_cours = proj_agg['en_cours']
+    projets_en_pause = proj_agg['en_pause']
+    projets_finis = proj_agg['finis']
     completion_rate = round((projets_finis / total_count) * 100) if total_count else 0
+    projets_par_statut = list(projets.values('statut').annotate(count=Count('id')))
 
     # Projects by culture
     projets_par_culture = list(projets.values('culture__nom').annotate(
@@ -2031,7 +2046,8 @@ def dashboard_stats_api(request):
         'finance_monthly': cockpit['finance_monthly'],
         'invest_by_category': cockpit['invest_by_category'],
     }
-    
+
+    _cache.set(_cache_key, data, timeout=90)
     return JsonResponse(data)
 
 
