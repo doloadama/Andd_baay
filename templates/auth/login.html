@@ -440,7 +440,8 @@
                 </div>
 
                 <button type="submit" class="btn-modern btn-primary-modern btn-submit" id="loginSubmit" disabled>
-                    Connexion <i class="fas fa-arrow-right ms-2"></i>
+                    <span class="btn-label">Connexion <i class="fas fa-arrow-right ms-2"></i></span>
+                    <span class="btn-spinner d-none"><i class="fas fa-circle-notch fa-spin me-2"></i> Connexion…</span>
                 </button>
             </form>
 
@@ -483,6 +484,31 @@ function togglePassword(btn) {
         if (p) p.addEventListener(ev, syncLoginSubmit);
     });
     syncLoginSubmit();
+
+    // Inline email validation on blur
+    if (u) {
+        u.addEventListener('blur', function() {
+            var val = u.value.trim();
+            var wrap = u.closest('.mb-4') || u.closest('.mb-3');
+            var existing = wrap ? wrap.querySelector('.inline-error') : null;
+            if (existing) existing.remove();
+            if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+                var msg = document.createElement('div');
+                msg.className = 'text-danger small mt-1 inline-error';
+                msg.textContent = 'Veuillez entrer une adresse email valide.';
+                (wrap || u.parentNode).appendChild(msg);
+            }
+        });
+    }
+
+    // Spinner on submit
+    form.addEventListener('submit', function() {
+        var label = submitBtn.querySelector('.btn-label');
+        var spinner = submitBtn.querySelector('.btn-spinner');
+        if (label) label.classList.add('d-none');
+        if (spinner) spinner.classList.remove('d-none');
+        submitBtn.disabled = true;
+    });
 })();
 </script>
 {% endblock %}

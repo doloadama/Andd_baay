@@ -366,8 +366,9 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-modern btn-primary-modern btn-submit">
-                    S'inscrire <i class="fas fa-arrow-right ms-2"></i>
+                <button type="submit" class="btn-modern btn-primary-modern btn-submit" id="registerSubmit">
+                    <span class="btn-label">S'inscrire <i class="fas fa-arrow-right ms-2"></i></span>
+                    <span class="btn-spinner d-none"><i class="fas fa-circle-notch fa-spin me-2"></i> Inscription…</span>
                 </button>
             </form>
 
@@ -536,6 +537,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         p2.dispatchEvent(new Event('input'));
     });
+    // Spinner on submit
+    var regBtn = document.getElementById('registerSubmit');
+    if (form && regBtn) {
+        form.addEventListener('submit', function() {
+            var label = regBtn.querySelector('.btn-label');
+            var spinner = regBtn.querySelector('.btn-spinner');
+            if (label) label.classList.add('d-none');
+            if (spinner) spinner.classList.remove('d-none');
+            regBtn.disabled = true;
+        });
+    }
 });
 </script>
 {% endblock %}
