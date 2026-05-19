@@ -1,0 +1,42 @@
+<section id="semis-analyse-ia" class="semis-panel semis-analyse-ia" aria-labelledby="semis-analyse-title">
+    <h2 id="semis-analyse-title" class="semis-panel__title">
+        <i class="fas fa-microscope" aria-hidden="true"></i> Diagnostic photo (IA)
+    </h2>
+
+    {% if erreur_analyse %}
+    <p class="semis-analyse-ia__alert semis-analyse-ia__alert--error" role="alert">{{ erreur_analyse }}</p>
+    {% endif %}
+
+    {% if not projet_produit.image %}
+    <p class="semis-analyse-ia__hint">Ajoutez une photo de la culture pour lancer une analyse maladies / ravageurs.</p>
+    {% elif not vision_disponible %}
+    <p class="semis-analyse-ia__hint">L'analyse IA n'est pas disponible (clé Gemini non configurée).</p>
+    {% elif peut_lancer_analyse %}
+    <p class="semis-analyse-ia__hint">Analyse rapprochée feuille ou insecte — résultats en français avec recommandations.</p>
+    <form
+        hx-post="{% url 'lancer_analyse_semis' projet_produit.id %}"
+        hx-target="#semis-analyse-ia"
+        hx-swap="outerHTML"
+    >
+        {% csrf_token %}
+        <button type="submit" class="btn-card btn-card-primary semis-analyse-ia__btn">
+            <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Analyser la photo
+        </button>
+    </form>
+    {% else %}
+    <p class="semis-analyse-ia__hint">Vous pouvez consulter les analyses existantes. Seuls les rôles techniques peuvent en lancer une nouvelle.</p>
+    {% endif %}
+
+    {% if derniere_analyse %}
+    <div class="semis-analyse-ia__history">
+        <p class="semis-analyse-ia__history-label">Dernière analyse — {{ derniere_analyse.date_creation|date:"d/m/Y H:i" }}</p>
+        <div
+            hx-get="{% url 'partial_analyse_semis' projet_produit.id %}?analyse_id={{ derniere_analyse.id }}"
+            hx-trigger="load"
+            hx-swap="innerHTML"
+        >
+            <p class="semis-analyse-ia__loading-inline"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Chargement…</p>
+        </div>
+    </div>
+    {% endif %}
+</section>

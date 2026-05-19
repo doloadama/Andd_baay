@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .views_plant_vision import lancer_analyse_semis, partial_analyse_semis
 from .views_semis import (
     creer_semis,
     detail_semis,
@@ -16,4 +17,14 @@ urlpatterns = [
     path("semis/<uuid:semis_id>/modifier/", modifier_semis, name="modifier_semis"),
     path("semis/<uuid:semis_id>/supprimer/", supprimer_semis, name="supprimer_semis"),
     path("api/semis/<uuid:semis_id>/statut/", update_semis_statut, name="update_semis_statut"),
+    path(
+        "semis/<uuid:semis_id>/analyse-ia/",
+        partial_analyse_semis,
+        name="partial_analyse_semis",
+    ),
+    path(
+        "semis/<uuid:semis_id>/analyse-ia/lancer/",
+        lancer_analyse_semis,
+        name="lancer_analyse_semis",
+    ),
 ]

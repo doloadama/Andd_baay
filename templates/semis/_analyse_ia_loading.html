@@ -1,0 +1,17 @@
+<section
+    id="semis-analyse-ia"
+    class="semis-panel semis-analyse-ia"
+    aria-labelledby="semis-analyse-title"
+    aria-live="polite"
+    hx-get="{% url 'partial_analyse_semis' projet_produit.id %}?analyse_id={{ analyse.id }}"
+    hx-trigger="every 2s"
+    hx-swap="outerHTML"
+>
+    <h2 id="semis-analyse-title" class="semis-panel__title">
+        <i class="fas fa-microscope" aria-hidden="true"></i> Diagnostic photo (IA)
+    </h2>
+    <p class="semis-analyse-ia__loading">
+        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+        Analyse en cours… Cela peut prendre jusqu'à une minute.
+    </p>
+</section>

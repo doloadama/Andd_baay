@@ -22,6 +22,26 @@ from django.urls import reverse_lazy
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+
+def _parse_gemini_keys():
+    """GEMINI_API_KEYS=key1,key2 ou plusieurs clés dans GEMINI_API_KEY (séparées par des virgules)."""
+    keys_env = (os.getenv("GEMINI_API_KEYS", "") or "").strip()
+    keys = [k.strip() for k in keys_env.split(",") if k.strip()]
+    if keys:
+        return keys
+    single_env = (
+        (os.getenv("GEMINI_API_KEY", "") or "").strip()
+        or (GOOGLE_API_KEY or "").strip()
+    )
+    if not single_env:
+        return []
+    return [k.strip() for k in single_env.split(",") if k.strip()]
+
+
+GEMINI_API_KEYS = _parse_gemini_keys()
+GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else ""
+PLANT_VISION_MODEL = (os.getenv("PLANT_VISION_MODEL", "gemini-2.0-flash") or "gemini-2.0-flash").strip()
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 

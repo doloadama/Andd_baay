@@ -698,6 +698,138 @@ html.dark-mode .semis-yield-hero__value {
     }
 }
 
+/* ── Analyse IA (BaayVision) ── */
+.semis-analyse-ia__hint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+}
+
+.semis-analyse-ia__alert {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.semis-analyse-ia__alert--error {
+    background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--danger, #ef4444) 35%, transparent);
+    color: var(--text-main);
+}
+
+.semis-analyse-ia__btn {
+    margin-bottom: 0.5rem;
+}
+
+.semis-analyse-ia__loading,
+.semis-analyse-ia__loading-inline {
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.semis-analyse-ia__history {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.semis-analyse-ia__history-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.semis-analyse-ia__subject {
+    margin-bottom: 1rem;
+}
+
+.semis-analyse-ia__badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    background: var(--brand-primary);
+    color: #fff;
+}
+
+.semis-analyse-ia__confidence {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.semis-analyse-ia__detections {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.semis-analyse-ia__detection {
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--card-bg) 96%, var(--brand-primary) 4%);
+}
+
+.semis-analyse-ia__detection-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.semis-analyse-ia__severity {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.semis-analyse-ia__severity--critical .semis-analyse-ia__severity,
+.semis-analyse-ia__detection.semis-analyse-ia__severity--critical {
+    border-left: 3px solid var(--danger, #ef4444);
+}
+
+.semis-analyse-ia__crop {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+.semis-analyse-ia__impact {
+    font-size: 0.9rem;
+}
+
+.semis-analyse-ia__recs {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.semis-analyse-ia__rec-type {
+    font-weight: 600;
+    margin: 0.5rem 0 0.25rem;
+}
+
+.semis-analyse-ia__meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+.semis-analyse-ia__relancer {
+    margin-top: 0.75rem;
+}
+
 @media (max-width: 767.98px) {
     .semis-page {
         padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));

@@ -1,0 +1,82 @@
+{% load humanize %}
+<section id="semis-analyse-ia" class="semis-panel semis-analyse-ia" aria-labelledby="semis-analyse-title">
+    <h2 id="semis-analyse-title" class="semis-panel__title">
+        <i class="fas fa-microscope" aria-hidden="true"></i> Diagnostic photo (IA)
+    </h2>
+
+    {% if analyse.statut == 'echec' %}
+    <p class="semis-analyse-ia__alert semis-analyse-ia__alert--error" role="alert">
+        {{ analyse.message_erreur|default:"L'analyse a échoué." }}
+    </p>
+    {% elif analyse.statut == 'terminee' and analyse.resultat %}
+    {% with subject=analyse.resultat.subject detections=analyse.resultat.detections %}
+    <div class="semis-analyse-ia__subject">
+        <span class="semis-analyse-ia__badge semis-analyse-ia__badge--{{ subject.subjectType|lower }}">{{ subject.subjectType }}</span>
+        <p>{{ subject.description }}</p>
+        {% if subject.confidence %}
+        {% widthratio subject.confidence 1 100 as conf_pct %}
+        <p class="semis-analyse-ia__confidence">Confiance : {{ conf_pct }} %</p>
+        {% endif %}
+    </div>
+
+    {% if detections %}
+    <ul class="semis-analyse-ia__detections">
+        {% for det in detections %}
+        <li class="semis-analyse-ia__detection semis-analyse-ia__severity--{{ det.severity|lower }}">
+            <header class="semis-analyse-ia__detection-head">
+                <strong>{{ det.className }}</strong>
+                <span class="semis-analyse-ia__severity">{{ det.severity }}</span>
+            </header>
+            {% if det.croppedImageUrl %}
+            <img src="{{ det.croppedImageUrl }}" alt="Zone — {{ det.className }}" class="semis-analyse-ia__crop" loading="lazy">
+            {% endif %}
+            {% if det.details %}
+            <p>{{ det.details.description }}</p>
+            {% if det.details.impact %}
+            <p class="semis-analyse-ia__impact"><strong>Impact :</strong> {{ det.details.impact }}</p>
+            {% endif %}
+            {% with rec=det.details.recommendations %}
+            {% if rec.biological or rec.chemical or rec.cultural %}
+            <details class="semis-analyse-ia__recs">
+                <summary>Recommandations</summary>
+                {% if rec.biological %}
+                <p class="semis-analyse-ia__rec-type">Biologique</p>
+                <ul>{% for r in rec.biological %}<li><strong>{{ r.solution }}</strong> — {{ r.details }}</li>{% endfor %}</ul>
+                {% endif %}
+                {% if rec.chemical %}
+                <p class="semis-analyse-ia__rec-type">Chimique</p>
+                <ul>{% for r in rec.chemical %}<li><strong>{{ r.solution }}</strong> — {{ r.details }}</li>{% endfor %}</ul>
+                {% endif %}
+                {% if rec.cultural %}
+                <p class="semis-analyse-ia__rec-type">Culturelle</p>
+                <ul>{% for r in rec.cultural %}<li><strong>{{ r.solution }}</strong> — {{ r.details }}</li>{% endfor %}</ul>
+                {% endif %}
+            </details>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="semis-analyse-ia__hint">Aucun problème détecté sur cette photo.</p>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+
+    <p class="semis-analyse-ia__meta">Analyse du {{ analyse.date_fin|date:"d/m/Y H:i" }}</p>
+
+    {% if peut_lancer_analyse %}
+    <form
+        class="semis-analyse-ia__relancer"
+        hx-post="{% url 'lancer_analyse_semis' projet_produit.id %}"
+        hx-target="#semis-analyse-ia"
+        hx-swap="outerHTML"
+    >
+        {% csrf_token %}
+        <button type="submit" class="btn-card btn-card-secondary">
+            <i class="fas fa-redo" aria-hidden="true"></i> Relancer l'analyse
+        </button>
+    </form>
+    {% endif %}
+</section>

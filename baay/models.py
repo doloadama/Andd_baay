@@ -842,6 +842,66 @@ class ProjetProduit(models.Model):
         super().save(*args, **kwargs)
 
 
+class AnalyseImageCulture(models.Model):
+    """Résultat d'analyse IA (photo plante / ravageur) pour une culture."""
+
+    TYPE_PLANT_PEST = "PLANT_PEST"
+    TYPE_CHOICES = [(TYPE_PLANT_PEST, "Plante / ravageur (photo rapprochée)")]
+
+    STATUT_EN_ATTENTE = "en_attente"
+    STATUT_EN_COURS = "en_cours"
+    STATUT_TERMINEE = "terminee"
+    STATUT_ECHEC = "echec"
+    STATUT_CHOICES = [
+        (STATUT_EN_ATTENTE, "En attente"),
+        (STATUT_EN_COURS, "En cours"),
+        (STATUT_TERMINEE, "Terminée"),
+        (STATUT_ECHEC, "Échec"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    projet_produit = models.ForeignKey(
+        ProjetProduit,
+        on_delete=models.CASCADE,
+        related_name="analyses_image",
+    )
+    demandee_par = models.ForeignKey(
+        "Profile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="analyses_image_demandees",
+    )
+    type_analyse = models.CharField(
+        max_length=32,
+        choices=TYPE_CHOICES,
+        default=TYPE_PLANT_PEST,
+    )
+    statut = models.CharField(
+        max_length=16,
+        choices=STATUT_CHOICES,
+        default=STATUT_EN_ATTENTE,
+        db_index=True,
+    )
+    image_hash = models.CharField(max_length=64, blank=True, db_index=True)
+    resultat = models.JSONField(null=True, blank=True)
+    sujet_type = models.CharField(max_length=32, blank=True)
+    sujet_description = models.TextField(blank=True)
+    message_erreur = models.TextField(blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_fin = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-date_creation"]
+        verbose_name = "Analyse image culture"
+        verbose_name_plural = "Analyses image culture"
+        indexes = [
+            models.Index(fields=["projet_produit", "-date_creation"]),
+        ]
+
+    def __str__(self):
+        return f"Analyse {self.type_analyse} — {self.projet_produit_id} ({self.statut})"
+
 
 class Investissement(models.Model):
     CATEGORIE_GENERAL = "general"

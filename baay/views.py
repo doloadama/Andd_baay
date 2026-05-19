@@ -2410,11 +2410,15 @@ def detail_semis(request, semis_id):
     if not peut_voir_semis(request.user.profile, projet_produit):
         messages.error(request, "Vous n'avez pas accès à ce semis.")
         return redirect('liste_semis')
-    
-    return render(request, 'semis/detail_semis.html', {
+
+    from baay.views_plant_vision import _get_analyse_panel_context
+
+    ctx = _get_analyse_panel_context(request, projet_produit)
+    ctx.update({
         'semis': projet_produit,
-        'projet_produit': projet_produit
+        'projet_produit': projet_produit,
     })
+    return render(request, 'semis/detail_semis.html', ctx)
 
 
 @login_required
