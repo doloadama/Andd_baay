@@ -3,6 +3,7 @@ Temporary setup view for Vercel (no shell available).
 Call once with ?token=YOUR_SECRET to initialize the database.
 DELETE this file after setup is complete.
 """
+import hmac
 import os
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -14,7 +15,7 @@ from django.conf import settings
 def setup_google_oauth_view(request):
     token = request.GET.get('token', '')
     expected = os.getenv('SETUP_SECRET', '')
-    if not expected or token != expected:
+    if not expected or not hmac.compare_digest(token, expected):
         return JsonResponse({'error': 'Invalid or missing token'}, status=403)
 
     from allauth.socialaccount.models import SocialApp

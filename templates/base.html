@@ -361,9 +361,12 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item text-danger logout-link" href="{% url 'logout' %}" data-logout-url="{% url 'logout' %}">
-                                        <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i> Déconnexion
-                                    </a>
+                                    <form method="post" action="{% url 'logout' %}" class="d-inline logout-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger logout-link">
+                                            <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i> Déconnexion
+                                        </button>
+                                    </form>
                                 </li>
                             </ul>
                         </li>
@@ -431,9 +434,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-baay btn-baay-outline" data-bs-dismiss="modal">Annuler</button>
-                    <a class="btn-baay btn-baay-primary" id="confirmLogoutBtn" href="{% url 'logout' %}">
-                        <i class="fas fa-check" aria-hidden="true"></i> Oui, me déconnecter
-                    </a>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline" id="logoutConfirmForm">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-baay btn-baay-primary" id="confirmLogoutBtn">
+                            <i class="fas fa-check" aria-hidden="true"></i> Oui, me déconnecter
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -549,15 +555,13 @@
     <script src="{% static 'js/main.js' %}"></script>
     {% if user.is_authenticated %}
     <script>
-        document.querySelectorAll('.logout-link').forEach(function(link) {
-            link.addEventListener('click', function(event) {
+        document.querySelectorAll('.logout-link').forEach(function(btn) {
+            btn.addEventListener('click', function(event) {
                 var modalElement = document.getElementById('logoutConfirmModal');
-                var confirmButton = document.getElementById('confirmLogoutBtn');
-                if (!modalElement || !confirmButton || !window.bootstrap) {
+                if (!modalElement || !window.bootstrap) {
                     return;
                 }
                 event.preventDefault();
-                confirmButton.href = link.dataset.logoutUrl || link.href;
                 bootstrap.Modal.getOrCreateInstance(modalElement).show();
             });
         });
@@ -1104,9 +1108,12 @@
                     <a href="{% url 'profil' %}" class="mobile-drawer-action-btn">
                         <i class="fas fa-cog"></i>
                     </a>
-                    <a href="{% url 'logout' %}" class="mobile-drawer-action-btn text-danger">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="mobile-drawer-action-btn text-danger" style="border:none;background:none;cursor:pointer;">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

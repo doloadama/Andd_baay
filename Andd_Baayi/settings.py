@@ -279,6 +279,11 @@ if IS_VERCEL or not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+
 # Security hardening for production-like environments (Vercel + non-DEBUG)
 _prod_like = IS_VERCEL or (not DEBUG)
 if _prod_like:
@@ -564,8 +569,9 @@ SOCIALACCOUNT_PROVIDERS = {
 
 # Auto-create account if Google email is new
 SOCIALACCOUNT_AUTO_SIGNUP = True
-# Skip confirmation page after Google OAuth
-SOCIALACCOUNT_LOGIN_ON_GET = True
+# Require POST for OAuth initiation to prevent login-CSRF.
+# Users must click a button/form rather than being tricked via GET link.
+SOCIALACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_QUERY_EMAIL = True
 
 # Redirects

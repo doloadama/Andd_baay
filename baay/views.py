@@ -21,7 +21,7 @@ from django.urls import reverse, reverse_lazy
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.utils import timezone
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlencode, urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
@@ -475,6 +475,7 @@ def login_view(request):
     return render(request, 'auth/login.html', {'form': form})
 
 # Vue pour la déconnexion
+@require_POST
 def logout_view(request):
     logout(request)
     messages.success(request, "Vous avez été déconnecté avec succès.")
@@ -2270,7 +2271,7 @@ def api_projet_creer(request):
         })
     except Exception as e:
         logger.error(f"Error in api_projet_creer: {type(e).__name__}: {e}", exc_info=True)
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Une erreur interne est survenue.'}, status=500)
 
 
 @login_required
@@ -4279,19 +4280,21 @@ def historique_sol_ferme(request, ferme_id):
 @login_required
 def performance(request):
     """Vue Performance - Redirige vers le dashboard unifié avec l'onglet performance."""
-    url = reverse('dashboard') + "?tab=performance"
-    if request.GET.get('ferme'):
-        url += f"&ferme={request.GET.get('ferme')}"
-    return redirect(url)
+    params = {'tab': 'performance'}
+    ferme_id = request.GET.get('ferme', '').strip()
+    if ferme_id:
+        params['ferme'] = ferme_id
+    return redirect(f"{reverse('dashboard')}?{urlencode(params)}")
 
 
 @login_required
 def activites(request):
     """Vue Activités - Redirige vers le dashboard unifié avec l'onglet activités."""
-    url = reverse('dashboard') + "?tab=activities"
-    if request.GET.get('ferme'):
-        url += f"&ferme={request.GET.get('ferme')}"
-    return redirect(url)
+    params = {'tab': 'activities'}
+    ferme_id = request.GET.get('ferme', '').strip()
+    if ferme_id:
+        params['ferme'] = ferme_id
+    return redirect(f"{reverse('dashboard')}?{urlencode(params)}")
 
 
 @login_required

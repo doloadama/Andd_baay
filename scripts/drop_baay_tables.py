@@ -27,6 +27,10 @@ tables_to_drop = [
 with connection.cursor() as cursor:
     for table in tables_to_drop:
         try:
+            # Table names are from a hardcoded list, not user input.
+            # Django's cursor.execute does not support parameterised identifiers,
+            # so quoting via psycopg.sql would be ideal but the risk is nil here
+            # because the values are fully controlled above.
             cursor.execute(f'DROP TABLE IF EXISTS "{table}" CASCADE;')
             print(f"Dropped: {table}")
         except Exception as e:
