@@ -94,6 +94,7 @@ from baay.models import (
     bump_participation_last_read,
 )
 from baay import dashboard_services
+from baay.rate_limiter import rate_limit
 from baay.permissions import (
     ROLES_TECHNIQUES,
     fermes_accessibles_qs,
@@ -573,6 +574,7 @@ def _call_gemini(full_prompt):
 
 # Chatbot — CSRF enabled, login required for security
 @login_required
+@rate_limit("chatbot", get_config=lambda: getattr(settings, "CHATBOT_RATE_LIMIT", {"max_requests": 10, "window_seconds": 60}))
 def ask_chatbot(request):
     if not client:
         return JsonResponse({
@@ -642,6 +644,7 @@ def ask_chatbot(request):
 
 @login_required
 @require_POST
+@rate_limit("voice", get_config=lambda: getattr(settings, "VOICE_RATE_LIMIT", {"max_requests": 5, "window_seconds": 60}))
 def api_vocal_query(request):
     """POST JSON { transcript | text, locale_hint? } — pipeline vocal simulée (STT/RAG/TTS stub)."""
     from baay.voice_assistant_service import run_vocal_query_pipeline
@@ -3894,6 +3897,7 @@ def api_marquer_tout_lu(request):
 
 @login_required
 @require_POST
+@rate_limit("voice", get_config=lambda: getattr(settings, "VOICE_RATE_LIMIT", {"max_requests": 5, "window_seconds": 60}))
 def api_voice_command(request):
     """Interprète une commande vocale transcrite et retourne l'action à exécuter."""
     try:

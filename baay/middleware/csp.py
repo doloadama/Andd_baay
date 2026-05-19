@@ -1,6 +1,6 @@
-import secrets
-
 from django.conf import settings
+import os
+import secrets
 
 
 def _bool_env(name: str, default: str = "False") -> bool:
@@ -24,8 +24,24 @@ class ContentSecurityPolicyMiddleware:
         if response.has_header("Content-Security-Policy") or response.has_header("Content-Security-Policy-Report-Only"):
             return response
 
+        is_production = getattr(settings, "ENV", "").lower() == "production" or getattr(settings, "IS_VERCEL", False)
+
         # Alpine et certains widgets inline ont besoin de 'unsafe-inline' / 'unsafe-eval'.
         # Pour les supprimer, il faudra migrer vers une nonce/hash (CSP_INCLUDE_NONCE prévu plus bas).
+        script_src = [
+            "'self'",
+            "'unsafe-inline'",
+        ]
+        if not is_production:
+            # unsafe-eval uniquement en dev (pour Alpine et outils)
+            script_src.append("'unsafe-eval'")
+            # Figma MCP uniquement en dev
+            script_src.append("https://mcp.figma.com")
+
+        connect_src = ["'self'"]
+        if not is_production:
+            connect_src.append("https://mcp.figma.com")
+
         policy = {
             "default-src": ["'self'"],
             "base-uri": ["'self'"],
@@ -38,14 +54,8 @@ class ContentSecurityPolicyMiddleware:
                 "'unsafe-inline'",
                 "https://fonts.googleapis.com",
             ],
-            "script-src": [
-                "'self'",
-                "'unsafe-inline'",
-                "'unsafe-eval'",
-                # Allow Figma HTML-to-Design capture (dev / internal tooling)
-                "https://mcp.figma.com",
-            ],
-            "connect-src": ["'self'", "https:", "https://mcp.figma.com"],
+            "script-src": script_src,
+            "connect-src": connect_src,
             "worker-src": ["'self'", "blob:"],
             "manifest-src": ["'self'"],
             "upgrade-insecure-requests": [],

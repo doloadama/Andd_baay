@@ -254,6 +254,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8501"
 ]
 
+# Restreindre CORS aux seules routes API (pas les pages HTML)
+CORS_URLS_REGEX = r"^/api/.*$"
+
+# Par défaut, ne pas autoriser les credentials cross-origin
+CORS_ALLOW_CREDENTIALS = False
+
 CSRF_TRUSTED_ORIGINS = [
     "https://andd-baay.onrender.com",
     "https://andd-baay.vercel.app",
@@ -630,6 +636,16 @@ if CLOUDINARY_ACTIVE and _CLOUDINARY_PARSED:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    # En production, Cloudinary est fortement recommandé (stockage persistant)
+    # Car le disque local est éphémère sur Render/Vercel
+    if IS_VERCEL or os.getenv("ENV", "").lower() == "production":
+        import warnings
+        warnings.warn(
+            "CLOUDINARY_URL n'est pas configuré en production. "
+            "Les fichiers uploadés seront stockés localement et perdus au redémarrage.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
 # ── Auth Background Images (Cloudinary URLs) ────────────────────────────────
 # These are set automatically by the upload_auth_images management command.
@@ -663,6 +679,32 @@ DJANGO_DEPLOY_TITLE_PREFIX = DJANGO_DEPLOY_TITLE_PREFIX_MAP.get(DJANGO_DEPLOY_EN
 
 
 # Logging configuration
+# Rate limiting configuration (custom implementation via cache)
+CHATBOT_RATE_LIMIT = {
+    "max_requests": 10,
+    "window_seconds": 60,
+}
+VOICE_RATE_LIMIT = {
+    "max_requests": 5,
+    "window_seconds": 60,
+}
+
+# Session security settings
+SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", str(3600 * 24 * 7)))  # 7 jours par défaut
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("1", "true", "yes")
+if IS_VERCEL or os.getenv("ENV", "").lower() == "production":
+    SESSION_COOKIE_SECURE = True
+
+# CSRF cookie security
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# Disable demo views in production
+DISABLE_DEMO_VIEWS = os.getenv("ENV", "").lower() == "production" or IS_VERCEL
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
