@@ -456,6 +456,8 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 
 # Vue pour la connexion
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     if request.method == 'POST':
         form = EmailOrUsernameAuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -748,10 +750,15 @@ def creer_projet(request):
                 initial['localite'] = from_ferme.localite.id
         projet_form = ProjetForm(user=request.user, from_ferme=from_ferme, initial=initial)
 
+    breadcrumbs = [
+        ("Projets", reverse('liste_projets')),
+        ("Nouveau projet", None),
+    ]
     return render(request, 'projets/creer_projet.html', {
         'projet_form': projet_form,
         'produits': _produits_with_form_state(projet_form),
         'from_ferme': from_ferme,
+        'breadcrumbs': breadcrumbs,
     })
 
 
@@ -2515,7 +2522,11 @@ def creer_ferme(request):
             return redirect('detail_ferme', ferme_id=ferme.id)
     else:
         form = FermeForm()
-    return render(request, 'fermes/creer_ferme.html', {'form': form})
+    breadcrumbs = [
+        ("Mes fermes", reverse('liste_fermes')),
+        ("Nouvelle ferme", None),
+    ]
+    return render(request, 'fermes/creer_ferme.html', {'form': form, 'breadcrumbs': breadcrumbs})
 
 
 @login_required
@@ -2555,6 +2566,10 @@ def detail_ferme(request, ferme_id):
     recoltes_count = StockRecolte.objects.filter(ferme=ferme).count()
     volume_recoltes = volume_total_recoltes(ferme)
 
+    breadcrumbs = [
+        ("Mes fermes", reverse('liste_fermes')),
+        (ferme.nom, None),
+    ]
     return render(request, 'fermes/detail_ferme.html', {
         'ferme': ferme,
         'projets': projets,
@@ -2575,6 +2590,7 @@ def detail_ferme(request, ferme_id):
         'recoltes_count': recoltes_count,
         'volume_recoltes': volume_recoltes,
         'peut_modifier_inventaire': peut_modifier_inventaire(request.user.profile, ferme),
+        'breadcrumbs': breadcrumbs,
     })
 
 
