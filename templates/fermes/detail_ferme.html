@@ -11,9 +11,8 @@
 {% block content %}
 <div class="fd-page">
 
-    <a href="{% url 'liste_fermes' %}" class="fd-back">
-        <i class="fas fa-arrow-left" aria-hidden="true"></i> Mes fermes
-    </a>
+    {% include 'includes/breadcrumbs.html' with crumbs=breadcrumbs %}
+
 
     <!-- ===== HERO ===== -->
     <header class="fd-hero">
