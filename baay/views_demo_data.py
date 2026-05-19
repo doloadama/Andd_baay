@@ -3,8 +3,8 @@ Vues de démonstration pour visualiser les données fictives V2.
 Ces vues sont temporaires pour le développement/test.
 """
 
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
 
@@ -16,7 +16,20 @@ from baay.models import (
 from baay.permissions import projets_accessibles_qs
 
 
+def is_staff_or_superuser(user):
+    """Vérifie si l'utilisateur est staff ou superuser."""
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+staff_or_superuser_required = user_passes_test(
+    is_staff_or_superuser,
+    login_url=None,
+    redirect_field_name=None,
+)
+
+
 @login_required
+@staff_or_superuser_required
 @require_GET
 def demo_dashboard_data(request):
     """
@@ -86,6 +99,7 @@ def demo_dashboard_data(request):
 
 
 @login_required
+@staff_or_superuser_required
 @require_GET
 def demo_finance_workflow(request):
     """Vue démo du workflow finance avec données."""
@@ -116,6 +130,7 @@ def demo_finance_workflow(request):
 
 
 @login_required
+@staff_or_superuser_required
 @require_GET
 def demo_marketplace(request):
     """Vue démo du marketplace."""
@@ -143,6 +158,7 @@ def demo_marketplace(request):
 
 
 @login_required
+@staff_or_superuser_required
 @require_GET
 def demo_roi_simulations(request):
     """Vue démo des simulations ROI."""
@@ -175,6 +191,7 @@ def demo_roi_simulations(request):
 
 
 @login_required
+@staff_or_superuser_required
 @require_GET
 def api_demo_data_summary(request):
     """API qui retourne un résumé des données de démo."""
