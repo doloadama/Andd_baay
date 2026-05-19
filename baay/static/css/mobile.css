@@ -414,6 +414,14 @@
     }
 }
 
+/* Hide voice & guide FABs on mobile to avoid cluttering bottom nav area */
+@media (max-width: 767.98px) {
+    .voice-mic-btn,
+    .guide-fab {
+        display: none !important;
+    }
+}
+
 /* ========== CHAT BUBBLE OFFSET (above bottom nav) ========== */
 @media (max-width: 767.98px) {
     .chat-bubble-container {
