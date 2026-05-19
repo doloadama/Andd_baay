@@ -435,7 +435,7 @@
                 <article>
                     <div class="ico"><i class="fas fa-warehouse"></i></div>
                     <h3>Multi-fermes</h3>
-                    <p>Gerez plusieurs exploitations, invitez votre equipe, partagez avec un code d'acces unique.</p>
+                    <p>Gérez plusieurs exploitations, invitez votre équipe, partagez avec un code d'accès unique.</p>
                 </article>
                 <article>
                     <div class="ico"><i class="fas fa-seedling"></i></div>
@@ -455,7 +455,7 @@
                 <article>
                     <div class="ico"><i class="fas fa-comments"></i></div>
                     <h3>Chatbot agricole</h3>
-                    <p>Posez vos questions agronomiques a un assistant IA specialise dans les cultures locales.</p>
+                    <p>Posez vos questions agronomiques à un assistant IA spécialisé dans les cultures locales.</p>
                 </article>
             </div>
         </div>
@@ -1112,5 +1112,26 @@
 
         counters.forEach((counter) => observer.observe(counter));
     });
+
+    /* Scroll reveal for landing page sections */
+    (function() {
+        var sections = document.querySelectorAll('.problems, .features, .steps, .testimonials, .faq, .final-cta, .community-section, .features-section');
+        if (!sections.length) return;
+        sections.forEach(function(s) {
+            s.style.opacity = '0';
+            s.style.transform = 'translateY(32px)';
+            s.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        });
+        var revealObs = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    revealObs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        sections.forEach(function(s) { revealObs.observe(s); });
+    })();
 </script>
 {% endblock %}

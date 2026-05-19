@@ -346,14 +346,30 @@
                 </div>
             </a>
             {% empty %}
-            <p class="text-center py-4 at-muted">Aucun projet.</p>
+            <div class="text-center py-4">
+                <div style="font-size:2.5rem;margin-bottom:8px;opacity:0.4;">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <p class="at-muted mb-2">Aucun projet pour le moment.</p>
+                <a href="{% url 'creer_projet' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:var(--radius-pill);padding:8px 20px;">
+                    <i class="fas fa-plus me-1"></i> Créer un projet
+                </a>
+            </div>
             {% endfor %}
         </div>
 
         <div class="at-card at-cockpit-map">
             <h3 class="at-card-title"><i class="fas fa-map-marked-alt"></i> Sites d'exploitation</h3>
             <div id="dashboardMap" class="at-map-canvas"></div>
-            <p id="dashboardMapEmpty" class="small at-muted text-center py-3 d-none">Aucune coordonnée GPS enregistrée pour vos fermes.</p>
+            <div id="dashboardMapEmpty" class="text-center py-3 d-none">
+                <div style="font-size:2rem;margin-bottom:6px;opacity:0.4;">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <p class="small at-muted mb-2">Aucune coordonnée GPS enregistrée pour vos fermes.</p>
+                <a href="{% url 'liste_fermes' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:var(--radius-pill);padding:6px 16px;font-size:0.8rem;">
+                    <i class="fas fa-cog me-1"></i> Configurer mes fermes
+                </a>
+            </div>
         </div>
 
     </div>

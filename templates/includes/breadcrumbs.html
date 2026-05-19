@@ -1,0 +1,19 @@
+{% comment %}
+  Breadcrumbs — inclusion générique.
+  Usage : {% include 'includes/breadcrumbs.html' with crumbs=crumbs %}
+  crumbs = [(label, url), …, (label_courant, None)]
+{% endcomment %}
+{% if crumbs %}
+<nav aria-label="Fil d'Ariane" class="breadcrumb-nav">
+    <ol class="breadcrumb-list">
+        <li class="breadcrumb-item">
+            <a href="{% url 'dashboard' %}"><i class="fas fa-home"></i></a>
+        </li>
+        {% for label, url in crumbs %}
+        <li class="breadcrumb-item{% if forloop.last %} active{% endif %}"{% if forloop.last %} aria-current="page"{% endif %}>
+            {% if url %}<a href="{{ url }}">{{ label }}</a>{% else %}{{ label }}{% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}

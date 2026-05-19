@@ -10,15 +10,7 @@
 {% block content %}
 <div class="pc-page pc-root">
 
-    {% if from_ferme %}
-    <a href="{% url 'detail_ferme' from_ferme.id %}" class="pc-back">
-        <i class="fas fa-arrow-left" aria-hidden="true"></i> Retour à {{ from_ferme.nom }}
-    </a>
-    {% else %}
-    <a href="{% url 'liste_projets' %}" class="pc-back">
-        <i class="fas fa-arrow-left" aria-hidden="true"></i> Mes projets
-    </a>
-    {% endif %}
+    {% include 'includes/breadcrumbs.html' with crumbs=breadcrumbs %}
 
     <header class="pc-hero">
         <div class="pc-hero__inner">
