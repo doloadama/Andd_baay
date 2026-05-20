@@ -29,6 +29,21 @@
         --at-glass: rgba(255, 255, 255, 0.92);
     }
 
+    /* Dark mode overrides */
+    .dark-mode {
+        --at-brand: #5dcaa5;
+        --at-brand-deep: #a8c8bb;
+        --at-brand-night: #E8F5F0;
+        --at-accent: #EF9F27;
+        --at-surface: #121c19;
+        --at-bg: #0a0f0e;
+        --at-text: #E8F5F0;
+        --at-muted: #a8c8bb;
+        --at-border: rgba(93,202,165,0.12);
+        --at-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        --at-glass: rgba(18, 28, 25, 0.92);
+    }
+
     .at-dashboard {
         max-width: 1400px;
         margin: 0 auto;
@@ -88,6 +103,7 @@
         color: white;
         box-shadow: 0 4px 12px rgba(29, 158, 117, 0.25);
     }
+    .dark-mode .at-tab-btn.active { color: #0a0f0e; }
 
     /* --- BENTO GRID SYSTEM --- */
     .at-bento {
@@ -107,6 +123,7 @@
         overflow: hidden;
     }
     .at-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(8,80,65,0.12); }
+    .dark-mode .at-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
     .at-card--md { grid-column: span 6; }
     .at-card--lg { grid-column: span 8; }
     .at-card--sm { grid-column: span 4; }
@@ -121,6 +138,7 @@
     .at-chart-wrap { height: 280px; position: relative; }
     .at-chart-wrap--compact { height: 220px; }
     .at-map-canvas { height: 320px; border-radius: 14px; background: #e8eeeb; }
+    .dark-mode .at-map-canvas { background: #1a2924; }
 
     .at-card-title {
         font-family: 'Space Grotesk', sans-serif;
@@ -150,6 +168,7 @@
         transition: 0.2s; text-decoration: none; color: inherit;
     }
     .at-project-row:hover { transform: translateX(5px); background: #f0f4f2; }
+    .dark-mode .at-project-row:hover { background: rgba(93,202,165,0.08); }
     .at-project-name { font-weight: 700; font-size: 14px; }
     .at-project-meta { font-size: 11px; color: var(--at-muted); }
 
@@ -194,6 +213,27 @@
         display: flex; align-items: center; gap: 12px; white-space: nowrap; text-decoration: none; color: var(--at-text);
         font-weight: 700; font-size: 14px; border: 1px solid var(--at-border);
     }
+    .dark-mode .at-fab-item { background: var(--at-surface); }
+
+    /* --- DARK MODE: Bootstrap & misc overrides --- */
+    .dark-mode .at-topbar .btn-light {
+        background: var(--at-surface);
+        border-color: var(--at-border);
+        color: var(--at-text);
+    }
+    .dark-mode .at-topbar .btn-light:hover { background: rgba(93,202,165,0.08); }
+    .dark-mode .at-topbar .dropdown-menu {
+        background: var(--at-surface);
+        border: 1px solid var(--at-border);
+    }
+    .dark-mode .at-topbar .dropdown-item { color: var(--at-text); }
+    .dark-mode .at-topbar .dropdown-item:hover { background: rgba(93,202,165,0.08); }
+    .dark-mode .at-topbar .btn-primary {
+        background: var(--at-brand);
+        border-color: var(--at-brand);
+        color: #0a0f0e;
+    }
+    .dark-mode .at-table td { color: var(--at-text); }
 
     /* --- RESPONSIVE --- */
     @media (max-width: 992px) {
