@@ -67,6 +67,42 @@ python manage.py runserver 0.0.0.0:8000
 
 ## Testing Patterns
 
+### Dark Mode Testing
+
+Dark mode is toggled via the theme button in the navbar (gear/sun/moon icon, typically `devinid="8"` on authenticated pages). It adds/removes `.dark-mode` class on `<html>`.
+
+**Toggle mechanism**: The button calls JS that toggles `.dark-mode` on `document.documentElement` and saves preference to `localStorage` (key: `theme`).
+
+**CSS architecture**: The app uses two layers of CSS variables:
+1. `base.css` / `base-inline.css` — global variables (`--bg-deep`, `--text-main`, etc.) with `.dark-mode` overrides
+2. Template-specific inline `<style>` blocks (e.g., `dashboard_unified.html` uses `--at-*` variables) — these MUST have their own `.dark-mode` overrides or they'll stay light-themed
+
+**Verifying CSS variables programmatically** (browser console):
+```javascript
+// Check if dark mode is active
+document.documentElement.classList.contains('dark-mode')
+
+// Check dashboard-specific variables
+getComputedStyle(document.documentElement).getPropertyValue('--at-surface').trim()
+// Expected dark: #121c19, Expected light: #ffffff
+
+getComputedStyle(document.documentElement).getPropertyValue('--at-text').trim()
+// Expected dark: #E8F5F0, Expected light: #2C2C2A
+
+getComputedStyle(document.documentElement).getPropertyValue('--at-bg').trim()
+// Expected dark: #0a0f0e, Expected light: #f8faf9
+```
+
+**Pages to check in dark mode**:
+- `/login/` — form fields, labels, buttons
+- `/register/` — form fields, labels, legal links
+- `/` (landing) — hero, feature cards, FAQ accordion
+- `/dashboard/` — KPI cards, tabs, topbar buttons, dropdown menu, project rows, site cards
+
+**Known issue**: Dark mode preference might not persist across login redirects. After logging in, you may need to re-toggle dark mode on the dashboard. This is a pre-existing UX issue.
+
+**HSTS cache issue**: Chrome may force HTTPS on `127.0.0.1` if HSTS was cached. Fix: navigate to `chrome://net-internals/#hsts`, delete `127.0.0.1` from the HSTS set.
+
 ### Cookie Headers
 ```bash
 curl -sv http://localhost:8000/login/ 2>&1 | grep -i 'set-cookie'
