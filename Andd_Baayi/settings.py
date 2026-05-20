@@ -78,6 +78,35 @@ def _parse_cloudinary_url(url: str) -> dict:
     return {"API_KEY": key, "API_SECRET": secret, "CLOUD_NAME": cloud}
 
 
+def _normalise_database_url(database_url: str) -> str:
+    """
+    Nettoie DATABASE_URL sans modifier les ports des fournisseurs non-Supabase.
+
+    Supabase expose le pooler transactionnel sur :6543, mais les bases PostgreSQL
+    classiques (Render, Neon, Railway, etc.) utilisent généralement :5432.
+    """
+    parts = urlsplit(database_url)
+    query = [
+        (k, v)
+        for (k, v) in parse_qsl(parts.query, keep_blank_values=True)
+        if k not in {"supa", "pgbouncer"}
+    ]
+
+    hostname = (parts.hostname or "").lower()
+    is_supabase = hostname.endswith(".supabase.co") or hostname.endswith(".supabase.com")
+    try:
+        port = parts.port
+    except ValueError:
+        port = None
+
+    if is_supabase and port == 5432:
+        netloc = parts.netloc.rsplit(":5432", 1)[0] + ":6543"
+    else:
+        netloc = parts.netloc
+
+    return urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), parts.fragment))
+
+
 CLOUDINARY_ACTIVE = bool(CLOUDINARY_URL)
 _CLOUDINARY_PARSED = None
 if CLOUDINARY_ACTIVE:
@@ -419,12 +448,7 @@ if DATABASE_URL:
     # Supabase/Vercel env vars sometimes include non-libpq query params like `supa` / `pgbouncer`.
     # psycopg will error on unknown connection options, so we strip them defensively.
     try:
-        parts = urlsplit(DATABASE_URL)
-        query = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k not in {"supa", "pgbouncer"}]
-        # Switch to Transaction pooler (port 6543) to fix MaxClientsInSessionMode on Supabase.
-        # Session mode (port 5432) is capped; Transaction mode handles serverless much better.
-        netloc = parts.netloc.replace(":5432", ":6543")
-        DATABASE_URL = urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), parts.fragment))
+        DATABASE_URL = _normalise_database_url(DATABASE_URL)
     except Exception:
         # If parsing fails, fall back to the raw value and let Django surface the error.
         pass
