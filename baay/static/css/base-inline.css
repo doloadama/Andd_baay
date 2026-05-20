@@ -167,8 +167,8 @@
             --card-glass: rgba(18, 28, 25, 0.85);
             --card-bg-solid: #121c19;
             --text-main: #E8F5F0;
-            --text-secondary: #c4d9d0;
-            --text-muted: #8aa89e;
+            --text-secondary: #d0e5dc;
+            --text-muted: #a8c8bb;
             --text-inverse: #ffffff;
             --border-glass: rgba(93, 202, 165, 0.12);
             --glass-bg: rgba(18, 28, 25, 0.78);
@@ -176,7 +176,12 @@
             --accent: var(--brand-light);
             --accent-dark: var(--brand-primary);
             --accent-hover: #7dd4b3;
-            --accent-subtle: rgba(93, 202, 165, 0.14);
+            /* Subtle tints need higher opacity on dark backgrounds */
+            --accent-subtle: rgba(29, 158, 117, 0.22);
+            --success-subtle: rgba(29, 158, 117, 0.22);
+            --warning-subtle: rgba(239, 159, 39, 0.22);
+            --info-subtle: rgba(59, 130, 246, 0.22);
+            --danger-subtle: rgba(239, 68, 68, 0.22);
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
             --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
