@@ -57,13 +57,6 @@ class TestFertilisationService(TestCase):
         self.produit = ProduitAgricole.objects.create(
             nom="Mil",
             rendement_moyen=1200,
-            culture="cereale",
-            besoins_npka_json={
-                "N_kg_ha": 60,
-                "P_kg_ha": 30,
-                "K_kg_ha": 40,
-                "pH_optimal": {"min": 6.0, "max": 7.0}
-            }
         )
 
     def test_calculer_deficit_nutriments(self):
@@ -71,6 +64,7 @@ class TestFertilisationService(TestCase):
         sol = HistoriqueSol.objects.create(
             ferme=self.ferme,
             parcelle_nom="Parcelle Test",
+            date_mesure=date.today(),
             ph=6.5,
             azote_ppm=15,
             phosphore_ppm=10,
@@ -90,6 +84,7 @@ class TestFertilisationService(TestCase):
         sol = HistoriqueSol.objects.create(
             ferme=self.ferme,
             parcelle_nom="Parcelle Test",
+            date_mesure=date.today(),
             ph=6.5,
             azote_ppm=15,
             phosphore_ppm=10,
@@ -309,6 +304,7 @@ class TestMarketplaceModels(TestCase):
             quantite_disponible=Decimal("100.00"),
             prix_unitaire=Decimal("500.00"),
             date_expiration=date.today() + timedelta(days=30),
+            cree_par=self.profile,
         )
         
         # prix_total = 100 * 500 = 50000
@@ -325,6 +321,7 @@ class TestMarketplaceModels(TestCase):
             prix_unitaire=Decimal("400.00"),
             statut="disponible",
             date_expiration=date.today() + timedelta(days=7),
+            cree_par=self.profile,
         )
 
         # Vérifie que le statut est disponible et la date d'expiration est future

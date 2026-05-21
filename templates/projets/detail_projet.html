@@ -523,7 +523,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="at-layout" x-data="{ activeTab: 'dashboard' }">
+<div class="at-layout" x-data="projetDetailTabsData()">
 
     <!-- ═══════════ HERO ═══════════ -->
     <header class="at-hero">
@@ -565,32 +565,55 @@
         </div>
     </header>
 
-    <!-- ═══════════ TABS NAVIGATION ═══════════ -->
-    <nav class="at-tabs-nav">
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">
-            <i class="fas fa-th-large"></i> Dashboard
+    <!-- ═══════════ TABS NAVIGATION (roulette mobile) ═══════════ -->
+    <div class="tab-roulette">
+        <button type="button" class="tab-roulette__btn tab-roulette__btn--prev" @click="roulettePrev()" aria-label="Onglet précédent">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'products' }" @click="activeTab = 'products'">
-            <i class="fas fa-seedling"></i> Cultures
+        <nav class="at-tabs-nav tab-roulette__track" x-ref="tabRouletteNav" role="tablist" aria-label="Sections du projet">
+            <button type="button" class="at-tab-btn" data-tab-id="dashboard" role="tab"
+                    :class="{ 'active': activeTab === 'dashboard' }" :aria-selected="activeTab === 'dashboard'"
+                    @click="rouletteSelect('dashboard')">
+                <i class="fas fa-th-large" aria-hidden="true"></i> Dashboard
+            </button>
+            <button type="button" class="at-tab-btn" data-tab-id="products" role="tab"
+                    :class="{ 'active': activeTab === 'products' }" :aria-selected="activeTab === 'products'"
+                    @click="rouletteSelect('products')">
+                <i class="fas fa-seedling" aria-hidden="true"></i> Cultures
+            </button>
+            {% if can_view_investissements %}
+            <button type="button" class="at-tab-btn" data-tab-id="finance" role="tab"
+                    :class="{ 'active': activeTab === 'finance' }" :aria-selected="activeTab === 'finance'"
+                    @click="rouletteSelect('finance')">
+                <i class="fas fa-wallet" aria-hidden="true"></i> Finance
+            </button>
+            {% endif %}
+            <button type="button" class="at-tab-btn" data-tab-id="expertise" role="tab"
+                    :class="{ 'active': activeTab === 'expertise' }" :aria-selected="activeTab === 'expertise'"
+                    @click="rouletteSelect('expertise')">
+                <i class="fas fa-microscope" aria-hidden="true"></i> Expertise IA
+            </button>
+            <button type="button" class="at-tab-btn" data-tab-id="management" role="tab"
+                    :class="{ 'active': activeTab === 'management' }" :aria-selected="activeTab === 'management'"
+                    @click="rouletteSelect('management')">
+                <i class="fas fa-tasks" aria-hidden="true"></i> Gestion & Équipe
+            </button>
+        </nav>
+        <button type="button" class="tab-roulette__btn tab-roulette__btn--next" @click="rouletteNext()" aria-label="Onglet suivant">
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
         </button>
-        {% if can_view_investissements %}
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'finance' }" @click="activeTab = 'finance'">
-            <i class="fas fa-wallet"></i> Finance
-        </button>
-        {% endif %}
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'expertise' }" @click="activeTab = 'expertise'">
-            <i class="fas fa-microscope"></i> Expertise IA
-        </button>
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'management' }" @click="activeTab = 'management'">
-            <i class="fas fa-tasks"></i> Gestion & Équipe
-        </button>
-    </nav>
+        <div class="tab-roulette__dots" aria-hidden="true">
+            <template x-for="tabId in tabRouletteOrder" :key="tabId">
+                <span class="tab-roulette__dot" :class="{ 'is-active': activeTab === tabId }"></span>
+            </template>
+        </div>
+    </div>
 
     <!-- ═══════════ TAB: DASHBOARD ═══════════ -->
     <div x-show="activeTab === 'dashboard'" x-transition>
         <div class="at-grid-dashboard">
             <!-- Progress Card -->
-            <div class="at-card d-flex align-items-center gap-4">
+            <div class="at-card d-flex align-items-center gap-4 at-card--interactive" @click="rouletteSelect('management')">
                 <div class="at-progress-circle">
                     <svg width="120" height="120">
                         <circle class="at-progress-circle__bg" cx="60" cy="60" r="52"></circle>
@@ -610,10 +633,10 @@
 
             <!-- Finance Summary -->
             {% if can_view_investissements %}
-            <div class="at-card">
+            <div class="at-card at-card--interactive" @click="rouletteSelect('finance')">
                 <h3 class="at-card-title"><i class="fas fa-coins"></i> Budget</h3>
                 <div class="at-kpi">
-                    <span class="at-kpi__label">Utilisé</span>
+                    <span class="at-kpi__label">Utilisé <small class="text-success" style="font-size:0.75rem;">(voir détails)</small></span>
                     <span class="at-kpi__value">{{ investissement_total_fcfa|floatformat:0|intcomma }} <small>FCFA</small></span>
                     {% if projet.budget_alloue %}
                     <div class="at-kpi__footer">
@@ -625,10 +648,10 @@
             {% endif %}
 
             <!-- Prediction Summary -->
-            <div class="at-card">
+            <div class="at-card at-card--interactive" @click="rouletteSelect('expertise')">
                 <h3 class="at-card-title"><i class="fas fa-chart-line"></i> Prédiction</h3>
                 <div class="at-kpi">
-                    <span class="at-kpi__label">Rendement estimé</span>
+                    <span class="at-kpi__label">Rendement estimé <small class="text-success" style="font-size:0.75rem;">(voir IA)</small></span>
                     {% if prediction %}
                     <span class="at-kpi__value">{{ prediction.rendement_estime_min|floatformat:0 }} - {{ prediction.rendement_estime_max|floatformat:0 }} <small>kg</small></span>
                     <div class="at-kpi__footer text-success">
@@ -931,6 +954,20 @@
 <script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
 
 <script>
+function projetDetailTabsData() {
+    var order = ['dashboard', 'products'{% if can_view_investissements %}, 'finance'{% endif %}, 'expertise', 'management'];
+    var base = { activeTab: 'dashboard' };
+    var mixin = typeof tabRouletteMixin === 'function'
+        ? tabRouletteMixin({ order: order, select: function (tab) { this.activeTab = tab; } })
+        : {};
+    return Object.assign(base, mixin, {
+        init: function () {
+            if (typeof this.initTabRoulette === 'function') { this.initTabRoulette(); }
+            if (typeof this.initTabRouletteScrollSync === 'function') { this.initTabRouletteScrollSync(); }
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // ── Leaflet Map ──
     const lat = {{ map_latitude|unlocalize }};

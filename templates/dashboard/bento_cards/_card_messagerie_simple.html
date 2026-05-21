@@ -1,0 +1,318 @@
+{% load static %}
+{# ============================================================
+   CARTE MESSAGERIE SIMPLE — Baay Simple (Ouvriers)
+   Bouton micro géant (HTML5 MediaRecorder) + messages récents
+   ============================================================ #}
+
+<div class="simple-card__header">
+  <h2 class="simple-card__title">
+    <i class="fas fa-comments"></i>
+    Messagerie
+  </h2>
+  {% if unread_count %}
+  <span class="simple-card__badge">{{ unread_count }} non lu{{ unread_count|pluralize }}</span>
+  {% endif %}
+</div>
+
+<div class="simple-card__body">
+
+  {# ── Messages récents non lus ──────────────── #}
+  {% if messages_recents %}
+  <ul style="list-style:none; padding:0; margin:0 0 1.25rem; display:flex; flex-direction:column; gap:.65rem;">
+    {% for msg in messages_recents %}
+    <li style="
+      background: var(--bs-bg);
+      border: 1.5px solid var(--bs-border);
+      border-radius: 14px;
+      padding: .75rem 1rem;
+      display: flex; align-items: center; gap: .75rem;
+    ">
+      {# Avatar expéditeur #}
+      <div style="
+        width:40px; height:40px; border-radius:50%;
+        background: var(--bs-green); color:#fff;
+        font-weight:800; font-size:1.1rem;
+        display:flex; align-items:center; justify-content:center;
+        flex-shrink:0;
+      ">{{ msg.expediteur.user.first_name|first|default:msg.expediteur.user.username|first|upper }}</div>
+
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:700; font-size:.9rem; color:var(--bs-text); margin-bottom:.15rem;">
+          {{ msg.expediteur.user.first_name|default:msg.expediteur.user.username }}
+        </div>
+        {% if msg.piece_jointe %}
+        <div style="font-size:.8rem; color:var(--bs-text-muted);">
+          <i class="fas fa-microphone" style="color:var(--bs-green);"></i> Message vocal
+        </div>
+        {% else %}
+        <div style="font-size:.8rem; color:var(--bs-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          {{ msg.contenu|truncatechars:50 }}
+        </div>
+        {% endif %}
+      </div>
+
+      <a href="{% url 'messagerie_inbox' %}"
+         style="
+           min-width:40px; min-height:40px;
+           border-radius:50%; background:var(--bs-bg);
+           border:1.5px solid var(--bs-border);
+           display:flex; align-items:center; justify-content:center;
+           color:var(--bs-green); text-decoration:none;
+         "
+         title="Ouvrir">
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {# ── Bouton micro géant ────────────────────── #}
+  <div style="text-align:center; padding: .5rem 0 .25rem;">
+    <p style="font-size:.85rem; color:var(--bs-text-muted); margin-bottom:.75rem;">
+      Appuyez et maintenez pour enregistrer un message vocal
+    </p>
+
+    {# Statut d'enregistrement #}
+    <div id="voiceStatus" style="
+      font-size:.85rem; font-weight:700; min-height:1.4em;
+      color: var(--bs-text-muted); margin-bottom:.75rem;
+    "></div>
+
+    {# Bouton principal #}
+    <button id="voiceBtn"
+      style="
+        width: 90px; height: 90px; border-radius: 50%;
+        background: var(--bs-green);
+        border: 4px solid rgba(29,158,117,.3);
+        color: #fff; font-size: 2.2rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 6px 28px rgba(29,158,117,.45);
+        transition: transform .15s, background .2s;
+        user-select: none; -webkit-user-select: none;
+        touch-action: none;
+      "
+      aria-label="Enregistrer un message vocal"
+      title="Maintenir pour enregistrer">
+      <i class="fas fa-microphone" id="voiceIcon"></i>
+    </button>
+
+    {# Visualiseur de niveau sonore #}
+    <div id="audioMeter" style="
+      width: 90px; height: 6px; border-radius:99px;
+      background: var(--bs-border);
+      margin: .75rem auto 0; overflow:hidden; display:none;
+    ">
+      <div id="audioLevel" style="
+        height:100%; width:0%; border-radius:99px;
+        background: var(--bs-green);
+        transition: width .1s;
+      "></div>
+    </div>
+
+    {# Lecteur de prévisualisation #}
+    <audio id="voicePreview" controls style="display:none; margin:.75rem auto 0; max-width:280px; width:100%;"></audio>
+
+    {# Bouton envoyer (apparaît après enregistrement) #}
+    <button id="voiceSendBtn" style="display:none; margin-top:.75rem;"
+      class="btn btn-success"
+      onclick="sendVoiceNote()">
+      <i class="fas fa-paper-plane"></i> Envoyer le message
+    </button>
+  </div>
+
+  {# ── Lien messagerie complète ──────────────── #}
+  <div style="text-align:center; margin-top:1.25rem;">
+    <a href="{% url 'messagerie_inbox' %}"
+       style="
+         display:inline-flex; align-items:center; gap:.5rem;
+         background: var(--bs-bg);
+         border: 1.5px solid var(--bs-border);
+         border-radius: 50px;
+         padding: .6rem 1.25rem;
+         color: var(--bs-text);
+         font-weight: 700; font-size: .85rem;
+         text-decoration: none;
+       ">
+      <i class="fas fa-inbox" style="color:var(--bs-green);"></i>
+      Ouvrir la messagerie complète
+    </a>
+  </div>
+</div>
+
+{# ── Script MediaRecorder ──────────────────────── #}
+<script>
+(function() {
+  const btn        = document.getElementById('voiceBtn');
+  const icon       = document.getElementById('voiceIcon');
+  const status     = document.getElementById('voiceStatus');
+  const meter      = document.getElementById('audioMeter');
+  const level      = document.getElementById('audioLevel');
+  const preview    = document.getElementById('voicePreview');
+  const sendBtn    = document.getElementById('voiceSendBtn');
+
+  let mediaRecorder = null;
+  let audioChunks   = [];
+  let audioBlob     = null;
+  let stream        = null;
+  let analyser      = null;
+  let animFrame     = null;
+  let isRecording   = false;
+
+  // ── Visualiseur sonore ───────────────────────
+  function startMeter(s) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaStreamSource(s);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    src.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    meter.style.display = 'block';
+    function draw() {
+      animFrame = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(data);
+      const avg = data.reduce((a, b) => a + b, 0) / data.length;
+      level.style.width = Math.min(100, (avg / 128) * 100) + '%';
+    }
+    draw();
+  }
+
+  function stopMeter() {
+    if (animFrame) cancelAnimationFrame(animFrame);
+    meter.style.display = 'none';
+    level.style.width = '0%';
+  }
+
+  // ── Démarrer enregistrement ──────────────────
+  async function startRecording() {
+    if (isRecording) return;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      audioBlob = null;
+      preview.style.display = 'none';
+      sendBtn.style.display = 'none';
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/ogg') ? 'audio/ogg' : 'audio/wav';
+
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(audioChunks, { type: mimeType });
+        preview.src = URL.createObjectURL(audioBlob);
+        preview.style.display = 'block';
+        sendBtn.style.display = 'inline-block';
+        status.textContent = 'Écoutez avant d\'envoyer';
+        status.style.color = 'var(--bs-green)';
+        stream.getTracks().forEach(t => t.stop());
+        stopMeter();
+      };
+
+      mediaRecorder.start(100);
+      isRecording = true;
+      btn.style.background = '#E53E3E';
+      btn.style.transform   = 'scale(1.1)';
+      icon.className = 'fas fa-stop';
+      status.textContent = '🔴 Enregistrement…';
+      status.style.color  = '#E53E3E';
+      startMeter(stream);
+    } catch (err) {
+      status.textContent = 'Microphone inaccessible. Vérifiez les permissions.';
+      status.style.color = '#E53E3E';
+    }
+  }
+
+  // ── Arrêter enregistrement ───────────────────
+  function stopRecording() {
+    if (!isRecording || !mediaRecorder) return;
+    mediaRecorder.stop();
+    isRecording = false;
+    btn.style.background = 'var(--bs-green)';
+    btn.style.transform   = 'scale(1)';
+    icon.className = 'fas fa-microphone';
+  }
+
+  // ── Interactions (pression longue) ──────────
+  btn.addEventListener('mousedown',  startRecording);
+  btn.addEventListener('mouseup',    stopRecording);
+  btn.addEventListener('mouseleave', stopRecording);
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+  btn.addEventListener('touchend',   (e) => { e.preventDefault(); stopRecording(); });
+
+  // ── Envoi vers Cloudinary puis Django ───────
+  window.sendVoiceNote = async function() {
+    if (!audioBlob) return;
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi…';
+    status.textContent = 'Envoi en cours…';
+    status.style.color  = 'var(--bs-text-muted)';
+
+    const formData = new FormData();
+    const ext = audioBlob.type.includes('ogg') ? 'ogg' : audioBlob.type.includes('wav') ? 'wav' : 'webm';
+    formData.append('audio', audioBlob, `voice_${Date.now()}.${ext}`);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+
+    try {
+      const res = await fetch("{% url 'messagerie_inbox' %}", {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      if (res.ok || res.status === 302) {
+        status.textContent = '✅ Message envoyé !';
+        status.style.color  = 'var(--bs-green)';
+        preview.style.display  = 'none';
+        sendBtn.style.display  = 'none';
+        audioBlob = null;
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } else {
+        throw new Error('Erreur réseau');
+      }
+    } catch(e) {
+      // Sauvegarder hors-ligne via IndexedDB pour sync future
+      status.textContent = 'Hors ligne — message sauvegardé, envoi automatique à la reconnexion.';
+      status.style.color  = 'var(--bs-warning)';
+      saveVoiceNoteOffline(audioBlob);
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer le message';
+    }
+  };
+
+  // ── Sauvegarde offline IndexedDB ─────────────
+  function saveVoiceNoteOffline(blob) {
+    const req = indexedDB.open('baay_offline', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('voice_queue', { autoIncrement: true });
+    req.onsuccess = e => {
+      const db = e.target.result;
+      db.transaction('voice_queue', 'readwrite').objectStore('voice_queue').add({
+        blob,
+        timestamp: Date.now(),
+      });
+    };
+  }
+
+  // ── Synchronisation au retour réseau ─────────
+  window.addEventListener('online', async () => {
+    const req = indexedDB.open('baay_offline', 1);
+    req.onsuccess = e => {
+      const db = e.target.result;
+      const tx = db.transaction('voice_queue', 'readwrite');
+      const store = tx.objectStore('voice_queue');
+      const cursor = store.openCursor();
+      cursor.onsuccess = ev => {
+        const c = ev.target.result;
+        if (!c) return;
+        const { blob, key } = c.value ? { blob: c.value.blob, key: c.key } : { blob: c.value, key: c.key };
+        audioBlob = blob;
+        window.sendVoiceNote();
+        store.delete(c.key);
+        c.continue();
+      };
+    };
+  });
+})();
+</script>

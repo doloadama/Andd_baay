@@ -1,0 +1,160 @@
+/**
+ * Onglets type « roulette » sur mobile : flèches, snap centré, indicateurs.
+ * Wrapper : .tab-roulette > .tab-roulette__btn + .tab-roulette__track (nav existante)
+ */
+
+.tab-roulette {
+    display: block;
+}
+
+.tab-roulette__btn,
+.tab-roulette__dots {
+    display: none;
+}
+
+.tab-roulette__track {
+    min-width: 0;
+}
+
+@media (max-width: 767.98px) {
+    .tab-roulette {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) 42px;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0 clamp(4px, 2vw, 12px);
+        position: sticky;
+        top: calc(60px + env(safe-area-inset-top, 0px));
+        z-index: 100;
+    }
+
+    .tab-roulette__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color, #e2e8e6);
+        background: var(--card-bg, #fff);
+        color: var(--text-main, #0f172a);
+        cursor: pointer;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .tab-roulette__btn:active {
+        transform: scale(0.94);
+    }
+
+    .tab-roulette__btn:focus-visible {
+        outline: 2px solid var(--brand-primary, #1d9e75);
+        outline-offset: 2px;
+    }
+
+    .dark-mode .tab-roulette__btn {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-main);
+    }
+
+    .tab-roulette__track.at-tabs-nav,
+    .tab-roulette__track.fh-tabs-nav {
+        position: relative;
+        top: auto;
+        margin-bottom: 0;
+        padding: 8px 4px;
+        border-radius: 20px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+        mask-image: linear-gradient(
+            90deg,
+            transparent 0%,
+            #000 10%,
+            #000 90%,
+            transparent 100%
+        );
+    }
+
+    .tab-roulette__track.at-tabs-nav::-webkit-scrollbar,
+    .tab-roulette__track.fh-tabs-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-roulette__track .at-tab-btn,
+    .tab-roulette__track .fh-tab-btn {
+        flex: 0 0 78%;
+        max-width: 78%;
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+        opacity: 0.5;
+        transform: scale(0.94);
+        transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .tab-roulette__track .at-tab-btn.active,
+    .tab-roulette__track .fh-tab-btn.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .tab-roulette__dots {
+        display: flex;
+        grid-column: 1 / -1;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        padding-top: 2px;
+    }
+
+    .tab-roulette__dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--border-color, #cbd5e1);
+        transition: width 0.2s ease, background 0.2s ease;
+    }
+
+    .tab-roulette__dot.is-active {
+        width: 22px;
+        border-radius: 999px;
+        background: var(--brand-primary, #1d9e75);
+    }
+
+    .dark-mode .tab-roulette__dot.is-active {
+        background: var(--brand-light, #5dcca5);
+    }
+}
+
+/* Interactivité des widgets synchronisés */
+.at-card--interactive,
+.at-stat--interactive {
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+    .at-card--interactive:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(8, 80, 65, 0.12);
+    }
+
+    .at-stat--interactive:hover {
+        transform: scale(1.04);
+    }
+}
+
+.at-card--interactive:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.at-stat--interactive:active {
+    transform: scale(0.96);
+}
+
+

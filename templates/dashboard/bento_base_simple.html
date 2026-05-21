@@ -1,0 +1,313 @@
+{% extends 'base_mini.html' %}
+{% load static %}
+
+{% block title %}Baay Simple — Mes Tâches{% endblock %}
+
+{% block extra_head %}
+<meta name="theme-color" content="#1D9E75">
+<style>
+/* ============================================================
+   BAAY SIMPLE — Dashboard Ouvrier
+   Grande lisibilité, contraste élevé, cibles tactiles larges
+   ============================================================ */
+
+:root {
+  --bs-green:   #1D9E75;
+  --bs-forest:  #085041;
+  --bs-night:   #04342C;
+  --bs-safran:  #EF9F27;
+  --bs-alert:   #E53E3E;
+  --bs-warning: #EF9F27;
+  --bs-ok:      #1D9E75;
+  --bs-radius:  20px;
+  --bs-shadow:  0 4px 20px rgba(8,80,65,.15);
+}
+
+/* Adaptive — suit le système */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bs-bg:         #04342C;
+    --bs-surface:    #063830;
+    --bs-card:       #085041;
+    --bs-text:       #E8F5F0;
+    --bs-text-muted: #9ecfbf;
+    --bs-border:     rgba(29,158,117,.25);
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bs-bg:         #f0faf6;
+    --bs-surface:    #ffffff;
+    --bs-card:       #ffffff;
+    --bs-text:       #063830;
+    --bs-text-muted: #4a7a6a;
+    --bs-border:     rgba(8,80,65,.12);
+  }
+}
+
+/* Force dark quand la classe .dark-mode est présente */
+.dark-mode {
+  --bs-bg:         #04342C !important;
+  --bs-surface:    #063830 !important;
+  --bs-card:       #085041 !important;
+  --bs-text:       #E8F5F0 !important;
+  --bs-text-muted: #9ecfbf !important;
+  --bs-border:     rgba(29,158,117,.25) !important;
+}
+
+body {
+  background: var(--bs-bg);
+  color: var(--bs-text);
+  min-height: 100dvh;
+}
+
+/* ─── En-tête ──────────────────────────────────────────── */
+.simple-header {
+  background: var(--bs-surface);
+  border-bottom: 2px solid var(--bs-border);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--bs-shadow);
+}
+.simple-header__logo {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--bs-green);
+  letter-spacing: -.5px;
+}
+.simple-header__logo span { color: var(--bs-safran); }
+.simple-header__user {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .85rem;
+  color: var(--bs-text-muted);
+}
+.simple-header__avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--bs-green);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─── Ferme badge ────────────────────────────────────────── */
+.simple-ferme-badge {
+  background: var(--bs-card);
+  border: 1.5px solid var(--bs-border);
+  border-radius: 50px;
+  padding: .4rem 1rem;
+  margin: .75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 700;
+  color: var(--bs-green);
+  font-size: .95rem;
+  max-width: fit-content;
+}
+.simple-ferme-badge i { font-size: 1rem; }
+
+/* ─── Grille principale : 2 cartes empilées ─────────────── */
+.simple-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.25rem 5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ─── Carte générique Simple ─────────────────────────────── */
+.simple-card {
+  background: var(--bs-card);
+  border: 1.5px solid var(--bs-border);
+  border-radius: var(--bs-radius);
+  box-shadow: var(--bs-shadow);
+  overflow: hidden;
+}
+.simple-card__header {
+  padding: 1rem 1.25rem .75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--bs-border);
+}
+.simple-card__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--bs-text);
+  display: flex; align-items: center; gap: .6rem;
+  margin: 0;
+}
+.simple-card__title i { color: var(--bs-green); font-size: 1.2rem; }
+.simple-card__badge {
+  background: var(--bs-green);
+  color: #fff;
+  border-radius: 50px;
+  padding: .2rem .7rem;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.simple-card__body {
+  padding: 1rem 1.25rem;
+}
+
+/* ─── Indicateur hors-ligne ──────────────────────────────── */
+.offline-bar {
+  background: var(--bs-warning);
+  color: #063830;
+  text-align: center;
+  padding: .4rem 1rem;
+  font-size: .82rem;
+  font-weight: 700;
+  display: none;
+}
+.offline-bar.visible { display: block; }
+
+/* ─── Barre de navigation fixe bas ──────────────────────── */
+.simple-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bs-surface);
+  border-top: 2px solid var(--bs-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: .6rem 0 calc(.6rem + env(safe-area-inset-bottom));
+  z-index: 200;
+  box-shadow: 0 -4px 16px rgba(8,80,65,.12);
+}
+.simple-nav__btn {
+  display: flex; flex-direction: column; align-items: center; gap: .25rem;
+  min-width: 64px; min-height: 56px;
+  background: none; border: none; cursor: pointer;
+  color: var(--bs-text-muted);
+  font-size: .65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em;
+  text-decoration: none;
+  transition: color .2s;
+}
+.simple-nav__btn i { font-size: 1.4rem; }
+.simple-nav__btn.active, .simple-nav__btn:hover { color: var(--bs-green); }
+
+/* ─── Lien vue complète discret ──────────────────────────── */
+.simple-pro-link {
+  text-align: center;
+  padding: .5rem;
+  font-size: .75rem;
+  color: var(--bs-text-muted);
+}
+.simple-pro-link a {
+  color: var(--bs-text-muted);
+  text-decoration: underline dotted;
+}
+.simple-pro-link a:hover { color: var(--bs-green); }
+
+/* ─── Spinner HTMX ──────────────────────────────────────── */
+.simple-loading {
+  display: flex; align-items: center; justify-content: center;
+  gap: .5rem; padding: 2rem;
+  color: var(--bs-text-muted);
+}
+.htmx-request .simple-card__body { opacity: .6; pointer-events: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Barre hors-ligne -->
+<div class="offline-bar" id="offlineBar">
+  <i class="fas fa-wifi-slash"></i> Hors connexion — vos actions seront sauvegardées dès le retour du réseau
+</div>
+
+<!-- En-tête -->
+<header class="simple-header">
+  <div class="simple-header__logo">Baay<span>.</span></div>
+  <div class="simple-header__user">
+    <div class="simple-header__avatar">
+      {{ request.user.first_name|first|default:request.user.username|first|upper }}
+    </div>
+    <span>{{ request.user.first_name|default:request.user.username }}</span>
+  </div>
+</header>
+
+<!-- Badge ferme active -->
+{% if ferme_active %}
+<div class="simple-ferme-badge">
+  <i class="fas fa-seedling"></i>
+  {{ ferme_active.nom }}
+</div>
+{% endif %}
+
+<!-- Contenu principal -->
+<main class="simple-grid">
+
+  <!-- Carte Tâches -->
+  <div class="simple-card"
+       hx-get="{% url 'dashboard:bento_card_taches_simple' %}"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="simple-loading">
+      <span class="spinner-border spinner-border-sm text-success"></span>
+      Chargement des tâches…
+    </div>
+  </div>
+
+  <!-- Carte Messagerie vocale -->
+  <div class="simple-card"
+       hx-get="{% url 'dashboard:bento_card_messagerie_simple' %}"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="simple-loading">
+      <span class="spinner-border spinner-border-sm text-success"></span>
+      Chargement messages…
+    </div>
+  </div>
+
+  <!-- Lien vue complète (discret, pour alphabétisés) -->
+  <div class="simple-pro-link">
+    <a href="{% url 'dashboard:bento_dashboard' %}?vue_complete=1">
+      <i class="fas fa-table-columns"></i> Vue complète (Baay Pro)
+    </a>
+  </div>
+
+</main>
+
+<!-- Navigation bas -->
+<nav class="simple-nav" aria-label="Navigation principale">
+  <a href="{% url 'dashboard:bento_dashboard_simple' %}" class="simple-nav__btn active" aria-label="Tableau de bord">
+    <i class="fas fa-house-chimney"></i>
+    <span>Accueil</span>
+  </a>
+  <a href="{% url 'taches_liste' %}" class="simple-nav__btn" aria-label="Mes tâches">
+    <i class="fas fa-list-check"></i>
+    <span>Tâches</span>
+  </a>
+  <a href="{% url 'messagerie_inbox' %}" class="simple-nav__btn" aria-label="Messages">
+    <i class="fas fa-comments"></i>
+    <span>Messages</span>
+  </a>
+</nav>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+<script>
+// Détection connexion réseau — barre hors-ligne
+const offlineBar = document.getElementById('offlineBar');
+function updateOnlineStatus() {
+  offlineBar.classList.toggle('visible', !navigator.onLine);
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+</script>
+{% endblock %}

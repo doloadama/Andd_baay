@@ -277,6 +277,17 @@ if _extra_csrf:
         if _o and _o not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(_o)
 
+# OAuth Google en local : callback + formulaire POST doivent passer la vérif. CSRF
+if DEBUG:
+    for _local_origin in (
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1",
+        "http://localhost",
+    ):
+        if _local_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_local_origin)
+
 # Vercel forwards HTTPS via X-Forwarded-Proto
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -530,7 +541,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # OAuth / email links must use https in production so redirect URIs match Google Console
-if IS_VERCEL or not DEBUG:
+IS_RENDER = os.getenv("RENDER") == "true"
+if IS_VERCEL or IS_RENDER or not DEBUG:
     ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 
 # ============================================================

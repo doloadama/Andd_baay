@@ -1,10 +1,7 @@
-"""
-URLs pour le Dashboard Bento HTMX - Andd Baay V2
-"""
-
 from django.urls import path
 from baay.views_bento import (
     bento_dashboard,
+    bento_dashboard_simple,
     set_ferme_active,
     bento_card_meteo,
     bento_card_projets,
@@ -12,9 +9,12 @@ from baay.views_bento import (
     bento_card_budget,
     bento_card_alertes_ia,
     bento_card_taches,
+    bento_card_taches_simple,
+    bento_card_messagerie_simple,
     bento_card_predictions,
     marquer_recommandation_vue,
     chatbot_agricole_query,
+    tache_terminer_simple,
 )
 from baay.views_demo_data import (
     demo_dashboard_data,
@@ -27,8 +27,14 @@ from baay.views_demo_data import (
 app_name = "dashboard"
 
 urlpatterns = [
-    # Page principale Bento Dashboard
+    # Page principale Bento Dashboard (Baay Pro)
     path("dashboard/", bento_dashboard, name="bento_dashboard"),
+
+    # Baay Simple — Dashboard ouvrier
+    path("dashboard/simple/", bento_dashboard_simple, name="bento_dashboard_simple"),
+    path("dashboard/simple/bento/taches/", bento_card_taches_simple, name="bento_card_taches_simple"),
+    path("dashboard/simple/bento/messagerie/", bento_card_messagerie_simple, name="bento_card_messagerie_simple"),
+    path("dashboard/simple/tache/<uuid:tache_id>/terminer/", tache_terminer_simple, name="tache_terminer_simple"),
     
     # Actions ferme
     path("dashboard/ferme/<str:ferme_id>/set-active/", set_ferme_active, name="set_ferme_active"),

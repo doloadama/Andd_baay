@@ -248,16 +248,7 @@
 
 {% block content %}
 <div class="at-dashboard"
-     x-data="{
-        activeTab: new URLSearchParams(window.location.search).get('tab') || 'overview',
-        fabActive: false,
-        updateTab(tab) {
-            this.activeTab = tab;
-            const url = new URL(window.location);
-            url.searchParams.set('tab', tab);
-            window.history.pushState({}, '', url);
-        }
-     }">
+     x-data="dashboardUnifiedTabsData()">
 
     <!-- ═══════════ TOPBAR ═══════════ -->
     <header class="at-topbar">
@@ -283,18 +274,37 @@
         </div>
     </header>
 
-    <!-- ═══════════ NAVIGATION ═══════════ -->
-    <nav class="at-tabs-nav">
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'overview' }" @click="updateTab('overview')">
-            <i class="fas fa-rocket"></i> Cockpit
+    <!-- ═══════════ NAVIGATION (roulette mobile) ═══════════ -->
+    <div class="tab-roulette">
+        <button type="button" class="tab-roulette__btn tab-roulette__btn--prev" @click="roulettePrev()" aria-label="Onglet précédent">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'performance' }" @click="updateTab('performance')">
-            <i class="fas fa-chart-line"></i> Performance
+        <nav class="at-tabs-nav tab-roulette__track" x-ref="tabRouletteNav" role="tablist" aria-label="Sections du cockpit">
+            <button type="button" class="at-tab-btn" data-tab-id="overview" role="tab"
+                    :class="{ 'active': activeTab === 'overview' }" :aria-selected="activeTab === 'overview'"
+                    @click="rouletteSelect('overview')">
+                <i class="fas fa-rocket" aria-hidden="true"></i> Cockpit
+            </button>
+            <button type="button" class="at-tab-btn" data-tab-id="performance" role="tab"
+                    :class="{ 'active': activeTab === 'performance' }" :aria-selected="activeTab === 'performance'"
+                    @click="rouletteSelect('performance')">
+                <i class="fas fa-chart-line" aria-hidden="true"></i> Performance
+            </button>
+            <button type="button" class="at-tab-btn" data-tab-id="activities" role="tab"
+                    :class="{ 'active': activeTab === 'activities' }" :aria-selected="activeTab === 'activities'"
+                    @click="rouletteSelect('activities')">
+                <i class="fas fa-list-check" aria-hidden="true"></i> Activités
+            </button>
+        </nav>
+        <button type="button" class="tab-roulette__btn tab-roulette__btn--next" @click="rouletteNext()" aria-label="Onglet suivant">
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
         </button>
-        <button class="at-tab-btn" :class="{ 'active': activeTab === 'activities' }" @click="updateTab('activities')">
-            <i class="fas fa-list-check"></i> Activités
-        </button>
-    </nav>
+        <div class="tab-roulette__dots" aria-hidden="true">
+            <template x-for="tabId in tabRouletteOrder" :key="tabId">
+                <span class="tab-roulette__dot" :class="{ 'is-active': activeTab === tabId }"></span>
+            </template>
+        </div>
+    </div>
 
     <!-- ═══════════ TAB: COCKPIT (OVERVIEW) ═══════════ -->
     <div x-show="activeTab === 'overview'" x-transition class="at-bento at-bento--cockpit">
@@ -322,9 +332,9 @@
                     <div class="at-stat__hint">Aucune planifiée</div>
                     {% endif %}
                 </div>
-                <div class="at-stat">
-                    <span class="at-stat__label">Tâches critiques</span>
-                    <span class="at-stat__value">{{ cockpit.quick_stats.taches_critiques_retard|default:0 }}</span>
+                <div class="at-stat at-stat--interactive" @click="rouletteSelect('activities')">
+                    <span class="at-stat__label">Tâches critiques <small class="text-success" style="font-size:0.75rem;">(voir)</small></span>
+                    <span class="at-stat__value text-danger">{{ cockpit.quick_stats.taches_critiques_retard|default:0 }}</span>
                     <div class="at-stat__hint">En retard / urgentes</div>
                 </div>
                 <div class="at-stat">
@@ -333,14 +343,14 @@
                     <div class="at-stat__hint">{{ projets_finis }} projet(s) terminé(s)</div>
                 </div>
                 {% if can_view_investissements and cockpit.quick_stats.show_financial_kpis %}
-                <div class="at-stat">
-                    <span class="at-stat__label">Bénéfice Net</span>
+                <div class="at-stat at-stat--interactive" @click="window.location.href='{% url 'finance_hub' %}'">
+                    <span class="at-stat__label">Bénéfice Net <small class="text-success" style="font-size:0.75rem;">(hub)</small></span>
                     <span class="at-stat__value">{{ cockpit.quick_stats.benefice_net_total|fcfa }}</span>
                     <div class="at-stat__hint">ROI : {% if cockpit.quick_stats.roi_moyen_pct is not None %}{{ cockpit.quick_stats.roi_moyen_pct|floatformat:1 }}%{% else %}—{% endif %}</div>
                 </div>
                 {% elif can_view_investissements %}
-                <div class="at-stat">
-                    <span class="at-stat__label">Bénéfice Net</span>
+                <div class="at-stat at-stat--interactive" @click="window.location.href='{% url 'finance_hub' %}'">
+                    <span class="at-stat__label">Bénéfice Net <small class="text-success" style="font-size:0.75rem;">(hub)</small></span>
                     <span class="at-stat__value">—</span>
                     <div class="at-stat__hint">Visible selon droits projet</div>
                 </div>
@@ -671,6 +681,31 @@
 <!-- Charting & Logic -->
 <script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
 <script>
+    function dashboardUnifiedTabsData() {
+        var params = new URLSearchParams(window.location.search);
+        var initial = params.get('tab') || 'overview';
+        var order = ['overview', 'performance', 'activities'];
+        var base = {
+            activeTab: order.indexOf(initial) >= 0 ? initial : 'overview',
+            fabActive: false,
+            updateTab: function (tab) {
+                this.activeTab = tab;
+                var url = new URL(window.location.href);
+                url.searchParams.set('tab', tab);
+                window.history.pushState({}, '', url);
+            }
+        };
+        var mixin = typeof tabRouletteMixin === 'function'
+            ? tabRouletteMixin({ order: order, select: function (tab) { this.updateTab(tab); } })
+            : {};
+        return Object.assign(base, mixin, {
+            init: function () {
+                if (typeof this.initTabRoulette === 'function') { this.initTabRoulette(); }
+                if (typeof this.initTabRouletteScrollSync === 'function') { this.initTabRouletteScrollSync(); }
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // 0. Map Logic
         const markersEl = document.getElementById('dashboard-map-markers');

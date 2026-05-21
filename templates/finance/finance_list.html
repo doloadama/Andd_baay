@@ -2047,51 +2047,64 @@ button.fh-form-card__header--toggle:focus-visible {
         </a>
     </form>
 
-    <nav class="fh-tabs-nav" role="tablist" aria-label="Sections du hub finance">
-        <button type="button" class="fh-tab-btn" role="tab"
-                :class="{ 'active': activeTab === 'synthese' }"
-                :aria-selected="activeTab === 'synthese'"
-                @click="setTab('synthese')">
-            <i class="fas fa-chart-pie" aria-hidden="true"></i>
-            Synthèse
+    <div class="tab-roulette">
+        <button type="button" class="tab-roulette__btn tab-roulette__btn--prev" @click="roulettePrev()" aria-label="Onglet précédent">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
-        <button type="button" class="fh-tab-btn" role="tab"
-                :class="{ 'active': activeTab === 'saisie' }"
-                :aria-selected="activeTab === 'saisie'"
-                @click="setTab('saisie')">
-            <i class="fas fa-pen" aria-hidden="true"></i>
-            Saisie
+        <nav class="fh-tabs-nav tab-roulette__track" x-ref="tabRouletteNav" role="tablist" aria-label="Sections du hub finance">
+            <button type="button" class="fh-tab-btn" data-tab-id="synthese" role="tab"
+                    :class="{ 'active': activeTab === 'synthese' }"
+                    :aria-selected="activeTab === 'synthese'"
+                    @click="rouletteSelect('synthese')">
+                <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                Synthèse
+            </button>
+            <button type="button" class="fh-tab-btn" data-tab-id="saisie" role="tab"
+                    :class="{ 'active': activeTab === 'saisie' }"
+                    :aria-selected="activeTab === 'saisie'"
+                    @click="rouletteSelect('saisie')">
+                <i class="fas fa-pen" aria-hidden="true"></i>
+                Saisie
+            </button>
+            <button type="button" class="fh-tab-btn" data-tab-id="mouvements" role="tab"
+                    :class="{ 'active': activeTab === 'mouvements' }"
+                    :aria-selected="activeTab === 'mouvements'"
+                    @click="rouletteSelect('mouvements')">
+                <i class="fas fa-list" aria-hidden="true"></i>
+                Mouvements
+                <span class="fh-tab-badge">{{ count_filtre|default:0|add:count_recettes_filtre|default:0 }}</span>
+            </button>
+            <button type="button" class="fh-tab-btn" data-tab-id="rentabilite" role="tab"
+                    :class="{ 'active': activeTab === 'rentabilite' }"
+                    :aria-selected="activeTab === 'rentabilite'"
+                    @click="rouletteSelect('rentabilite')">
+                <i class="fas fa-calculator" aria-hidden="true"></i>
+                Rentabilité
+            </button>
+        </nav>
+        <button type="button" class="tab-roulette__btn tab-roulette__btn--next" @click="rouletteNext()" aria-label="Onglet suivant">
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
         </button>
-        <button type="button" class="fh-tab-btn" role="tab"
-                :class="{ 'active': activeTab === 'mouvements' }"
-                :aria-selected="activeTab === 'mouvements'"
-                @click="setTab('mouvements')">
-            <i class="fas fa-list" aria-hidden="true"></i>
-            Mouvements
-            <span class="fh-tab-badge">{{ count_filtre|default:0|add:count_recettes_filtre|default:0 }}</span>
-        </button>
-        <button type="button" class="fh-tab-btn" role="tab"
-                :class="{ 'active': activeTab === 'rentabilite' }"
-                :aria-selected="activeTab === 'rentabilite'"
-                @click="setTab('rentabilite')">
-            <i class="fas fa-calculator" aria-hidden="true"></i>
-            Rentabilité
-        </button>
-    </nav>
+        <div class="tab-roulette__dots" aria-hidden="true">
+            <template x-for="tabId in tabRouletteOrder" :key="tabId">
+                <span class="tab-roulette__dot" :class="{ 'is-active': activeTab === tabId }"></span>
+            </template>
+        </div>
+    </div>
 
     <!-- Onglet Synthèse -->
     <div class="fh-tab-panel" x-show="activeTab === 'synthese'" x-transition.opacity.duration.200ms role="tabpanel">
         <div class="fh-bilan-strip" aria-label="Bilan filtré">
-            <div class="fh-bilan-card">
-                <div class="fh-bilan-card__label">Dépenses</div>
+            <div class="fh-bilan-card at-card--interactive" @click="rouletteSelect('mouvements')">
+                <div class="fh-bilan-card__label">Dépenses <small class="text-success" style="font-size:0.7rem;">(cliquer pour voir)</small></div>
                 <div class="fh-bilan-card__value expense">{{ total_depenses|default:"0"|fcfa }}</div>
             </div>
-            <div class="fh-bilan-card">
-                <div class="fh-bilan-card__label">Recettes</div>
+            <div class="fh-bilan-card at-card--interactive" @click="rouletteSelect('mouvements')">
+                <div class="fh-bilan-card__label">Recettes <small class="text-success" style="font-size:0.7rem;">(cliquer pour voir)</small></div>
                 <div class="fh-bilan-card__value income">{{ total_recettes|default:"0"|fcfa }}</div>
             </div>
-            <div class="fh-bilan-card">
-                <div class="fh-bilan-card__label">Résultat net</div>
+            <div class="fh-bilan-card at-card--interactive" @click="rouletteSelect('rentabilite')">
+                <div class="fh-bilan-card__label">Résultat net <small class="text-success" style="font-size:0.7rem;">(cliquer pour voir)</small></div>
                 <div class="fh-bilan-card__value" id="fhBilanNet">—</div>
             </div>
         </div>
@@ -2550,7 +2563,7 @@ function financeHubTabs() {
     if (!valid.includes(tab)) {
         tab = 'synthese';
     }
-    return {
+    const base = {
         activeTab: tab,
         setTab(nextTab) {
             if (!valid.includes(nextTab)) {
@@ -2570,6 +2583,15 @@ function financeHubTabs() {
             }
         },
     };
+    var mixin = typeof tabRouletteMixin === 'function'
+        ? tabRouletteMixin({ order: valid, select: function (t) { this.setTab(t); } })
+        : {};
+    return Object.assign(base, mixin, {
+        init: function () {
+            if (typeof this.initTabRoulette === 'function') { this.initTabRoulette(); }
+            if (typeof this.initTabRouletteScrollSync === 'function') { this.initTabRouletteScrollSync(); }
+        }
+    });
 }
 
 // Data from Django

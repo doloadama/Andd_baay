@@ -553,6 +553,7 @@ class PermissionsRoleTests(TestCase):
     # --- Projets : manager peut créer ---
 
     def test_manager_peut_creer_projet_dans_sa_ferme(self):
+        from datetime import timedelta
         self.client.login(username='mgr_p', password='pass12345')
         url = reverse('creer_projet') + f'?ferme={self.ferme.id}'
         resp = self.client.get(url)
@@ -561,10 +562,12 @@ class PermissionsRoleTests(TestCase):
             'nom': 'Projet Manager',
             'superficie': 5,
             'date_lancement': timezone.now().date(),
+            'date_fin': timezone.now().date() + timedelta(days=90),
             'ferme': self.ferme.id,
             'localite': self.localite.id,
             'statut': 'en_cours',
             'produits_selection': [self.produit.id],
+            'type_cycle': 'campagne',
             'type_irrigation': 'Aucune',
             'type_engrais': 'Aucun',
         })

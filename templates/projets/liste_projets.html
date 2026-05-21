@@ -767,15 +767,10 @@
             <div class="progress-section">
                 <div class="progress-header">
                     <span class="progress-label">Avancement</span>
-                    <span class="progress-value">
-                        {% if projet.statut == 'fini' or projet.statut == 'cloture' %}100%
-                        {% elif projet.statut == 'en_pause' %}50%
-                        {% elif projet.progression %}{{ projet.progression }}%
-                        {% else %}75%{% endif %}
-                    </span>
+                    <span class="progress-value">{{ projet.taux_avancement }}%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-bar__fill" data-progress="{% if projet.statut == 'fini' or projet.statut == 'cloture' %}100{% elif projet.statut == 'en_pause' %}50{% elif projet.progression %}{{ projet.progression }}{% else %}75{% endif %}"></div>
+                    <div class="progress-bar__fill" data-progress="{{ projet.taux_avancement }}"></div>
                 </div>
             </div>
             

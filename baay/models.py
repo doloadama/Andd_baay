@@ -65,6 +65,34 @@ class Ferme(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
+    TIER_BASIC = 'basic'
+    TIER_PRO = 'pro'
+    TIER_COOP = 'coop'
+    TIER_CHOICES = [
+        (TIER_BASIC, 'Baay Basique (Gratuit)'),
+        (TIER_PRO, 'Baay Pro (SaaS)'),
+        (TIER_COOP, 'Baay Coopérative (B2B)'),
+    ]
+
+    subscription_tier = models.CharField(
+        max_length=20,
+        choices=TIER_CHOICES,
+        default=TIER_BASIC,
+        help_text="Niveau d'abonnement de la ferme"
+    )
+    subscription_expiration = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date d'expiration de l'abonnement premium"
+    )
+
+    @property
+    def is_premium(self):
+        if self.subscription_tier in [self.TIER_PRO, self.TIER_COOP]:
+            if self.subscription_expiration is None or self.subscription_expiration > timezone.now():
+                return True
+        return False
+
     class Meta:
         ordering = ['-date_creation']
 

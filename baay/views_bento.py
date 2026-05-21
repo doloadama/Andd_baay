@@ -21,18 +21,22 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# DASHBOARD BENTO - PAGE PRINCIPALE
+# DASHBOARD BENTO - PAGE PRINCIPALE (Baay Pro)
 # =============================================================================
 
 @login_required
 def bento_dashboard(request: HttpRequest) -> HttpResponse:
     """
-    Page principale du dashboard Bento.
-    Charge le layout, les cartes se mettent à jour via HTMX.
+    Page principale du dashboard Bento (Baay Pro).
+    Les ouvriers sans rôle supérieur sont automatiquement redirigés vers Baay Simple,
+    sauf s'ils ont explicitement demandé la vue complète.
     """
+    from django.shortcuts import redirect as dj_redirect
+    from baay.permissions import role_dans_ferme, ROLE_OUVRIER
+
     profile = request.user.profile
     fermes_qs = fermes_accessibles_qs(profile)
-    
+
     # Ferme active (session ou première ferme)
     ferme_id = request.session.get('ferme_active_id')
     ferme_active = None
@@ -40,14 +44,37 @@ def bento_dashboard(request: HttpRequest) -> HttpResponse:
         ferme_active = fermes_qs.filter(pk=ferme_id).first()
     if not ferme_active and fermes_qs.exists():
         ferme_active = fermes_qs.first()
-    
+        if ferme_active:
+            request.session['ferme_active_id'] = str(ferme_active.id)
+
+    # Redirection automatique si l'utilisateur n'a que le rôle ouvrier
+    # Le paramètre ?vue_complete=1 ou le flag session permettent de passer outre.
+    forcer_vue_complete = (
+        request.GET.get('vue_complete') == '1'
+        or request.session.get('vue_complete_forcee', False)
+    )
+    if request.GET.get('vue_complete') == '1':
+        request.session['vue_complete_forcee'] = True
+
+    if not forcer_vue_complete and ferme_active:
+        role = role_dans_ferme(profile, ferme_active)
+        # Vérifie si l'utilisateur n'a que le rôle ouvrier dans TOUTES ses fermes
+        tous_roles = set()
+        for f in fermes_qs:
+            r = role_dans_ferme(profile, f)
+            if r:
+                tous_roles.add(r)
+        if tous_roles and tous_roles.issubset({ROLE_OUVRIER}):
+            return dj_redirect('dashboard:bento_dashboard_simple')
+
     context = {
         'fermes': fermes_qs,
         'ferme_active': ferme_active,
         'has_multiple_fermes': fermes_qs.count() > 1,
     }
-    
+
     return render(request, 'dashboard/bento_base.html', context)
+
 
 
 @login_required
@@ -69,6 +96,58 @@ def set_ferme_active(request: HttpRequest, ferme_id: str) -> HttpResponse:
     )
     response['HX-Trigger'] = 'ferme-changed'
     return response
+
+
+# =============================================================================
+# DASHBOARD BENTO SIMPLE - Baay Simple (Ouvriers & travailleurs terrain)
+# =============================================================================
+
+@login_required
+def bento_dashboard_simple(request: HttpRequest) -> HttpResponse:
+    """
+    Dashboard simplifié pour les ouvriers et travailleurs de terrain.
+    Interface visuelle, grands éléments tactiles, mode hors-ligne.
+    """
+    profile = request.user.profile
+    fermes_qs = fermes_accessibles_qs(profile)
+
+    ferme_id = request.session.get('ferme_active_id')
+    ferme_active = None
+    if ferme_id:
+        ferme_active = fermes_qs.filter(pk=ferme_id).first()
+    if not ferme_active and fermes_qs.exists():
+        ferme_active = fermes_qs.first()
+
+    context = {
+        'fermes': fermes_qs,
+        'ferme_active': ferme_active,
+        'has_multiple_fermes': fermes_qs.count() > 1,
+    }
+    return render(request, 'dashboard/bento_base_simple.html', context)
+
+
+@login_required
+@require_http_methods(['POST'])
+def tache_terminer_simple(request: HttpRequest, tache_id: str) -> HttpResponse:
+    """
+    Endpoint HTMX one-tap : marque une tâche comme terminée.
+    Accessible uniquement à l'assigné de la tâche.
+    """
+    from baay.models import Tache
+    from django.utils import timezone as tz
+
+    profile = request.user.profile
+    tache = get_object_or_404(Tache, pk=tache_id, assigne_a=profile)
+
+    if tache.statut not in ('terminee', 'annulee'):
+        tache.statut = 'terminee'
+        tache.date_terminee = tz.now()
+        tache.save(update_fields=['statut', 'date_terminee', 'date_modification'])
+
+    # Renvoie le fragment de la carte mise à jour
+    return bento_card_taches_simple(request)
+
+
 
 
 # =============================================================================
@@ -455,4 +534,68 @@ def partial_incident_detail(request: HttpRequest, incident_id: str) -> HttpRespo
     
     return render(request, 'dashboard/partials/_incident_detail.html', {
         'incident': incident,
+    })
+
+
+# =============================================================================
+# CARTES BENTO SIMPLE — Tâches & Messagerie (Baay Simple)
+# =============================================================================
+
+@login_required
+@require_GET
+def bento_card_taches_simple(request: HttpRequest) -> HttpResponse:
+    """
+    Carte Baay Simple : uniquement les tâches assignées à l'ouvrier connecté.
+    Affichage visuel avec icônes agricoles et état couleur.
+    """
+    from baay.models import Tache
+    from django.utils import timezone as tz
+
+    profile = request.user.profile
+    today = tz.localdate()
+
+    taches = (
+        Tache.objects.filter(
+            assigne_a=profile,
+            statut__in=['a_faire', 'en_cours'],
+        )
+        .select_related('ferme', 'projet')
+        .order_by('date_echeance', '-date_creation')[:10]
+    )
+
+    # Enrichir avec état retard
+    taches_data = []
+    for t in taches:
+        en_retard = t.date_echeance and t.date_echeance < today
+        taches_data.append({'tache': t, 'en_retard': en_retard})
+
+    return render(request, 'dashboard/bento_cards/_card_taches_simple.html', {
+        'taches_data': taches_data,
+        'total': len(taches_data),
+    })
+
+
+@login_required
+@require_GET
+def bento_card_messagerie_simple(request: HttpRequest) -> HttpResponse:
+    """
+    Carte Baay Simple : bouton micro géant + lien vers messagerie complète.
+    Affiche les 3 derniers messages non lus de la ferme active.
+    """
+    from baay.models import Conversation, Message
+
+    profile = request.user.profile
+
+    # Dernières conversations de l'utilisateur
+    last_msgs = (
+        Message.objects.filter(conversation__participants=profile)
+        .exclude(expediteur=profile)
+        .exclude(lu_par=profile)
+        .select_related('expediteur__user', 'conversation')
+        .order_by('-date_envoi')[:3]
+    )
+
+    return render(request, 'dashboard/bento_cards/_card_messagerie_simple.html', {
+        'messages_recents': last_msgs,
+        'unread_count': last_msgs.count(),
     })

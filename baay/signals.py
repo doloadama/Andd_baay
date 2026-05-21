@@ -2,7 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
 
 from baay.middleware.current_request import get_current_request
@@ -93,3 +93,17 @@ def update_prediction_rendement(sender, instance, created, update_fields=None, *
         if not trigger.intersection(update_fields):
             return
     update_prediction_for_projet_produit(instance)
+
+
+@receiver(post_migrate)
+def sync_google_oauth_site_domain(sender, **kwargs):
+    """Aligne django.contrib.sites sur l'hôte OAuth (local vs prod)."""
+    if getattr(sender, "name", None) != "sites":
+        return
+    try:
+        from baay.google_oauth_site import ensure_site_domain
+
+        domain = ensure_site_domain()
+        logger.info("OAuth Site domain synchronise: %s", domain)
+    except Exception:
+        logger.exception("Impossible de synchroniser le domaine Site pour Google OAuth")

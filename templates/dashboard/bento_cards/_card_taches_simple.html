@@ -1,0 +1,181 @@
+{% load static %}
+{# ============================================================
+   CARTE TÂCHES SIMPLE — Baay Simple (Ouvriers)
+   Un tap = terminée. Icônes agricoles visuelles.
+   ============================================================ #}
+
+<div class="simple-card__header">
+  <h2 class="simple-card__title">
+    <i class="fas fa-list-check"></i>
+    Mes Tâches
+  </h2>
+  {% if total %}
+  <span class="simple-card__badge">{{ total }}</span>
+  {% endif %}
+</div>
+
+<div class="simple-card__body">
+
+{% if not taches_data %}
+  {# État vide — bonne nouvelle ! #}
+  <div style="text-align:center; padding: 2rem 1rem;">
+    <div style="font-size: 3.5rem; margin-bottom: .75rem;">🌱</div>
+    <p style="font-size: 1.1rem; font-weight: 700; color: var(--bs-green); margin:0;">
+      Aucune tâche en attente !
+    </p>
+    <p style="font-size: .85rem; color: var(--bs-text-muted); margin-top:.4rem;">
+      Profitez de votre journée.
+    </p>
+  </div>
+
+{% else %}
+  <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.75rem;">
+    {% for item in taches_data %}
+    {% with tache=item.tache en_retard=item.en_retard %}
+
+    {# ── Couleur de bordure selon état ──────────── #}
+    {% if en_retard %}
+      {% with border_color="#E53E3E" %}
+    {% elif tache.priorite == 'urgente' %}
+      {% with border_color="#EF9F27" %}
+    {% elif tache.statut == 'en_cours' %}
+      {% with border_color="#1D9E75" %}
+    {% else %}
+      {% with border_color="var(--bs-border)" %}
+    {% endif %}
+
+    <li id="tache-{{ tache.id }}"
+        style="
+          background: var(--bs-surface);
+          border: 2px solid {{ border_color }};
+          border-radius: 16px;
+          padding: 1rem 1.1rem;
+          display: flex; align-items: flex-start; gap: 1rem;
+          transition: opacity .3s, transform .3s;
+        ">
+
+      {# ── Icône agricole ─────────────────────── #}
+      <div style="
+        font-size: 2.2rem;
+        min-width: 52px; min-height: 52px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--bs-bg);
+        border-radius: 12px;
+        flex-shrink: 0;
+      ">
+        {% with titre=tache.titre|lower %}
+        {% if 'arros' in titre or 'eau' in titre or 'irrigat' in titre %}
+          🚿
+        {% elif 'engrais' in titre or 'fertilis' in titre or 'npk' in titre %}
+          🌿
+        {% elif 'recolte' in titre or 'récolte' in titre or 'harvest' in titre %}
+          🌾
+        {% elif 'semes' in titre or 'semis' in titre or 'plant' in titre %}
+          🌱
+        {% elif 'desherb' in titre or 'desherbage' in titre or 'weed' in titre %}
+          🪓
+        {% elif 'traitement' in titre or 'pesticide' in titre or 'phyto' in titre %}
+          🧴
+        {% elif 'labour' in titre or 'labour' in titre or 'tractor' in titre %}
+          🚜
+        {% elif 'transport' in titre or 'livraison' in titre %}
+          🚛
+        {% elif 'inspection' in titre or 'contr' in titre %}
+          🔍
+        {% else %}
+          📋
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      {# ── Infos tâche ────────────────────────── #}
+      <div style="flex:1; min-width:0;">
+        <div style="font-size: 1rem; font-weight: 800; color: var(--bs-text); margin-bottom:.25rem; line-height:1.3;">
+          {{ tache.titre }}
+        </div>
+        {% if tache.ferme %}
+        <div style="font-size:.75rem; color: var(--bs-text-muted); margin-bottom:.2rem;">
+          <i class="fas fa-seedling" style="color:var(--bs-green);"></i>
+          {{ tache.ferme.nom }}
+        </div>
+        {% endif %}
+
+        {# Badges état + échéance #}
+        <div style="display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.4rem;">
+          {% if tache.statut == 'en_cours' %}
+          <span style="background:#1D9E7520; color:#1D9E75; border-radius:50px; padding:.15rem .55rem; font-size:.7rem; font-weight:700;">
+            <i class="fas fa-spinner fa-spin"></i> En cours
+          </span>
+          {% else %}
+          <span style="background:#EF9F2720; color:#b87a00; border-radius:50px; padding:.15rem .55rem; font-size:.7rem; font-weight:700;">
+            <i class="fas fa-hourglass-start"></i> À faire
+          </span>
+          {% endif %}
+
+          {% if tache.date_echeance %}
+            {% if en_retard %}
+            <span style="background:#E53E3E20; color:#E53E3E; border-radius:50px; padding:.15rem .55rem; font-size:.7rem; font-weight:700;">
+              <i class="fas fa-triangle-exclamation"></i> En retard
+            </span>
+            {% else %}
+            <span style="background: var(--bs-bg); color:var(--bs-text-muted); border-radius:50px; padding:.15rem .55rem; font-size:.7rem; font-weight:600;">
+              <i class="fas fa-calendar-day"></i> {{ tache.date_echeance|date:"d/m" }}
+            </span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Bouton "Terminer" one-tap ───────────── #}
+      <button
+        hx-post="{% url 'dashboard:tache_terminer_simple' tache.id %}"
+        hx-target="#tache-{{ tache.id }}"
+        hx-swap="outerHTML swap:300ms"
+        hx-include="[name=csrfmiddlewaretoken]"
+        hx-on::before-request="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i>'"
+        style="
+          min-width: 56px; min-height: 56px;
+          border-radius: 50%;
+          background: var(--bs-green);
+          border: none; cursor: pointer;
+          color: #fff; font-size: 1.4rem;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 3px 12px rgba(29,158,117,.4);
+          transition: transform .15s, box-shadow .15s;
+        "
+        onmousedown="this.style.transform='scale(.93)'"
+        onmouseup="this.style.transform='scale(1)'"
+        ontouchstart="this.style.transform='scale(.93)'"
+        ontouchend="this.style.transform='scale(1)'"
+        aria-label="Marquer {{ tache.titre }} comme terminée"
+        title="Marquer terminée">
+        <i class="fas fa-check"></i>
+      </button>
+
+    </li>
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
+    {% endfor %}
+  </ul>
+
+  {# Lien vers la liste complète #}
+  <div style="text-align:center; margin-top:1rem;">
+    <a href="{% url 'taches_liste' %}"
+       style="
+         display: inline-flex; align-items: center; gap:.4rem;
+         color: var(--bs-text-muted); font-size: .8rem;
+         text-decoration: none;
+       ">
+      <i class="fas fa-arrow-right"></i> Voir toutes mes tâches
+    </a>
+  </div>
+{% endif %}
+
+</div>
+
+{# Token CSRF pour les requêtes HTMX POST #}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">

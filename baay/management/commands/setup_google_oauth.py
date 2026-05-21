@@ -20,26 +20,14 @@ class Command(BaseCommand):
 
         if not client_id or not secret:
             self.stderr.write(self.style.ERROR(
-                '❌  GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in your .env file.'
+                'GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in your .env file.'
             ))
             return
 
-        # Determine correct domain for the Site
-        site_domain = os.getenv('SITE_DOMAIN', '').strip()
-        if not site_domain:
-            # Use first production-looking host from ALLOWED_HOSTS as fallback
-            for host in settings.ALLOWED_HOSTS:
-                if host not in ('localhost', '127.0.0.1') and not host.startswith('.'):
-                    site_domain = host
-                    break
-        if not site_domain:
-            site_domain = '127.0.0.1:8000'
+        from baay.google_oauth_site import ensure_site_domain
 
-        # Ensure Site exists (SITE_ID=1) with correct domain
-        site, _ = Site.objects.update_or_create(
-            pk=settings.SITE_ID,
-            defaults={'domain': site_domain, 'name': 'Andd Baay'}
-        )
+        site_domain = ensure_site_domain()
+        site = Site.objects.get(pk=settings.SITE_ID)
 
         # Create or update the SocialApp
         app, created = SocialApp.objects.update_or_create(
@@ -57,9 +45,15 @@ class Command(BaseCommand):
             app.sites.add(site)
 
         action = 'Created' if created else 'Updated'
+        callback = f"http://{site_domain}/accounts/google/login/callback/"
+        if not settings.DEBUG:
+            callback = f"https://{site_domain}/accounts/google/login/callback/"
+
         self.stdout.write(self.style.SUCCESS(
-            f'✅  {action} Google SocialApp successfully.\n'
+            f'{action} Google SocialApp successfully.\n'
             f'    Client ID : {client_id[:20]}...\n'
-            f'    Site      : {site.domain} (ID={site.pk})\n\n'
-            f'👉  Now visit /login/ and click "Continuer avec Google" to test.'
+            f'    Site      : {site.domain} (ID={site.pk})\n'
+            f'    Callback  : {callback}\n'
+            f'    (must match Google Cloud Console redirect URIs)\n\n'
+            f'Open /login/ and click "Continuer avec Google" to test.'
         ))

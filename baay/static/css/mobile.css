@@ -504,3 +504,61 @@
     body:has(.msg-conv-partial) .msg-fab { display: none !important; }
 }
 
+
+/* =====================================================================
+   TAB-ROULETTE — Horizontal snap tabs/filters on mobile
+   No JavaScript required. Automatically handles all filter/tab containers.
+   ===================================================================== */
+@media (max-width: 767.98px) {
+    /* 1. Target all known tab and filter-chip containers */
+    .fl-filters,
+    .msg-filter-chips,
+    .nav-tabs,
+    .nav-pills,
+    .dashboard-tabs,
+    .tab-roulette,
+    [role="tablist"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: x mandatory !important;
+        scroll-behavior: smooth !important;
+        gap: 8px !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        margin-left: -14px !important;
+        margin-right: -14px !important;
+        margin-bottom: 12px !important;
+        
+        /* Hide scrollbars */
+        scrollbar-width: none !important; /* Firefox */
+        -ms-overflow-style: none !important;  /* IE/Edge */
+    }
+
+    .fl-filters::-webkit-scrollbar,
+    .msg-filter-chips::-webkit-scrollbar,
+    .nav-tabs::-webkit-scrollbar,
+    .nav-pills::-webkit-scrollbar,
+    .dashboard-tabs::-webkit-scrollbar,
+    .tab-roulette::-webkit-scrollbar,
+    [role="tablist"]::-webkit-scrollbar {
+        display: none !important; /* Safari and Chrome */
+    }
+
+    /* 2. Target the children of the roulette so they don't shrink and snap nicely */
+    .fl-filters > *,
+    .msg-filter-chips > *,
+    .nav-tabs > *,
+    .nav-pills > *,
+    .dashboard-tabs > *,
+    .tab-roulette > *,
+    [role="tablist"] > * {
+        flex-shrink: 0 !important;
+        scroll-snap-align: start !important;
+    }
+}
+
+

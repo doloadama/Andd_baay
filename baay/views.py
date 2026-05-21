@@ -1300,6 +1300,7 @@ def liste_projets(request):
         )
         .prefetch_related(
             'projet_produits__produit',
+            'taches',
             Prefetch(
                 'ferme__membres',
                 queryset=MembreFerme.objects.select_related('utilisateur__user'),

@@ -3,5 +3,8 @@
 <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 <script defer src="{% static 'vendor/htmx-2.0.4.min.js' %}"></script>
 <script defer src="{% static 'js/roi_calculator.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/mobile-tab-roulette.css' %}">
+{# Doit être chargé avant Alpine : tabRouletteMixin est requis par x-data des pages à onglets #}
+<script defer src="{% static 'js/mobile-tab-roulette.js' %}"></script>
 <script defer src="{% static 'vendor/alpinejs-3.14.8.min.js' %}"></script>
 {% include 'includes/alpine_django_messages_register.html' %}
