@@ -1991,9 +1991,27 @@ button.fh-form-card__header--toggle:focus-visible {
         </div>
     </div>
 
+    <!-- Filters Bar Backdrop & Trigger for Mobile Bottom Sheet -->
+    <div class="bottom-sheet-backdrop d-none" id="filtersBackdrop"></div>
+    <div class="d-block d-md-none px-3 mb-3">
+        <button type="button" class="btn btn-outline-success w-100" id="openFiltersBtn" style="height: 48px; border-radius: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-filter"></i> Filtrer les transactions
+        </button>
+    </div>
+
     <!-- Filters Bar -->
     <form method="get" action="{% url 'finance_hub' %}" class="fh-filters-bar">
         <input type="hidden" name="tab" :value="activeTab">
+        
+        <!-- Bottom Sheet Header for Mobile -->
+        <div class="bottom-sheet-header d-block d-md-none">
+            <div class="bottom-sheet-handle"></div>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="bottom-sheet-title mb-0">Filtrer les transactions</h5>
+                <button type="button" class="btn-nav btn-nav-ghost p-0" id="closeFiltersBtn" aria-label="Fermer"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
         <div class="fh-filter-group">
             <label for="filt-ferme">Ferme</label>
             <select name="ferme" id="filt-ferme" onchange="this.form.submit()">
@@ -3137,5 +3155,64 @@ function submitRecette() {
         alert.classList.remove('d-none');
     });
 }
+
+// ── Finance Filters Bottom-Sheet & Auto-submit prevention ──
+(function() {
+    function setupFinanceFilters() {
+        const isMobile = window.innerWidth < 768;
+        const form = document.querySelector('.fh-filters-bar');
+        const openBtn = document.getElementById('openFiltersBtn');
+        const closeBtn = document.getElementById('closeFiltersBtn');
+        const backdrop = document.getElementById('filtersBackdrop');
+
+        if (isMobile) {
+            // Strip onchange auto-submit on mobile
+            if (form) {
+                const selects = form.querySelectorAll('select');
+                selects.forEach(select => {
+                    select.removeAttribute('onchange');
+                });
+            }
+
+            // Wire Bottom Sheet toggle buttons
+            if (openBtn && form && backdrop) {
+                // Remove any existing listeners first to avoid duplication
+                const onOpen = function() {
+                    form.classList.add('is-open');
+                    backdrop.classList.remove('d-none');
+                    document.body.style.overflow = 'hidden';
+                };
+                openBtn.removeEventListener('click', openBtn._onOpen);
+                openBtn.addEventListener('click', onOpen);
+                openBtn._onOpen = onOpen;
+            }
+
+            const closeBottomSheet = function() {
+                if (form) form.classList.remove('is-open');
+                if (backdrop) backdrop.classList.add('d-none');
+                document.body.style.overflow = '';
+            };
+
+            if (closeBtn) {
+                closeBtn.removeEventListener('click', closeBtn._onClose);
+                closeBtn.addEventListener('click', closeBottomSheet);
+                closeBtn._onClose = closeBottomSheet;
+            }
+            if (backdrop) {
+                backdrop.removeEventListener('click', backdrop._onClose);
+                backdrop.addEventListener('click', closeBottomSheet);
+                backdrop._onClose = closeBottomSheet;
+            }
+        } else {
+            // Restore default scroll and hide sheet if resizing to desktop
+            if (form) form.classList.remove('is-open');
+            if (backdrop) backdrop.classList.add('d-none');
+            document.body.style.overflow = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', setupFinanceFilters);
+    window.addEventListener('resize', setupFinanceFilters);
+})();
 </script>
 {% endblock %}

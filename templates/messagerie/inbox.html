@@ -18,6 +18,9 @@
         hasActiveChat: {% if conversation %}true{% else %}false{% endif %},
         showContext: true,
         contextMobileOpen: false,
+        touchStart: { x: 0, y: 0 },
+        touchDiff: { x: 0, y: 0 },
+        swipeActive: false,
         init() {
             const mq = window.matchMedia('(min-width: 1200px)');
             const sync = () => {
@@ -64,7 +67,10 @@
         </div>
     </aside>
 
-    <main class="msg-col-chat" aria-label="Discussion">
+    <main class="msg-col-chat" aria-label="Discussion"
+          @touchstart="if (!isWide && view === 'chat') { touchStart = { x: $event.touches[0].clientX, y: $event.touches[0].clientY }; swipeActive = touchStart.x < 50; }"
+          @touchmove="if (swipeActive) { touchDiff = { x: $event.touches[0].clientX - touchStart.x, y: $event.touches[0].clientY - touchStart.y }; }"
+          @touchend="if (swipeActive) { if (touchDiff.x > 80 && touchDiff.x > 2 * Math.abs(touchDiff.y)) { backToList(); } swipeActive = false; touchDiff = { x: 0, y: 0 }; }">
         <div id="chatMainPanel" class="h-100 d-flex flex-column min-h-0">
             {% if conversation %}
                 {% include 'messagerie/_conversation_view.html' %}

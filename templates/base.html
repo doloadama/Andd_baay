@@ -46,9 +46,9 @@
     {# Animate.css subset (6 animations utilisées) — économie ~65 KB vs CDN complet. Voir perf-audit.md action #4. #}
     <link rel="stylesheet" href="{% static 'css/animate-subset.css' %}">
 
-    <!-- Base Stylesheet -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-v2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-tab-roulette.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-agri-pages.css' %}">
     <link rel="stylesheet" href="{% static 'css/language-switcher.css' %}">
     <link rel="stylesheet" href="{% static 'css/navbar-responsive.css' %}">
@@ -93,8 +93,8 @@
         }
     </script>
 
-    <!-- Figma capture helper (safe to keep; only does work when hash contains figmacapture=...) -->
-    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    {# Figma capture helper: DISABLED in production. Uncomment locally only for capture. #}
+    {# <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script> #}
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -989,6 +989,34 @@
     });
     </script>
 
+    <script>
+    // ── Messagerie conversation fullscreen controller ──
+    // We add a .msg-fullscreen class to body to control the visibility of navigation elements on mobile.
+    (function() {
+        function checkFullscreen() {
+            var hasChat = !!document.querySelector('.msg-conv-partial') || !!document.querySelector('.mobile-chat-card');
+            var shell = document.querySelector('.msg-shell-container');
+            var isChatActive = hasChat && (!shell || shell.classList.contains('msg-shell--chat'));
+            document.body.classList.toggle('msg-fullscreen', isChatActive);
+        }
+        var observer = new MutationObserver(checkFullscreen);
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+        checkFullscreen();
+    })();
+
+    // ── Mobile drawer: wire hamburger button aria-hidden ──
+    (function() {
+        var toggleBtn = document.querySelector('[aria-controls="mobileMenuDrawer"]');
+        var drawer = document.getElementById('mobileMenuDrawer');
+        if (!toggleBtn || !drawer) return;
+        toggleBtn.addEventListener('click', function() {
+            drawer.classList.add('open');
+            drawer.setAttribute('aria-hidden', 'false');
+        });
+    })();
+    </script>
+
+
     {% if user.is_authenticated %}
     <!-- ============================================================
          BOTTOM NAVIGATION BAR - Mobile Only
@@ -1031,66 +1059,25 @@
     </nav>
     {% endwith %}
 
-    <!-- Mobile Menu Drawer -->
-    <div id="mobileMenuDrawer" class="mobile-drawer" aria-hidden="true">
-        <div class="mobile-drawer-overlay" onclick="document.getElementById('mobileMenuDrawer').classList.remove('open')"></div>
-        <div class="mobile-drawer-content">
+    <!-- Mobile Menu Drawer — Premium Slide-in -->
+    <div id="mobileMenuDrawer" class="mobile-drawer" aria-hidden="true" aria-label="Menu de navigation">
+        <div class="mobile-drawer-overlay" onclick="document.getElementById('mobileMenuDrawer').classList.remove('open'); this.closest('.mobile-drawer').setAttribute('aria-hidden','true');"></div>
+        <div class="mobile-drawer-content" role="dialog" aria-modal="true" aria-label="Menu">
+            <!-- Dark header with brand -->
             <div class="mobile-drawer-header">
                 <div class="mobile-drawer-brand">
                     <span class="brand-icon">🌿</span>
-                    <span class="brand-text">Andd Baay</span>
+                    <span class="brand-text">Andd<span> Baay</span></span>
                 </div>
-                <button type="button" class="mobile-drawer-close" onclick="document.getElementById('mobileMenuDrawer').classList.remove('open')" aria-label="Fermer">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="mobile-drawer-close"
+                    onclick="document.getElementById('mobileMenuDrawer').classList.remove('open'); document.getElementById('mobileMenuDrawer').setAttribute('aria-hidden','true');"
+                    aria-label="Fermer le menu">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="mobile-drawer-body">
-                <nav class="mobile-drawer-nav" aria-label="Menu complet">
-                    <div class="mobile-drawer-section">
-                        <h6 class="mobile-drawer-section-title">Tableau de bord</h6>
-                        <a href="{% url 'dashboard' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                            <i class="fas fa-rocket"></i>
-                            <span>Cockpit</span>
-                        </a>
-                    </div>
-                    <div class="mobile-drawer-section">
-                        <h6 class="mobile-drawer-section-title">Exploitation</h6>
-                        <a href="{% url 'liste_fermes' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}">
-                            <i class="fas fa-warehouse"></i>
-                            <span>Mes fermes</span>
-                        </a>
-                        <a href="{% url 'liste_projets' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}">
-                            <i class="fas fa-folder-open"></i>
-                            <span>Projets</span>
-                        </a>
-                        <a href="{% url 'taches_liste' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}">
-                            <i class="fas fa-tasks"></i>
-                            <span>Tâches</span>
-                        </a>
-                        <a href="{% url 'liste_semis' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}">
-                            <i class="fas fa-seedling"></i>
-                            <span>Semis</span>
-                        </a>
-                    </div>
-                    {% if show_finance_nav %}
-                    <div class="mobile-drawer-section">
-                        <h6 class="mobile-drawer-section-title">Finance</h6>
-                        <a href="{% url 'finance_hub' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'finance_hub' %}active{% endif %}">
-                            <i class="fas fa-wallet"></i>
-                            <span>Hub Finance</span>
-                        </a>
-                    </div>
-                    {% endif %}
-                    <div class="mobile-drawer-section">
-                        <h6 class="mobile-drawer-section-title">Communication</h6>
-                        <a href="{% url 'messagerie_inbox' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}">
-                            <i class="fas fa-envelope"></i>
-                            <span>Messagerie</span>
-                        </a>
-                    </div>
-                </nav>
-            </div>
-            <div class="mobile-drawer-footer">
+
+            <!-- User section with role pill -->
+            <div class="mobile-drawer-user-section">
                 <div class="mobile-drawer-user">
                     <div class="mobile-drawer-avatar">
                         {{ user.first_name|make_list|first|default:user.username|make_list|first|upper }}
@@ -1098,16 +1085,77 @@
                     <div class="mobile-drawer-user-info">
                         <strong>{{ user.get_full_name|default:user.username }}</strong>
                         <small>{{ user.email }}</small>
+                        {% if user_role == 'ouvrier' %}
+                        <span class="mobile-drawer-role-pill mobile-drawer-role-pill--simple">
+                            <i class="fas fa-seedling" aria-hidden="true"></i> Baay Simple
+                        </span>
+                        {% else %}
+                        <span class="mobile-drawer-role-pill mobile-drawer-role-pill--pro">
+                            <i class="fas fa-bolt" aria-hidden="true"></i> Baay Pro
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
-                <div class="mobile-drawer-actions">
-                    <a href="{% url 'profil' %}" class="mobile-drawer-action-btn">
-                        <i class="fas fa-cog"></i>
-                    </a>
-                    <a href="{% url 'logout' %}" class="mobile-drawer-action-btn text-danger">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
-                </div>
+            </div>
+
+            <!-- Navigation links -->
+            <div class="mobile-drawer-body">
+                <nav class="mobile-drawer-nav" aria-label="Menu complet">
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Tableau de bord</h6>
+                        <a href="{% url 'dashboard' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            <i class="fas fa-rocket" aria-hidden="true"></i>
+                            <span>Cockpit</span>
+                        </a>
+                    </div>
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Exploitation</h6>
+                        <a href="{% url 'liste_fermes' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'ferme' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-warehouse" aria-hidden="true"></i>
+                            <span>Mes fermes</span>
+                        </a>
+                        <a href="{% url 'liste_projets' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'projet' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-folder-open" aria-hidden="true"></i>
+                            <span>Projets</span>
+                        </a>
+                        <a href="{% url 'taches_liste' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'tache' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-list-check" aria-hidden="true"></i>
+                            <span>Tâches</span>
+                        </a>
+                        <a href="{% url 'liste_semis' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'semis' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-seedling" aria-hidden="true"></i>
+                            <span>Semis</span>
+                        </a>
+                    </div>
+                    {% if show_finance_nav %}
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Finance</h6>
+                        <a href="{% url 'finance_hub' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'finance_hub' %}active{% endif %}">
+                            <i class="fas fa-wallet" aria-hidden="true"></i>
+                            <span>Hub Finance</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="mobile-drawer-section">
+                        <h6 class="mobile-drawer-section-title">Communication</h6>
+                        <a href="{% url 'messagerie_inbox' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            <span>Messagerie</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Footer: profile + logout -->
+            <div class="mobile-drawer-footer">
+                <a href="{% url 'profil' %}" class="mobile-drawer-action-btn">
+                    <i class="fas fa-cog" aria-hidden="true"></i>
+                    <span>Profil</span>
+                </a>
+                <a href="{% url 'logout' %}" class="mobile-drawer-action-btn text-danger logout-link" data-logout-url="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                    <span>Quitter</span>
+                </a>
             </div>
         </div>
     </div>

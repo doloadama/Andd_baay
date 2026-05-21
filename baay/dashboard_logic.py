@@ -264,7 +264,7 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
         'fermes': user_fermes,
         'selected_ferme': selected_ferme,
         'dashboard_weather_ferme_id': weather_ferme_id,
-        'nombre_fermes': user_fermes.count() if hasattr(user_fermes, 'count') else len(user_fermes),
+        'nombre_fermes': len(user_fermes),
         'messages_recents': messages_recents,
         'ferme_utilisation': (
             round(sum(f['taux_utilisation'] for f in fermes_performance) / len(fermes_performance), 1)
