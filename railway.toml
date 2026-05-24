@@ -5,7 +5,9 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+# buildCommand intentionnellement absent : nixpacks.toml gère les phases
+# (setup → install auto → build/collectstatic). Un buildCommand ici
+# court-circuiterait les phases Nixpacks et perdrait les nixPkgs.
 
 [deploy]
 startCommand = "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"

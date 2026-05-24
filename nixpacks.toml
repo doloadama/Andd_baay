@@ -1,10 +1,16 @@
 # ── nixpacks.toml — Railway build configuration ──────────────────────────────
-# Nixpacks auto-détecte Python/Django. Ce fichier ajoute les dépendances
-# système requises par WeasyPrint (Cairo, Pango, GDK-Pixbuf) et libpq.
+# Nixpacks auto-détecte Python et installe requirements.txt seul.
+# Ce fichier ajoute uniquement les dépendances système (WeasyPrint, libpq)
+# et surcharge la phase build pour collectstatic.
+#
+# ⚠️  NE PAS définir [phases.install] : Nixpacks injecte pip dans le PATH
+#     APRÈS [phases.setup] ; écraser install avec des cmds personnalisées
+#     provoque exit 127 ("pip: command not found").
+#
 # Doc : https://nixpacks.com/docs/configuration/file
 
 [phases.setup]
-# System packages requis par WeasyPrint + psycopg
+# Packages Nix requis par WeasyPrint (Cairo, Pango…) et psycopg2 (libpq).
 nixPkgs = [
   "cairo",
   "pango",
@@ -15,22 +21,16 @@ nixPkgs = [
   "freetype",
   "shared-mime-info",
   "gobject-introspection",
-  "postgresql",          # libpq pour psycopg[binary]
+  "postgresql",
 ]
 
-[phases.install]
-cmds = [
-  "pip install --upgrade pip",
-  "pip install -r requirements.txt",
-]
+# [phases.install] — intentionnellement absent.
+# Nixpacks détecte requirements.txt et exécute pip install automatiquement
+# avec le bon environnement Python déjà activé.
 
 [phases.build]
 cmds = [
   "python manage.py collectstatic --noinput",
 ]
 
-[start]
-# Commande par défaut pour le service WEB.
-# Les services Worker et Beat surchargent cette commande dans le dashboard Railway
-# (Settings → Deploy → Custom Start Command).
-cmd = "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"
+# [start] géré par railway.toml (startCommand) pour ne pas dupliquer.
