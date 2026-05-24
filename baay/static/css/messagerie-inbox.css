@@ -94,8 +94,8 @@
 .msg-sidebar-header {
     flex-shrink: 0;
     padding: 1rem 1rem 0.75rem;
-    background: linear-gradient(135deg, var(--msg-brand-night), var(--msg-brand-deep) 55%, var(--msg-brand));
-    color: #fff;
+    background: var(--msg-surface);
+    border-bottom: 1px solid var(--msg-border);
 }
 
 .msg-sidebar-header__row {
@@ -108,30 +108,32 @@
 .msg-sidebar-title {
     margin: 0;
     font-family: var(--font-display, 'Space Grotesk', sans-serif);
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    /* h1 { color: var(--text-main) } in base-inline overrides header inherit */
-    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--msg-brand-deep);
 }
 
 .msg-sidebar-new {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--msg-brand-deep);
+    background: var(--msg-brand);
+    color: #fff;
     text-decoration: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    transition: transform 0.15s ease;
+    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+    font-size: 1.1rem;
 }
 
 .msg-sidebar-new:hover {
-    color: var(--msg-brand);
-    transform: scale(1.05);
+    color: #fff;
+    transform: scale(1.06);
+    box-shadow: 0 6px 18px rgba(29, 158, 117, 0.45);
 }
 
 /* —— Inbox list partial —— */
@@ -234,9 +236,10 @@
 #conversationList .conv-item {
     border: none;
     border-bottom: 1px solid var(--msg-border);
-    padding: 12px 14px;
+    padding: 14px 16px;
     background: transparent;
     transition: background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #conversationList .conv-item:hover {
@@ -248,8 +251,8 @@
 }
 
 #conversationList .conv-item.active {
-    background: rgba(29, 158, 117, 0.14);
-    box-shadow: inset 3px 0 0 var(--msg-brand);
+    background: rgba(29, 158, 117, 0.1);
+    box-shadow: inset 4px 0 0 var(--msg-brand);
 }
 
 .conv-title {
@@ -523,4 +526,17 @@ body.msg-sheet-open {
 
 .dark-mode .msg-context-sheet__panel {
     box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .msg-sidebar-header {
+    background: var(--card-bg-solid, #121c19);
+    border-bottom-color: rgba(29, 158, 117, 0.12);
+}
+
+.dark-mode .msg-sidebar-title {
+    color: var(--msg-brand, #1d9e75);
+}
+
+.dark-mode #conversationList .conv-item.unread {
+    background: rgba(29, 158, 117, 0.09);
 }
