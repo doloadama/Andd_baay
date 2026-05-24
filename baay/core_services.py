@@ -434,6 +434,44 @@ def check_projet_produit_budget_status(projet_produit_id):
         "projet_line_label": label,
     }
 
+# Rendements typiques (kg/ha) des petits exploitants en Afrique de l'Ouest.
+# Utilisés uniquement quand le catalogue produit et l'historique local sont absents.
+# Sources : FAO / FAOSTAT moyennes Sénégal/Mali/Burkina 2015-2023.
+_RENDEMENT_FALLBACK_KG_HA = {
+    'arachide':  1000.0,
+    'riz':       2000.0,
+    'mil':        750.0,
+    'millet':     750.0,
+    'sorgho':    1000.0,
+    'maïs':      2000.0,
+    'mais':      2000.0,
+    'niébé':      500.0,
+    'niebe':      500.0,
+    'coton':      800.0,
+    'sésame':     600.0,
+    'sesame':     600.0,
+    'bissap':     700.0,
+    'pastèque':  5000.0,
+    'pasteque':  5000.0,
+    'gombo':     3000.0,
+    'manioc':   10000.0,
+    'patate':    8000.0,
+    'igname':    8000.0,
+}
+
+
+def _rendement_fallback_par_nom(nom_produit: str) -> float:
+    """
+    Retourne le rendement de référence (kg/ha) le plus proche basé sur
+    le nom de la culture, ou 1 000 kg/ha en dernier recours.
+    """
+    nom = nom_produit.lower()
+    for mot_cle, valeur in _RENDEMENT_FALLBACK_KG_HA.items():
+        if mot_cle in nom:
+            return valeur
+    return 1000.0  # ultime fallback générique
+
+
 def estimer_rendement_ia(projet_produit):
     """
     Estime dynamiquement le rendement d'une culture selon des critères agronomiques.
@@ -445,13 +483,15 @@ def estimer_rendement_ia(projet_produit):
         empirique ne mérite pas un départ à 80 %
       - Calibration prioritaire sur HistoriqueRendement local (5 dernières années)
         pour ancrer le rendement de base dans la réalité de la localité
+      - Fallback par culture (_RENDEMENT_FALLBACK_KG_HA) au lieu d'un 1 000 kg/ha
+        universel ; confiance plafonnée à 45 % quand aucune donnée réelle n'existe
     """
     produit = projet_produit.produit
     projet = projet_produit.projet
     localite = projet.localite
 
     # ── 1. Rendement de base ─────────────────────────────────────────────────
-    # Priorité : historique local réel > potentiel catalogue > fallback générique
+    # Priorité : historique local réel > potentiel catalogue > fallback par culture
     historique_qs = HistoriqueRendement.objects.filter(
         localite=localite,
         produit=produit,
@@ -466,7 +506,8 @@ def estimer_rendement_ia(projet_produit):
         rendement_base = float(produit.rendement_potentiel_max or produit.rendement_moyen)
         source_rendement = 'catalogue'
     else:
-        rendement_base = 1000.0  # fallback générique (1 t/ha)
+        # Nouvelle culture : pas de données propres → fallback régional par espèce
+        rendement_base = _rendement_fallback_par_nom(produit.nom)
         source_rendement = 'fallback'
 
     superficie = float(projet_produit.superficie_allouee or 1.0)
@@ -595,7 +636,14 @@ def estimer_rendement_ia(projet_produit):
     rendement_min = max(0.0, rendement_cible * (1.0 - variance))
     rendement_max = rendement_cible * (1.0 + variance)
 
-    # ── 8. Date de récolte prévue ────────────────────────────────────────────
+    # ── 8. Plafond de confiance selon la qualité des données ─────────────────
+    # Une prédiction sans aucune donnée réelle (ni historique local, ni catalogue
+    # produit) ne doit pas afficher une confiance élevée même en conditions
+    # favorables — le rendement de base lui-même est une estimation régionale.
+    if source_rendement == 'fallback':
+        confiance = min(confiance, 45.0)
+
+    # ── 9. Date de récolte prévue ────────────────────────────────────────────
     date_recolte = None
     cycle = produit.cycle_culture_jours or produit.duree_avant_recolte
     if projet_produit.date_semis and cycle:
@@ -606,6 +654,7 @@ def estimer_rendement_ia(projet_produit):
         'max': round(rendement_max, 2),
         'confiance': min(100.0, max(0.0, confiance)),
         'date_recolte_prevue': date_recolte,
+        'source_rendement': source_rendement,   # exposé pour le débogage / UI
     }
 
 
