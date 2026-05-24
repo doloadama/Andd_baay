@@ -1,17 +1,22 @@
-# ── railway.toml — Configuration Railway du service WEB ──────────────────────
-# Les services Worker et Beat partagent le même build mais ont leur propre
-# startCommand défini dans le dashboard (Settings → Deploy → Custom Start Command).
+# ── railway.toml — Configuration Railway (partagée par tous les services) ─────
+# Ce fichier est lu par TOUS les services créés depuis ce dépôt (web, worker,
+# beat). startCommand, healthcheckPath et healthcheckTimeout sont donc absents :
+# chaque service doit définir sa propre commande de démarrage dans le dashboard
+# (Settings → Deploy → Custom Start Command).
+#
+# Commandes à configurer dans le dashboard :
+#   web    → . /opt/venv/bin/activate && python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application
+#   worker → . /opt/venv/bin/activate && celery -A Andd_Baayi worker --loglevel=info --concurrency=2 -Q celery,default
+#   beat   → . /opt/venv/bin/activate && celery -A Andd_Baayi beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
+#
 # Doc : https://docs.railway.app/reference/config-as-code
 
 [build]
 builder = "NIXPACKS"
 # buildCommand intentionnellement absent : nixpacks.toml gère les phases
-# (setup → install auto → build/collectstatic). Un buildCommand ici
+# (setup → install → build/collectstatic). Un buildCommand ici
 # court-circuiterait les phases Nixpacks et perdrait les nixPkgs.
 
 [deploy]
-startCommand = ". /opt/venv/bin/activate && python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"
-healthcheckPath = "/health/"
-healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
