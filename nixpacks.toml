@@ -1,7 +1,7 @@
 # ── nixpacks.toml — Railway build configuration ──────────────────────────────
-# Nixpacks auto-détecte Python et installe requirements.txt seul.
-# Ce fichier ajoute uniquement les dépendances système (WeasyPrint, libpq)
-# et surcharge la phase build pour collectstatic.
+# Nixpacks v1.41.0 — Python doit être déclaré EXPLICITEMENT dans nixPkgs.
+# Sans ça, la phase install génère `python -m venv` mais python n'est pas
+# dans PATH ($NIXPACKS_PATH undefined → exit 127).
 #
 # ℹ️  package.json est dans frontend/ — hors racine — pour éviter que
 #     Nixpacks active le provider Node.js (→ npm ci introuvable, exit 127).
@@ -9,8 +9,10 @@
 # Doc : https://nixpacks.com/docs/configuration/file
 
 [phases.setup]
-# Packages Nix requis par WeasyPrint (Cairo, Pango…) et psycopg2 (libpq).
+# python3 doit être listé en premier pour qu'il soit bien dans PATH.
+# Les autres packages sont requis par WeasyPrint (Cairo, Pango…) et psycopg2 (libpq).
 nixPkgs = [
+  "python3",
   "cairo",
   "pango",
   "harfbuzz",
@@ -23,13 +25,16 @@ nixPkgs = [
   "postgresql",
 ]
 
-# [phases.install] — intentionnellement absent.
-# Nixpacks détecte requirements.txt et exécute pip install automatiquement
-# avec le bon environnement Python déjà activé.
+[phases.install]
+# On utilise python3 (pas python) car Nix n'expose que python3 dans PATH.
+# La création du venv rend pip disponible ; on active ensuite pour pip install.
+cmds = [
+  "python3 -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt",
+]
 
 [phases.build]
 cmds = [
-  "python manage.py collectstatic --noinput",
+  ". /opt/venv/bin/activate && python manage.py collectstatic --noinput",
 ]
 
 # [start] géré par railway.toml (startCommand) pour ne pas dupliquer.

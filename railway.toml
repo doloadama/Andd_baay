@@ -10,7 +10,7 @@ builder = "NIXPACKS"
 # court-circuiterait les phases Nixpacks et perdrait les nixPkgs.
 
 [deploy]
-startCommand = "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"
+startCommand = ". /opt/venv/bin/activate && python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"
 healthcheckPath = "/health/"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
