@@ -1014,6 +1014,32 @@
             drawer.setAttribute('aria-hidden', 'false');
         });
     })();
+
+    // ── Mobile drawer: swipe-right to close ──
+    (function() {
+        var drawer = document.getElementById('mobileMenuDrawer');
+        var panel = drawer ? drawer.querySelector('.mobile-drawer-content') : null;
+        if (!drawer || !panel) return;
+        var startX = 0, startTime = 0;
+        panel.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startTime = Date.now();
+            panel.style.transition = 'none';
+        }, { passive: true });
+        panel.addEventListener('touchmove', function(e) {
+            var dx = e.touches[0].clientX - startX;
+            if (dx > 0) panel.style.transform = 'translateX(' + dx + 'px)';
+        }, { passive: true });
+        panel.addEventListener('touchend', function(e) {
+            var dx = e.changedTouches[0].clientX - startX;
+            panel.style.transition = '';
+            panel.style.transform = '';
+            if (dx > 80 || (dx > 30 && Date.now() - startTime < 300)) {
+                drawer.classList.remove('open');
+                drawer.setAttribute('aria-hidden', 'true');
+            }
+        }, { passive: true });
+    })();
     </script>
 
 
@@ -1027,7 +1053,7 @@
            class="mobile-nav-item {% if rm == 'dashboard' or rm == 'performance' or rm == 'activites' %}active{% endif %}"
            {% if rm == 'dashboard' or rm == 'performance' or rm == 'activites' %}aria-current="page"{% endif %}>
             <div class="mobile-nav-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></div>
-            <span class="mobile-nav-label">Vue d'ensemble</span>
+            <span class="mobile-nav-label">Tableau</span>
         </a>
         <a href="{% url 'liste_fermes' %}"
            class="mobile-nav-item {% if rm and 'ferme' in rm %}active{% endif %}"

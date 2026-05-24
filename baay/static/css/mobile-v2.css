@@ -166,36 +166,15 @@
     font-family: inherit;
   }
 
-  /* Active indicator — pill underline */
-  .mobile-nav-item::before {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: 28px;
-    height: 3px;
-    border-radius: var(--ab-radius-pill);
-    background: var(--ab-primary);
-    transition: transform var(--ab-trans-base), opacity var(--ab-trans-base);
-    opacity: 0;
-  }
+  /* Active indicator — pill chip background on icon (no top bar) */
+  .mobile-nav-item::before { display: none; }
 
   .mobile-nav-item.active {
     color: var(--ab-primary);
   }
 
-  .mobile-nav-item.active::before {
-    transform: translateX(-50%) scaleX(1);
-    opacity: 1;
-  }
-
   .dark-mode .mobile-nav-item.active {
     color: var(--ab-light);
-  }
-
-  .dark-mode .mobile-nav-item.active::before {
-    background: var(--ab-light);
   }
 
   /* Touch feedback */
@@ -204,24 +183,33 @@
     background: rgba(29, 158, 117, 0.08);
   }
 
-  /* ── Icon ── */
+  /* ── Icon — pill chip ── */
   .mobile-nav-icon {
-    font-size: 1.3rem;
-    margin-bottom: 3px;
-    transition: transform var(--ab-trans-base);
+    font-size: 1.25rem;
     line-height: 1;
+    padding: 5px 14px;
+    border-radius: 14px;
+    margin-bottom: 2px;
+    transition: background var(--ab-trans-base);
   }
 
   .mobile-nav-item.active .mobile-nav-icon {
-    transform: translateY(-2px);
+    background: rgba(29, 158, 117, 0.14);
+  }
+
+  .dark-mode .mobile-nav-item.active .mobile-nav-icon {
+    background: rgba(93, 202, 165, 0.18);
   }
 
   /* ── Label ── */
   .mobile-nav-label {
-    font-size: 0.62rem;
+    font-size: 0.65rem;
     font-weight: 600;
     white-space: nowrap;
     letter-spacing: 0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 66px;
   }
 
   /* ── FAB (Nouveau Projet) — centered raised button ── */
@@ -432,8 +420,9 @@
   }
 
   .mobile-drawer-close {
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
@@ -564,12 +553,14 @@
     align-items: center;
     gap: 14px;
     padding: 12px 10px;
+    min-height: 48px;
     border-radius: var(--ab-radius-sm);
     color: var(--text-main, #1e293b);
     text-decoration: none;
     font-size: 0.9375rem;
     font-weight: 500;
-    transition: background var(--ab-trans-fast), color var(--ab-trans-fast), transform var(--ab-trans-fast);
+    border-left: 3px solid transparent;
+    transition: background var(--ab-trans-fast), color var(--ab-trans-fast), border-color var(--ab-trans-fast);
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -594,6 +585,8 @@
     background: rgba(29, 158, 117, 0.1);
     color: var(--ab-primary);
     font-weight: 600;
+    border-left-color: var(--ab-primary);
+    padding-left: 7px; /* 10px - 3px border */
   }
 
   .mobile-drawer-link.active i {
@@ -603,6 +596,7 @@
   .dark-mode .mobile-drawer-link.active {
     background: rgba(29, 158, 117, 0.15);
     color: var(--ab-light);
+    border-left-color: var(--ab-light);
   }
 
   .dark-mode .mobile-drawer-link.active i {
@@ -1044,6 +1038,78 @@
   .guide-fab,
   .chat-bubble-container {
     display: none !important;
+  }
+}
+
+/* ── Fermes list: sticky search + filter toolbar ── */
+@media (max-width: 767.98px) {
+  .fl-toolbar {
+    position: sticky;
+    top: 60px; /* below navbar */
+    z-index: 90;
+    background: var(--card-bg-solid, rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    margin-left: calc(-1 * clamp(12px, 2.5vw, 20px));
+    margin-right: calc(-1 * clamp(12px, 2.5vw, 20px));
+    padding: 10px clamp(12px, 2.5vw, 20px) 8px;
+    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+    margin-bottom: 0;
+  }
+
+  .dark-mode .fl-toolbar {
+    background: rgba(10, 31, 26, 0.95);
+  }
+
+  /* Projets list: sticky search + chips */
+  .search-container {
+    position: sticky;
+    top: 60px;
+    z-index: 90;
+    background: var(--card-bg-solid, rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding-top: 6px;
+    padding-bottom: 4px;
+    margin-bottom: 0 !important;
+  }
+
+  .filters-container {
+    position: sticky;
+    top: calc(60px + 54px); /* below search */
+    z-index: 89;
+    background: var(--card-bg-solid, rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding-bottom: 8px;
+    margin-bottom: 0 !important;
+  }
+
+  .dark-mode .search-container,
+  .dark-mode .filters-container {
+    background: rgba(10, 31, 26, 0.95);
+  }
+}
+
+/* ── Forms: sticky submit actions above bottom nav ── */
+@media (max-width: 767.98px) {
+  .finance-ft-form-actions {
+    position: sticky;
+    bottom: var(--ab-nav-total);
+    z-index: 80;
+    background: var(--card-bg-solid, rgba(255, 255, 255, 0.97));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    margin-bottom: -1rem;
+    padding: 12px 1.25rem;
+    border-top: 1px solid var(--border-glass, rgba(8, 80, 65, 0.1));
+    border-radius: 0;
+  }
+
+  .dark-mode .finance-ft-form-actions {
+    background: rgba(10, 31, 26, 0.97);
   }
 }
 
