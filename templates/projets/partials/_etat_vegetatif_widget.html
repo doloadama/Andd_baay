@@ -1,9 +1,10 @@
 {% load i18n %}
-{# ── Widget notation état végétatif (1–5 étoiles, HTMX) ────────────────────
-   Usage : inclure avec {% include 'projets/partials/_etat_vegetatif_widget.html' with pp=pp %}
+<!-- ── Widget notation état végétatif (1–5 étoiles, HTMX) ──────────────────
+   Usage : include 'projets/partials/_etat_vegetatif_widget.html' with pp=pp
    Échange OOB : hx-swap="outerHTML" sur l'élément racine.
    Accessible : boutons radio masqués + labels visibles avec attributs ARIA.
-─────────────────────────────────────────────────────────────────────────── #}
+──────────────────────────────────────────────────────────────────────────────
+-->
 <div id="etat-veg-{{ pp.id }}"
      class="etat-veg-widget"
      aria-label="État végétatif — {{ pp.produit.nom }}">
