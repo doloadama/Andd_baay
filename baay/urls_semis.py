@@ -8,6 +8,7 @@ from .views_semis import (
     modifier_semis,
     supprimer_semis,
     update_semis_statut,
+    update_etat_vegetatif,
 )
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
     path("semis/<uuid:semis_id>/modifier/", modifier_semis, name="modifier_semis"),
     path("semis/<uuid:semis_id>/supprimer/", supprimer_semis, name="supprimer_semis"),
     path("api/semis/<uuid:semis_id>/statut/", update_semis_statut, name="update_semis_statut"),
+    path("api/semis/<uuid:semis_id>/etat-vegetatif/", update_etat_vegetatif, name="update_etat_vegetatif"),
     path(
         "semis/<uuid:semis_id>/analyse-ia/",
         partial_analyse_semis,

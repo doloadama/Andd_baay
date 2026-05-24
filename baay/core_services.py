@@ -707,6 +707,19 @@ def estimer_rendement_ia(projet_produit):
         bonus += 0.10       # fixation azote → +10% rendement de la culture associée
         confiance += 5.0
 
+    # ── 5c. Observation terrain (état végétatif, P2.2) ───────────────────────
+    # Note de l'agriculteur sur l'état réel de la culture (1=très mauvais, 5=excellent).
+    # Prime toute règle théorique : +12 pts de confiance car observation directe.
+    _MULT_OBS = {1: 0.55, 2: 0.78, 3: 1.00, 4: 1.18, 5: 1.38}
+    etat_veg = getattr(projet_produit, 'etat_vegetatif', None)
+    if etat_veg is not None and etat_veg in _MULT_OBS:
+        bonus_obs = _MULT_OBS[etat_veg] - 1.0   # delta pondéré (positif ou négatif)
+        if bonus_obs >= 0:
+            bonus += bonus_obs
+        else:
+            penalite += abs(bonus_obs)
+        confiance += 12.0   # observation terrain → certitude accrue quelle que soit la note
+
     # ── 6. Rendement cible ───────────────────────────────────────────────────
     modificateur = max(0.1, 1.0 - penalite + bonus)
     rendement_cible = rendement_total_base * modificateur
@@ -740,6 +753,21 @@ def estimer_rendement_ia(projet_produit):
         variance *= 0.80    # Données locales réelles → intervalle le plus serré
     elif source_rendement == 'historique_regional':
         variance *= 0.90    # Données régionales → légèrement plus serré que défaut
+
+    # ── 7b. Progression phénologique (P2.1) ──────────────────────────────────
+    # Plus la culture approche de la maturité, plus la prédiction est précise :
+    # la variance se resserre et la confiance augmente au fil du cycle.
+    # Progression 0→1 (semis→récolte). Sans date_semis ou cycle : pas d'ajustement.
+    progression_cycle = 0.0
+    cycle_jours = produit.cycle_culture_jours or produit.duree_avant_recolte
+    if projet_produit.date_semis and cycle_jours and cycle_jours > 0:
+        from datetime import date as _date
+        jours_ecoules = (_date.today() - projet_produit.date_semis).days
+        progression_cycle = min(1.0, max(0.0, jours_ecoules / cycle_jours))
+        # Variance : ±20–40% → ±12–24% à maturité (réduction max 40%)
+        variance *= max(0.60, 1.0 - progression_cycle * 0.40)
+        # Confiance : +12 pts maximum à maturité
+        confiance += progression_cycle * 12.0
 
     rendement_min = max(0.0, rendement_cible * (1.0 - variance))
     rendement_max = rendement_cible * (1.0 + variance)
@@ -793,8 +821,8 @@ def estimer_rendement_ia(projet_produit):
         # Associations agronomiques
         'cultures_associees': [n for n in autres_noms if n],
         # Champs remplis par étapes ultérieures (P2, P5)
-        'etat_vegetatif': None,         # rempli en P2.2
-        'progression_cycle': 0.0,       # rempli en P2.1
+        'etat_vegetatif': etat_veg,                         # observation terrain 1–5
+        'progression_cycle': round(progression_cycle, 4),  # 0.0–1.0
         'correcteur_biais': round(correcteur_biais, 6),
         'ndvi': None,                   # rempli en P5.3
         'pluie_reelle_mm': None,        # rempli en P5.1

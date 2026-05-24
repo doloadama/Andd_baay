@@ -768,6 +768,21 @@ class ProjetProduit(models.Model):
     )
     age_plant = models.IntegerField(null=True, blank=True, help_text="Age du plant (ex: en jours)")
     
+    # Observation terrain (remplie par l'agriculteur en cours de culture)
+    ETAT_VEGETATIF_CHOICES = [
+        (1, 'Très mauvais'),
+        (2, 'Mauvais'),
+        (3, 'Normal'),
+        (4, 'Bon'),
+        (5, 'Excellent'),
+    ]
+    etat_vegetatif = models.IntegerField(
+        choices=ETAT_VEGETATIF_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Observation terrain de l'état de la culture (1=très mauvais, 5=excellent).",
+    )
+
     # Harvest data (filled when project is finished)
     rendement_final = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Rendement final obtenu en kg")
     date_recolte_effective = models.DateField(null=True, blank=True, help_text="Date de recolte effective")

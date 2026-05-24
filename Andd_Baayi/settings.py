@@ -14,6 +14,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 from datetime import timedelta
+from celery.schedules import crontab
 
 from django.templatetags.static import static
 from django.urls import reverse_lazy
@@ -408,6 +409,11 @@ CELERY_BEAT_SCHEDULE = {
     'refresh-biais-correcteurs': {
         'task': 'baay.tasks.refresher_correcteurs_biais_task',
         'schedule': timedelta(hours=6),
+    },
+    # P2.1 — Recalcul phénologique nocturne (2h00) pour les projets en cours
+    'recompute-active-predictions': {
+        'task': 'baay.tasks.recompute_active_predictions_task',
+        'schedule': crontab(hour=2, minute=0),
     },
 }
 

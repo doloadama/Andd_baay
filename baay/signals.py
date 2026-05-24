@@ -89,7 +89,7 @@ def update_prediction_rendement(sender, instance, created, update_fields=None, *
     if kwargs.get("raw"):
         return
     if not created and update_fields is not None:
-        trigger = {"date_semis", "superficie_allouee", "produit"}
+        trigger = {"date_semis", "superficie_allouee", "produit", "etat_vegetatif"}
         if not trigger.intersection(update_fields):
             return
     update_prediction_for_projet_produit(instance)

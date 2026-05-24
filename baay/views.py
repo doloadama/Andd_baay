@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib import messages
@@ -2482,6 +2482,39 @@ def update_semis_statut(request, semis_id):
     except Exception as e:
         logger.error(f"Error in update_semis_statut: {e}", exc_info=True)
         return JsonResponse({'error': 'An error occurred'}, status=500)
+
+
+@login_required
+@require_POST
+def update_etat_vegetatif(request, semis_id):
+    """
+    HTMX endpoint — met à jour l'état végétatif d'un ProjetProduit (1–5).
+    Répond avec le fragment HTML du widget mis à jour (hx-swap: outerHTML).
+    Déclenche automatiquement le recalcul de la prévision via le signal post_save.
+    """
+    pp = get_object_or_404(
+        ProjetProduit.objects.select_related('projet__ferme', 'produit'),
+        id=semis_id,
+    )
+    if not peut_modifier_semis(request.user.profile, pp):
+        return HttpResponseForbidden("Accès refusé.")
+
+    try:
+        val = int(request.POST.get('etat_vegetatif', ''))
+        if val not in range(1, 6):
+            raise ValueError
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest("Valeur invalide (1–5 attendu).")
+
+    pp.etat_vegetatif = val
+    pp.save(update_fields=['etat_vegetatif'])   # déclenche le signal → recalcul prévision
+
+    # Réponse HTMX : on retourne le widget mis à jour
+    return render(
+        request,
+        'projets/partials/_etat_vegetatif_widget.html',
+        {'pp': pp},
+    )
 
 
 # ===== FERME VIEWS =====

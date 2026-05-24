@@ -1,0 +1,58 @@
+{% load i18n %}
+{# ── Widget notation état végétatif (1–5 étoiles, HTMX) ────────────────────
+   Usage : inclure avec {% include 'projets/partials/_etat_vegetatif_widget.html' with pp=pp %}
+   Échange OOB : hx-swap="outerHTML" sur l'élément racine.
+   Accessible : boutons radio masqués + labels visibles avec attributs ARIA.
+─────────────────────────────────────────────────────────────────────────── #}
+<div id="etat-veg-{{ pp.id }}"
+     class="etat-veg-widget"
+     aria-label="État végétatif — {{ pp.produit.nom }}">
+
+  <div class="etat-veg-label">
+    <i class="fas fa-leaf text-success me-1" aria-hidden="true"></i>
+    <span>État végétatif</span>
+    {% if pp.etat_vegetatif %}
+      <span class="etat-veg-current ms-1 text-muted">({{ pp.get_etat_vegetatif_display }})</span>
+    {% else %}
+      <span class="etat-veg-current ms-1 text-muted">(non renseigné)</span>
+    {% endif %}
+  </div>
+
+  <div class="etat-veg-stars" role="group" aria-label="Choisir une note de 1 à 5">
+    {% for val, label in pp.ETAT_VEGETATIF_CHOICES %}
+    <button
+      type="button"
+      class="etat-veg-btn {% if pp.etat_vegetatif == val %}etat-veg-btn--active{% endif %}"
+      title="{{ label }}"
+      aria-label="{{ label }}"
+      aria-pressed="{% if pp.etat_vegetatif == val %}true{% else %}false{% endif %}"
+      hx-post="{% url 'update_etat_vegetatif' pp.id %}"
+      hx-vals='{"etat_vegetatif": "{{ val }}"}'
+      hx-target="#etat-veg-{{ pp.id }}"
+      hx-swap="outerHTML"
+      hx-include="[name='csrfmiddlewaretoken']"
+    >
+      <i class="{% if pp.etat_vegetatif and pp.etat_vegetatif >= val %}fas{% else %}far{% endif %} fa-star" aria-hidden="true"></i>
+    </button>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .etat-veg-widget { margin-top: .75rem; }
+  .etat-veg-label  { font-size: .78rem; color: #6c757d; margin-bottom: .25rem; display: flex; align-items: center; flex-wrap: wrap; gap: .2rem; }
+  .etat-veg-stars  { display: flex; gap: .2rem; }
+  .etat-veg-btn {
+    background: none; border: none; padding: .2rem .25rem;
+    font-size: 1.1rem; cursor: pointer; color: #ced4da;
+    transition: color .15s, transform .1s;
+    line-height: 1;
+  }
+  .etat-veg-btn:hover, .etat-veg-btn--active { color: #f6c23e; }
+  .etat-veg-btn:hover { transform: scale(1.15); }
+  /* Highlight all stars up to hovered button */
+  .etat-veg-stars:hover .etat-veg-btn { color: #f6c23e; }
+  .etat-veg-stars:hover .etat-veg-btn:hover ~ .etat-veg-btn { color: #ced4da; }
+  /* HTMX loading state */
+  .htmx-request .etat-veg-btn { opacity: .5; pointer-events: none; }
+</style>

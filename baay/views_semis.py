@@ -5,4 +5,5 @@ from .views import (
     modifier_semis,
     supprimer_semis,
     update_semis_statut,
+    update_etat_vegetatif,
 )

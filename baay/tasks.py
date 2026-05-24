@@ -120,3 +120,38 @@ def refresher_correcteurs_biais_task(self) -> None:
         )
     except Exception as exc:
         logger.warning("Impossible de recharger les correcteurs de biais : %s", exc)
+
+
+@shared_task(bind=True, ignore_result=True)
+def recompute_active_predictions_task(self) -> None:
+    """Recalcule toutes les PrevisionRecolte des projets actifs.
+
+    Planifié chaque nuit (2h00) afin que la progression phénologique (P2.1)
+    réduise progressivement la variance et augmente la confiance au fil du cycle.
+    Seuls les ProjetProduit avec date_semis définie et projet en cours sont traités.
+    """
+    from .services import update_prediction_for_projet_produit
+
+    qs = (
+        ProjetProduit.objects.filter(
+            projet__statut='en_cours',
+            date_semis__isnull=False,
+        )
+        .select_related('produit', 'projet', 'projet__localite', 'projet__ferme')
+    )
+
+    total = 0
+    errors = 0
+    for pp in qs.iterator(chunk_size=200):
+        try:
+            update_prediction_for_projet_produit(pp)
+            total += 1
+        except Exception as exc:
+            errors += 1
+            logger.warning(
+                "Erreur recalcul prediction ProjetProduit %s : %s", pp.pk, exc
+            )
+
+    logger.info(
+        "recompute_active_predictions : %d recalcules, %d erreurs.", total, errors
+    )
