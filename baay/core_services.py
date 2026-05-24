@@ -590,6 +590,42 @@ def estimer_rendement_ia(projet_produit):
     est_pérenne = categorie == 'pérenne'
     est_contrôlé = categorie == 'contrôlé'
 
+    # ── 0. Consensus ML (P5.4) ───────────────────────────────────────────────
+    # Si un modèle XGBoost entraîné existe pour cette culture, le résultat final
+    # est un consensus 60% ML + 40% règles appliqué en step 6 après le calcul
+    # de rendement_cible. Initialisé ici pour être disponible après step 6.
+    _ml_rendement_kg_ha = None
+    _ml_confiance_bonus = 0.0
+    try:
+        from baay.services.ml_service import charger_modele_ml, predire_avec_ml
+        _modele_ml = charger_modele_ml(produit.nom)
+        if _modele_ml is not None:
+            # On reconstruit un vecteur préliminaire (sans progression_cycle)
+            # pour prédire ; les features manquantes sont remplies à 0 par l'encodeur.
+            _features_prelim = {
+                "sol_type": getattr(localite, "type_sol", None) if localite else None,
+                "pluie_moyenne": float((localite.pluviometrie_moyenne or 0) if localite else 0),
+                "besoin_eau": float(produit.besoin_eau_mm or 0),
+                "type_irrigation": getattr(projet, "type_irrigation", "Aucune"),
+                "mois_semis": projet_produit.date_semis.month if projet_produit.date_semis else None,
+                "saison": getattr(produit, "saison", None),
+                "type_engrais": getattr(projet, "type_engrais", "Aucun"),
+                "superficie": float(projet_produit.superficie_allouee or 1.0),
+                "categorie_culture": categorie,
+                "source_rendement": "catalogue",  # approximation au step 0
+                "sol_inadapte": False,
+                "deficit_hydrique": False,
+                "penalite": 0.0, "bonus": 0.0, "variance": 0.20,
+                "n_historique_local": 0, "n_historique_regional": 0,
+                "progression_cycle": 0.0, "correcteur_biais": 1.0,
+            }
+            _ml_result = predire_avec_ml(_features_prelim, _modele_ml)
+            if _ml_result:
+                _ml_rendement_kg_ha = _ml_result["rendement_kg_ha"]
+                _ml_confiance_bonus = _ml_result["confiance_bonus"]
+    except Exception:
+        pass    # ML non bloquant
+
     # ── 1. Rendement de base ─────────────────────────────────────────────────
     # Priorité : historique local (5 ans) > historique régional (10 ans)
     #          > catalogue produit > fallback par espèce
@@ -657,11 +693,50 @@ def estimer_rendement_ia(projet_produit):
 
     # ── 3. Eau (Pluviométrie + Irrigation) ──────────────────────────────────
     # Désactivée pour les cultures en milieu contrôlé.
+    # P5.1 : si coordonnées disponibles, on tente de récupérer la pluviométrie
+    # réelle depuis le semis (Open-Meteo). P5.2 : facteur saisonnier ENSO.
+    pluie_reelle_mm = None
     if not est_contrôlé:
         besoin_eau = produit.besoin_eau_mm or 0
         pluie_moyenne = (localite.pluviometrie_moyenne or 0) if localite else 0
 
-        if besoin_eau > 0 and pluie_moyenne < besoin_eau:
+        # ── P5.1 : Pluviométrie réelle depuis le semis (Open-Meteo) ─────────
+        if localite and localite.latitude and localite.longitude and projet_produit.date_semis:
+            try:
+                from baay.services.meteo_service import fetch_precipitation_depuis_semis
+                pluie_reelle_mm = fetch_precipitation_depuis_semis(
+                    float(localite.latitude),
+                    float(localite.longitude),
+                    projet_produit.date_semis,
+                )
+                if pluie_reelle_mm is not None:
+                    confiance += 5.0    # données réelles → meilleure précision
+            except Exception:
+                pass    # non bloquant
+
+        # ── P5.2 : Facteur saisonnier ENSO ───────────────────────────────────
+        facteur_saisonnier = 1.0
+        if localite and localite.latitude and localite.longitude and projet_produit.date_semis:
+            try:
+                from baay.services.prevision_saisonniere_service import get_facteur_saisonnier
+                facteur_saisonnier = get_facteur_saisonnier(
+                    lat=float(localite.latitude),
+                    lon=float(localite.longitude),
+                    annee=projet_produit.date_semis.year,
+                    mois_debut=projet_produit.date_semis.month,
+                )
+                if facteur_saisonnier != 1.0:
+                    pluie_moyenne *= facteur_saisonnier
+                    # Si on a les données réelles, on les ajuste aussi partiellement
+                    if pluie_reelle_mm is not None:
+                        pluie_reelle_mm *= max(0.90, min(1.10, facteur_saisonnier))
+            except Exception:
+                pass    # non bloquant
+
+        # Utiliser la pluie réelle si disponible, sinon la moyenne historique
+        pluie_effective = pluie_reelle_mm if pluie_reelle_mm is not None else pluie_moyenne
+
+        if besoin_eau > 0 and pluie_effective < besoin_eau:
             if projet.type_irrigation == 'Aucune':
                 penalite += 0.40
                 confiance -= 15.0
@@ -670,6 +745,9 @@ def estimer_rendement_ia(projet_produit):
                     confiance += 8.0
                 else:
                     confiance += 4.0
+        elif besoin_eau > 0 and pluie_effective >= besoin_eau:
+            # Eau suffisante confirmée par données réelles/ENSO
+            pass
 
     # ── 4. Semis tardif ──────────────────────────────────────────────────────
     # Non applicable aux cultures pérennes (arbres) ni aux cultures contrôlées.
@@ -739,6 +817,16 @@ def estimer_rendement_ia(projet_produit):
     except Exception:
         pass    # cache indisponible (tests, CI) → non bloquant
 
+    # ── 6c. Consensus ML (P5.4) ──────────────────────────────────────────────
+    # Si le modèle ML a prédit un rendement (kg/ha), on effectue un consensus
+    # pondéré : 60% ML + 40% règles. Le modèle est plus fiable dès qu'il y a
+    # suffisamment d'observations (≥50) ; d'où le bonus de confiance variable.
+    if _ml_rendement_kg_ha is not None and _ml_rendement_kg_ha > 0:
+        superficie_eff = float(projet_produit.superficie_allouee or 1.0)
+        ml_total = _ml_rendement_kg_ha * superficie_eff
+        rendement_cible = 0.60 * ml_total + 0.40 * rendement_cible
+        confiance += _ml_confiance_bonus   # bonus selon R² du modèle (max +15 pts)
+
     # ── 7. Intervalle de prédiction ──────────────────────────────────────────
     if penalite >= 0.40:
         variance = 0.40
@@ -768,6 +856,47 @@ def estimer_rendement_ia(projet_produit):
         variance *= max(0.60, 1.0 - progression_cycle * 0.40)
         # Confiance : +12 pts maximum à maturité
         confiance += progression_cycle * 12.0
+
+    # ── 7c. NDVI satellitaire (P5.3) ─────────────────────────────────────────
+    # Activé si la culture est avancée (>30% cycle) et coordonnées disponibles.
+    # Données Sentinel-2 L2A via Microsoft Planetary Computer STAC (sans auth).
+    ndvi = None
+    if (
+        not est_contrôlé
+        and localite
+        and getattr(localite, 'latitude', None)
+        and getattr(localite, 'longitude', None)
+        and progression_cycle > 0.30
+        and projet_produit.date_semis
+    ):
+        try:
+            from datetime import date as _date_ndvi, timedelta as _td_ndvi
+            from baay.services.ndvi_service import fetch_ndvi_moyen
+            # Fenêtre : 30 jours glissants jusqu'à hier
+            date_fin_ndvi = _date_ndvi.today() - _td_ndvi(days=1)
+            date_debut_ndvi = date_fin_ndvi - _td_ndvi(days=30)
+            ndvi = fetch_ndvi_moyen(
+                float(localite.latitude),
+                float(localite.longitude),
+                date_debut_ndvi,
+                date_fin_ndvi,
+            )
+            if ndvi is not None:
+                if ndvi < 0.25:
+                    # Végétation très faible → stress réel détecté
+                    penalite += 0.15
+                    confiance -= 8.0
+                elif ndvi > 0.55:
+                    # Végétation dense → culture en bonne santé confirmée
+                    bonus += 0.08
+                    confiance += 6.0
+                # Recalcul du rendement_cible avec le nouveau modificateur
+                modificateur_ndvi = max(0.1, 1.0 - penalite + bonus)
+                rendement_cible = rendement_total_base * modificateur_ndvi
+                # Réappliquer le correcteur de biais sur le nouveau cible
+                rendement_cible *= correcteur_biais
+        except Exception:
+            pass    # NDVI non bloquant
 
     rendement_min = max(0.0, rendement_cible * (1.0 - variance))
     rendement_max = rendement_cible * (1.0 + variance)
@@ -824,8 +953,8 @@ def estimer_rendement_ia(projet_produit):
         'etat_vegetatif': etat_veg,                         # observation terrain 1–5
         'progression_cycle': round(progression_cycle, 4),  # 0.0–1.0
         'correcteur_biais': round(correcteur_biais, 6),
-        'ndvi': None,                   # rempli en P5.3
-        'pluie_reelle_mm': None,        # rempli en P5.1
+        'ndvi': ndvi,                       # P5.3 (None si non calculé)
+        'pluie_reelle_mm': pluie_reelle_mm, # P5.1 (None si non calculé)
     }
 
     return {
