@@ -1,0 +1,11 @@
+Requirement already satisfied: numpy in C:\Users\HP\PycharmProjects\Andd_baay\env\Lib\site-packages (1.26.4)
+Requirement already satisfied: scikit-learn in C:\Users\HP\PycharmProjects\Andd_baay\env\Lib\site-packages (1.6.1)
+Collecting xgboost
+  Downloading xgboost-3.2.0-py3-none-win_amd64.whl.metadata (2.1 kB)
+Requirement already satisfied: scipy>=1.6.0 in C:\Users\HP\PycharmProjects\Andd_baay\env\Lib\site-packages (from scikit-learn) (1.15.2)
+Requirement already satisfied: joblib>=1.2.0 in C:\Users\HP\PycharmProjects\Andd_baay\env\Lib\site-packages (from scikit-learn) (1.4.2)
+Requirement already satisfied: threadpoolctl>=3.1.0 in C:\Users\HP\PycharmProjects\Andd_baay\env\Lib\site-packages (from scikit-learn) (3.6.0)
+Downloading xgboost-3.2.0-py3-none-win_amd64.whl (101.7 MB)
+   ------------------------------- 101.7/101.7 MB 6.0 MB/s  0:00:17
+Installing collected packages: xgboost
+Successfully installed xgboost-3.2.0

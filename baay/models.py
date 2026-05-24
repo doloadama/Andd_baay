@@ -560,13 +560,23 @@ class Projet(models.Model):
     def _taches_avancement_stats(self) -> tuple[int, int, float | None]:
         """
         Tâches rattachées au projet (hors annulées) : (total, terminées, % terminées ou None).
+
+        Utilise le cache prefetch ``_taches_for_avancement`` si disponible (detail_projet view)
+        pour éviter une requête SQL supplémentaire sur les pages qui ont déjà préchargé les tâches.
         """
-        stats = self.taches.exclude(statut="annulee").aggregate(
-            total=Count("id"),
-            done=Count("id", filter=Q(statut="terminee")),
-        )
-        total = stats["total"] or 0
-        done = stats["done"] or 0
+        cached = getattr(self, "_taches_for_avancement", None)
+        if cached is not None:
+            # Le prefetch exclut déjà 'annulee' ; on filtre par sécurité
+            taches = [t for t in cached if t.statut != "annulee"]
+            total = len(taches)
+            done = sum(1 for t in taches if t.statut == "terminee")
+        else:
+            stats = self.taches.exclude(statut="annulee").aggregate(
+                total=Count("id"),
+                done=Count("id", filter=Q(statut="terminee")),
+            )
+            total = stats["total"] or 0
+            done = stats["done"] or 0
         if total <= 0:
             return 0, 0, None
         return total, done, max(0.0, min(100.0, (done / total) * 100.0))

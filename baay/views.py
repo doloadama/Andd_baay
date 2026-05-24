@@ -1138,6 +1138,21 @@ def detail_projet(request, projet_id):
                 'culture__photos',
                 queryset=PhotoProduitAgricole.objects.only('id', 'produit_id', 'image', 'description'),
             ),
+            Prefetch(
+                'previsions',
+                queryset=PrevisionRecolte.objects.order_by('-date_prediction'),
+            ),
+            Prefetch(
+                'taches',
+                # Inclut tous les champs nécessaires au template ET au calcul taux_avancement.
+                # Le résultat est mis en cache comme _taches_for_avancement :
+                #   - _taches_avancement_stats() le lit sans repasser en DB
+                #   - la vue l'utilise directement pour taches_projet (pas de 2e requête)
+                queryset=Tache.objects.exclude(statut='annulee').select_related(
+                    "assigne_a__user", "assigne_par__user"
+                ).order_by("statut", "date_echeance", "-date_creation"),
+                to_attr='_taches_for_avancement',
+            ),
         ),
         id=projet_id,
     )
@@ -1147,25 +1162,31 @@ def detail_projet(request, projet_id):
 
     # Recuperer les investissements associes au projet (si autorise)
     can_view_investissements = peut_voir_investissements(request.user.profile, projet.ferme)
-    investissements = (
-        projet.investissement_set.select_related(
-            "projet", "projet_produit", "projet_produit__produit"
-        ).all()
-        if can_view_investissements
-        else Investissement.objects.none()
-    )
 
-    # Analyses de sol de la ferme
-    analyses_sol = projet.ferme.historiques_sol.select_related(
-        "culture_precedente"
-    ).order_by("-date_mesure")[:5]
-
+    # Évaluer investissements UNE seule fois en liste pour éviter le double-hit DB
+    # (aggregate SQL + template for-loop évalueraient le queryset deux fois sinon)
     investissement_total_fcfa = None
-    if can_view_investissements and investissements.exists():
+    if can_view_investissements:
         inv_expr = investissement_montant_expr()
-        investissement_total_fcfa = investissements.aggregate(
+        # 1re requête : agrégat (SUM rapide)
+        investissement_total_fcfa = projet.investissement_set.aggregate(
             t=Coalesce(Sum(inv_expr), Value(Decimal("0")))
         )["t"]
+        # 2e requête : données complètes pour le template — évalué une seule fois
+        investissements = list(
+            projet.investissement_set.select_related(
+                "projet", "projet_produit", "projet_produit__produit"
+            ).all()
+        )
+    else:
+        investissements = []
+
+    # Analyses de sol de la ferme
+    analyses_sol = list(
+        projet.ferme.historiques_sol.select_related(
+            "culture_precedente"
+        ).order_by("-date_mesure")[:5]
+    )
 
     if (
         projet.ferme.latitude is not None
@@ -1190,10 +1211,10 @@ def detail_projet(request, projet_id):
     prediction = get_prevision_affichee_projet(projet)
 
     # Recuperer les produits du projet avec leurs previsions individuelles
-    projet_produits = projet.projet_produits.select_related('produit').prefetch_related('prevision').all()
-    superficie_allouee_totale = projet_produits.aggregate(
-        total=Coalesce(Sum('superficie_allouee'), Value(Decimal('0')))
-    )['total'] or Decimal('0')
+    projet_produits = list(projet.projet_produits.select_related('produit').prefetch_related('prevision').all())
+    superficie_allouee_totale = (
+        sum((pp.superficie_allouee or Decimal('0')) for pp in projet_produits) or Decimal('0')
+    )
     superficie_restante = None
     superficie_overallocated = False
     ferme_superficie_totale = projet.ferme.superficie_totale
@@ -1252,19 +1273,31 @@ def detail_projet(request, projet_id):
 
     role_ferme = role_dans_ferme(request.user.profile, projet.ferme)
     peut_creer_tache = bool(role_ferme and roles_assignables_par(role_ferme))
-    taches_projet = (
-        Tache.objects.filter(projet=projet)
-        .select_related("assigne_a__user", "assigne_par__user")
-        .order_by("statut", "date_echeance", "-date_creation")[:10]
-    )
+
+    # Utiliser le prefetch _taches_for_avancement au lieu d'une 2e requête séparée.
+    # Le prefetch inclut select_related(assigne_a__user, assigne_par__user) et le tri voulu.
+    taches_projet = getattr(projet, "_taches_for_avancement", None) or []
+    taches_projet = taches_projet[:10]  # Limiter à 10 pour le template
+
+    # taux_avancement lit _taches_for_avancement via _taches_avancement_stats() — 0 requête DB
+    taux_avancement = projet.taux_avancement
     campagnes = list(projet.campagnes.select_related("campagne_precedente").all())
     derniere_campagne = campagnes[0] if campagnes else None
+
+    # Vider le cache prefetch avant le rendu : les objets ProjetProduit ont une FK projet→ProjetProduit
+    # qui crée un cycle dans le graphe d'objets. Django template context.push() traverse ce graphe
+    # récursivement à chaque {% include %}/{% block %}, ce qui provoque un RecursionError.
+    # Toutes les données utiles sont déjà extraites dans les variables locales (projet_produits,
+    # taches_projet, campagnes, prediction…), donc vider ce cache est sans effet fonctionnel.
+    projet._prefetched_objects_cache = {}
 
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'can_view_investissements': can_view_investissements,
         'can_modify_investissements': peut_modifier_investissement(request.user.profile, projet),
-        'can_add_produit': peut_modifier_semis(request.user.profile, projet.projet_produits.first()) or role_dans_ferme(request.user.profile, projet.ferme) in ROLES_TECHNIQUES,
+        # role_ferme déjà calculé ligne ~1262 — pas de 2e requête DB
+        'can_add_produit': peut_modifier_semis(request.user.profile, next(iter(projet_produits), None)) or role_ferme in ROLES_TECHNIQUES,
+        'taux_avancement': taux_avancement,
         'investissements': investissements,
         'investissement_total_fcfa': investissement_total_fcfa,
         'analyses_sol': analyses_sol,

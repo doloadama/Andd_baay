@@ -618,10 +618,10 @@
                     <svg width="120" height="120">
                         <circle class="at-progress-circle__bg" cx="60" cy="60" r="52"></circle>
                         <circle class="at-progress-circle__fill" cx="60" cy="60" r="52"
-                                style="stroke-dasharray: 327; stroke-dashoffset: calc(327 - (327 * {{ projet.taux_avancement|default:0 }}) / 100)"></circle>
+                                style="stroke-dasharray: 327; stroke-dashoffset: calc(327 - (327 * {{ taux_avancement|default:0 }}) / 100)"></circle>
                     </svg>
                     <div class="at-progress-circle__text">
-                        <span class="at-progress-circle__val">{{ projet.taux_avancement }}%</span>
+                        <span class="at-progress-circle__val">{{ taux_avancement }}%</span>
                         <span class="at-progress-circle__lbl">Avancement</span>
                     </div>
                 </div>
@@ -783,7 +783,7 @@
                             <span class="at-product-stat__lbl">Rendement Est.</span>
                         </div>
                     </div>
-                    {% include 'projets/partials/_etat_vegetatif_widget.html' with pp=pp %}
+                    {% include 'projets/partials/_etat_vegetatif_widget.html' with pp=pp only %}
                     <div class="mt-3 d-flex gap-2">
                         <a href="{% url 'detail_semis' pp.id %}" class="at-btn at-btn--ghost at-btn--sm flex-grow-1">Détails</a>
                         <a href="{% url 'modifier_semis' pp.id %}" class="at-btn at-btn--ghost at-btn--sm"><i class="fas fa-edit"></i></a>

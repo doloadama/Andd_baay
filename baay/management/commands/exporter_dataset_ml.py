@@ -57,6 +57,12 @@ class Command(BaseCommand):
             default=None,
             help="Chemin de sortie. Defaut : dataset_ml_<timestamp>.<ext>.",
         )
+        parser.add_argument(
+            "--list",
+            action="store_true",
+            default=False,
+            help="Affiche les cultures disponibles et leur nombre d'observations, puis quitte.",
+        )
 
     def handle(self, *args, **options):
         from baay.models import PrevisionFeatures
@@ -65,6 +71,30 @@ class Command(BaseCommand):
         culture_filtre = options["culture"]
         min_n = options["min_n"]
         output_path = options["output"]
+
+        if options["list"]:
+            qs_all = (
+                PrevisionFeatures.objects.filter(rendement_reel__isnull=False)
+                .select_related("prevision__projet_produit__produit")
+            )
+            compteur = {}
+            for feat in qs_all.iterator(chunk_size=500):
+                try:
+                    nom = feat.prevision.projet_produit.produit.nom
+                except Exception:
+                    nom = "Inconnu"
+                compteur[nom] = compteur.get(nom, 0) + 1
+            if not compteur:
+                self.stdout.write(self.style.WARNING(
+                    "Aucune observation validee. Cloturez des projets avec rendement_final."
+                ))
+                return
+            self.stdout.write("\nCultures disponibles dans le dataset ML :")
+            for culture, n in sorted(compteur.items(), key=lambda x: -x[1]):
+                flag = " OK" if n >= min_n else f" (< {min_n} obs)"
+                self.stdout.write(f"  {culture:<25} {n:>4} obs{flag}")
+            self.stdout.write(f"\n  Total : {sum(compteur.values())} observations, {len(compteur)} culture(s).")
+            return
 
         qs = (
             PrevisionFeatures.objects.filter(rendement_reel__isnull=False)
