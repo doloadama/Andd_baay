@@ -2,38 +2,38 @@
 # Vercel installe requirements-vercel.txt (voir vercel.json → installCommand).
 # Tests : pip install -r requirements-dev.txt
 # ML / GenAI : pip install -r requirements-ml.txt
+# Pour mettre à jour : pip install -U <paquet>, tester, puis mettre à jour la version ci-dessous.
 
 # Core Django dependencies
-Django>=5.2,<5.3
-django-unfold>=0.90,<1
-djangorestframework>=3.14.0
-django-cors-headers>=4.3.0
-djangorestframework-simplejwt>=5.3.0
-python-dotenv>=1.0.0
-whitenoise>=6.6.0
-# Pillow for ImageField - using minimal version
-pillow>=10.0.0
-cloudinary>=1.41.2
-django-cloudinary-storage>=0.3.0
-gunicorn>=22.0.0
-psycopg[binary]>=3.2.0
-dj-database-url>=2.2.0
-django-allauth>=65.4.0
-channels>=4.0.0
-channels-redis>=4.2.0
-daphne>=4.0.0
-requests>=2.31.0
-cryptography>=41.0.0
+Django==5.2.13
+django-unfold==0.92.0
+djangorestframework==3.17.1
+django-cors-headers==4.9.0
+djangorestframework-simplejwt==5.5.1
+python-dotenv==1.2.2
+whitenoise==6.12.0
+pillow==12.2.0
+cloudinary==1.44.2
+django-cloudinary-storage==0.3.0
+gunicorn==25.3.0
+psycopg[binary]==3.3.3
+dj-database-url==3.1.2
+django-allauth==65.16.0
+channels==4.3.2
+channels-redis==4.3.0
+daphne==4.2.1
+requests==2.33.1
+cryptography==46.0.7
 
 # Async tasks & security
-celery>=5.3.0
-redis>=5.0.0
+celery==5.6.3
+redis==7.4.0
 django-redis>=5.4.0
-django-axes>=6.4.0
+django-axes==8.3.1
 
 # Agent IA - Rapports hebdomadaires
-pandas>=2.0.0
+pandas==3.0.2
 openpyxl>=3.1.0
 weasyprint>=60.0
-google-genai>=0.6.0
+google-genai==1.73.0
 django-celery-beat>=2.6.0

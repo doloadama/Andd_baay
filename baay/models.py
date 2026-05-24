@@ -164,6 +164,10 @@ class MembreFerme(models.Model):
 
     class Meta:
         unique_together = ('ferme', 'utilisateur')
+        indexes = [
+            models.Index(fields=["utilisateur", "date_expiration"], name="baay_membre_user_expiry_idx"),
+            models.Index(fields=["ferme", "date_expiration"], name="baay_membre_ferme_expiry_idx"),
+        ]
 
     def __str__(self):
         return f"{self.utilisateur.user.username} - {self.get_role_display()} de {self.ferme.nom}"
@@ -455,16 +459,15 @@ class Projet(models.Model):
     # Multiple products relation
     produits = models.ManyToManyField(ProduitAgricole, through='ProjetProduit', related_name='projets_multi')
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["ferme", "statut"], name="baay_projet_ferme_stat_idx"),
+            models.Index(fields=["utilisateur", "statut"], name="baay_projet_user_stat_idx"),
+            models.Index(fields=["ferme", "date_lancement"], name="baay_projet_ferme_lanc_idx"),
+        ]
+
     def __str__(self):
-        cultures = self.projet_produits.all()
-        if cultures.exists():
-            culture_names = ", ".join([pp.produit.nom for pp in cultures[:2]])
-            if cultures.count() > 2:
-                culture_names += f" (+{cultures.count() - 2})"
-            return f"Projet {self.nom} - {culture_names} by {self.utilisateur.user.username}"
-        elif self.culture:
-            return f"Projet {self.nom} - {self.culture.nom} by {self.utilisateur.user.username}"
-        return f"Projet {self.nom} by {self.utilisateur.user.username}"
+        return f"Projet {self.nom}"
 
     @classmethod
     def statuts_fin_activite(cls):

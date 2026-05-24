@@ -30,6 +30,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
+        if len(text_data) > 100_000:
+            await self.send(text_data=json.dumps({"type": "error_v1", "error": "message_too_large"}))
+            return
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:

@@ -116,9 +116,6 @@ SECRET_KEY = _secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
-_allow_debug_in_prod = os.getenv("ALLOW_DEBUG_IN_PROD", "").strip().lower() in ("1", "true", "yes")
-if IS_VERCEL and DEBUG and not _allow_debug_in_prod:
-    DEBUG = False
 
 _explicit_production = (
     IS_VERCEL
@@ -127,8 +124,8 @@ _explicit_production = (
     or os.getenv("DJANGO_DEPLOY_ENV", "").strip().lower() == "production"
 )
 
-if _explicit_production and not _allow_debug_in_prod:
-    # Django's deploy checks flag weak/insecure keys. Enforce strength in explicit production.
+if _explicit_production:
+    DEBUG = False
     if SECRET_KEY.startswith("django-insecure-") or len(SECRET_KEY) < 50:
         raise ValueError("DJANGO_SECRET_KEY must be a strong random value (>=50 chars) in production.")
 
@@ -263,7 +260,6 @@ CORS_ALLOW_CREDENTIALS = False
 CSRF_TRUSTED_ORIGINS = [
     "https://andd-baay.onrender.com",
     "https://andd-baay.vercel.app",
-    "https://*.vercel.app",
 ]
 if IS_VERCEL and VERCEL_URL:
     origin = f"https://{VERCEL_URL}"
@@ -302,7 +298,8 @@ if _prod_like:
     SECURE_SSL_REDIRECT = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = os.getenv("X_FRAME_OPTIONS", "DENY")
+    _xfo = os.getenv("X_FRAME_OPTIONS", "DENY").upper()
+    X_FRAME_OPTIONS = _xfo if _xfo in ("DENY", "SAMEORIGIN") else "DENY"
 
     # HSTS: start small, raise progressively via env.
     SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "86400"))

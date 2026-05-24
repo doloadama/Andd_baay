@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Iterable, Sequence
 
 from celery import shared_task
@@ -8,6 +9,8 @@ from channels.layers import get_channel_layer
 from django.db import transaction
 
 from .models import Projet, ProjetProduit, MembreFerme, Ferme, Profile
+
+logger = logging.getLogger(__name__)
 from .services import (
     compute_previsions_for_projet,
     check_budget_status,
@@ -53,7 +56,10 @@ def generate_previsions_for_projet_task(self, projet_id: str) -> dict:
         "rendement_max_total": total_max,
     }
     for pid in recipients:
-        async_to_sync(layer.group_send)(f"inbox_{pid}", payload)
+        try:
+            async_to_sync(layer.group_send)(f"inbox_{pid}", payload)
+        except Exception as exc:
+            logger.warning("Channels broadcast failed for inbox_%s: %s", pid, exc)
 
     return {
         "ok": True,
@@ -90,4 +96,7 @@ def recompute_investment_budget_status_task(self, projet_id: str) -> None:
             "projet_nom": projet.nom,
         }
         for pid in recipients:
-            async_to_sync(layer.group_send)(f"inbox_{pid}", payload)
+            try:
+                async_to_sync(layer.group_send)(f"inbox_{pid}", payload)
+            except Exception as exc:
+                logger.warning("Channels broadcast failed for inbox_%s: %s", pid, exc)

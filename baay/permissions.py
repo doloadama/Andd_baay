@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils import timezone
 
 from .models import Ferme, MembreFerme, Projet, ProjetProduit, Tache
 
@@ -17,26 +18,43 @@ ROLES_LECTURE_FINANCE = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_CONSULTANT}
 ROLES_COMMENTAIRE = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_CONSULTANT}
 
 
+def _membres_actifs_qs():
+    """MembreFerme whose access has not expired."""
+    now = timezone.now()
+    return MembreFerme.objects.filter(
+        Q(date_expiration__isnull=True) | Q(date_expiration__gt=now)
+    )
+
+
 def role_dans_ferme(profile, ferme):
     if profile is None or ferme is None:
         return None
     if ferme.proprietaire_id == profile.id:
         return ROLE_PROPRIETAIRE
-    membre = MembreFerme.objects.filter(ferme=ferme, utilisateur=profile).only('role').first()
+    membre = _membres_actifs_qs().filter(ferme=ferme, utilisateur=profile).only('role').first()
     return membre.role if membre else None
 
 
 def membership_dans_ferme(profile, ferme):
     if profile is None or ferme is None:
         return None
-    return MembreFerme.objects.filter(ferme=ferme, utilisateur=profile).first()
+    return _membres_actifs_qs().filter(ferme=ferme, utilisateur=profile).first()
 
 
 def fermes_accessibles_qs(profile):
     if profile is None:
         return Ferme.objects.none()
+    now = timezone.now()
     return Ferme.objects.filter(
-        Q(proprietaire=profile) | Q(membres__utilisateur=profile)
+        Q(proprietaire=profile)
+        | Q(
+            membres__utilisateur=profile,
+            membres__date_expiration__isnull=True,
+        )
+        | Q(
+            membres__utilisateur=profile,
+            membres__date_expiration__gt=now,
+        )
     ).distinct()
 
 
@@ -131,7 +149,7 @@ def peut_acceder_menu_finance(profile):
         return False
     if Ferme.objects.filter(proprietaire=profile).exists():
         return True
-    return MembreFerme.objects.filter(
+    return _membres_actifs_qs().filter(
         utilisateur=profile,
         role=ROLE_MANAGER,
     ).exists()
@@ -219,7 +237,7 @@ def peut_modifier_budget_ferme(profile, ferme):
         return False
     if ferme.proprietaire_id == profile.id:
         return True
-    return MembreFerme.objects.filter(
+    return _membres_actifs_qs().filter(
         ferme=ferme,
         utilisateur=profile,
         role=ROLE_MANAGER,
@@ -238,8 +256,19 @@ def peut_modifier_investissement(profile, projet):
 def peut_voir_investissements_any(profile):
     if profile is None:
         return False
+    now = timezone.now()
     return Ferme.objects.filter(
-        Q(proprietaire=profile) | Q(membres__utilisateur=profile, membres__role=ROLE_MANAGER)
+        Q(proprietaire=profile)
+        | Q(
+            membres__utilisateur=profile,
+            membres__role=ROLE_MANAGER,
+            membres__date_expiration__isnull=True,
+        )
+        | Q(
+            membres__utilisateur=profile,
+            membres__role=ROLE_MANAGER,
+            membres__date_expiration__gt=now,
+        )
     ).exists()
 
 
