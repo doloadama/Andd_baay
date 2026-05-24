@@ -125,6 +125,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 _explicit_production = (
     IS_VERCEL
+    or IS_RAILWAY
     or os.getenv("ENV", "").strip().lower() == "production"
     or os.getenv("DJANGO_ENVIRONMENT", "").strip().lower() == "production"
     or os.getenv("DJANGO_DEPLOY_ENV", "").strip().lower() == "production"
@@ -734,7 +735,7 @@ SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", str(3600 * 24 * 7)))  #
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("1", "true", "yes")
-if IS_VERCEL or os.getenv("ENV", "").lower() == "production":
+if _explicit_production:
     SESSION_COOKIE_SECURE = True
 
 # CSRF cookie security
@@ -743,7 +744,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 
 # Disable demo views in production
-DISABLE_DEMO_VIEWS = os.getenv("ENV", "").lower() == "production" or IS_VERCEL
+DISABLE_DEMO_VIEWS = _explicit_production
 
 LOGGING = {
     'version': 1,
