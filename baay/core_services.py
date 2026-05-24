@@ -434,36 +434,129 @@ def check_projet_produit_budget_status(projet_produit_id):
         "projet_line_label": label,
     }
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  Tables de données pour estimer_rendement_ia()
+#  (module-level pour éviter de les reconstruire à chaque appel)
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Rendements typiques (kg/ha) des petits exploitants en Afrique de l'Ouest.
-# Utilisés uniquement quand le catalogue produit et l'historique local sont absents.
-# Sources : FAO / FAOSTAT moyennes Sénégal/Mali/Burkina 2015-2023.
+# Utilisés uniquement quand le catalogue produit ET l'historique local sont absents.
+# Sources : FAO/FAOSTAT moyennes Sénégal/Mali/Burkina 2015-2023.
 _RENDEMENT_FALLBACK_KG_HA = {
-    'arachide':  1000.0,
-    'riz':       2000.0,
-    'mil':        750.0,
-    'millet':     750.0,
-    'sorgho':    1000.0,
-    'maïs':      2000.0,
-    'mais':      2000.0,
-    'niébé':      500.0,
-    'niebe':      500.0,
-    'coton':      800.0,
-    'sésame':     600.0,
-    'sesame':     600.0,
-    'bissap':     700.0,
-    'pastèque':  5000.0,
-    'pasteque':  5000.0,
-    'gombo':     3000.0,
-    'manioc':   10000.0,
-    'patate':    8000.0,
-    'igname':    8000.0,
+    'arachide':  1000.0,   'riz':       2000.0,   'mil':        750.0,
+    'millet':     750.0,   'sorgho':    1000.0,   'maïs':      2000.0,
+    'mais':      2000.0,   'fonio':      700.0,   'blé':       2500.0,
+    'ble':       2500.0,   'niébé':      500.0,   'niebe':      500.0,
+    'soja':      1500.0,   'coton':      800.0,   'sésame':     500.0,
+    'sesame':     500.0,   'tournesol': 1000.0,   'manioc':   10000.0,
+    'igname':   12000.0,   'patate':    8000.0,   'taro':      5000.0,
+    'tomate':   18000.0,   'oignon':   20000.0,   'piment':    4000.0,
+    'gombo':     5000.0,   'aubergine': 10000.0,  'chou':     15000.0,
+    'laitue':   12000.0,   'carotte':  15000.0,   'concombre': 15000.0,
+    'pastèque': 20000.0,   'pasteque': 20000.0,   'melon':    15000.0,
+    'bissap':     700.0,   'moringa':   4000.0,   'gingembre': 7000.0,
 }
+
+# Sols inadaptés par culture (mot-clé → frozenset de TypeSol).
+# La 1ère correspondance dans le nom de la culture est utilisée.
+# Cultures absentes = pas de règle sol (tolérance inconnue ou culture non-sol).
+# TypeSol choices : 'Dior', 'Deck', 'Deck-Dior', 'Sablonneux', 'Latéritique'
+_REGLES_SOL = {
+    # ── Céréales ──────────────────────────────────────────────────────────
+    'arachide':   frozenset({'Deck', 'Latéritique'}),
+    'riz':        frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'maïs':       frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'mais':       frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'mil':        frozenset({'Deck', 'Latéritique'}),
+    'millet':     frozenset({'Deck', 'Latéritique'}),
+    'sorgho':     frozenset({'Sablonneux', 'Latéritique'}),
+    'fonio':      frozenset({'Deck', 'Latéritique'}),
+    'blé':        frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'ble':        frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    # ── Légumineuses ──────────────────────────────────────────────────────
+    'niébé':      frozenset({'Latéritique'}),
+    'niebe':      frozenset({'Latéritique'}),
+    'soja':       frozenset({'Sablonneux', 'Latéritique'}),
+    'haricot':    frozenset({'Sablonneux', 'Latéritique'}),
+    'lentille':   frozenset({'Sablonneux', 'Latéritique'}),
+    'voandzou':   frozenset({'Latéritique'}),
+    'pois':       frozenset({'Latéritique'}),
+    # ── Cultures de rente / oléagineuses ──────────────────────────────────
+    'coton':      frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'sésame':     frozenset({'Deck', 'Latéritique'}),
+    'sesame':     frozenset({'Deck', 'Latéritique'}),
+    'tournesol':  frozenset({'Sablonneux', 'Latéritique'}),
+    'canne':      frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'tabac':      frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    # ── Tubercules & racines ───────────────────────────────────────────────
+    'manioc':     frozenset({'Latéritique'}),
+    'igname':     frozenset({'Deck', 'Latéritique'}),
+    'patate':     frozenset({'Deck', 'Latéritique'}),
+    'taro':       frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'pomme de':   frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    # ── Maraîchage – légumes fruits ───────────────────────────────────────
+    'tomate':     frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'oignon':     frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'piment':     frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'poivron':    frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'aubergine':  frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'gombo':      frozenset({'Latéritique'}),
+    'concombre':  frozenset({'Latéritique'}),
+    'courgette':  frozenset({'Latéritique'}),
+    'pastèque':   frozenset({'Deck', 'Latéritique'}),
+    'pasteque':   frozenset({'Deck', 'Latéritique'}),
+    'melon':      frozenset({'Deck', 'Latéritique'}),
+    'gingembre':  frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'curcuma':    frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    # ── Maraîchage – légumes feuilles / racines ────────────────────────────
+    'chou':       frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'laitue':     frozenset({'Dior', 'Sablonneux', 'Latéritique'}),
+    'carotte':    frozenset({'Deck', 'Latéritique'}),
+    'navet':      frozenset({'Deck', 'Latéritique'}),
+    'betterave':  frozenset({'Deck', 'Latéritique'}),
+    'ail':        frozenset({'Deck', 'Latéritique'}),
+    'échalote':   frozenset({'Deck', 'Latéritique'}),
+    'echalote':   frozenset({'Deck', 'Latéritique'}),
+}
+
+# Mots-clés identifiant les cultures pérennes (arbres, lianes, palmiers).
+# → Pas de pénalité "semis tardif" ; confiance plafonnée à 55 %.
+_MOTS_CLÉS_PÉRENNE = frozenset({
+    'palmier', 'cacao', 'café', 'cafe', 'karité', 'karite', 'hévéa', 'hevea',
+    'mangue', 'banane', 'agrumes', 'orange', 'citron', 'noix de coco', 'anacarde',
+    'cajou', 'goyave', 'avocat', 'datte', 'tamarin', 'baobab', 'neem', 'jatropha',
+    'vanille', 'maracuja', 'passion', 'macadamia', 'pitaya', 'dragon',
+    'poivre noir', 'ananas', 'papaye', 'goyave', 'karité',
+})
+
+# Mots-clés identifiant les cultures en milieu contrôlé (bassin, salle).
+# → Règles sol et eau non applicables ; confiance plafonnée à 40 %.
+_MOTS_CLÉS_MILIEU_CONTRÔLÉ = frozenset({
+    'spiruline', 'champignon', 'pleurote',
+})
+
+
+def _categorie_culture(nom_produit: str) -> str:
+    """
+    Retourne la catégorie agronomique de la culture :
+      'contrôlé' — hors-sol ou en bassin (spiruline, champignons...)
+      'pérenne'  — arbre ou liane pluriannuel (mangue, cacao, palmier...)
+      'annuelle' — culture à cycle court/moyen en plein champ (défaut)
+    """
+    nom = nom_produit.lower()
+    for mot in _MOTS_CLÉS_MILIEU_CONTRÔLÉ:
+        if mot in nom:
+            return 'contrôlé'
+    for mot in _MOTS_CLÉS_PÉRENNE:
+        if mot in nom:
+            return 'pérenne'
+    return 'annuelle'
 
 
 def _rendement_fallback_par_nom(nom_produit: str) -> float:
     """
-    Retourne le rendement de référence (kg/ha) le plus proche basé sur
-    le nom de la culture, ou 1 000 kg/ha en dernier recours.
+    Rendement de référence (kg/ha) par nom de culture.
+    Utilisé uniquement quand ni le catalogue ni l'historique local ne sont disponibles.
     """
     nom = nom_produit.lower()
     for mot_cle, valeur in _RENDEMENT_FALLBACK_KG_HA.items():
@@ -476,22 +569,29 @@ def estimer_rendement_ia(projet_produit):
     """
     Estime dynamiquement le rendement d'une culture selon des critères agronomiques.
 
-    Corrections v2 (2026-05) :
-      - Règles sol étendues à 6 cultures (arachide, riz, mil, sorgho, maïs, niébé)
-      - Intervalle élargi (±20–40 %) proportionnel au niveau de stress réel
-      - Confiance de base abaissée à 50 % — un système à règles sans validation
-        empirique ne mérite pas un départ à 80 %
-      - Calibration prioritaire sur HistoriqueRendement local (5 dernières années)
-        pour ancrer le rendement de base dans la réalité de la localité
-      - Fallback par culture (_RENDEMENT_FALLBACK_KG_HA) au lieu d'un 1 000 kg/ha
-        universel ; confiance plafonnée à 45 % quand aucune donnée réelle n'existe
+    Corrections v3 (2026-05) :
+      - Applicable à toutes les cultures du catalogue (60+ espèces) :
+          • Règles sol couvrant ~35 cultures via _REGLES_SOL
+          • Cultures pérennes (arbre/liane) : pas de pénalité semis tardif,
+            confiance plafonnée à 55 %
+          • Cultures en milieu contrôlé (spiruline, champignons) : règles
+            sol et eau désactivées, confiance plafonnée à 40 %
+      - Intervalle élargi (±16–40 %) proportionnel au stress réel
+      - Confiance de base à 50 % ; plafond renforcé selon la qualité des données
+      - Calibration prioritaire sur HistoriqueRendement local (5 ans)
+      - Fallback par espèce (_RENDEMENT_FALLBACK_KG_HA) si aucune donnée
     """
     produit = projet_produit.produit
     projet = projet_produit.projet
     localite = projet.localite
 
+    nom_produit = produit.nom.lower()
+    categorie = _categorie_culture(produit.nom)
+    est_pérenne = categorie == 'pérenne'
+    est_contrôlé = categorie == 'contrôlé'
+
     # ── 1. Rendement de base ─────────────────────────────────────────────────
-    # Priorité : historique local réel > potentiel catalogue > fallback par culture
+    # Priorité : historique local réel > potentiel catalogue > fallback par espèce
     historique_qs = HistoriqueRendement.objects.filter(
         localite=localite,
         produit=produit,
@@ -500,102 +600,64 @@ def estimer_rendement_ia(projet_produit):
     historique_local = list(historique_qs)
     if historique_local:
         rendements_hist = [float(h.rendement_reel_kg_ha) for h in historique_local]
-        rendement_base = sum(rendements_hist) / len(rendements_hist)  # kg/ha moyen
+        rendement_base = sum(rendements_hist) / len(rendements_hist)
         source_rendement = 'historique_local'
     elif produit.rendement_potentiel_max or produit.rendement_moyen:
         rendement_base = float(produit.rendement_potentiel_max or produit.rendement_moyen)
         source_rendement = 'catalogue'
     else:
-        # Nouvelle culture : pas de données propres → fallback régional par espèce
         rendement_base = _rendement_fallback_par_nom(produit.nom)
         source_rendement = 'fallback'
 
     superficie = float(projet_produit.superficie_allouee or 1.0)
-    rendement_total_base = rendement_base * superficie  # kg total
+    rendement_total_base = rendement_base * superficie
 
     penalite = 0.0
     bonus = 0.0
+    confiance = 50.0    # Base honnête pour un système à règles non validé
 
-    # Confiance de base à 50 % : reflète honnêtement qu'il s'agit de règles,
-    # pas d'un modèle entraîné sur des données validées.
-    confiance = 50.0
-
-    # Ajustement selon la qualité de la source de rendement
     if source_rendement == 'historique_local':
-        confiance += 15.0   # Données réelles locales — fort ancrage empirique
+        confiance += 15.0
     elif source_rendement == 'catalogue':
-        confiance += 5.0    # Donnée produit connue mais non localisée
+        confiance += 5.0
 
     # ── 2. Règles sol ────────────────────────────────────────────────────────
-    # Cinq types de sol : Dior (sableux léger), Deck (argileux lourd),
-    # Deck-Dior (mixte), Sablonneux (très sableux), Latéritique (dur, pauvre).
+    # Désactivées pour les cultures hors-sol (spiruline, champignons).
     sol_inadapte = False
-    if localite and localite.type_sol:
-        confiance += 5.0    # Sol connu → règles applicables
-
-        nom_produit = produit.nom.lower()
+    if not est_contrôlé and localite and localite.type_sol:
+        confiance += 5.0    # Sol connu → les règles peuvent s'appliquer
         sol = localite.type_sol
 
-        if 'arachide' in nom_produit:
-            # Arachide : sol léger pour développer les gousses
-            # Adapté : Dior, Deck-Dior, Sablonneux
-            if sol in ('Deck', 'Latéritique'):
-                sol_inadapte = True
-
-        elif 'riz' in nom_produit:
-            # Riz : sol à forte rétention d'eau
-            # Adapté : Deck, Deck-Dior
-            if sol in ('Dior', 'Sablonneux', 'Latéritique'):
-                sol_inadapte = True
-
-        elif any(k in nom_produit for k in ('mil', 'millet')):
-            # Mil : très tolérant à la sécheresse, préfère sol léger
-            # Adapté : Dior, Sablonneux, Deck-Dior
-            if sol in ('Deck', 'Latéritique'):
-                sol_inadapte = True
-
-        elif 'sorgho' in nom_produit:
-            # Sorgho : préfère sol limoneux à argileux, rétention d'eau modérée
-            # Adapté : Deck, Deck-Dior
-            if sol in ('Sablonneux', 'Latéritique'):
-                sol_inadapte = True
-
-        elif 'mais' in nom_produit or 'maïs' in nom_produit:
-            # Maïs : exigeant, sol riche et bien drainé
-            # Adapté : Deck-Dior, Deck
-            if sol in ('Dior', 'Sablonneux', 'Latéritique'):
-                sol_inadapte = True
-
-        elif 'niébé' in nom_produit or 'niebe' in nom_produit:
-            # Niébé : légumineuse très tolérante
-            # Seul le Latéritique pose problème (trop dur)
-            if sol == 'Latéritique':
-                sol_inadapte = True
+        for mot_cle, sols_nok in _REGLES_SOL.items():
+            if mot_cle in nom_produit:
+                if sol in sols_nok:
+                    sol_inadapte = True
+                break   # première correspondance uniquement
 
     if sol_inadapte:
         penalite += 0.20
         confiance -= 10.0
 
     # ── 3. Eau (Pluviométrie + Irrigation) ──────────────────────────────────
-    besoin_eau = produit.besoin_eau_mm or 0
-    pluie_moyenne = (localite.pluviometrie_moyenne or 0) if localite else 0
+    # Désactivée pour les cultures en milieu contrôlé.
+    if not est_contrôlé:
+        besoin_eau = produit.besoin_eau_mm or 0
+        pluie_moyenne = (localite.pluviometrie_moyenne or 0) if localite else 0
 
-    if besoin_eau > 0 and pluie_moyenne < besoin_eau:
-        if projet.type_irrigation == 'Aucune':
-            penalite += 0.40    # Stress hydrique sévère sans aucune compensation
-            confiance -= 15.0
-        else:
-            # Irrigation compensatoire : réduit l'incertitude
-            if projet.type_irrigation == 'Goutte-à-goutte':
-                confiance += 8.0    # Apport contrôlé, très efficace
+        if besoin_eau > 0 and pluie_moyenne < besoin_eau:
+            if projet.type_irrigation == 'Aucune':
+                penalite += 0.40
+                confiance -= 15.0
             else:
-                confiance += 4.0    # Aspersion ou gravitaire : moins précis
+                if projet.type_irrigation == 'Goutte-à-goutte':
+                    confiance += 8.0
+                else:
+                    confiance += 4.0
 
     # ── 4. Semis tardif ──────────────────────────────────────────────────────
-    if projet_produit.date_semis:
+    # Non applicable aux cultures pérennes (arbres) ni aux cultures contrôlées.
+    if not est_pérenne and not est_contrôlé and projet_produit.date_semis:
         mois_semis = projet_produit.date_semis.month
-        # En Afrique de l'Ouest, hivernage = juillet–août ; semis après mi-août
-        # ampute la durée de végétation et expose aux arrêts précoces des pluies.
         if produit.saison == 'Hivernage' and mois_semis >= 8:
             penalite += 0.15
             confiance -= 8.0
@@ -610,38 +672,35 @@ def estimer_rendement_ia(projet_produit):
             confiance += 4.0
         elif projet.type_engrais == 'Organique':
             bonus += 0.08
-            confiance += 4.0    # Bénéfique mais effet plus lent que le minéral
+            confiance += 4.0
 
     # ── 6. Rendement cible ───────────────────────────────────────────────────
     modificateur = max(0.1, 1.0 - penalite + bonus)
     rendement_cible = rendement_total_base * modificateur
 
     # ── 7. Intervalle de prédiction ──────────────────────────────────────────
-    # Fourchette proportionnelle au stress : un système à règles ne peut pas
-    # prétendre à ±10 % — la variance réelle des petits exploitants en Afrique
-    # de l'Ouest est de ±30–60 % selon les conditions.
     if penalite >= 0.40:
-        variance = 0.40     # Stress hydrique majeur → forte incertitude
+        variance = 0.40
     elif penalite >= 0.20:
-        variance = 0.30     # Stress modéré (sol ou eau)
+        variance = 0.30
     elif penalite > 0:
-        variance = 0.25     # Stress léger
+        variance = 0.25
     else:
-        variance = 0.20     # Conditions favorables → intervalle plus serré
+        variance = 0.20
 
-    # Les données historiques locales réduisent l'incertitude de 20 %
     if source_rendement == 'historique_local':
-        variance *= 0.80
+        variance *= 0.80    # Données locales réelles → intervalle plus serré
 
     rendement_min = max(0.0, rendement_cible * (1.0 - variance))
     rendement_max = rendement_cible * (1.0 + variance)
 
-    # ── 8. Plafond de confiance selon la qualité des données ─────────────────
-    # Une prédiction sans aucune donnée réelle (ni historique local, ni catalogue
-    # produit) ne doit pas afficher une confiance élevée même en conditions
-    # favorables — le rendement de base lui-même est une estimation régionale.
+    # ── 8. Plafonds de confiance selon la qualité des données et la catégorie ─
     if source_rendement == 'fallback':
-        confiance = min(confiance, 45.0)
+        confiance = min(confiance, 45.0)    # Aucune donnée réelle disponible
+    if est_pérenne:
+        confiance = min(confiance, 55.0)    # Modèle non calibré pour l'arboriculture
+    if est_contrôlé:
+        confiance = min(confiance, 40.0)    # Sol/eau hors-sujet → forte incertitude
 
     # ── 9. Date de récolte prévue ────────────────────────────────────────────
     date_recolte = None
@@ -654,7 +713,8 @@ def estimer_rendement_ia(projet_produit):
         'max': round(rendement_max, 2),
         'confiance': min(100.0, max(0.0, confiance)),
         'date_recolte_prevue': date_recolte,
-        'source_rendement': source_rendement,   # exposé pour le débogage / UI
+        'source_rendement': source_rendement,
+        'categorie_culture': categorie,
     }
 
 
