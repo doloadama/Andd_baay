@@ -1,0 +1,18 @@
+{
+  "name": "andd-baay-frontend",
+  "private": true,
+  "description": "Outils de build CSS locaux (Tailwind + Font Awesome subset). Exécuter depuis ce dossier : npm install && npm run build:css",
+  "scripts": {
+    "build:tailwind": "tailwindcss -i ../baay/static/css/_src/tailwind-input.css -o ../baay/static/css/tailwind.css --minify",
+    "build:fa": "node ../scripts/build-fa-subset.mjs",
+    "build:css": "npm run build:tailwind && npm run build:fa",
+    "watch:tailwind": "tailwindcss -i ../baay/static/css/_src/tailwind-input.css -o ../baay/static/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "autoprefixer": "^10.4.20",
+    "fontawesome-subset": "^4.4.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

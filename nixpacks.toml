@@ -3,17 +3,10 @@
 # Ce fichier ajoute uniquement les dépendances système (WeasyPrint, libpq)
 # et surcharge la phase build pour collectstatic.
 #
-# ⚠️  NE PAS définir [phases.install] : Nixpacks injecte pip dans le PATH
-#     APRÈS [phases.setup] ; écraser install avec des cmds personnalisées
-#     provoque exit 127 ("pip: command not found").
+# ℹ️  package.json est dans frontend/ — hors racine — pour éviter que
+#     Nixpacks active le provider Node.js (→ npm ci introuvable, exit 127).
 #
 # Doc : https://nixpacks.com/docs/configuration/file
-
-# Force Nixpacks à n'utiliser que le provider Python.
-# Sans ça, la présence de package.json active aussi le provider Node.js
-# → npm ci échoue (Node non installé) → exit 127.
-# Le CSS Tailwind est pré-compilé et commité ; npm n'est pas nécessaire sur Railway.
-providers = ["python"]
 
 [phases.setup]
 # Packages Nix requis par WeasyPrint (Cairo, Pango…) et psycopg2 (libpq).
