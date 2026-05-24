@@ -95,6 +95,49 @@ def update_prediction_rendement(sender, instance, created, update_fields=None, *
     update_prediction_for_projet_produit(instance)
 
 
+@receiver(post_save, sender=ProjetProduit)
+def valider_label_ml_a_cloture(sender, instance, update_fields=None, **kwargs):
+    """P4.3 — Renseigne rendement_reel et erreur_pct dans PrevisionFeatures
+    dès que rendement_final est enregistré (clôture du projet).
+    Invalide aussi le cache des correcteurs de biais pour que le prochain
+    refresher_correcteurs_biais_task intègre cette nouvelle observation.
+    """
+    if kwargs.get("raw"):
+        return
+    # On n'agit que si rendement_final vient d'être renseigné
+    if update_fields is not None and "rendement_final" not in update_fields:
+        return
+    if not instance.rendement_final:
+        return
+
+    try:
+        from baay.models import PrevisionFeatures
+
+        prevision = getattr(instance, "prevision", None)
+        if prevision is None:
+            return
+        feats = PrevisionFeatures.objects.filter(prevision=prevision).first()
+        if feats is None:
+            return
+
+        reel = float(instance.rendement_final)
+        mid = (prevision.rendement_estime_min + prevision.rendement_estime_max) / 2.0
+        erreur = (mid - reel) / reel * 100.0 if reel else None
+
+        from django.utils import timezone
+        feats.rendement_reel = reel
+        feats.erreur_pct = round(erreur, 4) if erreur is not None else None
+        feats.date_validation = timezone.now()
+        feats.save(update_fields=["rendement_reel", "erreur_pct", "date_validation"])
+
+        # Invalider le cache des correcteurs → intégré au prochain refresh Beat (6h)
+        from baay.services.prediction_accuracy import invalider_cache_correcteurs_biais
+        invalider_cache_correcteurs_biais()
+
+    except Exception as exc:
+        logger.warning("valider_label_ml_a_cloture : erreur pour pp=%s : %s", instance.pk, exc)
+
+
 @receiver(post_migrate)
 def sync_google_oauth_site_domain(sender, **kwargs):
     """Aligne django.contrib.sites sur l'hôte OAuth (local vs prod)."""

@@ -1336,6 +1336,60 @@ class PrevisionRecolte(models.Model):
         super().save(*args, **kwargs)
 
 
+class PrevisionFeatures(models.Model):
+    """
+    Vecteur de features capturé au moment de chaque prédiction (P4).
+
+    Permet l'export d'un dataset d'entraînement pour XGBoost/sklearn dès
+    que suffisamment de projets clôturés ont été validés (rendement_reel non nul).
+
+    Le champ `features` (JSON) contient toutes les variables agronomiques
+    utilisées par estimer_rendement_ia() au moment du calcul :
+    sol, eau, fertilisation, calendar, source des données, modificateurs, etc.
+
+    Alimenté automatiquement par update_prediction_for_projet_produit().
+    Validé à la clôture via le signal post_save(ProjetProduit) dès que
+    rendement_final est renseigné.
+    """
+
+    prevision = models.OneToOneField(
+        PrevisionRecolte,
+        on_delete=models.CASCADE,
+        related_name='features',
+    )
+    features = models.JSONField(
+        default=dict,
+        help_text="Vecteur de features au moment de la prédiction (dict JSON).",
+    )
+    rendement_reel = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Rendement réel (kg) enregistré à la clôture du projet.",
+    )
+    erreur_pct = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Erreur relative en % : (mid_predit - reel) / reel * 100.",
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_validation = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date à laquelle le rendement réel a été enregistré (label ML).",
+    )
+
+    class Meta:
+        verbose_name = 'Features de prévision'
+        verbose_name_plural = 'Features de prévisions'
+        indexes = [
+            models.Index(fields=['date_creation']),
+            models.Index(fields=['rendement_reel']),
+        ]
+
+    def __str__(self):
+        return f"Features {self.prevision_id} (validé: {bool(self.rendement_reel)})"
+
+
 class Conversation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sujet = models.CharField(max_length=200, blank=True)

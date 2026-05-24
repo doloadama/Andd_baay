@@ -881,7 +881,12 @@ def update_prediction_for_projet_produit(projet_produit):
     """
     Met à jour ou crée la PrevisionRecolte liée à ce semis (ProjetProduit).
     Une entrée par ligne produit ; le projet est dénormalisé pour requêtes agrégées.
+
+    Alimente également PrevisionFeatures (collecte silencieuse pour P4 ML)
+    avec le vecteur _features retourné par estimer_rendement_ia().
     """
+    from .models import PrevisionFeatures  # import local pour éviter les circulaires
+
     resultats = estimer_rendement_ia(projet_produit)
     prediction, _ = PrevisionRecolte.objects.update_or_create(
         projet_produit=projet_produit,
@@ -893,6 +898,21 @@ def update_prediction_for_projet_produit(projet_produit):
             "date_recolte_prevue": resultats["date_recolte_prevue"],
         },
     )
+
+    # ── P4 : Collecte silencieuse du vecteur de features ────────────────────
+    features_data = resultats.get("_features")
+    if features_data:
+        try:
+            PrevisionFeatures.objects.update_or_create(
+                prevision=prediction,
+                defaults={"features": features_data},
+            )
+        except Exception as exc:
+            logger.warning(
+                "Impossible de sauvegarder PrevisionFeatures pour %s : %s",
+                prediction.pk, exc,
+            )
+
     return prediction
 
 
