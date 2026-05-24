@@ -415,6 +415,14 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'baay.tasks.recompute_active_predictions_task',
         'schedule': crontab(hour=2, minute=0),
     },
+    # Apprentissage continu — ré-entraînement hebdomadaire (dimanche 3h00)
+    # Warm-start XGBoost sur les nouvelles observations labellisées depuis la semaine.
+    # Déclenché aussi immédiatement par signal post-clôture (>= 5 nouveaux labels).
+    'auto-retrain-ml-models': {
+        'task': 'baay.tasks.auto_retrain_models_task',
+        'schedule': crontab(hour=3, minute=0, day_of_week=0),  # 0 = dimanche
+        'kwargs': {'declencheur': 'auto', 'min_new_obs': 5, 'min_n': 5},
+    },
 }
 
 # Django-Axes — brute force protection

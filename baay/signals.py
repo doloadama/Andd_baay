@@ -134,6 +134,36 @@ def valider_label_ml_a_cloture(sender, instance, update_fields=None, **kwargs):
         from baay.services.prediction_accuracy import invalider_cache_correcteurs_biais
         invalider_cache_correcteurs_biais()
 
+        # ── Déclenchement auto-réentraînement ──────────────────────────────
+        # Si cette culture a accumulé MIN_NEW_OBS_AUTO nouveaux labels depuis
+        # le dernier entraînement, on lance la tâche immédiatement (async).
+        try:
+            from baay.services.ml_training import (
+                MIN_NEW_OBS_AUTO,
+                cultures_a_reentrainer,
+            )
+            from baay.tasks import auto_retrain_models_task
+
+            culture_nom = getattr(
+                getattr(instance, "produit", None), "nom", None
+            )
+            if culture_nom:
+                a_reentrainer = cultures_a_reentrainer(min_new_obs=MIN_NEW_OBS_AUTO)
+                if culture_nom in a_reentrainer:
+                    auto_retrain_models_task.delay(
+                        declencheur="signal",
+                        min_new_obs=MIN_NEW_OBS_AUTO,
+                        min_n=5,
+                    )
+                    logger.info(
+                        "valider_label_ml : auto-réentraînement déclenché pour '%s'.",
+                        culture_nom,
+                    )
+        except Exception as exc_retrain:
+            logger.warning(
+                "valider_label_ml : vérification auto-retrain échouée : %s", exc_retrain
+            )
+
     except Exception as exc:
         logger.warning("valider_label_ml_a_cloture : erreur pour pp=%s : %s", instance.pk, exc)
 

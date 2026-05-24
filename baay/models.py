@@ -1386,6 +1386,82 @@ class PrevisionFeatures(models.Model):
             models.Index(fields=['rendement_reel']),
         ]
 
+
+class MLModeleInfo(models.Model):
+    """Historique des entraînements XGBoost par culture.
+
+    Chaque ligne correspond à une session d'entraînement.
+    Le champ ``actif`` désigne le modèle actuellement chargé en production
+    pour cette culture. Un seul enregistrement ``actif=True`` par culture_slug.
+
+    Permet de :
+    - suivre l'évolution de R² et RMSE au fil du temps ;
+    - décider si un nouveau modèle améliore le précédent avant de le déployer ;
+    - tracer les déclencheurs (manuel, planifié, signal post-clôture).
+    """
+
+    DECLENCHEUR_CHOICES = [
+        ('manuel', 'Manuel (commande)'),
+        ('auto', 'Automatique (Beat hebdomadaire)'),
+        ('signal', 'Signal (nouvelle clôture)'),
+    ]
+
+    culture_slug = models.CharField(max_length=100, db_index=True)
+    culture_nom = models.CharField(max_length=100)
+    date_entrainement = models.DateTimeField(auto_now_add=True)
+    n_observations = models.IntegerField(help_text="Taille du dataset d'entraînement.")
+    r2_score = models.FloatField(
+        null=True, blank=True,
+        help_text="R² moyen en cross-validation.",
+    )
+    rmse = models.FloatField(
+        null=True, blank=True,
+        help_text="RMSE moyen en cross-validation (kg/ha).",
+    )
+    actif = models.BooleanField(
+        default=True,
+        help_text="True si ce modèle est actuellement utilisé en production.",
+    )
+    declencheur = models.CharField(
+        max_length=20,
+        choices=DECLENCHEUR_CHOICES,
+        default='manuel',
+    )
+    warm_start = models.BooleanField(
+        default=False,
+        help_text="True si entraîné en warm-start sur le modèle précédent.",
+    )
+    fichier_pkl = models.CharField(
+        max_length=500,
+        help_text="Chemin absolu vers le fichier .pkl du modèle.",
+    )
+
+    class Meta:
+        verbose_name = 'Modèle ML'
+        verbose_name_plural = 'Modèles ML'
+        ordering = ['-date_entrainement']
+        indexes = [
+            models.Index(fields=['culture_slug', '-date_entrainement']),
+            models.Index(fields=['actif']),
+        ]
+
+    def __str__(self):
+        r2_str = f"R²={self.r2_score:.3f}" if self.r2_score is not None else "R²=N/D"
+        actif_str = " [actif]" if self.actif else ""
+        return f"{self.culture_nom} — {self.date_entrainement:%Y-%m-%d} ({r2_str}){actif_str}"
+
+    @classmethod
+    def derniere_date_entrainement(cls, culture_slug: str):
+        """Date du dernier entraînement (actif ou non) pour cette culture."""
+        obj = cls.objects.filter(culture_slug=culture_slug).order_by('-date_entrainement').first()
+        return obj.date_entrainement if obj else None
+
+    @classmethod
+    def meilleur_r2(cls, culture_slug: str) -> float | None:
+        """Meilleur R² connu pour cette culture (modèle actif)."""
+        obj = cls.objects.filter(culture_slug=culture_slug, actif=True).order_by('-date_entrainement').first()
+        return obj.r2_score if obj else None
+
     def __str__(self):
         return f"Features {self.prevision_id} (validé: {bool(self.rendement_reel)})"
 

@@ -91,7 +91,7 @@ class Command(BaseCommand):
                 "\n  Par culture :\n"
                 f"    {'Culture':<20} {'N':>4}  {'MAPE':>8}  {'Couv.':>8}  {'Biais':>8}  Note"
             )
-            self.stdout.write("    " + "─" * 60)
+            self.stdout.write("    " + "-" * 60)
 
             for nom, d in sorted(par_culture.items(), key=lambda x: -(x[1]["mape"] or 999)):
                 mape_c = d["mape"]
