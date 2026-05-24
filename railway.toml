@@ -1,0 +1,15 @@
+# ── railway.toml — Configuration Railway du service WEB ──────────────────────
+# Les services Worker et Beat partagent le même build mais ont leur propre
+# startCommand défini dans le dashboard (Settings → Deploy → Custom Start Command).
+# Doc : https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+
+[deploy]
+startCommand = "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"
+healthcheckPath = "/health/"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

@@ -93,6 +93,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_VERCEL = os.getenv("VERCEL") == "1"
 VERCEL_URL = os.getenv("VERCEL_URL", "").strip()  # e.g. "my-app.vercel.app" (no scheme)
 
+# ── Railway ───────────────────────────────────────────────────────────────────
+# Railway injecte RAILWAY_ENVIRONMENT (production/staging) et RAILWAY_PUBLIC_DOMAIN.
+IS_RAILWAY = bool(os.getenv("RAILWAY_ENVIRONMENT"))
+RAILWAY_PUBLIC_DOMAIN = os.getenv("RAILWAY_PUBLIC_DOMAIN", "").strip()  # e.g. "anddbaay.up.railway.app"
+
 # Trusted Web Activity / Digital Asset Links (Play Store)
 # https://developer.android.com/training/app-links/add-applinks#web-assoc
 # Renseignez ANDROID_ASSETLINKS_SHA256 une fois la clé de signature obtenue (empreintes séparées par des virgules).
@@ -142,6 +147,13 @@ if IS_VERCEL and VERCEL_URL:
     # Ensure the current deployment host is always accepted.
     if VERCEL_URL not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(VERCEL_URL)
+if IS_RAILWAY and RAILWAY_PUBLIC_DOMAIN:
+    if RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    # Accepte aussi les domaines Railway privés (*.internal)
+    _railway_private = os.getenv("RAILWAY_PRIVATE_DOMAIN", "").strip()
+    if _railway_private and _railway_private not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_railway_private)
 
 # Daphne est requis pour runserver ASGI / WebSockets en local ; absent sur Vercel (WSGI uniquement).
 INSTALLED_APPS = [
@@ -266,6 +278,10 @@ if IS_VERCEL and VERCEL_URL:
     origin = f"https://{VERCEL_URL}"
     if origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(origin)
+if IS_RAILWAY and RAILWAY_PUBLIC_DOMAIN:
+    origin = f"https://{RAILWAY_PUBLIC_DOMAIN}"
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 _extra_csrf = os.getenv("CSRF_TRUSTED_ORIGINS_EXTRA", "").strip()
 if _extra_csrf:
@@ -385,7 +401,7 @@ if _eager_env in ('1', 'true', 'yes'):
 elif _eager_env in ('0', 'false', 'no'):
     CELERY_TASK_ALWAYS_EAGER = False
 else:
-    CELERY_TASK_ALWAYS_EAGER = DEBUG and not (_celery_broker_env or _redis_env)
+    CELERY_TASK_ALWAYS_EAGER = DEBUG and not (_celery_broker_env or _redis_env) and not IS_RAILWAY
 
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_TASK_TIME_LIMIT = int(os.getenv('CELERY_TASK_TIME_LIMIT', '900'))
@@ -456,7 +472,7 @@ if DATABASE_URL:
         # If parsing fails, fall back to the raw value and let Django surface the error.
         pass
 
-    _conn_max_age = 0 if IS_VERCEL else 60  # 0 pour serverless, 60s pour Render (connexions persistantes)
+    _conn_max_age = 0 if IS_VERCEL else 60  # 0 pour serverless, 60s pour Railway/Render (connexions persistantes)
     DATABASES = {
         "default": dj_database_url.parse(DATABASE_URL, conn_max_age=_conn_max_age, ssl_require=not DEBUG),
     }

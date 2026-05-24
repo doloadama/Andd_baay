@@ -1,0 +1,36 @@
+# ── nixpacks.toml — Railway build configuration ──────────────────────────────
+# Nixpacks auto-détecte Python/Django. Ce fichier ajoute les dépendances
+# système requises par WeasyPrint (Cairo, Pango, GDK-Pixbuf) et libpq.
+# Doc : https://nixpacks.com/docs/configuration/file
+
+[phases.setup]
+# System packages requis par WeasyPrint + psycopg
+nixPkgs = [
+  "cairo",
+  "pango",
+  "harfbuzz",
+  "gdk-pixbuf",
+  "libffi",
+  "fontconfig",
+  "freetype",
+  "shared-mime-info",
+  "gobject-introspection",
+  "postgresql",          # libpq pour psycopg[binary]
+]
+
+[phases.install]
+cmds = [
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt",
+]
+
+[phases.build]
+cmds = [
+  "python manage.py collectstatic --noinput",
+]
+
+[start]
+# Commande par défaut pour le service WEB.
+# Les services Worker et Beat surchargent cette commande dans le dashboard Railway
+# (Settings → Deploy → Custom Start Command).
+cmd = "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application"

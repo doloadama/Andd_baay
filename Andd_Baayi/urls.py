@@ -5,12 +5,27 @@ from django.urls import include, path
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 from django.views.generic import RedirectView
+from django.http import JsonResponse
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 from Andd_Baayi import settings
+
+
+def health_check(request):
+    """Endpoint de santé pour Railway (healthcheckPath) et monitoring externe."""
+    return JsonResponse({"status": "ok"}, status=200)
 
 _favicon_url = urljoin(settings.STATIC_URL, 'icons/favicon-32x32.png')
 
 urlpatterns = [
+    # Health check — Railway, Uptime Robot, monitoring externe (hors i18n pour éviter les redirects)
+    path('health/', health_check, name='health_check'),
+    # ── API mobile — JWT auth (hors i18n) ────────────────────────────────────
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    # ── API mobile v1 ─────────────────────────────────────────────────────────
+    path('', include('baay.urls_api_mobile')),
     path(
         'favicon.png',
         RedirectView.as_view(url=_favicon_url, permanent=False),
