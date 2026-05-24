@@ -421,18 +421,18 @@ def bento_card_predictions(request: HttpRequest) -> HttpResponse:
     Carte Bento: Prédictions de récolte (min/max) avec graphique sparkline.
     """
     from baay.models import PrevisionRecolte
-    from django.db.models import Avg, Min, Max
-    
+    from django.db.models import Avg, Count, Min, Max
+
     profile = request.user.profile
     projets_qs = projets_accessibles_qs(profile)
-    
+
     previsions = PrevisionRecolte.objects.filter(
         projet__in=projets_qs,
     ).aggregate(
         avg_confiance=Avg('indice_confiance'),
         min_rendement=Min('rendement_estime_min'),
         max_rendement=Max('rendement_estime_max'),
-        count=models.Count('id'),
+        count=Count('id'),
     )
     
     # Récupérer les prévisions individuelles pour le graphique

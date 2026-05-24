@@ -41,7 +41,7 @@
                 <span class="badge bg-light text-dark">
                     {{ reco.quantite_kg_ha }} kg/ha
                 </span>
-                <span class="badge {% if reco.confiance_score >= 0.8 %}bg-success{% elif reco.confiance_score >= 0.6 %}bg-warning{% else %}bg-secondary %}">
+                <span class="badge {% if reco.confiance_score >= 0.8 %}bg-success{% elif reco.confiance_score >= 0.6 %}bg-warning{% else %}bg-secondary{% endif %}">
                     Confiance {{ reco.confiance_score|floatformat:0 }}%
                 </span>
             </div>
@@ -50,7 +50,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    
+
     {# Incidents #}
     {% if incidents %}
     <div>
@@ -59,7 +59,7 @@
             Incidents signalés
         </h6>
         {% for incident in incidents %}
-        <div class="alert alert-{% if incident.gravite_detectee == 'critique' %}danger{% elif incident.gravite_detectee == 'haute' %}warning{% else %}info %} alert-sm py-2 px-2 mb-2">
+        <div class="alert alert-{% if incident.gravite_detectee == 'critique' %}danger{% elif incident.gravite_detectee == 'haute' %}warning{% else %}info{% endif %} alert-sm py-2 px-2 mb-2">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <strong class="d-block" style="font-size: 0.8rem;">
@@ -72,7 +72,7 @@
                         {% endif %}
                     </small>
                 </div>
-                <span class="badge {% if incident.gravite_detectee == 'critique' %}bg-danger{% elif incident.gravite_detectee == 'haute' %}bg-warning{% else %}bg-info %}">
+                <span class="badge {% if incident.gravite_detectee == 'critique' %}bg-danger{% elif incident.gravite_detectee == 'haute' %}bg-warning{% else %}bg-info{% endif %}">
                     {{ incident.get_gravite_detectee_display }}
                 </span>
             </div>
@@ -85,7 +85,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    
+
     {% if not recommandations and not incidents %}
     <div class="text-center text-muted py-4">
         <i class="fas fa-check-circle fa-2x text-success mb-3 opacity-50"></i>

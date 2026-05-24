@@ -281,15 +281,15 @@
         <span class="ferme-selector__label">Ferme active:</span>
         <form class="d-inline-block">
             {% csrf_token %}
-            <select 
+            <select
                 name="ferme_id"
                 class="form-select form-select-sm"
                 style="min-width: 200px;"
-                hx-post="{% url 'set_ferme_active' 'FERME_ID' %}"
+                hx-post="{% url 'set_ferme_active' '__ferme_id__' %}"
                 hx-trigger="change"
                 hx-target="#ferme-status"
                 hx-swap="innerHTML"
-                hx-vals='js:{ferme_id: this.value}'
+                hx-on::config-request="event.detail.path = event.detail.path.replace('__ferme_id__', this.value)"
                 hx-on::after-request="document.dispatchEvent(new CustomEvent('ferme-changed'))">
                 {% for f in fermes %}
                 <option value="{{ f.id }}" {% if ferme_active and f.id == ferme_active.id %}selected{% endif %}>
