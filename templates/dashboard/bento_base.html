@@ -212,6 +212,60 @@
     min-height: 44px;
     min-width: 44px;
 }
+
+/* ── Skeleton loaders ─────────────────────────────────────────────────────── */
+@keyframes bento-shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+
+.bento-skel {
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.bento-skel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+}
+
+.bento-skel__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.bento-skel__bar {
+    height: 13px;
+    border-radius: 6px;
+    background: linear-gradient(
+        90deg,
+        var(--skel-base, #e8e8e6) 25%,
+        var(--skel-shine, #f4f4f2) 50%,
+        var(--skel-base, #e8e8e6) 75%
+    );
+    background-size: 1200px 100%;
+    animation: bento-shimmer 1.5s ease-in-out infinite;
+}
+
+.bento-skel__bar--title  { width: 52%; height: 16px; }
+.bento-skel__bar--badge  { width: 22%; height: 22px; border-radius: 9999px; }
+.bento-skel__bar--full   { width: 100%; }
+.bento-skel__bar--lg     { width: 80%; }
+.bento-skel__bar--md     { width: 65%; }
+.bento-skel__bar--sm     { width: 45%; }
+
+.dark-mode .bento-skel__bar {
+    --skel-base:  #1e2d29;
+    --skel-shine: #283d37;
+}
 </style>
 {% endblock %}
 
@@ -257,9 +311,16 @@
          hx-get="{% url 'bento_card_meteo' %}"
          hx-trigger="load, every 30m"
          hx-swap="innerHTML">
-        <div class="bento-loading">
-            <span class="spinner-border spinner-border-sm"></span>
-            Chargement météo...
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--lg"></div>
+                <div class="bento-skel__bar bento-skel__bar--md"></div>
+            </div>
         </div>
     </div>
     
@@ -268,9 +329,17 @@
          hx-get="{% url 'bento_card_projets' %}"
          hx-trigger="load, ferme-changed from:body"
          hx-swap="innerHTML">
-        <div class="bento-loading">
-            <span class="spinner-border spinner-border-sm"></span>
-            Chargement projets...
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--lg"></div>
+                <div class="bento-skel__bar bento-skel__bar--sm"></div>
+            </div>
         </div>
     </div>
     
@@ -279,9 +348,16 @@
          hx-get="{% url 'bento_card_budget' %}"
          hx-trigger="load, ferme-changed from:body"
          hx-swap="innerHTML">
-        <div class="bento-loading">
-            <span class="spinner-border spinner-border-sm"></span>
-            Chargement budget...
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--md"></div>
+                <div class="bento-skel__bar bento-skel__bar--lg"></div>
+            </div>
         </div>
     </div>
     
@@ -290,9 +366,17 @@
          hx-get="{% url 'bento_card_alertes_ia' %}"
          hx-trigger="load, ferme-changed from:body"
          hx-swap="innerHTML">
-        <div class="bento-loading">
-            <span class="spinner-border spinner-border-sm"></span>
-            Chargement alertes...
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--lg"></div>
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--md"></div>
+            </div>
         </div>
     </div>
     
@@ -301,9 +385,17 @@
          hx-get="{% url 'bento_card_taches' %}"
          hx-trigger="load, ferme-changed from:body"
          hx-swap="innerHTML">
-        <div class="bento-loading">
-            <span class="spinner-border spinner-border-sm"></span>
-            Chargement tâches...
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--md"></div>
+                <div class="bento-skel__bar bento-skel__bar--sm"></div>
+            </div>
         </div>
     </div>
     
@@ -312,9 +404,16 @@
          hx-get="{% url 'bento_card_predictions' %}"
          hx-trigger="load, ferme-changed from:body"
          hx-swap="innerHTML">
-        <div class="bento-loading">
-            <span class="spinner-border spinner-border-sm"></span>
-            Chargement prédictions...
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--lg"></div>
+                <div class="bento-skel__bar bento-skel__bar--md"></div>
+            </div>
         </div>
     </div>
     

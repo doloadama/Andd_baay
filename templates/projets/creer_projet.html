@@ -465,10 +465,12 @@
 
             var label = document.createElement('label');
             label.className = 'pc-label pc-label--sm';
-            label.textContent = 'Superficie (ha)';
+            label.setAttribute('for', 'sup_' + id);
+            label.textContent = 'Superficie';
 
             var superficieInput = document.createElement('input');
             superficieInput.type = 'number';
+            superficieInput.id = 'sup_' + id;
             superficieInput.name = 'superficie_' + id;
             superficieInput.className = 'fh-field fh-field--sm produit-superficie';
             superficieInput.setAttribute('data-produit-id', id);
@@ -477,8 +479,17 @@
             superficieInput.required = true;
             superficieInput.placeholder = 'Ex. 1,5';
 
+            var haAddon = document.createElement('span');
+            haAddon.className = 'input-group-text';
+            haAddon.textContent = 'ha';
+
+            var inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group input-group-sm';
+            inputGroup.appendChild(superficieInput);
+            inputGroup.appendChild(haAddon);
+
             body.appendChild(label);
-            body.appendChild(superficieInput);
+            body.appendChild(inputGroup);
             div.appendChild(body);
             selectedWrap.appendChild(div);
 
@@ -629,6 +640,22 @@
         if (evt.detail.target.id !== 'creer-projet-swap') return;
         initCreerProjetPageAll();
     });
+})();
+</script>
+<script>
+(function () {
+    var firstError = null;
+    document.querySelectorAll('.text-danger, .errorlist').forEach(function (errEl) {
+        if (!errEl.textContent.trim()) return;
+        var field = errEl.closest('div')?.querySelector('input, select, textarea');
+        if (field) {
+            field.classList.add('is-invalid');
+            if (!firstError) firstError = errEl;
+        }
+    });
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 })();
 </script>
 {% endblock %}

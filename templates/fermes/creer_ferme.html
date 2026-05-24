@@ -85,7 +85,10 @@
 
                     <div>
                         <label class="finance-ft-field-label" for="{{ form.superficie_totale.id_for_label }}">{{ form.superficie_totale.label }}</label>
-                        {{ form.superficie_totale }}
+                        <div class="input-group">
+                            {{ form.superficie_totale }}
+                            <span class="input-group-text">ha</span>
+                        </div>
                         {% if form.superficie_totale.help_text %}<p class="finance-ft-help">{{ form.superficie_totale.help_text }}</p>{% endif %}
                         {% if form.superficie_totale.errors %}<div class="text-danger small mt-1">{{ form.superficie_totale.errors.0 }}</div>{% endif %}
                     </div>
@@ -256,4 +259,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script src="{% static 'js/gps-button.js' %}"></script>
+<script>
+(function () {
+    // Mark fields with errors as invalid + scroll to first one on page load
+    var firstError = null;
+    document.querySelectorAll('.text-danger.small').forEach(function (errDiv) {
+        if (!errDiv.textContent.trim()) return;
+        var field = errDiv.closest('div')?.querySelector('input, select, textarea');
+        if (field) {
+            field.classList.add('is-invalid');
+            if (!firstError) firstError = errDiv;
+        }
+    });
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+})();
+</script>
 {% endblock %}

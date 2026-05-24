@@ -66,8 +66,8 @@
   --ab-trans-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --ab-trans-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Touch */
-  --ab-touch-min:  44px;
+  /* Touch — 48px meets both WCAG 2.5.5 (44px) and Material Design (48px) */
+  --ab-touch-min:  48px;
 }
 
 /* Dark mode token overrides */
@@ -698,7 +698,11 @@
   button,
   [type="submit"],
   [type="button"],
-  [type="reset"] {
+  [type="reset"],
+  .nav-link,
+  .nav-link-modern,
+  .mobile-drawer-link,
+  .mobile-drawer-action-btn {
     min-height: var(--ab-touch-min);
     min-width: var(--ab-touch-min);
   }
