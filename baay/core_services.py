@@ -591,17 +591,32 @@ def estimer_rendement_ia(projet_produit):
     est_contrôlé = categorie == 'contrôlé'
 
     # ── 1. Rendement de base ─────────────────────────────────────────────────
-    # Priorité : historique local réel > potentiel catalogue > fallback par espèce
-    historique_qs = HistoriqueRendement.objects.filter(
-        localite=localite,
-        produit=produit,
-    ).order_by('-annee')[:5]
+    # Priorité : historique local (5 ans) > historique régional (10 ans)
+    #          > catalogue produit > fallback par espèce
+    historique_local = list(
+        HistoriqueRendement.objects.filter(localite=localite, produit=produit)
+        .order_by('-annee')[:5]
+    )
+    n_historique_local = len(historique_local)
 
-    historique_local = list(historique_qs)
+    historique_regional = []
+    n_historique_regional = 0
+    if not historique_local and localite and localite.region_id:
+        historique_regional = list(
+            HistoriqueRendement.objects.filter(
+                localite__region_id=localite.region_id, produit=produit
+            ).order_by('-annee')[:10]
+        )
+        n_historique_regional = len(historique_regional)
+
     if historique_local:
-        rendements_hist = [float(h.rendement_reel_kg_ha) for h in historique_local]
-        rendement_base = sum(rendements_hist) / len(rendements_hist)
+        _rend = [float(h.rendement_reel_kg_ha) for h in historique_local]
+        rendement_base = sum(_rend) / len(_rend)
         source_rendement = 'historique_local'
+    elif historique_regional:
+        _rend = [float(h.rendement_reel_kg_ha) for h in historique_regional]
+        rendement_base = sum(_rend) / len(_rend)
+        source_rendement = 'historique_regional'
     elif produit.rendement_potentiel_max or produit.rendement_moyen:
         rendement_base = float(produit.rendement_potentiel_max or produit.rendement_moyen)
         source_rendement = 'catalogue'
@@ -617,9 +632,11 @@ def estimer_rendement_ia(projet_produit):
     confiance = 50.0    # Base honnête pour un système à règles non validé
 
     if source_rendement == 'historique_local':
-        confiance += 15.0
+        confiance += 15.0   # Données réelles locales — ancrage empirique fort
+    elif source_rendement == 'historique_regional':
+        confiance += 10.0   # Données régionales — moins précis que local
     elif source_rendement == 'catalogue':
-        confiance += 5.0
+        confiance += 5.0    # Potentiel produit connu mais non localisé
 
     # ── 2. Règles sol ────────────────────────────────────────────────────────
     # Désactivées pour les cultures hors-sol (spiruline, champignons).
@@ -672,11 +689,42 @@ def estimer_rendement_ia(projet_produit):
             confiance += 4.0
         elif projet.type_engrais == 'Organique':
             bonus += 0.08
-            confiance += 4.0
+            confiance += 4.0    # Bénéfique mais effet plus lent que le minéral
+
+    # ── 5b. Association de cultures ──────────────────────────────────────────
+    # La présence d'une légumineuse dans le même projet apporte de l'azote
+    # aux céréales voisines via la fixation symbiotique (rhizobium).
+    _LÉGUMINEUSES_ASSOC = frozenset({'niébé', 'niebe', 'arachide', 'soja', 'mucuna'})
+    autres_noms = list(
+        projet.projet_produits.exclude(pk=projet_produit.pk)
+        .values_list('produit__nom', flat=True)
+    )
+    legumineuse_associee = any(
+        any(leg in n.lower() for leg in _LÉGUMINEUSES_ASSOC)
+        for n in autres_noms if n
+    )
+    if legumineuse_associee:
+        bonus += 0.10       # fixation azote → +10% rendement de la culture associée
+        confiance += 5.0
 
     # ── 6. Rendement cible ───────────────────────────────────────────────────
     modificateur = max(0.1, 1.0 - penalite + bonus)
     rendement_cible = rendement_total_base * modificateur
+
+    # ── 6b. Correcteur de biais calibré ──────────────────────────────────────
+    # Compense les sur/sous-estimations systématiques observées sur les projets
+    # clôturés. Facteur = 1/(1+biais%) — neutre (1.0) si n < 5 observations.
+    from baay.services.prediction_accuracy import get_correcteurs_biais_par_culture
+    correcteur_biais = 1.0
+    try:
+        for mot, facteur in get_correcteurs_biais_par_culture().items():
+            if mot in nom_produit:
+                rendement_cible *= facteur
+                correcteur_biais = facteur
+                confiance += 3.0   # modèle calibré → légère hausse de confiance
+                break
+    except Exception:
+        pass    # cache indisponible (tests, CI) → non bloquant
 
     # ── 7. Intervalle de prédiction ──────────────────────────────────────────
     if penalite >= 0.40:
@@ -689,7 +737,9 @@ def estimer_rendement_ia(projet_produit):
         variance = 0.20
 
     if source_rendement == 'historique_local':
-        variance *= 0.80    # Données locales réelles → intervalle plus serré
+        variance *= 0.80    # Données locales réelles → intervalle le plus serré
+    elif source_rendement == 'historique_regional':
+        variance *= 0.90    # Données régionales → légèrement plus serré que défaut
 
     rendement_min = max(0.0, rendement_cible * (1.0 - variance))
     rendement_max = rendement_cible * (1.0 + variance)
@@ -708,13 +758,56 @@ def estimer_rendement_ia(projet_produit):
     if projet_produit.date_semis and cycle:
         date_recolte = projet_produit.date_semis + timedelta(days=cycle)
 
+    confiance_finale = min(100.0, max(0.0, confiance))
+
+    # ── Vecteur de features (usage interne P4 — collecte silencieuse pour ML) ─
+    _features = {
+        # Contexte pédologique et hydrique
+        'sol_type': (localite.type_sol if localite else None),
+        'sol_inadapte': sol_inadapte,
+        'pluie_moyenne': float((localite.pluviometrie_moyenne or 0) if localite else 0),
+        'besoin_eau': float(produit.besoin_eau_mm or 0),
+        'deficit_hydrique': (
+            not est_contrôlé
+            and bool(produit.besoin_eau_mm)
+            and float(produit.besoin_eau_mm or 0) > float((localite.pluviometrie_moyenne or 0) if localite else 0)
+            and getattr(projet, 'type_irrigation', 'Aucune') == 'Aucune'
+        ),
+        'type_irrigation': getattr(projet, 'type_irrigation', None),
+        # Calendrier cultural
+        'mois_semis': (projet_produit.date_semis.month if projet_produit.date_semis else None),
+        'saison': getattr(produit, 'saison', None),
+        # Agronomie
+        'type_engrais': getattr(projet, 'type_engrais', None),
+        'superficie': float(projet_produit.superficie_allouee or 1.0),
+        'categorie_culture': categorie,
+        'source_rendement': source_rendement,
+        # Modificateurs calculés
+        'penalite': round(penalite, 4),
+        'bonus': round(bonus, 4),
+        'variance': round(variance, 4),
+        'confiance': round(confiance_finale, 2),
+        # Qualité des données historiques
+        'n_historique_local': n_historique_local,
+        'n_historique_regional': n_historique_regional,
+        # Associations agronomiques
+        'cultures_associees': [n for n in autres_noms if n],
+        # Champs remplis par étapes ultérieures (P2, P5)
+        'etat_vegetatif': None,         # rempli en P2.2
+        'progression_cycle': 0.0,       # rempli en P2.1
+        'correcteur_biais': round(correcteur_biais, 6),
+        'ndvi': None,                   # rempli en P5.3
+        'pluie_reelle_mm': None,        # rempli en P5.1
+    }
+
     return {
         'min': round(rendement_min, 2),
         'max': round(rendement_max, 2),
-        'confiance': min(100.0, max(0.0, confiance)),
+        'confiance': confiance_finale,
         'date_recolte_prevue': date_recolte,
         'source_rendement': source_rendement,
         'categorie_culture': categorie,
+        '_features': _features,
     }
 
 

@@ -19,9 +19,54 @@ Métriques calculées
 import logging
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.db.models import Q
 
 logger = logging.getLogger(__name__)
+
+_CACHE_KEY_CORRECTEURS = 'biais_correcteurs_v1'
+
+
+def get_correcteurs_biais_par_culture(cache_ttl: int = 86400) -> dict[str, float]:
+    """
+    Retourne un dict {nom_culture_lower: facteur_correctif} calculé à partir
+    du biais mesuré sur les projets clôturés.
+
+    Facteur = 1 / (1 + biais/100)
+      • biais > 0  → sur-estimation → facteur < 1 → réduit le rendement prédit
+      • biais < 0  → sous-estimation → facteur > 1 → augmente le rendement prédit
+      • n < 5      → facteur neutre 1.0 (trop peu de données pour calibrer)
+
+    Le résultat est mis en cache Redis pendant `cache_ttl` secondes (défaut 24h).
+    """
+    cached = cache.get(_CACHE_KEY_CORRECTEURS)
+    if cached is not None:
+        return cached
+
+    resultats = evaluer_precision_modele()
+    correcteurs = {}
+    for nom_culture, data in resultats.get('par_culture', {}).items():
+        n = data.get('n', 0)
+        biais = data.get('biais')
+        if n >= 5 and biais is not None:
+            facteur = 1.0 / (1.0 + biais / 100.0)
+            # Clamp pour éviter les corrections aberrantes (±50% max)
+            facteur = max(0.50, min(1.50, facteur))
+            correcteurs[nom_culture.lower()] = round(facteur, 6)
+
+    cache.set(_CACHE_KEY_CORRECTEURS, correcteurs, timeout=cache_ttl)
+    logger.info(
+        "Correcteurs de biais recalcules : %d cultures (%s)",
+        len(correcteurs),
+        list(correcteurs.keys()),
+    )
+    return correcteurs
+
+
+def invalider_cache_correcteurs_biais() -> None:
+    """Invalide le cache des correcteurs de biais (après clôture d'un projet, etc.)."""
+    cache.delete(_CACHE_KEY_CORRECTEURS)
+    logger.info("Cache correcteurs de biais invalide (%s).", _CACHE_KEY_CORRECTEURS)
 
 
 def evaluer_precision_modele(ferme_ids=None):

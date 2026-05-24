@@ -16,6 +16,7 @@ from .services import (
     check_budget_status,
     check_projet_produit_budget_status,
 )
+from .services.prediction_accuracy import invalider_cache_correcteurs_biais
 
 
 def _recipient_profile_ids_for_ferme(ferme: Ferme) -> Sequence[int]:
@@ -100,3 +101,22 @@ def recompute_investment_budget_status_task(self, projet_id: str) -> None:
                 async_to_sync(layer.group_send)(f"inbox_{pid}", payload)
             except Exception as exc:
                 logger.warning("Channels broadcast failed for inbox_%s: %s", pid, exc)
+
+
+@shared_task(bind=True, ignore_result=True)
+def refresher_correcteurs_biais_task(self) -> None:
+    """Invalide le cache Redis des correcteurs de biais et le recharge immédiatement.
+
+    Planifié toutes les 6h via Celery Beat pour intégrer les nouvelles clôtures
+    de projets sans attendre l'expiration naturelle du cache (24h).
+    """
+    invalider_cache_correcteurs_biais()
+    # Déclenche immédiatement le recalcul pour pré-chauffer le cache
+    from .services.prediction_accuracy import get_correcteurs_biais_par_culture
+    try:
+        correcteurs = get_correcteurs_biais_par_culture()
+        logger.info(
+            "Correcteurs de biais rafraichis : %d cultures calibrees.", len(correcteurs)
+        )
+    except Exception as exc:
+        logger.warning("Impossible de recharger les correcteurs de biais : %s", exc)

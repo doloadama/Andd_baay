@@ -404,6 +404,11 @@ CELERY_BEAT_SCHEDULE = {
         # Alternative: crontab pour un jour précis
         # 'schedule': crontab(hour=8, minute=0, day_of_week=0),  # Dimanche 8h
     },
+    # P1.1 — Correcteur de biais : invalidation + rechargement toutes les 6h
+    'refresh-biais-correcteurs': {
+        'task': 'baay.tasks.refresher_correcteurs_biais_task',
+        'schedule': timedelta(hours=6),
+    },
 }
 
 # Django-Axes — brute force protection
