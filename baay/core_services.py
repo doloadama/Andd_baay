@@ -24,6 +24,7 @@ from .models import (
     DemandeAccesFerme,
     Depense,
     Ferme,
+    HistoriqueRendement,
     HistoriqueSol,
     Investissement,
     MembreFerme,
@@ -436,83 +437,165 @@ def check_projet_produit_budget_status(projet_produit_id):
 def estimer_rendement_ia(projet_produit):
     """
     Estime dynamiquement le rendement d'une culture selon des critères agronomiques.
-    Prend en compte le type de sol, l'eau, et les dates de semis.
+
+    Corrections v2 (2026-05) :
+      - Règles sol étendues à 6 cultures (arachide, riz, mil, sorgho, maïs, niébé)
+      - Intervalle élargi (±20–40 %) proportionnel au niveau de stress réel
+      - Confiance de base abaissée à 50 % — un système à règles sans validation
+        empirique ne mérite pas un départ à 80 %
+      - Calibration prioritaire sur HistoriqueRendement local (5 dernières années)
+        pour ancrer le rendement de base dans la réalité de la localité
     """
     produit = projet_produit.produit
     projet = projet_produit.projet
     localite = projet.localite
 
-    # Base : Le potentiel max de la culture, ou le rendement moyen, ou un fallback
-    rendement_base = produit.rendement_potentiel_max or produit.rendement_moyen or 1000.0
-    
-    # Superficie
+    # ── 1. Rendement de base ─────────────────────────────────────────────────
+    # Priorité : historique local réel > potentiel catalogue > fallback générique
+    historique_qs = HistoriqueRendement.objects.filter(
+        localite=localite,
+        produit=produit,
+    ).order_by('-annee')[:5]
+
+    historique_local = list(historique_qs)
+    if historique_local:
+        rendements_hist = [float(h.rendement_reel_kg_ha) for h in historique_local]
+        rendement_base = sum(rendements_hist) / len(rendements_hist)  # kg/ha moyen
+        source_rendement = 'historique_local'
+    elif produit.rendement_potentiel_max or produit.rendement_moyen:
+        rendement_base = float(produit.rendement_potentiel_max or produit.rendement_moyen)
+        source_rendement = 'catalogue'
+    else:
+        rendement_base = 1000.0  # fallback générique (1 t/ha)
+        source_rendement = 'fallback'
+
     superficie = float(projet_produit.superficie_allouee or 1.0)
-    rendement_total_base = float(rendement_base) * superficie
+    rendement_total_base = rendement_base * superficie  # kg total
 
     penalite = 0.0
-    confiance = 80.0 # Confiance de base sans modèle entraîné
+    bonus = 0.0
 
-    # 1. Vérification du Sol
+    # Confiance de base à 50 % : reflète honnêtement qu'il s'agit de règles,
+    # pas d'un modèle entraîné sur des données validées.
+    confiance = 50.0
+
+    # Ajustement selon la qualité de la source de rendement
+    if source_rendement == 'historique_local':
+        confiance += 15.0   # Données réelles locales — fort ancrage empirique
+    elif source_rendement == 'catalogue':
+        confiance += 5.0    # Donnée produit connue mais non localisée
+
+    # ── 2. Règles sol ────────────────────────────────────────────────────────
+    # Cinq types de sol : Dior (sableux léger), Deck (argileux lourd),
+    # Deck-Dior (mixte), Sablonneux (très sableux), Latéritique (dur, pauvre).
     sol_inadapte = False
-    if localite.type_sol:
-        # Exemples de règles simples : L'arachide aime le Dior, le Riz aime le Deck.
-        if 'arachide' in produit.nom.lower() and localite.type_sol not in ['Dior', 'Deck-Dior']:
-            sol_inadapte = True
-        elif 'riz' in produit.nom.lower() and localite.type_sol not in ['Deck', 'Deck-Dior']:
-            sol_inadapte = True
+    if localite and localite.type_sol:
+        confiance += 5.0    # Sol connu → règles applicables
+
+        nom_produit = produit.nom.lower()
+        sol = localite.type_sol
+
+        if 'arachide' in nom_produit:
+            # Arachide : sol léger pour développer les gousses
+            # Adapté : Dior, Deck-Dior, Sablonneux
+            if sol in ('Deck', 'Latéritique'):
+                sol_inadapte = True
+
+        elif 'riz' in nom_produit:
+            # Riz : sol à forte rétention d'eau
+            # Adapté : Deck, Deck-Dior
+            if sol in ('Dior', 'Sablonneux', 'Latéritique'):
+                sol_inadapte = True
+
+        elif any(k in nom_produit for k in ('mil', 'millet')):
+            # Mil : très tolérant à la sécheresse, préfère sol léger
+            # Adapté : Dior, Sablonneux, Deck-Dior
+            if sol in ('Deck', 'Latéritique'):
+                sol_inadapte = True
+
+        elif 'sorgho' in nom_produit:
+            # Sorgho : préfère sol limoneux à argileux, rétention d'eau modérée
+            # Adapté : Deck, Deck-Dior
+            if sol in ('Sablonneux', 'Latéritique'):
+                sol_inadapte = True
+
+        elif 'mais' in nom_produit or 'maïs' in nom_produit:
+            # Maïs : exigeant, sol riche et bien drainé
+            # Adapté : Deck-Dior, Deck
+            if sol in ('Dior', 'Sablonneux', 'Latéritique'):
+                sol_inadapte = True
+
+        elif 'niébé' in nom_produit or 'niebe' in nom_produit:
+            # Niébé : légumineuse très tolérante
+            # Seul le Latéritique pose problème (trop dur)
+            if sol == 'Latéritique':
+                sol_inadapte = True
 
     if sol_inadapte:
         penalite += 0.20
         confiance -= 10.0
 
-    # 2. Vérification de l'Eau (Pluviométrie + Irrigation)
+    # ── 3. Eau (Pluviométrie + Irrigation) ──────────────────────────────────
     besoin_eau = produit.besoin_eau_mm or 0
-    pluie_moyenne = localite.pluviometrie_moyenne or 0
-    
+    pluie_moyenne = (localite.pluviometrie_moyenne or 0) if localite else 0
+
     if besoin_eau > 0 and pluie_moyenne < besoin_eau:
         if projet.type_irrigation == 'Aucune':
-            penalite += 0.40 # Énorme pénalité de stress hydrique
-            confiance -= 20.0
+            penalite += 0.40    # Stress hydrique sévère sans aucune compensation
+            confiance -= 15.0
         else:
-            # S'il y a de l'irrigation, on compense
+            # Irrigation compensatoire : réduit l'incertitude
             if projet.type_irrigation == 'Goutte-à-goutte':
-                confiance += 10.0 # Très efficace
+                confiance += 8.0    # Apport contrôlé, très efficace
             else:
-                confiance += 5.0
+                confiance += 4.0    # Aspersion ou gravitaire : moins précis
 
-    # 3. Évaluation du semis tardif
+    # ── 4. Semis tardif ──────────────────────────────────────────────────────
     if projet_produit.date_semis:
-        # En Afrique de l'Ouest, l'hivernage est généralement Juillet-Août.
-        # Règle simple: si semis après mi-Août pour une culture d'hivernage
         mois_semis = projet_produit.date_semis.month
+        # En Afrique de l'Ouest, hivernage = juillet–août ; semis après mi-août
+        # ampute la durée de végétation et expose aux arrêts précoces des pluies.
         if produit.saison == 'Hivernage' and mois_semis >= 8:
-            # Semis tardif
             penalite += 0.15
-            confiance -= 10.0
+            confiance -= 8.0
 
-    # 4. Apports (Engrais)
-    bonus = 0.0
+    # ── 5. Fertilisation ─────────────────────────────────────────────────────
     if projet.type_engrais != 'Aucun':
-        # Bonus variable selon le type d'engrais
         if projet.type_engrais == 'Mixte':
             bonus += 0.15
-            confiance += 8.0
+            confiance += 6.0
         elif 'Minéral' in projet.type_engrais:
             bonus += 0.12
-            confiance += 5.0
+            confiance += 4.0
         elif projet.type_engrais == 'Organique':
             bonus += 0.08
-            confiance += 6.0 # L'organique est plus sain sur le long terme
+            confiance += 4.0    # Bénéfique mais effet plus lent que le minéral
 
-    # Calcul Final
+    # ── 6. Rendement cible ───────────────────────────────────────────────────
     modificateur = max(0.1, 1.0 - penalite + bonus)
     rendement_cible = rendement_total_base * modificateur
-    
-    # Fourchette Min/Max (Variance de 10%)
-    rendement_min = rendement_cible * 0.90
-    rendement_max = rendement_cible * 1.10
 
-    # Calcul Date de récolte prévue
+    # ── 7. Intervalle de prédiction ──────────────────────────────────────────
+    # Fourchette proportionnelle au stress : un système à règles ne peut pas
+    # prétendre à ±10 % — la variance réelle des petits exploitants en Afrique
+    # de l'Ouest est de ±30–60 % selon les conditions.
+    if penalite >= 0.40:
+        variance = 0.40     # Stress hydrique majeur → forte incertitude
+    elif penalite >= 0.20:
+        variance = 0.30     # Stress modéré (sol ou eau)
+    elif penalite > 0:
+        variance = 0.25     # Stress léger
+    else:
+        variance = 0.20     # Conditions favorables → intervalle plus serré
+
+    # Les données historiques locales réduisent l'incertitude de 20 %
+    if source_rendement == 'historique_local':
+        variance *= 0.80
+
+    rendement_min = max(0.0, rendement_cible * (1.0 - variance))
+    rendement_max = rendement_cible * (1.0 + variance)
+
+    # ── 8. Date de récolte prévue ────────────────────────────────────────────
     date_recolte = None
     cycle = produit.cycle_culture_jours or produit.duree_avant_recolte
     if projet_produit.date_semis and cycle:
@@ -522,7 +605,7 @@ def estimer_rendement_ia(projet_produit):
         'min': round(rendement_min, 2),
         'max': round(rendement_max, 2),
         'confiance': min(100.0, max(0.0, confiance)),
-        'date_recolte_prevue': date_recolte
+        'date_recolte_prevue': date_recolte,
     }
 
 
