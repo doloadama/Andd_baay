@@ -12,6 +12,7 @@ from baay.views_bento import (
     bento_card_taches_simple,
     bento_card_messagerie_simple,
     bento_card_predictions,
+    bento_card_precision_ia,
     marquer_recommandation_vue,
     chatbot_agricole_query,
     tache_terminer_simple,
@@ -48,6 +49,7 @@ urlpatterns = [
     path("dashboard/bento/alertes/", bento_card_alertes_ia, name="bento_card_alertes_ia"),
     path("dashboard/bento/taches/", bento_card_taches, name="bento_card_taches"),
     path("dashboard/bento/predictions/", bento_card_predictions, name="bento_card_predictions"),
+    path("dashboard/bento/precision/", bento_card_precision_ia, name="bento_card_precision_ia"),
     
     # Actions sur recommandations
     path("dashboard/recommandation/<str:recommandation_id>/marquer-vue/", 

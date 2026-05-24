@@ -450,6 +450,37 @@ def bento_card_predictions(request: HttpRequest) -> HttpResponse:
 
 
 # =============================================================================
+# CARTE BENTO: PRÉCISION DU MODÈLE DE PRÉDICTIONS
+# =============================================================================
+
+@login_required
+@require_GET
+def bento_card_precision_ia(request: HttpRequest) -> HttpResponse:
+    """
+    Carte Bento: Évaluation de la précision du modèle de prédictions de récolte.
+    Compare les prévisions (min/max) avec les rendements réels des projets clôturés.
+    """
+    from baay.services.prediction_accuracy import evaluer_precision_modele
+
+    profile = request.user.profile
+    fermes_qs = fermes_accessibles_qs(profile)
+
+    # Restreindre à la ferme active si définie
+    ferme_id = request.session.get('ferme_active_id')
+    ferme_active = fermes_qs.filter(pk=ferme_id).first() if ferme_id else None
+    ferme_ids = [ferme_active.id] if ferme_active else list(fermes_qs.values_list('id', flat=True))
+
+    stats = evaluer_precision_modele(ferme_ids=ferme_ids)
+
+    context = {
+        'stats': stats,
+        'has_data': stats['n'] > 0,
+    }
+
+    return render(request, 'dashboard/bento_cards/_card_precision_ia.html', context)
+
+
+# =============================================================================
 # API: CHATBOT AGRICOLE RAG
 # =============================================================================
 

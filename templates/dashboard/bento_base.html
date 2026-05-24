@@ -37,15 +37,16 @@
         grid-template-areas:
             "meteo    projets  projets  budget"
             "alertes  taches   taches   predictions"
-            "alertes  .        .        .";
+            "alertes  precision precision .";
     }
-    
+
     .bento-card--meteo { grid-area: meteo; }
     .bento-card--projets { grid-area: projets; }
     .bento-card--budget { grid-area: budget; }
     .bento-card--alertes { grid-area: alertes; }
     .bento-card--taches { grid-area: taches; }
     .bento-card--predictions { grid-area: predictions; }
+    .bento-card--precision { grid-area: precision; }
 }
 
 /* Carte Bento individuelle */
@@ -416,7 +417,25 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Carte Précision IA -->
+    <div class="bento-card bento-card--precision"
+         hx-get="{% url 'bento_card_precision_ia' %}"
+         hx-trigger="load, ferme-changed from:body"
+         hx-swap="innerHTML">
+        <div class="bento-skel">
+            <div class="bento-skel__header">
+                <div class="bento-skel__bar bento-skel__bar--title"></div>
+                <div class="bento-skel__bar bento-skel__bar--badge"></div>
+            </div>
+            <div class="bento-skel__body">
+                <div class="bento-skel__bar bento-skel__bar--full"></div>
+                <div class="bento-skel__bar bento-skel__bar--lg"></div>
+                <div class="bento-skel__bar bento-skel__bar--sm"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Zone pour modals HTMX -->

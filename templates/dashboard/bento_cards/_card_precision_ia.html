@@ -1,0 +1,163 @@
+{% load custom_filters %}
+{# Carte Bento: Précision du modèle de prédictions IA #}
+<div class="bento-card__header">
+    <h3 class="bento-card__title">
+        <i class="fas fa-bullseye"></i>
+        Précision IA
+    </h3>
+    {% if has_data %}
+        {% if stats.mape is not None %}
+            <span class="bento-card__badge {% if stats.mape < 20 %}bg-success{% elif stats.mape < 35 %}bg-warning{% else %}bg-danger{% endif %}">
+                MAPE {{ stats.mape|floatformat:1 }} %
+            </span>
+        {% endif %}
+    {% else %}
+        <span class="bento-card__badge">N/D</span>
+    {% endif %}
+</div>
+
+<div class="bento-card__body bento-card__content">
+
+    {% if has_data %}
+
+    {# ── Métriques globales ─────────────────────────────────────── #}
+    <div class="row g-2 mb-3">
+
+        {# MAPE #}
+        <div class="col-4">
+            <div class="p-2 rounded text-center
+                {% if stats.mape is not None and stats.mape < 20 %}bg-success bg-opacity-10
+                {% elif stats.mape is not None and stats.mape < 35 %}bg-warning bg-opacity-10
+                {% else %}bg-danger bg-opacity-10{% endif %}">
+                <div class="small text-muted">Erreur moy.</div>
+                <div class="fw-bold" style="font-size:1.05rem;">
+                    {% if stats.mape is not None %}{{ stats.mape|floatformat:1 }}%{% else %}—{% endif %}
+                </div>
+                <div class="small" style="font-size:0.65rem; color:var(--text-muted);">MAPE</div>
+            </div>
+        </div>
+
+        {# Couverture #}
+        <div class="col-4">
+            <div class="p-2 rounded text-center
+                {% if stats.coverage_pct is not None and stats.coverage_pct >= 70 %}bg-success bg-opacity-10
+                {% elif stats.coverage_pct is not None and stats.coverage_pct >= 50 %}bg-warning bg-opacity-10
+                {% else %}bg-danger bg-opacity-10{% endif %}">
+                <div class="small text-muted">Couverture</div>
+                <div class="fw-bold" style="font-size:1.05rem;">
+                    {% if stats.coverage_pct is not None %}{{ stats.coverage_pct|floatformat:0 }}%{% else %}—{% endif %}
+                </div>
+                <div class="small" style="font-size:0.65rem; color:var(--text-muted);">Intervalle</div>
+            </div>
+        </div>
+
+        {# Biais #}
+        <div class="col-4">
+            <div class="p-2 rounded text-center bg-secondary bg-opacity-10">
+                <div class="small text-muted">Biais</div>
+                <div class="fw-bold" style="font-size:1.05rem;">
+                    {% if stats.biais is not None %}
+                        {% if stats.biais >= 0 %}+{% endif %}{{ stats.biais|floatformat:1 }}%
+                    {% else %}—{% endif %}
+                </div>
+                <div class="small" style="font-size:0.65rem; color:var(--text-muted);">±</div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Barre MAPE ─────────────────────────────────────────────── #}
+    {% if stats.mape is not None %}
+    <div class="mb-3">
+        <div class="d-flex justify-content-between mb-1">
+            <small class="text-muted">Précision globale</small>
+            <small class="fw-bold">
+                {% if stats.mape < 10 %}Excellente
+                {% elif stats.mape < 20 %}Bonne
+                {% elif stats.mape < 35 %}Acceptable
+                {% else %}À améliorer{% endif %}
+            </small>
+        </div>
+        <div class="progress" style="height: 7px;">
+            {# Invert MAPE: 0% error = 100% bar, 40%+ error = 0% bar #}
+            {% with inv=stats.mape|mul:-1|add:100 %}
+            {% if stats.mape < 20 %}
+            <div class="progress-bar bg-success" style="width: {% if inv > 0 %}{{ inv|floatformat:0 }}{% else %}0{% endif %}%"></div>
+            {% elif stats.mape < 35 %}
+            <div class="progress-bar bg-warning" style="width: {% if inv > 0 %}{{ inv|floatformat:0 }}{% else %}0{% endif %}%"></div>
+            {% else %}
+            <div class="progress-bar bg-danger" style="width: {% if inv > 0 %}{{ inv|floatformat:0 }}{% else %}0{% endif %}%"></div>
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="d-flex justify-content-between">
+            <small class="text-muted" style="font-size:0.62rem;">Idéal &lt; 20 %</small>
+            <small class="text-muted" style="font-size:0.62rem;">{{ stats.n }} culture{{ stats.n|pluralize }} analysée{{ stats.n|pluralize }}</small>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Tableau par culture (top 4) ────────────────────────────── #}
+    {% if stats.par_culture %}
+    <div>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <small class="text-muted fw-bold" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.05em;">
+                Par culture
+            </small>
+        </div>
+        {% for nom, d in stats.par_culture.items %}
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom" style="font-size:0.8rem;">
+            <span class="fw-bold text-truncate" style="max-width:100px;">{{ nom }}</span>
+            <div class="d-flex gap-2 align-items-center flex-shrink-0">
+                <span class="text-muted">{{ d.n }}×</span>
+                {% if d.mape is not None %}
+                <span class="badge {% if d.mape < 20 %}bg-success{% elif d.mape < 35 %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ d.mape|floatformat:1 }}%
+                </span>
+                {% endif %}
+                {% if d.mape is not None and d.coverage_pct is not None %}
+                    {% if d.mape < 20 and d.coverage_pct >= 70 %}
+                    <i class="fas fa-check-circle text-success"></i>
+                    {% else %}
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Avertissements ─────────────────────────────────────────── #}
+    {% if stats.avertissements %}
+    <div class="alert alert-warning alert-sm py-1 px-2 mt-2">
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        <small>{{ stats.avertissements.0 }}</small>
+    </div>
+    {% endif %}
+
+    {% else %}
+    {# ── État vide ──────────────────────────────────────────────── #}
+    <div class="text-center text-muted py-4">
+        <i class="fas fa-chart-mixed fa-2x mb-3 opacity-50"></i>
+        <p class="mb-1">Aucune donnée de validation</p>
+        <small>
+            Complétez la clôture de vos projets en renseignant le rendement réel
+            obtenu pour chaque culture.
+        </small>
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="bento-card__footer">
+    <span class="text-muted">
+        <i class="fas fa-microscope me-1"></i>
+        Précision prédictive
+    </span>
+    {% if has_data %}
+    <span class="text-muted" style="font-size:0.72rem;">
+        n = {{ stats.n }}
+    </span>
+    {% endif %}
+</div>
