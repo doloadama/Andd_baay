@@ -10,7 +10,10 @@
 
 [phases.setup]
 # Packages Nix requis par WeasyPrint (Cairo, Pango…) et psycopg2 (libpq).
+# python312 est obligatoire : un [phases.setup] personnalisé remplace la
+# détection automatique de Nixpacks, donc Python doit être listé explicitement.
 nixPkgs = [
+  "python312",
   "cairo",
   "pango",
   "harfbuzz",
