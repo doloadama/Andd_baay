@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "andd-baay",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["manage.py", "runserver", "8001", "--noreload"],
+      "port": 8001
+    }
+  ]
+}
