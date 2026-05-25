@@ -107,15 +107,26 @@ class ProduitAgricoleSerializer(serializers.ModelSerializer):
 # ── Prévision récolte ───────────────────────────────────────────────────────
 
 class PrevisionRecolteSerializer(serializers.ModelSerializer):
+    # Alias pour l'app mobile Flutter
+    rendement_min = serializers.FloatField(source="rendement_estime_min", read_only=True)
+    rendement_max = serializers.FloatField(source="rendement_estime_max", read_only=True)
+    confiance = serializers.FloatField(source="indice_confiance", read_only=True)
+    source_rendement = serializers.SerializerMethodField()
+
     class Meta:
         model = PrevisionRecolte
         fields = [
-            "rendement_estime_min",
-            "rendement_estime_max",
-            "indice_confiance",
-            "date_recolte_prevue",
-            "date_prediction",
+            # noms canoniques (modèle)
+            "rendement_estime_min", "rendement_estime_max", "indice_confiance",
+            # alias Flutter
+            "rendement_min", "rendement_max", "confiance", "source_rendement",
+            # dates
+            "date_recolte_prevue", "date_prediction",
         ]
+
+    def get_source_rendement(self, obj):
+        """Retourné par estimer_rendement_ia() mais non stocké encore (P4)."""
+        return None
 
 
 # ── ProjetProduit ───────────────────────────────────────────────────────────
@@ -128,11 +139,16 @@ class ProjetProduitSerializer(serializers.ModelSerializer):
     prevision = PrevisionRecolteSerializer(read_only=True)
     image_url = serializers.SerializerMethodField()
     etat_vegetatif_label = serializers.SerializerMethodField()
+    # Alias flat pour Flutter (évite d'aller dans l'objet produit imbriqué)
+    produit_nom = serializers.CharField(source="produit.nom", read_only=True)
+    produit_photo = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjetProduit
         fields = [
             "id", "produit", "produit_id",
+            # alias Flutter
+            "produit_nom", "produit_photo",
             "quantite_semences", "superficie_allouee",
             "date_semis", "date_recolte_prevue",
             "etat_vegetatif", "etat_vegetatif_label",
@@ -150,6 +166,11 @@ class ProjetProduitSerializer(serializers.ModelSerializer):
             return None
         return dict(obj.ETAT_VEGETATIF_CHOICES).get(obj.etat_vegetatif)
 
+    def get_produit_photo(self, obj):
+        """Photo principale du catalogue produit (Cloudinary)."""
+        first = obj.produit.photos.first() if obj.produit_id else None
+        return _cloudinary_url(first.image) if first else None
+
 
 class ProjetProduitEtatSerializer(serializers.Serializer):
     """Sérialiseur léger pour la mise à jour de l'état végétatif."""
@@ -162,6 +183,8 @@ class ProjetListSerializer(serializers.ModelSerializer):
     """Version légère pour la liste des projets."""
     localite_nom = serializers.CharField(source="localite.nom", read_only=True)
     taux_avancement = serializers.IntegerField(read_only=True)
+    # Alias Flutter : le champ s'appelle 'avancement' côté app mobile
+    avancement = serializers.IntegerField(source="taux_avancement", read_only=True)
     nb_produits = serializers.SerializerMethodField()
     image_fond_url = serializers.SerializerMethodField()
 
@@ -170,8 +193,8 @@ class ProjetListSerializer(serializers.ModelSerializer):
         fields = [
             "id", "nom", "statut", "type_cycle",
             "superficie", "date_lancement", "date_fin",
-            "localite_nom", "taux_avancement", "nb_produits",
-            "image_fond_url",
+            "localite_nom", "taux_avancement", "avancement",
+            "nb_produits", "image_fond_url",
         ]
 
     def get_nb_produits(self, obj):
@@ -184,6 +207,8 @@ class ProjetListSerializer(serializers.ModelSerializer):
 class ProjetDetailSerializer(serializers.ModelSerializer):
     """Version complète avec produits et prévisions."""
     localite = LocaliteSerializer(read_only=True)
+    # Alias Flutter : string plat pour éviter le nested object
+    localite_nom = serializers.CharField(source="localite.nom", read_only=True, default=None)
     projet_produits = ProjetProduitSerializer(many=True, read_only=True)
     avancement = serializers.SerializerMethodField()
     image_fond_url = serializers.SerializerMethodField()
@@ -195,7 +220,7 @@ class ProjetDetailSerializer(serializers.ModelSerializer):
             "superficie", "date_lancement", "date_fin",
             "type_irrigation", "type_engrais",
             "budget_alloue", "rendement_total_final",
-            "localite", "projet_produits",
+            "localite", "localite_nom", "projet_produits",
             "avancement", "image_fond_url",
         ]
 
