@@ -615,6 +615,12 @@ SOCIALACCOUNT_PROVIDERS = {
         "SCOPE": ["profile", "email"],
         "AUTH_PARAMS": _google_auth_params,
         "OAUTH_PKCE_ENABLED": True,
+        # Credentials from env vars — no DB SocialApp entry needed.
+        # allauth 0.53+ reads APP.client_id/secret directly from settings.
+        "APP": {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
+        },
     }
 }
 
