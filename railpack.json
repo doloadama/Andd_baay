@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "buildAptPackages": [
+    "libcairo2-dev",
+    "libpango1.0-dev",
+    "libharfbuzz-dev",
+    "libgdk-pixbuf2.0-dev",
+    "libffi-dev",
+    "libfontconfig1-dev",
+    "libfreetype6-dev",
+    "shared-mime-info",
+    "libgirepository1.0-dev",
+    "libpq-dev"
+  ],
+  "deploy": {
+    "aptPackages": [
+      "libcairo2",
+      "libpango-1.0-0",
+      "libpangocairo-1.0-0",
+      "libharfbuzz0b",
+      "libgdk-pixbuf2.0-0",
+      "libffi8",
+      "libfontconfig1",
+      "libfreetype6",
+      "shared-mime-info",
+      "libgirepository-1.0-1",
+      "libpq5"
+    ]
+  }
+}
