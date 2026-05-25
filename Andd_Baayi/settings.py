@@ -465,9 +465,14 @@ if DATABASE_URL:
     try:
         parts = urlsplit(DATABASE_URL)
         query = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k not in {"supa", "pgbouncer"}]
-        # Switch to Transaction pooler (port 6543) to fix MaxClientsInSessionMode on Supabase.
-        # Session mode (port 5432) is capped; Transaction mode handles serverless much better.
-        netloc = parts.netloc.replace(":5432", ":6543")
+        # Switch to Transaction pooler (port 6543) ONLY for Supabase.
+        # Supabase session mode (5432) is capped; transaction mode (6543) handles serverless.
+        # Railway / Render / other hosts run plain Postgres on 5432 — don't touch their port.
+        _is_supabase = "supabase" in parts.netloc
+        if _is_supabase:
+            netloc = parts.netloc.replace(":5432", ":6543")
+        else:
+            netloc = parts.netloc
         DATABASE_URL = urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), parts.fragment))
     except Exception:
         # If parsing fails, fall back to the raw value and let Django surface the error.
