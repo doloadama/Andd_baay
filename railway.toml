@@ -15,7 +15,7 @@
 builder = "RAILPACK"
 # Railpack détecte Python automatiquement via requirements.txt.
 # Les packages système (WeasyPrint, psycopg2) sont dans railpack.json.
-buildCommand = "python manage.py collectstatic --noinput"
+buildCommand = "python manage.py collectstatic --noinput && python manage.py migrate --noinput"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"
