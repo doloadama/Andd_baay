@@ -462,6 +462,7 @@ if DATABASE_URL:
 
     # Supabase/Vercel env vars sometimes include non-libpq query params like `supa` / `pgbouncer`.
     # psycopg will error on unknown connection options, so we strip them defensively.
+    _is_supabase = "supabase" in DATABASE_URL  # safe pre-parse heuristic; refined below
     try:
         parts = urlsplit(DATABASE_URL)
         query = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k not in {"supa", "pgbouncer"}]
@@ -479,8 +480,12 @@ if DATABASE_URL:
         pass
 
     _conn_max_age = 0 if IS_VERCEL else 60  # 0 pour serverless, 60s pour Railway/Render (connexions persistantes)
+    # ssl_require only for providers that mandate it (Supabase).
+    # Railway internal postgres supports SSL but doesn't require it; forcing it
+    # can cause connection timeouts if the TLS handshake fails on the private network.
+    _ssl_require = _is_supabase
     DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=_conn_max_age, ssl_require=not DEBUG),
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=_conn_max_age, ssl_require=_ssl_require),
     }
 elif os.getenv('ENV') == 'production':
     DATABASES = {
@@ -610,6 +615,9 @@ _google_auth_params = {"access_type": "online"}
 if _google_oauth_prompt:
     _google_auth_params["prompt"] = _google_oauth_prompt
 
+_google_client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+_google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],
@@ -617,10 +625,11 @@ SOCIALACCOUNT_PROVIDERS = {
         "OAUTH_PKCE_ENABLED": True,
         # Credentials from env vars — no DB SocialApp entry needed.
         # allauth 0.53+ reads APP.client_id/secret directly from settings.
-        "APP": {
-            "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
-            "secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
-        },
+        # Guard: only register the APP block when both keys are present.
+        # An empty client_id would show the Google button but crash on click.
+        **({
+            "APP": {"client_id": _google_client_id, "secret": _google_client_secret}
+        } if _google_client_id and _google_client_secret else {}),
     }
 }
 

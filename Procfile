@@ -9,6 +9,6 @@
 # Railway détecte ce fichier automatiquement. Chaque service choisit
 # sa commande dans Settings → Deploy → Custom Start Command.
 
-web: python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application
+web: daphne -b 0.0.0.0 -p $PORT Andd_Baayi.asgi:application
 worker: celery -A Andd_Baayi worker --loglevel=info --concurrency=2 -Q celery,default
 beat: celery -A Andd_Baayi beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
