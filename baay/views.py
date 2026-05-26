@@ -73,6 +73,7 @@ from baay.services import (
     product_placeholder_data_uri,
 )
 from baay.models import (
+    AnalyseImageCulture,
     CampagneProjet,
     HistoriqueSol,
     Profile,
@@ -1211,7 +1212,19 @@ def detail_projet(request, projet_id):
     prediction = get_prevision_affichee_projet(projet)
 
     # Recuperer les produits du projet avec leurs previsions individuelles
-    projet_produits = list(projet.projet_produits.select_related('produit').prefetch_related('prevision').all())
+    projet_produits = list(
+        projet.projet_produits
+        .select_related('produit', 'projet__localite')
+        .prefetch_related(
+            'prevision',
+            Prefetch(
+                'analyses_image',
+                queryset=AnalyseImageCulture.objects.order_by('-date_creation')[:1],
+                to_attr='_derniere_analyse',
+            ),
+        )
+        .all()
+    )
     superficie_allouee_totale = (
         sum((pp.superficie_allouee or Decimal('0')) for pp in projet_produits) or Decimal('0')
     )
@@ -1291,6 +1304,56 @@ def detail_projet(request, projet_id):
     # taches_projet, campagnes, prediction…), donc vider ce cache est sans effet fonctionnel.
     projet._prefetched_objects_cache = {}
 
+    # ── Accompagnement & Diagnostic — données pour l'onglet dédié ──────────
+    # Génère les conseils agronomiques + récupère la dernière analyse BaayVision
+    # pour chaque culture. Utilise le prefetch _derniere_analyse (0 requête sup.).
+    from baay.services.conseils_agricoles import generer_conseils_par_stade, _stade, _STADE_LABEL
+    from datetime import date as _date_today
+
+    # Sol : récupérer la dernière analyse de sol de la ferme (1 requête)
+    _sol_ferme = None
+    try:
+        _sol_ferme = analyses_sol[0] if analyses_sol else None
+    except Exception:
+        pass
+
+    accompagnement_cultures = []
+    nb_conseils_urgents = 0
+    for pp in projet_produits:
+        # Calcul stade phénologique
+        cycle_jours = pp.produit.cycle_culture_jours or pp.produit.duree_avant_recolte or 0
+        progression = 0.0
+        if pp.date_semis and cycle_jours > 0:
+            jours = (_date_today.today() - pp.date_semis).days
+            progression = min(1.0, max(0.0, jours / cycle_jours))
+        stade_label = _STADE_LABEL.get(_stade(progression), "") if pp.date_semis else ""
+
+        # Conseils (limités aux 4 premiers pour ne pas surcharger la vue projet)
+        conseils_pp = []
+        try:
+            conseils_pp = generer_conseils_par_stade(pp, analyse_sol=_sol_ferme)[:4]
+        except Exception:
+            pass
+
+        nb_conseils_urgents += sum(
+            1 for c in conseils_pp if c.priorite == 'critique'
+        )
+
+        # Dernière analyse BaayVision (prefetch _derniere_analyse)
+        derniere_analyse = None
+        try:
+            arr = getattr(pp, '_derniere_analyse', None) or []
+            derniere_analyse = arr[0] if arr else None
+        except Exception:
+            pass
+
+        accompagnement_cultures.append({
+            'pp': pp,
+            'stade_label': stade_label,
+            'conseils': conseils_pp,
+            'derniere_analyse': derniere_analyse,
+        })
+
     return render(request, 'projets/detail_projet.html', {
         'projet': projet,
         'can_view_investissements': can_view_investissements,
@@ -1317,6 +1380,9 @@ def detail_projet(request, projet_id):
         'campagnes': campagnes,
         'derniere_campagne': derniere_campagne,
         'peut_reprendre_campagne': projet.est_perenne and peut_modifier_projet(request.user.profile, projet),
+        # Accompagnement
+        'accompagnement_cultures': accompagnement_cultures,
+        'nb_conseils_urgents': nb_conseils_urgents,
     })
 
 @login_required
@@ -2448,7 +2514,10 @@ def modifier_semis(request, semis_id):
 def detail_semis(request, semis_id):
     """View details of a project product"""
     projet_produit = get_object_or_404(
-        ProjetProduit.objects.select_related('produit', 'projet', 'projet__utilisateur', 'projet__ferme'),
+        ProjetProduit.objects.select_related(
+            'produit', 'projet', 'projet__utilisateur',
+            'projet__ferme', 'projet__localite',
+        ),
         id=semis_id,
     )
     if not peut_voir_semis(request.user.profile, projet_produit):
@@ -2456,11 +2525,33 @@ def detail_semis(request, semis_id):
         return redirect('liste_semis')
 
     from baay.views_plant_vision import _get_analyse_panel_context
+    from baay.services.conseils_agricoles import generer_conseils_par_stade
+
+    # Récupérer l'analyse de sol la plus récente de la ferme (optionnel)
+    analyse_sol = None
+    try:
+        analyse_sol = (
+            projet_produit.projet.ferme
+            .historiques_sol
+            .order_by('-date_mesure')
+            .first()
+        )
+    except Exception:
+        pass
+
+    # Génération des conseils agronomiques contextualisés
+    conseils_agricoles = []
+    try:
+        conseils_agricoles = generer_conseils_par_stade(projet_produit, analyse_sol=analyse_sol)
+    except Exception:
+        logger.exception("Erreur génération conseils agricoles pour %s", semis_id)
 
     ctx = _get_analyse_panel_context(request, projet_produit)
     ctx.update({
         'semis': projet_produit,
         'projet_produit': projet_produit,
+        'conseils_agricoles': conseils_agricoles,
+        'analyse_sol': analyse_sol,
     })
     return render(request, 'semis/detail_semis.html', ctx)
 

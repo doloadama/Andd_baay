@@ -593,6 +593,14 @@
                     @click="rouletteSelect('expertise')">
                 <i class="fas fa-microscope" aria-hidden="true"></i> Expertise IA
             </button>
+            <button type="button" class="at-tab-btn" data-tab-id="accompagnement" role="tab"
+                    :class="{ 'active': activeTab === 'accompagnement' }" :aria-selected="activeTab === 'accompagnement'"
+                    @click="rouletteSelect('accompagnement')">
+                <i class="fas fa-stethoscope" aria-hidden="true"></i> Accompagnement
+                {% if nb_conseils_urgents and nb_conseils_urgents > 0 %}
+                <span style="background:#DC2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;">{{ nb_conseils_urgents }}</span>
+                {% endif %}
+            </button>
             <button type="button" class="at-tab-btn" data-tab-id="management" role="tab"
                     :class="{ 'active': activeTab === 'management' }" :aria-selected="activeTab === 'management'"
                     @click="rouletteSelect('management')">
@@ -784,6 +792,15 @@
                         </div>
                     </div>
                     {% include 'projets/partials/_etat_vegetatif_widget.html' with pp=pp only %}
+
+                    {# Indicateur BaayVision #}
+                    {% if pp.image %}
+                    <div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:#F5F3FF;border:1px solid #DDD6FE;display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-microscope" style="color:#7C3AED;font-size:13px;"></i>
+                        <span style="font-size:12px;color:#4C1D95;font-weight:600;">Diagnostic IA disponible</span>
+                    </div>
+                    {% endif %}
+
                     <div class="mt-3 d-flex gap-2">
                         <a href="{% url 'detail_semis' pp.id %}" class="at-btn at-btn--ghost at-btn--sm flex-grow-1">Détails</a>
                         <a href="{% url 'modifier_semis' pp.id %}" class="at-btn at-btn--ghost at-btn--sm"><i class="fas fa-edit"></i></a>
@@ -934,6 +951,153 @@
         </div>
     </div>
 
+    <!-- ═══════════ TAB: ACCOMPAGNEMENT ═══════════ -->
+    <div x-show="activeTab === 'accompagnement'" x-transition>
+
+        {# ── En-tête ── #}
+        <div class="at-card" style="background: linear-gradient(135deg, #04342C, #1D9E75); color: white; border: none; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div style="width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">
+                    🌿
+                </div>
+                <div>
+                    <h2 style="margin:0 0 4px;font-size:20px;font-weight:800;">Accompagnement & Diagnostic</h2>
+                    <p style="margin:0;opacity:0.85;font-size:14px;">
+                        Conseils agronomiques personnalisés et diagnostic photo BaayVision pour chaque culture du projet.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {# ── Boucle sur chaque culture ── #}
+        {% if accompagnement_cultures %}
+        <div class="at-grid-dashboard" style="grid-template-columns: 1fr;">
+            {% for item in accompagnement_cultures %}
+            <div class="at-card">
+                {# En-tête culture #}
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        {% if item.pp.image %}
+                        <img src="{{ item.pp.image.url }}" alt="{{ item.pp.produit.nom }}"
+                             style="width:52px;height:52px;border-radius:14px;object-fit:cover;border:2px solid #E5E7EB;">
+                        {% else %}
+                        <div style="width:52px;height:52px;border-radius:14px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #BBF7D0;">🌱</div>
+                        {% endif %}
+                        <div>
+                            <h3 style="margin:0 0 3px;font-size:17px;font-weight:800;color:#04342C;">{{ item.pp.produit.nom }}</h3>
+                            <p style="margin:0;font-size:12px;color:#6B7280;">
+                                {% if item.pp.superficie_allouee %}{{ item.pp.superficie_allouee|floatformat:2 }} ha{% endif %}
+                                {% if item.pp.date_semis %} · Semis : {{ item.pp.date_semis|date:"d/m/Y" }}{% endif %}
+                                {% if item.stade_label %} · <strong style="color:#1D9E75;">{{ item.stade_label }}</strong>{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
+                        <i class="fas fa-external-link-alt"></i> Voir détails
+                    </a>
+                </div>
+
+                {# ── Conseils agronomiques ── #}
+                {% if item.conseils %}
+                <div style="margin-bottom:16px;">
+                    <h4 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
+                        <i class="fas fa-lightbulb" style="color:#1D9E75;"></i> Conseils agronomiques ({{ item.conseils|length }})
+                    </h4>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        {% for conseil in item.conseils %}
+                        <div style="border-radius:10px;padding:11px 14px;border-left:4px solid
+                            {% if conseil.priorite == 'critique' %}#DC2626{% elif conseil.priorite == 'haute' %}#F5A623{% elif conseil.priorite == 'normale' %}#1D9E75{% else %}#3B82F6{% endif %};
+                            background:
+                            {% if conseil.priorite == 'critique' %}#FEF2F2{% elif conseil.priorite == 'haute' %}#FFFBEB{% elif conseil.priorite == 'normale' %}#F0FDF4{% else %}#EFF6FF{% endif %};">
+                            <div style="display:flex;align-items:flex-start;gap:8px;">
+                                <i class="{{ conseil.icone }}" style="color:{{ conseil.couleur }};margin-top:2px;flex-shrink:0;" aria-hidden="true"></i>
+                                <div>
+                                    <p style="margin:0 0 3px;font-size:13px;font-weight:700;color:#111827;">{{ conseil.titre }}</p>
+                                    <p style="margin:0;font-size:12px;color:#374151;line-height:1.5;">{{ conseil.message|truncatewords:25 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div style="margin-top:10px;">
+                        <a href="{% url 'detail_semis' item.pp.id %}" style="font-size:12px;color:#1D9E75;font-weight:600;text-decoration:none;">
+                            Voir tous les conseils détaillés →
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ── Diagnostic BaayVision ── #}
+                <div style="border-top:1px solid #E5E7EB;padding-top:16px;">
+                    <h4 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
+                        <i class="fas fa-microscope" style="color:#7C3AED;"></i> Diagnostic photo BaayVision
+                    </h4>
+
+                    {% if item.derniere_analyse %}
+                    {# Afficher résultat de la dernière analyse #}
+                    <div style="border-radius:10px;padding:12px 14px;border:1px solid
+                        {% if item.derniere_analyse.statut == 'terminee' %}#BBF7D0{% elif item.derniere_analyse.statut == 'echec' %}#FCA5A5{% else %}#FDE68A{% endif %};
+                        background:
+                        {% if item.derniere_analyse.statut == 'terminee' %}#F0FDF4{% elif item.derniere_analyse.statut == 'echec' %}#FEF2F2{% else %}#FFFBEB{% endif %};">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                            <div>
+                                {% if item.derniere_analyse.statut == 'terminee' and item.derniere_analyse.resultat %}
+                                {% with det=item.derniere_analyse.resultat.detections|length %}
+                                <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#166534;">
+                                    ✅ Analyse terminée — {{ det }} problème{{ det|pluralize }} détecté{{ det|pluralize }}
+                                </p>
+                                {% endwith %}
+                                {% elif item.derniere_analyse.statut == 'echec' %}
+                                <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#991B1B;">
+                                    ❌ Analyse échouée
+                                </p>
+                                {% elif item.derniere_analyse.statut == 'en_attente' or item.derniere_analyse.statut == 'en_cours' %}
+                                <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#92400E;">
+                                    ⏳ Analyse en cours…
+                                </p>
+                                {% endif %}
+                                <p style="margin:0;font-size:11px;color:#6B7280;">{{ item.derniere_analyse.date_creation|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
+                                <i class="fas fa-eye"></i> Voir résultat
+                            </a>
+                        </div>
+                    </div>
+                    {% elif item.pp.image %}
+                    <div style="border-radius:10px;padding:12px 14px;background:#F5F3FF;border:1px solid #DDD6FE;">
+                        <p style="margin:0 0 8px;font-size:13px;color:#4C1D95;font-weight:600;">
+                            📸 Photo disponible — Diagnostic non encore lancé
+                        </p>
+                        <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
+                            <i class="fas fa-wand-magic-sparkles"></i> Lancer le diagnostic
+                        </a>
+                    </div>
+                    {% else %}
+                    <div style="border-radius:10px;padding:12px 14px;background:#F9FAFB;border:1px dashed #D1D5DB;">
+                        <p style="margin:0 0 8px;font-size:13px;color:#6B7280;">
+                            📷 Ajoutez une photo pour activer le diagnostic IA (maladies, ravageurs)
+                        </p>
+                        <a href="{% url 'modifier_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
+                            <i class="fas fa-camera"></i> Ajouter une photo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="at-card text-center py-5">
+            <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
+            <p class="at-muted">Aucune culture associée à ce projet. Ajoutez des cultures pour recevoir des conseils agronomiques.</p>
+            <a href="{% url 'ajouter_projet_produit' projet.id %}" class="at-btn at-btn--primary mt-3">
+                <i class="fas fa-plus"></i> Ajouter une culture
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- ═══════════ TAB: MANAGEMENT ═══════════ -->
     <div x-show="activeTab === 'management'" x-transition>
         <div class="at-mgmt">
@@ -956,7 +1120,7 @@
 
 <script>
 function projetDetailTabsData() {
-    var order = ['dashboard', 'products'{% if can_view_investissements %}, 'finance'{% endif %}, 'expertise', 'management'];
+    var order = ['dashboard', 'products'{% if can_view_investissements %}, 'finance'{% endif %}, 'expertise', 'accompagnement', 'management'];
     var base = { activeTab: 'dashboard' };
     var mixin = typeof tabRouletteMixin === 'function'
         ? tabRouletteMixin({ order: order, select: function (tab) { this.activeTab = tab; } })

@@ -1,74 +1,189 @@
 {% load humanize %}
 <section id="semis-analyse-ia" class="semis-panel semis-analyse-ia" aria-labelledby="semis-analyse-title">
     <h2 id="semis-analyse-title" class="semis-panel__title">
-        <i class="fas fa-microscope" aria-hidden="true"></i> Diagnostic photo (IA)
+        <i class="fas fa-microscope" aria-hidden="true"></i> Diagnostic photo BaayVision
     </h2>
 
     {% if analyse.statut == 'echec' %}
-    <p class="semis-analyse-ia__alert semis-analyse-ia__alert--error" role="alert">
-        {{ analyse.message_erreur|default:"L'analyse a échoué." }}
-    </p>
-    {% elif analyse.statut == 'terminee' and analyse.resultat %}
-    {% with subject=analyse.resultat.subject detections=analyse.resultat.detections %}
-    <div class="semis-analyse-ia__subject">
-        <span class="semis-analyse-ia__badge semis-analyse-ia__badge--{{ subject.subjectType|lower }}">{{ subject.subjectType }}</span>
-        <p>{{ subject.description }}</p>
-        {% if subject.confidence %}
-        {% widthratio subject.confidence 1 100 as conf_pct %}
-        <p class="semis-analyse-ia__confidence">Confiance : {{ conf_pct }} %</p>
-        {% endif %}
+    <div class="bv-alert bv-alert--error" role="alert">
+        <i class="fas fa-times-circle"></i>
+        {{ analyse.message_erreur|default:"L'analyse a échoué. Réessayez avec une photo plus nette." }}
     </div>
 
+    {% elif analyse.statut == 'terminee' and analyse.resultat %}
+    {% with subject=analyse.resultat.subject detections=analyse.resultat.detections %}
+
+    {# ── En-tête sujet identifié ── #}
+    <div class="bv-subject">
+        <div class="bv-subject__icon">
+            {% if subject.subjectType == 'PLANT' %}
+            <i class="fas fa-leaf" aria-hidden="true"></i>
+            {% elif subject.subjectType == 'PEST' %}
+            <i class="fas fa-bug" aria-hidden="true"></i>
+            {% else %}
+            <i class="fas fa-question-circle" aria-hidden="true"></i>
+            {% endif %}
+        </div>
+        <div class="bv-subject__info">
+            <span class="bv-subject__type bv-subject__type--{{ subject.subjectType|lower }}">
+                {% if subject.subjectType == 'PLANT' %}🌿 Plante{% elif subject.subjectType == 'PEST' %}🐛 Ravageur{% else %}🔍 Inconnu{% endif %}
+            </span>
+            <p class="bv-subject__desc">{{ subject.description }}</p>
+            {% if subject.confidence %}
+            {% widthratio subject.confidence 1 100 as conf_pct %}
+            <div class="bv-confidence">
+                <div class="bv-confidence__bar">
+                    <div class="bv-confidence__fill" style="width: {{ conf_pct }}%"></div>
+                </div>
+                <span class="bv-confidence__label">Confiance : {{ conf_pct }}%</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Résumé des détections critiques ── #}
     {% if detections %}
-    <ul class="semis-analyse-ia__detections">
-        {% for det in detections %}
-        <li class="semis-analyse-ia__detection semis-analyse-ia__severity--{{ det.severity|lower }}">
-            <header class="semis-analyse-ia__detection-head">
-                <strong>{{ det.className }}</strong>
-                <span class="semis-analyse-ia__severity">{{ det.severity }}</span>
-            </header>
-            {% if det.croppedImageUrl %}
-            <img src="{{ det.croppedImageUrl }}" alt="Zone — {{ det.className }}" class="semis-analyse-ia__crop" loading="lazy">
-            {% endif %}
-            {% if det.details %}
-            <p>{{ det.details.description }}</p>
-            {% if det.details.impact %}
-            <p class="semis-analyse-ia__impact"><strong>Impact :</strong> {{ det.details.impact }}</p>
-            {% endif %}
-            {% with rec=det.details.recommendations %}
-            {% if rec.biological or rec.chemical or rec.cultural %}
-            <details class="semis-analyse-ia__recs">
-                <summary>Recommandations</summary>
-                {% if rec.biological %}
-                <p class="semis-analyse-ia__rec-type">Biologique</p>
-                <ul>{% for r in rec.biological %}<li><strong>{{ r.solution }}</strong> — {{ r.details }}</li>{% endfor %}</ul>
-                {% endif %}
-                {% if rec.chemical %}
-                <p class="semis-analyse-ia__rec-type">Chimique</p>
-                <ul>{% for r in rec.chemical %}<li><strong>{{ r.solution }}</strong> — {{ r.details }}</li>{% endfor %}</ul>
-                {% endif %}
-                {% if rec.cultural %}
-                <p class="semis-analyse-ia__rec-type">Culturelle</p>
-                <ul>{% for r in rec.cultural %}<li><strong>{{ r.solution }}</strong> — {{ r.details }}</li>{% endfor %}</ul>
-                {% endif %}
-            </details>
-            {% endif %}
-            {% endwith %}
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p class="semis-analyse-ia__hint">Aucun problème détecté sur cette photo.</p>
-    {% endif %}
+    {% with critical_count=detections|length %}
+    <div class="bv-summary">
+        <div class="bv-summary__count">
+            <span class="bv-summary__n">{{ critical_count }}</span>
+            <span class="bv-summary__lbl">problème{{ critical_count|pluralize }} détecté{{ critical_count|pluralize }}</span>
+        </div>
+        <div class="bv-severity-pills">
+            {% for det in detections %}
+            <span class="bv-sev-pill bv-sev-pill--{{ det.severity|lower }}">
+                {{ det.severity }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
     {% endwith %}
+
+    {# ── Détections détaillées ── #}
+    <div class="bv-detections">
+        {% for det in detections %}
+        <div class="bv-detection bv-detection--{{ det.severity|lower }}">
+            <div class="bv-detection__header">
+                <div class="bv-detection__title-row">
+                    <span class="bv-sev-badge bv-sev-badge--{{ det.severity|lower }}">
+                        {% if det.severity == 'CRITICAL' %}🔴{% elif det.severity == 'HIGH' %}🟠{% elif det.severity == 'MEDIUM' %}🟡{% else %}🟢{% endif %}
+                        {{ det.severity }}
+                    </span>
+                    <strong class="bv-detection__name">{{ det.className }}</strong>
+                </div>
+                {% if det.confidenceScore %}
+                {% widthratio det.confidenceScore 1 100 as det_conf %}
+                <span class="bv-detection__conf">{{ det_conf }}% fiabilité</span>
+                {% endif %}
+            </div>
+
+            {% if det.croppedImageUrl %}
+            <img src="{{ det.croppedImageUrl }}" alt="Zone détectée — {{ det.className }}"
+                 class="bv-detection__crop" loading="lazy">
+            {% endif %}
+
+            {% if det.details %}
+            <div class="bv-detection__body">
+                {% if det.details.description %}
+                <p class="bv-detection__desc">{{ det.details.description }}</p>
+                {% endif %}
+
+                {% if det.details.impact %}
+                <div class="bv-impact">
+                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    <strong>Impact :</strong> {{ det.details.impact }}
+                </div>
+                {% endif %}
+
+                {# ── Recommandations toujours visibles (pas de <details>) ── #}
+                {% with rec=det.details.recommendations %}
+                {% if rec.biological or rec.chemical or rec.cultural %}
+                <div class="bv-recs">
+                    <h4 class="bv-recs__title">
+                        <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+                        Recommandations
+                    </h4>
+                    <div class="bv-recs__grid">
+                        {% if rec.biological %}
+                        <div class="bv-rec-group bv-rec-group--bio">
+                            <div class="bv-rec-group__label">
+                                <i class="fas fa-leaf" aria-hidden="true"></i> Biologique
+                            </div>
+                            <ul class="bv-rec-list">
+                                {% for r in rec.biological %}
+                                <li class="bv-rec-item">
+                                    <strong>{{ r.solution }}</strong>
+                                    <span>{{ r.details }}</span>
+                                    {% if r.source %}<cite class="bv-rec-source">Source : {{ r.source }}</cite>{% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if rec.chemical %}
+                        <div class="bv-rec-group bv-rec-group--chem">
+                            <div class="bv-rec-group__label">
+                                <i class="fas fa-flask" aria-hidden="true"></i> Traitement chimique
+                            </div>
+                            <ul class="bv-rec-list">
+                                {% for r in rec.chemical %}
+                                <li class="bv-rec-item">
+                                    <strong>{{ r.solution }}</strong>
+                                    <span>{{ r.details }}</span>
+                                    {% if r.source %}<cite class="bv-rec-source">Source : {{ r.source }}</cite>{% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if rec.cultural %}
+                        <div class="bv-rec-group bv-rec-group--cult">
+                            <div class="bv-rec-group__label">
+                                <i class="fas fa-tractor" aria-hidden="true"></i> Pratique culturale
+                            </div>
+                            <ul class="bv-rec-list">
+                                {% for r in rec.cultural %}
+                                <li class="bv-rec-item">
+                                    <strong>{{ r.solution }}</strong>
+                                    <span>{{ r.details }}</span>
+                                    {% if r.source %}<cite class="bv-rec-source">Source : {{ r.source }}</cite>{% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="bv-empty">
+        <i class="fas fa-check-circle bv-empty__icon"></i>
+        <p>Aucun problème détecté sur cette photo. Culture apparemment saine.</p>
+    </div>
     {% endif %}
 
-    <p class="semis-analyse-ia__meta">Analyse du {{ analyse.date_fin|date:"d/m/Y H:i" }}</p>
+    <p class="bv-meta">Analyse effectuée le {{ analyse.date_fin|date:"d/m/Y à H:i" }}</p>
+    {% endwith %}
+
+    {% else %}
+    <div class="bv-alert bv-alert--info" role="alert">
+        <i class="fas fa-hourglass-half"></i>
+        Résultat en attente ou non disponible.
+    </div>
+    {% endif %}
 
     {% if peut_lancer_analyse %}
     <form
-        class="semis-analyse-ia__relancer"
+        class="bv-relaunch"
         hx-post="{% url 'lancer_analyse_semis' projet_produit.id %}"
         hx-target="#semis-analyse-ia"
         hx-swap="outerHTML"
@@ -80,3 +195,186 @@
     </form>
     {% endif %}
 </section>
+
+<style>
+/* BaayVision Result Styles — scoped to .semis-analyse-ia */
+.bv-subject {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #f0fdf7;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.bv-subject__icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #1D9E75;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.bv-subject__type {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #1D9E75;
+    color: white;
+    margin-bottom: 6px;
+}
+.bv-subject__type--pest { background: #F5A623; }
+.bv-subject__type--unknown { background: #6B7280; }
+.bv-subject__desc { margin: 0; font-size: 13px; color: #374151; }
+.bv-confidence { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.bv-confidence__bar { flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; }
+.bv-confidence__fill { height: 100%; background: #1D9E75; border-radius: 3px; }
+.bv-confidence__label { font-size: 12px; color: #6B7280; white-space: nowrap; }
+
+.bv-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.bv-summary__count { display: flex; align-items: baseline; gap: 6px; }
+.bv-summary__n { font-size: 28px; font-weight: 900; color: #92400E; }
+.bv-summary__lbl { font-size: 13px; color: #92400E; font-weight: 600; }
+.bv-severity-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.bv-sev-pill {
+    font-size: 10px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.bv-sev-pill--critical { background: #FEE2E2; color: #991B1B; }
+.bv-sev-pill--high     { background: #FEF3C7; color: #92400E; }
+.bv-sev-pill--medium   { background: #FEF9C3; color: #713F12; }
+.bv-sev-pill--low      { background: #DCFCE7; color: #166534; }
+
+.bv-detections { display: flex; flex-direction: column; gap: 14px; }
+.bv-detection {
+    border-radius: 14px;
+    border: 2px solid #E5E7EB;
+    overflow: hidden;
+}
+.bv-detection--critical { border-color: #FCA5A5; }
+.bv-detection--high     { border-color: #FCD34D; }
+.bv-detection--medium   { border-color: #FDE68A; }
+.bv-detection--low      { border-color: #86EFAC; }
+
+.bv-detection__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.bv-detection--critical .bv-detection__header { background: #FEF2F2; }
+.bv-detection--high     .bv-detection__header { background: #FFFBEB; }
+.bv-detection--medium   .bv-detection__header { background: #FEFCE8; }
+.bv-detection--low      .bv-detection__header { background: #F0FDF4; }
+
+.bv-detection__title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bv-sev-badge {
+    font-size: 10px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 3px 10px; border-radius: 20px;
+}
+.bv-sev-badge--critical { background: #FEE2E2; color: #991B1B; }
+.bv-sev-badge--high     { background: #FEF3C7; color: #92400E; }
+.bv-sev-badge--medium   { background: #FEF9C3; color: #713F12; }
+.bv-sev-badge--low      { background: #DCFCE7; color: #166534; }
+.bv-detection__name { font-size: 15px; font-weight: 700; color: #111827; }
+.bv-detection__conf { font-size: 12px; color: #6B7280; white-space: nowrap; }
+
+.bv-detection__crop {
+    display: block;
+    width: 100%; max-height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #E5E7EB;
+}
+.bv-detection__body { padding: 14px 16px; }
+.bv-detection__desc { font-size: 14px; color: #374151; margin-bottom: 10px; }
+
+.bv-impact {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #FFF7ED;
+    border-left: 3px solid #F59E0B;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #92400E;
+}
+.bv-impact i { margin-top: 2px; flex-shrink: 0; }
+
+.bv-recs { margin-top: 4px; }
+.bv-recs__title {
+    font-size: 13px; font-weight: 700;
+    color: #1D9E75;
+    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.bv-recs__grid { display: flex; flex-direction: column; gap: 10px; }
+.bv-rec-group {
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+.bv-rec-group--bio  { background: #F0FDF4; border: 1px solid #BBF7D0; }
+.bv-rec-group--chem { background: #EFF6FF; border: 1px solid #BFDBFE; }
+.bv-rec-group--cult { background: #FFF7ED; border: 1px solid #FED7AA; }
+.bv-rec-group__label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+}
+.bv-rec-group--bio  .bv-rec-group__label { color: #166534; }
+.bv-rec-group--chem .bv-rec-group__label { color: #1E40AF; }
+.bv-rec-group--cult .bv-rec-group__label { color: #9A3412; }
+
+.bv-rec-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.bv-rec-item { font-size: 13px; color: #374151; }
+.bv-rec-item strong { display: block; font-weight: 700; color: #111827; margin-bottom: 2px; }
+.bv-rec-item span { color: #6B7280; }
+.bv-rec-source { display: block; font-size: 11px; color: #9CA3AF; font-style: normal; margin-top: 2px; }
+
+.bv-empty {
+    text-align: center;
+    padding: 24px;
+    color: #166534;
+}
+.bv-empty__icon { font-size: 36px; margin-bottom: 10px; display: block; }
+
+.bv-alert {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.bv-alert--error { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
+.bv-alert--info  { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+
+.bv-meta { font-size: 12px; color: #9CA3AF; margin-top: 16px; margin-bottom: 0; }
+.bv-relaunch { margin-top: 12px; }
+</style>

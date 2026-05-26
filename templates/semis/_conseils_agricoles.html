@@ -1,0 +1,204 @@
+{% comment %}
+Panneau de conseils agronomiques contextualisés.
+Contexte attendu : conseils_agricoles (liste de ConseilAgricole), projet_produit
+{% endcomment %}
+<section class="semis-panel semis-conseils-panel" aria-labelledby="conseils-title">
+    <h2 id="conseils-title" class="semis-panel__title">
+        <i class="fas fa-seedling" aria-hidden="true"></i>
+        Accompagnement agronomique
+        {% if conseils_agricoles %}
+        <span class="ca-count-badge">{{ conseils_agricoles|length }}</span>
+        {% endif %}
+    </h2>
+
+    {% if not conseils_agricoles %}
+    <div class="ca-empty">
+        <i class="fas fa-check-circle ca-empty__icon"></i>
+        <p>Aucun conseil spécifique pour l'instant. Renseignez les données de la culture pour activer les recommandations personnalisées.</p>
+    </div>
+
+    {% else %}
+    <div class="ca-list">
+        {% for conseil in conseils_agricoles %}
+        <div class="ca-item ca-item--{{ conseil.priorite }}">
+            <div class="ca-item__header">
+                <span class="ca-item__icon" style="background: {{ conseil.couleur }}20; color: {{ conseil.couleur }};">
+                    <i class="{{ conseil.icone }}" aria-hidden="true"></i>
+                </span>
+                <div class="ca-item__meta">
+                    <span class="ca-item__prio ca-item__prio--{{ conseil.priorite }}">
+                        {% if conseil.priorite == 'critique' %}🔴 Urgent
+                        {% elif conseil.priorite == 'haute' %}🟠 Important
+                        {% elif conseil.priorite == 'normale' %}🟢 Conseil
+                        {% else %}ℹ️ Info
+                        {% endif %}
+                    </span>
+                    <span class="ca-item__categorie">
+                        {% if conseil.categorie == 'sol' %}Sol
+                        {% elif conseil.categorie == 'eau' %}Irrigation
+                        {% elif conseil.categorie == 'phytosanitaire' %}Phytosanitaire
+                        {% elif conseil.categorie == 'fertilisation' %}Fertilisation
+                        {% elif conseil.categorie == 'calendrier' %}Calendrier
+                        {% elif conseil.categorie == 'rendement' %}Rendement
+                        {% else %}Général
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="ca-item__body">
+                <h4 class="ca-item__titre">{{ conseil.titre }}</h4>
+                <p class="ca-item__message">{{ conseil.message|linebreaksbr }}</p>
+                {% if conseil.action %}
+                <div class="ca-item__action">
+                    {% if conseil.action == 'Modifier la culture' %}
+                    <a href="{% url 'modifier_semis' projet_produit.id %}" class="ca-btn">
+                        <i class="fas fa-edit" aria-hidden="true"></i> {{ conseil.action }}
+                    </a>
+                    {% elif conseil.action == 'Lancer le diagnostic photo' %}
+                    {% if projet_produit.image and vision_disponible and peut_lancer_analyse %}
+                    <form
+                        hx-post="{% url 'lancer_analyse_semis' projet_produit.id %}"
+                        hx-target="#semis-analyse-ia"
+                        hx-swap="outerHTML"
+                        style="display:inline;"
+                    >
+                        {% csrf_token %}
+                        <button type="submit" class="ca-btn">
+                            <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> {{ conseil.action }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'modifier_semis' projet_produit.id %}" class="ca-btn">
+                        <i class="fas fa-camera" aria-hidden="true"></i> Ajouter une photo d'abord
+                    </a>
+                    {% endif %}
+                    {% else %}
+                    <span class="ca-action-label">
+                        <i class="fas fa-arrow-right" aria-hidden="true"></i> {{ conseil.action }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+<style>
+/* Conseils agronomiques panel */
+.semis-conseils-panel { margin-bottom: 24px; }
+
+.ca-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #1D9E75;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    margin-left: 8px;
+}
+
+.ca-empty {
+    text-align: center;
+    padding: 24px 16px;
+    color: #6B7280;
+    font-size: 14px;
+}
+.ca-empty__icon { font-size: 32px; color: #1D9E75; display: block; margin-bottom: 10px; }
+
+.ca-list { display: flex; flex-direction: column; gap: 12px; }
+
+.ca-item {
+    border-radius: 14px;
+    border: 1.5px solid #E5E7EB;
+    overflow: hidden;
+    background: #fff;
+}
+.ca-item--critique { border-color: #FCA5A5; }
+.ca-item--haute    { border-color: #FCD34D; }
+.ca-item--normale  { border-color: #86EFAC; }
+.ca-item--info     { border-color: #93C5FD; }
+
+.ca-item__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px 8px;
+}
+.ca-item--critique .ca-item__header { background: #FEF2F2; }
+.ca-item--haute    .ca-item__header { background: #FFFBEB; }
+.ca-item--normale  .ca-item__header { background: #F0FDF4; }
+.ca-item--info     .ca-item__header { background: #EFF6FF; }
+
+.ca-item__icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.ca-item__meta { display: flex; flex-direction: column; gap: 2px; }
+.ca-item__prio {
+    font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.ca-item__prio--critique { color: #991B1B; }
+.ca-item__prio--haute    { color: #92400E; }
+.ca-item__prio--normale  { color: #166534; }
+.ca-item__prio--info     { color: #1E40AF; }
+
+.ca-item__categorie {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9CA3AF;
+    font-weight: 600;
+}
+
+.ca-item__body { padding: 12px 14px 14px; }
+.ca-item__titre {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 6px;
+    line-height: 1.4;
+}
+.ca-item__message {
+    font-size: 13px;
+    color: #374151;
+    margin: 0 0 10px;
+    line-height: 1.6;
+}
+
+.ca-item__action { margin-top: 4px; }
+.ca-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    background: #1D9E75;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.ca-btn:hover { background: #157A52; color: white; }
+.ca-action-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+}
+</style>

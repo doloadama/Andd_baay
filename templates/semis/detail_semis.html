@@ -86,6 +86,9 @@
 
     <div class="semis-detail-layout">
         <div class="semis-detail-main">
+            {# ── Conseils agronomiques contextualisés (priorité affichage) ── #}
+            {% include "semis/_conseils_agricoles.html" %}
+
             <section class="semis-panel" aria-labelledby="semis-info-title">
                 <h2 id="semis-info-title" class="semis-panel__title">
                     <i class="fas fa-seedling" aria-hidden="true"></i> Informations de semis
