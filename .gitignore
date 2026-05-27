@@ -43,3 +43,7 @@ _smoke_*.py
 # pour éviter d'imposer un build Node sur Vercel.
 node_modules/
 # package-lock.json est volontairement committé pour des installs reproductibles.
+
+# Harness binaries (compiled, regenerated via: cd go && go build ./cmd/harness/)
+bin/*.exe
+bin/harness-*

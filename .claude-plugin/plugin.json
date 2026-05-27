@@ -1,0 +1,8 @@
+{
+  "name": "andd-baay",
+  "version": "0.1.0",
+  "description": "Plateforme web de gestion agricole collaborative pour exploitations sahéliennes",
+  "skills": [
+    "./skills/"
+  ]
+}
