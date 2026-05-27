@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Jëf Baay — Assistant vocal Wolof | Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Posez vos questions agricoles en Wolof à Jëf Baay, l'assistant vocal IA d'Andd Baay. Sans inscription." />
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Page ── */
+.jb-page {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #fdf6e3 0%, #ffffff 60%);
+    padding: 40px 16px 80px;
+}
+.jb-container { max-width: 660px; margin: 0 auto; }
+
+/* ── Brand ── */
+.jb-brand { text-align: center; margin-bottom: 28px; }
+.jb-brand__logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    text-decoration: none; color: #1D9E75;
+    font-weight: 800; font-size: 1.25rem; margin-bottom: 6px;
+}
+.jb-brand__logo i { font-size: 1.5rem; }
+.jb-brand__sub { font-size: 0.82rem; color: #6B7280; margin: 0; }
+
+/* ── Card ── */
+.jb-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(29,158,117,.10), 0 1px 4px rgba(0,0,0,.06);
+    padding: 28px 24px;
+    margin-bottom: 20px;
+}
+
+/* ── Token warning ── */
+.jb-warning {
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 14px; padding: 16px 18px;
+    font-size: 0.88rem; color: #92400E;
+    display: flex; gap: 12px; align-items: flex-start;
+    margin-bottom: 20px;
+}
+.jb-warning i { flex-shrink: 0; margin-top: 2px; font-size: 1rem; }
+.jb-warning a { color: #92400E; font-weight: 700; }
+
+/* ── Mic button ── */
+.jb-mic-area {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+    padding: 24px 0;
+}
+.jb-mic-btn {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: #1D9E75;
+    color: white; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 4px 20px rgba(29,158,117,.35);
+    transition: transform .15s, background .15s, box-shadow .15s;
+    position: relative;
+}
+.jb-mic-btn:hover { background: #15805e; transform: scale(1.05); }
+.jb-mic-btn.recording {
+    background: #EF4444;
+    animation: pulse-mic 1.2s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(239,68,68,.4);
+}
+@keyframes pulse-mic {
+    0%   { box-shadow: 0 0 0 0 rgba(239,68,68,.5); }
+    70%  { box-shadow: 0 0 0 18px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.jb-mic-btn:disabled { background: #9CA3AF; cursor: not-allowed; animation: none; box-shadow: none; }
+
+.jb-mic-hint {
+    font-size: 0.85rem; color: #6B7280; text-align: center;
+    font-weight: 600;
+}
+.jb-mic-hint.recording { color: #EF4444; }
+
+/* ── Timer ── */
+.jb-timer {
+    font-size: 1.1rem; font-weight: 800; color: #EF4444;
+    display: none; font-variant-numeric: tabular-nums;
+}
+.jb-timer.visible { display: block; }
+
+/* ── Status bar ── */
+.jb-status {
+    display: none;
+    align-items: center; gap: 10px;
+    background: #F0FDF7; border: 1px solid #BBF7D0;
+    border-radius: 12px; padding: 12px 16px;
+    font-size: 0.88rem; color: #166534; font-weight: 600;
+    margin-top: 8px;
+}
+.jb-status.visible { display: flex; }
+.jb-status.error { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
+.jb-status.loading { background: #EFF6FF; border-color: #BFDBFE; color: #1E40AF; }
+.jb-status__spinner {
+    width: 16px; height: 16px; border: 2px solid #93C5FD;
+    border-top-color: #1D4ED8; border-radius: 50%;
+    animation: spin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Conversation ── */
+.jb-conv { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+
+.jb-bubble {
+    max-width: 86%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    animation: fadeUp .25s ease;
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.jb-bubble--user {
+    align-self: flex-end;
+    background: #1D9E75; color: white;
+    border-bottom-right-radius: 6px;
+}
+.jb-bubble--user .jb-bubble__label { font-size: 0.72rem; opacity: .75; margin-bottom: 4px; }
+
+.jb-bubble--bot {
+    align-self: flex-start;
+    background: #F9FAFB; color: #111827;
+    border: 1px solid #E5E7EB;
+    border-bottom-left-radius: 6px;
+}
+.jb-bubble--bot .jb-bubble__label {
+    font-size: 0.72rem; color: #6B7280; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 5px;
+}
+.jb-bubble--bot .jb-bubble__label i { color: #1D9E75; }
+
+/* ── Audio player ── */
+.jb-audio-player {
+    margin-top: 10px;
+    width: 100%;
+}
+.jb-audio-player audio { width: 100%; border-radius: 8px; }
+
+/* ── Play TTS btn ── */
+.jb-play-tts {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px;
+    background: #F0FDF7; border: 1px solid #BBF7D0;
+    color: #166534; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    margin-top: 8px; transition: background .1s;
+}
+.jb-play-tts:hover { background: #DCFCE7; }
+
+/* ── Empty state ── */
+.jb-empty {
+    text-align: center; padding: 28px 16px;
+    color: #9CA3AF; font-size: 0.88rem;
+}
+.jb-empty i { font-size: 2rem; margin-bottom: 10px; display: block; opacity: .4; }
+
+/* ── CTA ── */
+.jb-cta {
+    background: linear-gradient(135deg, #1D9E75 0%, #15805e 100%);
+    border-radius: 18px; padding: 22px 20px;
+    color: white; text-align: center; margin-top: 20px;
+}
+.jb-cta__title { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+.jb-cta__body { font-size: 0.85rem; opacity: .9; margin-bottom: 16px; }
+.jb-cta__btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 12px;
+    background: white; color: #1D9E75;
+    font-size: 0.88rem; font-weight: 700;
+    text-decoration: none; transition: transform .1s;
+}
+.jb-cta__btn:active { transform: scale(.97); }
+
+/* ── Chips ── */
+.jb-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.jb-chip {
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600;
+}
+.jb-chip--green { background: #F0FDF7; border: 1px solid #BBF7D0; color: #166534; }
+.jb-chip--blue  { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
+.jb-chip--amber { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="jb-page">
+<div class="jb-container">
+
+    <!-- Brand -->
+    <div class="jb-brand">
+        <a href="{% url 'home' %}" class="jb-brand__logo">
+            <i class="fas fa-seedling" aria-hidden="true"></i>
+            Andd Baay
+        </a>
+        <p class="jb-brand__sub">Jëf Baay — Assistant vocal agricole en Wolof · propulsé par GalsenAI</p>
+    </div>
+
+    {% if not hf_configured %}
+    <!-- Token warning -->
+    <div class="jb-warning" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Token HuggingFace manquant.</strong>
+            L'assistant est en mode démonstration (aucun appel IA réel).
+            Pour activer : créez un token sur
+            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">huggingface.co/settings/tokens</a>
+            et ajoutez <code>HF_API_TOKEN=hf_...</code> dans votre <code>.env</code>.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Mic card -->
+    <div class="jb-card">
+        <div class="jb-mic-area">
+            <button id="micBtn" class="jb-mic-btn" title="Maintenir pour parler" aria-label="Démarrer l'enregistrement">
+                <i id="micIcon" class="fas fa-microphone" aria-hidden="true"></i>
+            </button>
+            <p id="micHint" class="jb-mic-hint">Appuyer pour parler en Wolof</p>
+            <div id="recTimer" class="jb-timer" aria-live="polite"></div>
+        </div>
+
+        <!-- Status -->
+        <div id="statusBar" class="jb-status" role="status" aria-live="polite">
+            <div class="jb-status__spinner" id="statusSpinner"></div>
+            <span id="statusText"></span>
+        </div>
+    </div>
+
+    <!-- Conversation -->
+    <div class="jb-card" id="convCard" style="display:none;">
+        <h2 style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6B7280;margin-bottom:14px;">
+            <i class="fas fa-comments me-1" aria-hidden="true"></i>Conversation
+        </h2>
+        <div class="jb-conv" id="convList" aria-live="polite" aria-label="Conversation avec Jëf Baay">
+            <div class="jb-empty" id="convEmpty">
+                <i class="fas fa-microphone-alt" aria-hidden="true"></i>
+                Parlez en Wolof — Jëf Baay vous répond.
+            </div>
+        </div>
+    </div>
+
+    <!-- Chips -->
+    <div class="jb-chips">
+        <span class="jb-chip jb-chip--green"><i class="fas fa-microphone me-1"></i>Wolof natif</span>
+        <span class="jb-chip jb-chip--blue"><i class="fas fa-brain me-1"></i>{{ llm_model|default:"GalsenAI LLM" }}</span>
+        <span class="jb-chip jb-chip--amber"><i class="fas fa-lock me-1"></i>Sans inscription</span>
+    </div>
+
+    <!-- CTA -->
+    <div class="jb-cta">
+        <p class="jb-cta__title">Gérez votre ferme complète sur Andd Baay</p>
+        <p class="jb-cta__body">Diagnostics photo, prédiction rendement, suivi équipe — liés à vos questions vocales.</p>
+        <a href="{% url 'register' %}" class="jb-cta__btn">
+            <i class="fas fa-user-plus" aria-hidden="true"></i>
+            Créer un compte gratuit
+        </a>
+    </div>
+
+</div>
+</div>
+
+<script>
+(function () {
+    var CSRF = '{{ csrf_token }}';
+    var API_URL = '{% url "assistant_vocal" %}';
+
+    var micBtn     = document.getElementById('micBtn');
+    var micIcon    = document.getElementById('micIcon');
+    var micHint    = document.getElementById('micHint');
+    var recTimer   = document.getElementById('recTimer');
+    var statusBar  = document.getElementById('statusBar');
+    var statusSpinner = document.getElementById('statusSpinner');
+    var statusText = document.getElementById('statusText');
+    var convCard   = document.getElementById('convCard');
+    var convList   = document.getElementById('convList');
+    var convEmpty  = document.getElementById('convEmpty');
+
+    var mediaRecorder = null;
+    var audioChunks   = [];
+    var timerInterval = null;
+    var recSeconds    = 0;
+    var MAX_SECONDS   = 30;
+
+    function setStatus(msg, type) {
+        statusBar.className = 'jb-status visible' + (type ? ' ' + type : '');
+        statusText.textContent = msg;
+        statusSpinner.style.display = (type === 'loading') ? 'block' : 'none';
+    }
+    function hideStatus() { statusBar.classList.remove('visible'); }
+
+    function updateTimer() {
+        recSeconds++;
+        var s = recSeconds % 60;
+        var m = Math.floor(recSeconds / 60);
+        recTimer.textContent = (m > 0 ? m + ':' : '') + (s < 10 ? '0' : '') + s;
+        if (recSeconds >= MAX_SECONDS) stopRecording();
+    }
+
+    function startRecording() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setStatus('Microphone non disponible sur ce navigateur.', 'error');
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+            var mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+            mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+            audioChunks = [];
+            recSeconds = 0;
+
+            mediaRecorder.ondataavailable = function (e) {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+            mediaRecorder.onstop = function () {
+                stream.getTracks().forEach(function (t) { t.stop(); });
+                var blob = new Blob(audioChunks, { type: mimeType });
+                sendAudio(blob, mimeType);
+            };
+
+            mediaRecorder.start(200);
+            micBtn.classList.add('recording');
+            micIcon.className = 'fas fa-stop';
+            micHint.textContent = 'Parlez… (appuyez à nouveau pour arrêter)';
+            micHint.classList.add('recording');
+            recTimer.classList.add('visible');
+            timerInterval = setInterval(updateTimer, 1000);
+            hideStatus();
+        }).catch(function (err) {
+            setStatus('Accès microphone refusé : ' + err.message, 'error');
+        });
+    }
+
+    function stopRecording() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        clearInterval(timerInterval);
+        recTimer.classList.remove('visible');
+        recTimer.textContent = '';
+        mediaRecorder.stop();
+        micBtn.classList.remove('recording');
+        micIcon.className = 'fas fa-microphone';
+        micHint.textContent = 'Analyse en cours…';
+        micHint.classList.remove('recording');
+        micBtn.disabled = true;
+        setStatus('Transcription + génération de la réponse…', 'loading');
+    }
+
+    micBtn.addEventListener('click', function () {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    });
+
+    function addBubble(text, role, audioB64) {
+        var empty = document.getElementById('convEmpty');
+        if (empty) empty.remove();
+
+        convCard.style.display = 'block';
+        var wrap = document.createElement('div');
+        wrap.className = 'jb-bubble jb-bubble--' + role;
+
+        var label = document.createElement('div');
+        label.className = 'jb-bubble__label';
+        if (role === 'user') {
+            label.textContent = 'Wolof (transcrit)';
+        } else {
+            label.innerHTML = '<i class="fas fa-robot" aria-hidden="true"></i> Jëf Baay';
+        }
+
+        var body = document.createElement('div');
+        body.textContent = text;
+
+        wrap.appendChild(label);
+        wrap.appendChild(body);
+
+        if (role === 'bot' && audioB64) {
+            var playBtn = document.createElement('button');
+            playBtn.className = 'jb-play-tts';
+            playBtn.innerHTML = '<i class="fas fa-volume-up"></i> Écouter en Wolof';
+            var audio = new Audio('data:audio/wav;base64,' + audioB64);
+            playBtn.addEventListener('click', function () { audio.play(); });
+            wrap.appendChild(playBtn);
+        } else if (role === 'bot') {
+            // Browser TTS fallback (français)
+            if ('speechSynthesis' in window) {
+                var playBtn = document.createElement('button');
+                playBtn.className = 'jb-play-tts';
+                playBtn.innerHTML = '<i class="fas fa-volume-up"></i> Écouter (voix FR)';
+                playBtn.addEventListener('click', function () {
+                    var utt = new SpeechSynthesisUtterance(text);
+                    utt.lang = 'fr-FR';
+                    speechSynthesis.speak(utt);
+                });
+                wrap.appendChild(playBtn);
+            }
+        }
+
+        convList.appendChild(wrap);
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    function sendAudio(blob, mimeType) {
+        var form = new FormData();
+        form.append('audio', blob, 'recording.' + (mimeType.includes('webm') ? 'webm' : 'ogg'));
+        form.append('csrfmiddlewaretoken', CSRF);
+
+        fetch(API_URL, { method: 'POST', body: form })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                micBtn.disabled = false;
+                micHint.textContent = 'Appuyer pour parler en Wolof';
+
+                if (data.error === 'model_loading') {
+                    setStatus('Modèle GalsenAI en démarrage (' + Math.round(data.estimated_time) + 's) — réessayez.', 'error');
+                    return;
+                }
+                if (data.error === 'not_configured') {
+                    setStatus('Token HuggingFace manquant — voir l\'avertissement ci-dessus.', 'error');
+                    return;
+                }
+                if (data.error) {
+                    setStatus(data.message || 'Erreur inattendue.', 'error');
+                    return;
+                }
+
+                hideStatus();
+                if (data.transcript) addBubble(data.transcript, 'user');
+                if (data.response)   addBubble(data.response, 'bot', data.audio_b64 || null);
+            })
+            .catch(function (err) {
+                micBtn.disabled = false;
+                micHint.textContent = 'Appuyer pour parler en Wolof';
+                setStatus('Erreur réseau : ' + err.message, 'error');
+            });
+    }
+})();
+</script>
+{% endblock %}

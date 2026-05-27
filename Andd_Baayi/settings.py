@@ -46,6 +46,14 @@ PLANT_VISION_MODEL = (os.getenv("PLANT_VISION_MODEL", "gemini-2.0-flash") or "ge
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 
+# GalsenAI — HuggingFace Inference API
+HF_API_TOKEN = os.getenv("HF_API_TOKEN", "").strip()
+GALSENAI_ASR_MODEL = "galsenai/whisper-large-v3-wo"
+GALSENAI_LLM_MODEL = "galsenai/FineLlama-3.1-8B"
+GALSENAI_TTS_MODEL = "galsenai/xTTS-v2-wolof"
+GALSENAI_TRAD_MODEL = "galsenai/wolof-To-French-Translator"
+GALSENAI_TIMEOUT = int(os.getenv("GALSENAI_TIMEOUT", "60"))
+
 # ── Cloudinary (médias : CLOUDINARY_URL requis pour le stockage distant) ──
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "").strip()
 CLOUDINARY_MEDIA_PREFIX = (
