@@ -39,6 +39,7 @@ def analyze_plant_pest(
     *,
     crop_name: str = "",
     upload_crops: bool = True,
+    language: str = "fr",
 ) -> dict:
     """
     Pipeline complet : Gemini → validation minimale → recadrages Cloudinary.
@@ -47,7 +48,7 @@ def analyze_plant_pest(
         raise PlantVisionError("Format d'image non supporté.")
 
     try:
-        data = call_gemini_vision(image_bytes, content_type, crop_name=crop_name)
+        data = call_gemini_vision(image_bytes, content_type, crop_name=crop_name, language=language)
     except PlantVisionGeminiError as exc:
         raise PlantVisionError(str(exc)) from exc
 

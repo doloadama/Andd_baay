@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Diagnostic BaayVision — Andd Baay{% endblock %}
+{% block title %}{% if seo_culture %}Diagnostic {{ seo_culture }} — Maladies et ravageurs | Andd Baay{% else %}Diagnostic BaayVision — Andd Baay{% endif %}{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Diagnostiquez les maladies et ravageurs de vos cultures en quelques secondes grâce à l'IA BaayVision." />
+{% if seo_culture %}
+<meta name="description" content="Diagnostiquez les maladies et ravageurs de votre {{ seo_culture }} en quelques secondes grâce à l'IA BaayVision. Gratuit, sans inscription." />
+{% else %}
+<meta name="description" content="Diagnostiquez les maladies et ravageurs de vos cultures en quelques secondes grâce à l'IA BaayVision. Gratuit, sans inscription." />
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -233,10 +237,59 @@
 }
 .diag-cta__btn--secondary:hover { border-color: white; }
 
+/* ── Language selector ── */
+.diag-lang-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+.diag-lang-tab {
+    flex: 1;
+    padding: 10px 8px;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    background: #F9FAFB;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .15s, background .15s, color .15s;
+    color: #6B7280;
+}
+.diag-lang-tab.active {
+    border-color: #1D9E75;
+    background: #F0FDF7;
+    color: #1D9E75;
+}
+
+/* ── WhatsApp share ── */
+.diag-whatsapp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 20px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    justify-content: center;
+    margin-top: 20px;
+    transition: background .15s, transform .1s;
+}
+.diag-whatsapp-btn:hover { background: #1ebe5d; color: white; }
+.diag-whatsapp-btn:active { transform: scale(.98); }
+
 /* ── "Nouveau diagnostic" link ── */
 .diag-retry {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 16px;
 }
 .diag-retry a {
     color: #1D9E75;
@@ -393,7 +446,7 @@
     <div class="diag-card">
         <h1 class="diag-card__title">
             <i class="fas fa-microscope" aria-hidden="true"></i>
-            Diagnostiquer ma culture
+            {% if seo_culture %}Diagnostic {{ seo_culture }}{% else %}Diagnostiquer ma culture{% endif %}
         </h1>
         <p class="diag-card__subtitle">
             Prenez une photo de vos plants et l'IA identifie maladies, ravageurs et donne des recommandations en secondes.
@@ -416,6 +469,19 @@
                     <option value="{{ key }}" {% if key == culture_key %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
+            </div>
+
+            <div class="diag-field">
+                <label class="diag-label">Langue du résultat</label>
+                <input type="hidden" name="langue" id="langueInput" value="{{ langue|default:'fr' }}">
+                <div class="diag-lang-tabs" role="radiogroup" aria-label="Langue du résultat">
+                    {% for code, label in langues %}
+                    <button type="button" class="diag-lang-tab {% if langue|default:'fr' == code %}active{% endif %}"
+                            data-lang="{{ code }}" aria-pressed="{% if langue|default:'fr' == code %}true{% else %}false{% endif %}">
+                        {{ label }}
+                    </button>
+                    {% endfor %}
+                </div>
             </div>
 
             <div class="diag-field">
@@ -643,6 +709,13 @@
         {% endif %}
         </div>
 
+        {% if analyse_statut == 'terminee' and analyse_resultat %}
+        <a id="waShareBtn" href="#" target="_blank" rel="noopener" class="diag-whatsapp-btn" aria-label="Partager ce résultat sur WhatsApp">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+            Partager ce résultat sur WhatsApp
+        </a>
+        {% endif %}
+
         <div class="diag-retry">
             <a href="{% url 'diagnostic_rapide' %}">
                 <i class="fas fa-redo" aria-hidden="true"></i>
@@ -675,6 +748,7 @@
 
 <script>
 (function () {
+    /* ── Photo preview ── */
     var input = document.getElementById('photoInput');
     var preview = document.getElementById('uploadPreview');
     var filename = document.getElementById('uploadFilename');
@@ -683,27 +757,60 @@
     var submitBtn = document.getElementById('submitBtn');
     var loading = document.getElementById('loadingIndicator');
 
-    if (!input) return;
-
-    input.addEventListener('change', function () {
-        var file = input.files[0];
-        if (!file) return;
-        filename.textContent = file.name;
-        filename.style.display = 'block';
-        defaultView.style.display = 'none';
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    });
+    if (input) {
+        input.addEventListener('change', function () {
+            var file = input.files[0];
+            if (!file) return;
+            filename.textContent = file.name;
+            filename.style.display = 'block';
+            defaultView.style.display = 'none';
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
     if (form) {
         form.addEventListener('submit', function () {
             if (submitBtn) { submitBtn.disabled = true; }
             if (loading) { loading.style.display = 'block'; loading.setAttribute('aria-hidden', 'false'); }
         });
+    }
+
+    /* ── Language tab switcher ── */
+    var langInput = document.getElementById('langueInput');
+    var langTabs = document.querySelectorAll('.diag-lang-tab');
+    langTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            langTabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-pressed', 'false'); });
+            tab.classList.add('active');
+            tab.setAttribute('aria-pressed', 'true');
+            if (langInput) langInput.value = tab.dataset.lang;
+        });
+    });
+
+    /* ── WhatsApp share ── */
+    var waBtn = document.getElementById('waShareBtn');
+    if (waBtn) {
+        {% if analyse_statut == 'terminee' and analyse_resultat %}
+        var culture = '{{ culture_label|escapejs }}';
+        {% with detections=analyse_resultat.detections %}
+        {% if detections %}
+        var top = '{{ detections.0.className|escapejs }}';
+        var msg = '🌿 Diagnostic BaayVision — ' + culture + '\n'
+                + 'Problème principal : ' + top + '\n'
+                + 'Voir le résultat complet : ' + window.location.origin + '/diagnostic/';
+        {% else %}
+        var msg = '🌿 Diagnostic BaayVision — ' + culture + '\n'
+                + 'Aucun problème détecté — culture saine !\n'
+                + window.location.origin + '/diagnostic/';
+        {% endif %}
+        {% endwith %}
+        waBtn.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+        {% endif %}
     }
 })();
 </script>

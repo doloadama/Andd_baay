@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 
 from .key_rotation import GeminiKeyRotator
-from .prompts import PLANT_PEST_PROMPT
+from .prompts import LANGUAGE_INSTRUCTIONS, PLANT_PEST_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,7 @@ def call_gemini_vision(
     mime_type: str,
     *,
     crop_name: str = "",
+    language: str = "fr",
 ) -> dict:
     """
     Appelle Gemini avec image + prompt JSON structuré.
@@ -39,7 +40,12 @@ def call_gemini_vision(
     """
     rotator = _build_rotator()
     model = getattr(settings, "PLANT_VISION_MODEL", "gemini-2.0-flash")
-    prompt = PLANT_PEST_PROMPT.replace("{crop_name}", crop_name or "culture")
+    lang_instruction = LANGUAGE_INSTRUCTIONS.get(language, LANGUAGE_INSTRUCTIONS["fr"])
+    prompt = (
+        PLANT_PEST_PROMPT
+        .replace("{crop_name}", crop_name or "culture")
+        .replace("{language_instruction}", lang_instruction)
+    )
 
     initial_key = rotator.current_key
     last_error: Optional[Exception] = None

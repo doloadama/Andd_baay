@@ -40,9 +40,18 @@ RESPONSE SCHEMA:
 }
 
 RULES:
-- LANGUAGE: All text responses in FRENCH. Clear and concise sentences.
+- {language_instruction}
 - SEVERITY: required field for every detection.
 - BOUNDING BOX: normalized coordinates (0.0 to 1.0), targeting the lesion or pest.
 - RECOMMENDATIONS: grouped by type. Empty array if no recommendation for that type.
 - Context crop: {crop_name} in Senegal / Sahel when relevant.
 """
+
+LANGUAGE_INSTRUCTIONS = {
+    "fr": "LANGUAGE: All text responses in FRENCH. Clear and concise sentences.",
+    "wo": (
+        "LANGUAGE: All text responses in WOLOF (Wolof language spoken in Senegal). "
+        "Use simple vocabulary appropriate for farmers. "
+        "If a term has no Wolof equivalent, use the French word."
+    ),
+}
