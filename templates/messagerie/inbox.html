@@ -51,7 +51,7 @@
             document.body.classList.remove('msg-sheet-open');
         }
      }"
-     @htmx:after-swap.window="if ($event.detail.target.id === 'chatMainPanel') { openChat(); if (typeof window.initMessagerieConversation === 'function') window.initMessagerieConversation(); }">
+     @htmx:after-swap.window="if ($event.detail.target.id === 'chatMainPanel') { openChat(); var p = $event.detail.target.querySelector('[data-conversation-id]'); if (p && typeof window.initMessagerieConversation === 'function') { window.chatConfig = { conversationId: p.dataset.conversationId, currentProfileId: p.dataset.profileId, csrfToken: p.dataset.csrfToken, syncUrlTemplate: p.dataset.syncUrl }; window.initMessagerieConversation(window.chatConfig); } }">
 
     <aside class="msg-col-list" aria-label="Liste des conversations">
         <header class="msg-sidebar-header">

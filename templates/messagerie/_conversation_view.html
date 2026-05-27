@@ -2,7 +2,11 @@
 {# Reusable conversation view partial. Used by full page and drawer fragment. #}
 {# Expected context: conversation, messages_list, profile, autres, titre, is_mini, drawer (bool, optional) #}
 {# has_older_messages, oldest_loaded_message_id (optional) #}
-<div class="glass-card d-flex flex-column h-100 mobile-chat-card msg-conv-partial" data-conversation-id="{{ conversation.id }}">
+<div class="glass-card d-flex flex-column h-100 mobile-chat-card msg-conv-partial"
+     data-conversation-id="{{ conversation.id }}"
+     data-profile-id="{{ profile.id }}"
+     data-csrf-token="{{ csrf_token }}"
+     data-sync-url="{% url 'api_conversation_sync' conversation.id %}">
     <!-- Header -->
     <div class="chat-header msg-conv-header">
         <div class="d-flex align-items-center gap-2 min-w-0">

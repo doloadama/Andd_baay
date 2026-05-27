@@ -607,6 +607,7 @@
 }
 .chat-textarea::placeholder { color: var(--text-muted); }
 .chat-send-btn {
+    position: static;
     width: 44px;
     height: 44px;
     border-radius: 50%;
