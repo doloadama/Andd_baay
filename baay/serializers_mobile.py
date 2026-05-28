@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import (
+    Commentaire,
     Ferme,
     Localite,
     PrevisionRecolte,
@@ -12,6 +13,7 @@ from .models import (
     Projet,
     ProjetProduit,
     Region,
+    Tache,
 )
 
 
@@ -311,3 +313,55 @@ class FermeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ferme
         fields = ["nom", "description", "superficie_totale", "localite_id", "latitude", "longitude"]
+
+
+# ── Tâches ──────────────────────────────────────────────────────────────────
+
+class TacheListSerializer(serializers.ModelSerializer):
+    assigne_a_nom = serializers.CharField(source="assigne_a.user.get_full_name", read_only=True)
+    assigne_par_nom = serializers.CharField(source="assigne_par.user.get_full_name", read_only=True)
+    est_en_retard = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Tache
+        fields = [
+            "id", "titre", "description", "statut", "priorite",
+            "date_echeance", "date_creation", "date_modification",
+            "assigne_a_nom", "assigne_par_nom", "est_en_retard",
+            "ferme", "projet",
+        ]
+        read_only_fields = ["id", "date_creation", "date_modification", "est_en_retard"]
+
+
+class TacheCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tache
+        fields = [
+            "titre", "description", "statut", "priorite",
+            "date_echeance", "ferme", "projet", "assigne_a",
+        ]
+
+
+class TacheStatutSerializer(serializers.Serializer):
+    """Sérialiseur léger pour la mise à jour du statut d'une tâche."""
+    statut = serializers.ChoiceField(choices=Tache.STATUT_CHOICES)
+    commentaire_retour = serializers.CharField(required=False, allow_blank=True, max_length=2000)
+
+
+# ── Commentaires ─────────────────────────────────────────────────────────────
+
+class CommentaireSerializer(serializers.ModelSerializer):
+    auteur_nom = serializers.CharField(source="auteur.user.get_full_name", read_only=True)
+    auteur_username = serializers.CharField(source="auteur.user.username", read_only=True)
+
+    class Meta:
+        model = Commentaire
+        fields = [
+            "id", "texte", "auteur_nom", "auteur_username",
+            "created_at", "content_type", "object_id",
+        ]
+        read_only_fields = ["id", "auteur_nom", "auteur_username", "created_at", "content_type", "object_id"]
+
+
+class CommentaireCreateSerializer(serializers.Serializer):
+    texte = serializers.CharField(max_length=2000)

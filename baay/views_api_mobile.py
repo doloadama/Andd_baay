@@ -10,12 +10,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Ferme, Localite, ProduitAgricole, Profile, Projet, ProjetProduit, Region
+import uuid as _uuid
+
+from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+
+from .models import Commentaire, Ferme, Localite, PrevisionRecolte, ProduitAgricole, Profile, Projet, ProjetProduit, Region, Tache
 from .serializers_mobile import (
+    CommentaireCreateSerializer,
+    CommentaireSerializer,
     FermeCreateSerializer,
     FermeDetailSerializer,
     FermeListSerializer,
     LocaliteSerializer,
+    PrevisionRecolteSerializer,
     ProfileSerializer,
     ProjetCreateSerializer,
     ProjetDetailSerializer,
@@ -25,6 +33,9 @@ from .serializers_mobile import (
     ProduitAgricoleSerializer,
     RegionSerializer,
     RegisterSerializer,
+    TacheCreateSerializer,
+    TacheListSerializer,
+    TacheStatutSerializer,
 )
 from .core_services import update_prediction_for_projet_produit
 
@@ -473,3 +484,216 @@ def mobile_dashboard_view(request):
         "nb_projets_termines": nb_projets_termines,
         "projets_recents": ProjetListSerializer(derniers, many=True).data,
     })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TÂCHES
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TacheListCreateView(generics.ListCreateAPIView):
+    """
+    GET  /api/v1/taches/?ferme=<uuid>&projet=<uuid>
+    POST /api/v1/taches/
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return TacheCreateSerializer
+        return TacheListSerializer
+
+    def get_queryset(self):
+        profile = _profile(self.request)
+        qs = Tache.objects.filter(ferme__proprietaire=profile).select_related(
+            "assigne_a__user", "assigne_par__user", "ferme", "projet"
+        )
+        ferme_id = self.request.query_params.get("ferme")
+        projet_id = self.request.query_params.get("projet")
+        if ferme_id:
+            qs = qs.filter(ferme_id=ferme_id)
+        if projet_id:
+            qs = qs.filter(projet_id=projet_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(assigne_par=_profile(self.request))
+
+
+class TacheUpdateView(generics.UpdateAPIView):
+    """
+    PATCH /api/v1/taches/<uuid>/statut/
+    """
+    serializer_class = TacheStatutSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        profile = _profile(self.request)
+        return Tache.objects.filter(ferme__proprietaire=profile) | Tache.objects.filter(assigne_a=profile)
+
+    def update(self, request, *args, **kwargs):
+        tache = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tache.statut = serializer.validated_data["statut"]
+        if "commentaire_retour" in serializer.validated_data:
+            tache.commentaire_retour = serializer.validated_data["commentaire_retour"]
+        tache.save(update_fields=["statut", "commentaire_retour", "date_modification"])
+        return Response(TacheListSerializer(tache).data)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# COMMENTAIRES (GenericForeignKey)
+# ══════════════════════════════════════════════════════════════════════════════
+
+_CT_LABEL_MAP = {
+    "ferme": "ferme",
+    "tache": "tache",
+    "projet": "projet",
+}
+
+
+@api_view(["GET", "POST"])
+@permission_classes([permissions.IsAuthenticated])
+def commentaires_api(request, ct_label: str, object_id):
+    """GET  /api/v1/commentaires/<ct_label>/<uuid>/
+    POST /api/v1/commentaires/<ct_label>/<uuid>/"""
+    ct_model = _CT_LABEL_MAP.get(ct_label.lower())
+    if ct_model is None:
+        return Response(
+            {"detail": f"Type non supporté : {ct_label}. Valeurs acceptées : ferme, tache, projet."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        ct = ContentType.objects.get(app_label="baay", model=ct_model)
+    except ContentType.DoesNotExist:
+        return Response({"detail": "Type de contenu introuvable."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "GET":
+        commentaires = Commentaire.objects.filter(
+            content_type=ct, object_id=object_id
+        ).select_related("auteur__user")
+        return Response(CommentaireSerializer(commentaires, many=True).data)
+
+    # POST
+    serializer = CommentaireCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    commentaire = Commentaire.objects.create(
+        content_type=ct,
+        object_id=object_id,
+        auteur=_profile(request),
+        texte=serializer.validated_data["texte"],
+    )
+    return Response(CommentaireSerializer(commentaire).data, status=status.HTTP_201_CREATED)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PRÉVISIONS RÉCOLTE
+# ══════════════════════════════════════════════════════════════════════════════
+
+class PrevisionRecolteListView(generics.ListAPIView):
+    """GET /api/v1/previsions/?projet=<uuid>"""
+    serializer_class = PrevisionRecolteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        profile = _profile(self.request)
+        qs = PrevisionRecolte.objects.filter(projet__ferme__proprietaire=profile)
+        projet_id = self.request.query_params.get("projet")
+        if projet_id:
+            qs = qs.filter(projet_id=projet_id)
+        return qs
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PROFIL UTILISATEUR (endpoint v1)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def profile_api(request):
+    """GET /api/v1/profile/"""
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        return Response({"detail": "Profil introuvable."}, status=status.HTTP_404_NOT_FOUND)
+    return Response(ProfileSerializer(profile).data)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# DIAGNOSTIC ASYNC (API REST)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def diagnostic_submit_api(request):
+    """POST /api/v1/diagnostic/
+    Soumet une image pour analyse phytosanitaire asynchrone.
+    Retourne : {"task_id": "<uuid>"}
+    """
+    from baay.views_diagnostic import (
+        ALLOWED_MIME,
+        MAX_FILE_SIZE,
+        _check_rate_limit,
+        _client_ip,
+        _CULTURES_MAP,
+    )
+
+    photo = request.FILES.get("photo")
+    if not photo:
+        return Response({"detail": "Le champ 'photo' est requis."}, status=status.HTTP_400_BAD_REQUEST)
+    if photo.size > MAX_FILE_SIZE:
+        return Response({"detail": "Fichier trop volumineux (max 10 Mo)."}, status=status.HTTP_400_BAD_REQUEST)
+    if photo.content_type not in ALLOWED_MIME:
+        return Response(
+            {"detail": "Format non supporté. Utilisez JPEG, PNG ou WebP."},
+            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        )
+    if not _check_rate_limit(_client_ip(request)):
+        return Response(
+            {"detail": "Trop d'analyses récentes. Réessayez dans quelques minutes."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    culture_key = request.data.get("culture", "autre")
+    culture_label = _CULTURES_MAP.get(culture_key, culture_key)
+    langue = request.data.get("langue", "fr")
+    if langue not in ("fr", "wo"):
+        langue = "fr"
+
+    image_bytes = photo.read()
+    task_id = str(_uuid.uuid4())
+    task_cache_key = f"task:{task_id}"
+    cache.set(task_cache_key, {"status": "pending"}, 3600)
+
+    from baay.tasks.diagnostic import analyze_plant_pest_task
+    analyze_plant_pest_task.delay(
+        image_bytes.hex(),
+        photo.content_type,
+        culture_label,
+        langue,
+        task_cache_key,
+    )
+    return Response({"task_id": task_id}, status=status.HTTP_202_ACCEPTED)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def diagnostic_result_api(request, task_id: str):
+    """GET /api/v1/diagnostic/<task_id>/
+    Retourne le résultat d'une analyse (polling par task_id).
+    Statuts : pending | done | error | expired
+    """
+    task_cache_key = f"task:{task_id}"
+    task_data = cache.get(task_cache_key)
+
+    if task_data is None:
+        return Response(
+            {"status": "expired", "detail": "Résultat expiré ou introuvable."},
+            status=status.HTTP_410_GONE,
+        )
+    if task_data["status"] == "pending":
+        return Response({"status": "pending"})
+    elif task_data["status"] == "done":
+        return Response({"status": "done", "result": task_data["result"]})
+    else:
+        return Response({"status": "error", "error": task_data.get("error", "Erreur inconnue.")})

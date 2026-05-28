@@ -7,6 +7,7 @@ from .views_api_mobile import (
     FermeListCreateView,
     LocaliteListView,
     MeView,
+    PrevisionRecolteListView,
     ProduitListView,
     ProjetDetailView,
     ProjetListCreateView,
@@ -14,7 +15,13 @@ from .views_api_mobile import (
     ProjetProduitListCreateView,
     RegionListView,
     RegisterView,
+    TacheListCreateView,
+    TacheUpdateView,
+    commentaires_api,
+    diagnostic_result_api,
+    diagnostic_submit_api,
     mobile_dashboard_view,
+    profile_api,
     projet_avancement_view,
     projet_produit_etat_view,
     projet_statut_view,
@@ -53,4 +60,21 @@ urlpatterns = [
     path(f"{_p}/projets/<uuid:projet_id>/produits/", ProjetProduitListCreateView.as_view(), name="mobile_pp_list"),
     path(f"{_p}/projet-produits/<uuid:pp_id>/", ProjetProduitDetailView.as_view(), name="mobile_pp_detail"),
     path(f"{_p}/projet-produits/<uuid:pp_id>/etat/", projet_produit_etat_view, name="mobile_pp_etat"),
+
+    # ── Tâches ────────────────────────────────────────────────────────────
+    path("api/v1/taches/", TacheListCreateView.as_view(), name="api_v1_taches"),
+    path("api/v1/taches/<uuid:pk>/statut/", TacheUpdateView.as_view(), name="api_v1_tache_statut"),
+
+    # ── Commentaires ──────────────────────────────────────────────────────
+    path("api/v1/commentaires/<str:ct_label>/<uuid:object_id>/", commentaires_api, name="api_v1_commentaires"),
+
+    # ── Prévisions récolte ────────────────────────────────────────────────
+    path("api/v1/previsions/", PrevisionRecolteListView.as_view(), name="api_v1_previsions"),
+
+    # ── Profil utilisateur ────────────────────────────────────────────────
+    path("api/v1/profile/", profile_api, name="api_v1_profile"),
+
+    # ── Diagnostic async ──────────────────────────────────────────────────
+    path("api/v1/diagnostic/", diagnostic_submit_api, name="api_v1_diagnostic_submit"),
+    path("api/v1/diagnostic/<str:task_id>/", diagnostic_result_api, name="api_v1_diagnostic_result"),
 ]
