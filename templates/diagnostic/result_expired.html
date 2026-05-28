@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+
+{% block title %}Analyse expirée | Andd Baay{% endblock %}
+
+{% block extra_css %}
+<style>
+.diag-expired-page {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #f0fdf7 0%, #ffffff 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+.diag-expired-card {
+    max-width: 440px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(29,158,117,.10), 0 1px 4px rgba(0,0,0,.06);
+    padding: 48px 32px;
+    text-align: center;
+}
+.diag-expired-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #FEF3C7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.8rem;
+    color: #92400E;
+}
+.diag-expired-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
+.diag-expired-desc {
+    font-size: 0.875rem;
+    color: #6B7280;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+.diag-expired-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #1D9E75;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .15s;
+}
+.diag-expired-btn:hover { background: #15805e; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="diag-expired-page">
+    <div class="diag-expired-card">
+        <div class="diag-expired-icon">
+            <i class="fas fa-clock" aria-hidden="true"></i>
+        </div>
+        <h1 class="diag-expired-title">Analyse introuvable ou expirée</h1>
+        <p class="diag-expired-desc">
+            Cette analyse n'existe plus. Les résultats sont conservés 1 heure.<br>
+            Lancez un nouveau diagnostic pour analyser votre culture.
+        </p>
+        <a href="{% url 'diagnostic_rapide' %}" class="diag-expired-btn">
+            <i class="fas fa-microscope" aria-hidden="true"></i>
+            Nouveau diagnostic
+        </a>
+    </div>
+</div>
+{% endblock %}

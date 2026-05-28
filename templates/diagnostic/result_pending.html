@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+
+{% block title %}Analyse en cours | Andd Baay{% endblock %}
+
+{% block extra_css %}
+<style>
+.diag-pending-page {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #f0fdf7 0%, #ffffff 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+.diag-pending-card {
+    max-width: 440px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(29,158,117,.10), 0 1px 4px rgba(0,0,0,.06);
+    padding: 48px 32px;
+    text-align: center;
+}
+.diag-pending-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #d1fae5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+.diag-pending-spinner {
+    width: 36px;
+    height: 36px;
+    color: #1D9E75;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.diag-pending-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
+.diag-pending-desc {
+    font-size: 0.875rem;
+    color: #6B7280;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+.diag-pending-footer {
+    font-size: 0.75rem;
+    color: #9CA3AF;
+}
+.diag-dots {
+    display: inline-block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="diag-pending-page">
+    <div class="diag-pending-card"
+         hx-get="{% url 'diagnostic_result' task_id %}"
+         hx-trigger="every 3s"
+         hx-target="body"
+         hx-swap="outerHTML">
+
+        <div class="diag-pending-icon">
+            <svg class="diag-pending-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        </div>
+
+        <h1 class="diag-pending-title">Analyse en cours<span class="diag-dots">…</span></h1>
+
+        <p class="diag-pending-desc">
+            Notre IA examine votre culture. Cela prend generalement 5 a 15 secondes.<br>
+            Vous pouvez fermer cette page &mdash; l'analyse continue en arriere-plan.
+        </p>
+
+        <p class="diag-pending-footer">Resultat affiche automatiquement des que pret</p>
+    </div>
+</div>
+{% endblock %}

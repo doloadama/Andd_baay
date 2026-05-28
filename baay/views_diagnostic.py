@@ -1,7 +1,8 @@
 import logging
+import uuid
 
 from django.core.cache import cache
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from baay.services.plant_vision.analyzer import (
@@ -115,30 +116,42 @@ def diagnostic_rapide(request, culture: str = ""):
             context["form_error"] = error
         else:
             image_bytes = photo.read()
-            content_type = photo.content_type
-            try:
-                cached = _get_cached_result(image_bytes, langue)
-                if cached is not None:
-                    logger.info("diagnostic_rapide: cache hit")
-                    resultat = cached
-                    _log_cache_hit()
-                else:
-                    resultat = analyze_plant_pest(
-                        image_bytes,
-                        content_type,
-                        crop_name=culture_label,
-                        upload_crops=True,
-                        language=langue,
-                    )
-                    _set_cached_result(image_bytes, langue, resultat)
-                context["analyse_statut"] = "terminee"
-                context["analyse_resultat"] = resultat
-            except PlantVisionError as exc:
-                context["analyse_statut"] = "echec"
-                context["analyse_erreur"] = str(exc)
-            except Exception:
-                logger.exception("Erreur inattendue diagnostic_rapide")
-                context["analyse_statut"] = "echec"
-                context["analyse_erreur"] = "Une erreur est survenue. Réessayez avec une photo plus nette."
+            content_type_mime = photo.content_type
+            task_id = str(uuid.uuid4())
+            task_cache_key = f"task:{task_id}"
+
+            cache.set(task_cache_key, {"status": "pending"}, 3600)
+
+            from baay.tasks.diagnostic import analyze_plant_pest_task
+            analyze_plant_pest_task.delay(
+                image_bytes.hex(),
+                content_type_mime,
+                culture_label,
+                langue,
+                task_cache_key,
+            )
+            return redirect("diagnostic_result", task_id=task_id)
 
     return render(request, "diagnostic/index.html", context)
+
+
+@require_http_methods(["GET"])
+def diagnostic_result(request, task_id: str):
+    """Vue de polling HTMX — retourne le bon template selon l'etat de la tache."""
+    task_cache_key = f"task:{task_id}"
+    task_data = cache.get(task_cache_key)
+
+    if task_data is None:
+        return render(request, "diagnostic/result_expired.html", {}, status=410)
+
+    context = {"task_id": task_id}
+    if task_data["status"] == "pending":
+        return render(request, "diagnostic/result_pending.html", context)
+    elif task_data["status"] == "done":
+        context["analyse_statut"] = "terminee"
+        context["analyse_resultat"] = task_data["result"]
+        return render(request, "diagnostic/result_done.html", context)
+    else:
+        context["analyse_statut"] = "echec"
+        context["analyse_erreur"] = task_data.get("error", "Erreur inconnue")
+        return render(request, "diagnostic/result_done.html", context)

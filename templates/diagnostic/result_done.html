@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+
+{% block title %}Résultat diagnostic | Andd Baay{% endblock %}
+
+{% block extra_css %}
+<style>
+.diag-page {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #f0fdf7 0%, #ffffff 60%);
+    padding: 40px 16px 80px;
+}
+.diag-container { max-width: 700px; margin: 0 auto; }
+.diag-brand { text-align: center; margin-bottom: 36px; }
+.diag-brand__logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    text-decoration: none; color: #1D9E75; font-weight: 800; font-size: 1.3rem; margin-bottom: 8px;
+}
+.diag-brand__logo i { font-size: 1.6rem; }
+.diag-brand__tagline { font-size: 0.85rem; color: #6B7280; margin: 0; }
+.diag-card {
+    background: #ffffff; border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(29,158,117,.10), 0 1px 4px rgba(0,0,0,.06);
+    padding: 32px 28px; margin-bottom: 28px;
+}
+.diag-result-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #E5E7EB;
+}
+.diag-result-header__icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #1D9E75; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.diag-result-header__title { font-size: 1.1rem; font-weight: 800; color: #111827; margin: 0 0 3px; }
+.diag-result-header__sub { font-size: 0.82rem; color: #6B7280; margin: 0; }
+.diag-retry { text-align: center; margin-top: 16px; }
+.diag-retry a {
+    color: #1D9E75; font-size: 0.9rem; font-weight: 600;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.diag-retry a:hover { text-decoration: underline; }
+.diag-whatsapp-btn {
+    display: inline-flex; align-items: center; gap: 10px; width: 100%;
+    padding: 13px 20px; background: #25D366; color: white; border: none;
+    border-radius: 14px; font-size: 0.95rem; font-weight: 700; font-family: inherit;
+    cursor: pointer; text-decoration: none; justify-content: center;
+    margin-top: 20px; transition: background .15s, transform .1s;
+}
+.diag-whatsapp-btn:hover { background: #1ebe5d; color: white; }
+.diag-cta {
+    background: linear-gradient(135deg, #1D9E75 0%, #15805e 100%);
+    border-radius: 18px; padding: 28px 24px; color: white; text-align: center; margin-top: 28px;
+}
+.diag-cta__title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+.diag-cta__body { font-size: 0.88rem; opacity: .9; margin-bottom: 20px; }
+.diag-cta__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.diag-cta__btn {
+    padding: 11px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 700;
+    font-family: inherit; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px; transition: transform .1s;
+}
+.diag-cta__btn:active { transform: scale(.97); }
+.diag-cta__btn--primary { background: white; color: #1D9E75; border: none; }
+.diag-cta__btn--secondary { background: transparent; color: white; border: 2px solid rgba(255,255,255,.5); }
+.diag-cta__btn--secondary:hover { border-color: white; }
+
+/* BaayVision result styles */
+.diag-bv .bv-subject {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: #f0fdf7; border: 1px solid #bbf7d0;
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+}
+.diag-bv .bv-subject__icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #1D9E75; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.diag-bv .bv-subject__type {
+    display: inline-block; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 20px;
+    background: #1D9E75; color: white; margin-bottom: 6px;
+}
+.diag-bv .bv-subject__type--pest { background: #F5A623; }
+.diag-bv .bv-subject__type--unknown { background: #6B7280; }
+.diag-bv .bv-subject__desc { margin: 0; font-size: 13px; color: #374151; }
+.diag-bv .bv-confidence { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.diag-bv .bv-confidence__bar { flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; }
+.diag-bv .bv-confidence__fill { height: 100%; background: #1D9E75; border-radius: 3px; }
+.diag-bv .bv-confidence__label { font-size: 12px; color: #6B7280; white-space: nowrap; }
+.diag-bv .bv-summary {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #FEF3C7; border: 1px solid #FDE68A;
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;
+    flex-wrap: wrap; gap: 10px;
+}
+.diag-bv .bv-summary__count { display: flex; align-items: baseline; gap: 6px; }
+.diag-bv .bv-summary__n { font-size: 28px; font-weight: 900; color: #92400E; }
+.diag-bv .bv-summary__lbl { font-size: 13px; color: #92400E; font-weight: 600; }
+.diag-bv .bv-severity-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.diag-bv .bv-sev-pill {
+    font-size: 10px; font-weight: 700; padding: 3px 10px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.diag-bv .bv-sev-pill--critical { background: #FEE2E2; color: #991B1B; }
+.diag-bv .bv-sev-pill--high     { background: #FEF3C7; color: #92400E; }
+.diag-bv .bv-sev-pill--medium   { background: #FEF9C3; color: #713F12; }
+.diag-bv .bv-sev-pill--low      { background: #DCFCE7; color: #166534; }
+.diag-bv .bv-detections { display: flex; flex-direction: column; gap: 14px; }
+.diag-bv .bv-detection { border-radius: 14px; border: 2px solid #E5E7EB; overflow: hidden; }
+.diag-bv .bv-detection--critical { border-color: #FCA5A5; }
+.diag-bv .bv-detection--high     { border-color: #FCD34D; }
+.diag-bv .bv-detection--medium   { border-color: #FDE68A; }
+.diag-bv .bv-detection--low      { border-color: #86EFAC; }
+.diag-bv .bv-detection__header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; gap: 12px; flex-wrap: wrap;
+}
+.diag-bv .bv-detection--critical .bv-detection__header { background: #FEF2F2; }
+.diag-bv .bv-detection--high     .bv-detection__header { background: #FFFBEB; }
+.diag-bv .bv-detection--medium   .bv-detection__header { background: #FEFCE8; }
+.diag-bv .bv-detection--low      .bv-detection__header { background: #F0FDF4; }
+.diag-bv .bv-detection__title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.diag-bv .bv-sev-badge {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 3px 10px; border-radius: 20px;
+}
+.diag-bv .bv-sev-badge--critical { background: #FEE2E2; color: #991B1B; }
+.diag-bv .bv-sev-badge--high     { background: #FEF3C7; color: #92400E; }
+.diag-bv .bv-sev-badge--medium   { background: #FEF9C3; color: #713F12; }
+.diag-bv .bv-sev-badge--low      { background: #DCFCE7; color: #166534; }
+.diag-bv .bv-detection__name { font-size: 15px; font-weight: 700; color: #111827; }
+.diag-bv .bv-detection__conf { font-size: 12px; color: #6B7280; white-space: nowrap; }
+.diag-bv .bv-detection__crop {
+    display: block; width: 100%; max-height: 200px;
+    object-fit: cover; border-bottom: 1px solid #E5E7EB;
+}
+.diag-bv .bv-detection__body { padding: 14px 16px; }
+.diag-bv .bv-detection__desc { font-size: 14px; color: #374151; margin-bottom: 10px; }
+.diag-bv .bv-impact {
+    display: flex; align-items: flex-start; gap: 8px;
+    background: #FFF7ED; border-left: 3px solid #F59E0B;
+    padding: 10px 14px; border-radius: 0 8px 8px 0;
+    margin-bottom: 14px; font-size: 13px; color: #92400E;
+}
+.diag-bv .bv-impact i { margin-top: 2px; flex-shrink: 0; }
+.diag-bv .bv-recs { margin-top: 4px; }
+.diag-bv .bv-recs__title {
+    font-size: 13px; font-weight: 700; color: #1D9E75;
+    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.diag-bv .bv-recs__grid { display: flex; flex-direction: column; gap: 10px; }
+.diag-bv .bv-rec-group { border-radius: 10px; padding: 12px 14px; }
+.diag-bv .bv-rec-group--bio  { background: #F0FDF4; border: 1px solid #BBF7D0; }
+.diag-bv .bv-rec-group--chem { background: #EFF6FF; border: 1px solid #BFDBFE; }
+.diag-bv .bv-rec-group--cult { background: #FFF7ED; border: 1px solid #FED7AA; }
+.diag-bv .bv-rec-group__label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+}
+.diag-bv .bv-rec-group--bio  .bv-rec-group__label { color: #166534; }
+.diag-bv .bv-rec-group--chem .bv-rec-group__label { color: #1E40AF; }
+.diag-bv .bv-rec-group--cult .bv-rec-group__label { color: #9A3412; }
+.diag-bv .bv-rec-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.diag-bv .bv-rec-item { font-size: 13px; color: #374151; }
+.diag-bv .bv-rec-item strong { display: block; font-weight: 700; color: #111827; margin-bottom: 2px; }
+.diag-bv .bv-rec-item span { color: #6B7280; }
+.diag-bv .bv-rec-source { display: block; font-size: 11px; color: #9CA3AF; font-style: normal; margin-top: 2px; }
+.diag-bv .bv-empty { text-align: center; padding: 24px; color: #166534; }
+.diag-bv .bv-empty__icon { font-size: 36px; margin-bottom: 10px; display: block; }
+.diag-bv .bv-alert {
+    padding: 12px 16px; border-radius: 12px; font-size: 14px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.diag-bv .bv-alert--error { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
+.diag-bv .bv-meta { font-size: 12px; color: #9CA3AF; margin-top: 16px; margin-bottom: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="diag-page">
+<div class="diag-container">
+
+    <div class="diag-brand">
+        <a href="{% url 'home' %}" class="diag-brand__logo">
+            <i class="fas fa-seedling" aria-hidden="true"></i>
+            Andd Baay
+        </a>
+        <p class="diag-brand__tagline">BaayVision — Diagnostic agricole par intelligence artificielle</p>
+    </div>
+
+    <div class="diag-card">
+        <div class="diag-result-header">
+            <div class="diag-result-header__icon">
+                <i class="fas fa-microscope" aria-hidden="true"></i>
+            </div>
+            <div>
+                <p class="diag-result-header__title">Résultat du diagnostic</p>
+                <p class="diag-result-header__sub">
+                    {% if analyse_statut == 'terminee' %}Analyse terminée{% else %}Analyse échouée{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="diag-bv">
+
+        {% if analyse_statut == 'echec' %}
+            <div class="bv-alert bv-alert--error" role="alert">
+                <i class="fas fa-times-circle" aria-hidden="true"></i>
+                {{ analyse_erreur|default:"L'analyse a échoué. Réessayez avec une photo plus nette." }}
+            </div>
+
+        {% elif analyse_statut == 'terminee' and analyse_resultat %}
+            {% with subject=analyse_resultat.subject detections=analyse_resultat.detections %}
+
+            <div class="bv-subject">
+                <div class="bv-subject__icon">
+                    {% if subject.subjectType == 'PLANT' %}<i class="fas fa-leaf" aria-hidden="true"></i>
+                    {% elif subject.subjectType == 'PEST' %}<i class="fas fa-bug" aria-hidden="true"></i>
+                    {% else %}<i class="fas fa-question-circle" aria-hidden="true"></i>
+                    {% endif %}
+                </div>
+                <div class="bv-subject__info">
+                    <span class="bv-subject__type bv-subject__type--{{ subject.subjectType|lower }}">
+                        {% if subject.subjectType == 'PLANT' %}Plante
+                        {% elif subject.subjectType == 'PEST' %}Ravageur
+                        {% else %}Inconnu{% endif %}
+                    </span>
+                    <p class="bv-subject__desc">{{ subject.description }}</p>
+                    {% if subject.confidence %}
+                    {% widthratio subject.confidence 1 100 as conf_pct %}
+                    <div class="bv-confidence">
+                        <div class="bv-confidence__bar">
+                            <div class="bv-confidence__fill" style="width: {{ conf_pct }}%"></div>
+                        </div>
+                        <span class="bv-confidence__label">Confiance : {{ conf_pct }}%</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if detections %}
+            {% with critical_count=detections|length %}
+            <div class="bv-summary">
+                <div class="bv-summary__count">
+                    <span class="bv-summary__n">{{ critical_count }}</span>
+                    <span class="bv-summary__lbl">problème{{ critical_count|pluralize }} détecté{{ critical_count|pluralize }}</span>
+                </div>
+                <div class="bv-severity-pills">
+                    {% for det in detections %}
+                    <span class="bv-sev-pill bv-sev-pill--{{ det.severity|lower }}">{{ det.severity }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endwith %}
+
+            <div class="bv-detections">
+                {% for det in detections %}
+                <div class="bv-detection bv-detection--{{ det.severity|lower }}">
+                    <div class="bv-detection__header">
+                        <div class="bv-detection__title-row">
+                            <span class="bv-sev-badge bv-sev-badge--{{ det.severity|lower }}">
+                                {% if det.severity == 'CRITICAL' %}Critique
+                                {% elif det.severity == 'HIGH' %}Elevé
+                                {% elif det.severity == 'MEDIUM' %}Moyen
+                                {% else %}Faible{% endif %}
+                            </span>
+                            <strong class="bv-detection__name">{{ det.className }}</strong>
+                        </div>
+                        {% if det.confidenceScore %}
+                        {% widthratio det.confidenceScore 1 100 as det_conf %}
+                        <span class="bv-detection__conf">{{ det_conf }}% fiabilité</span>
+                        {% endif %}
+                    </div>
+
+                    {% if det.croppedImageUrl %}
+                    <img src="{{ det.croppedImageUrl }}" alt="Zone détectée — {{ det.className }}"
+                         class="bv-detection__crop" loading="lazy">
+                    {% endif %}
+
+                    {% if det.details %}
+                    <div class="bv-detection__body">
+                        {% if det.details.description %}
+                        <p class="bv-detection__desc">{{ det.details.description }}</p>
+                        {% endif %}
+
+                        {% if det.details.impact %}
+                        <div class="bv-impact">
+                            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                            <strong>Impact :</strong> {{ det.details.impact }}
+                        </div>
+                        {% endif %}
+
+                        {% with rec=det.details.recommendations %}
+                        {% if rec.biological or rec.chemical or rec.cultural %}
+                        <div class="bv-recs">
+                            <h4 class="bv-recs__title">
+                                <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+                                Recommandations
+                            </h4>
+                            <div class="bv-recs__grid">
+                                {% if rec.biological %}
+                                <div class="bv-rec-group bv-rec-group--bio">
+                                    <div class="bv-rec-group__label">
+                                        <i class="fas fa-leaf" aria-hidden="true"></i> Biologique
+                                    </div>
+                                    <ul class="bv-rec-list">
+                                        {% for r in rec.biological %}
+                                        <li class="bv-rec-item">
+                                            <strong>{{ r.solution }}</strong>
+                                            <span>{{ r.details }}</span>
+                                            {% if r.source %}<cite class="bv-rec-source">Source : {{ r.source }}</cite>{% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                {% if rec.chemical %}
+                                <div class="bv-rec-group bv-rec-group--chem">
+                                    <div class="bv-rec-group__label">
+                                        <i class="fas fa-flask" aria-hidden="true"></i> Traitement chimique
+                                    </div>
+                                    <ul class="bv-rec-list">
+                                        {% for r in rec.chemical %}
+                                        <li class="bv-rec-item">
+                                            <strong>{{ r.solution }}</strong>
+                                            <span>{{ r.details }}</span>
+                                            {% if r.source %}<cite class="bv-rec-source">Source : {{ r.source }}</cite>{% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                {% if rec.cultural %}
+                                <div class="bv-rec-group bv-rec-group--cult">
+                                    <div class="bv-rec-group__label">
+                                        <i class="fas fa-tractor" aria-hidden="true"></i> Pratique culturale
+                                    </div>
+                                    <ul class="bv-rec-list">
+                                        {% for r in rec.cultural %}
+                                        <li class="bv-rec-item">
+                                            <strong>{{ r.solution }}</strong>
+                                            <span>{{ r.details }}</span>
+                                            {% if r.source %}<cite class="bv-rec-source">Source : {{ r.source }}</cite>{% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="bv-empty">
+                <i class="fas fa-check-circle bv-empty__icon" aria-hidden="true"></i>
+                <p>Aucun problème détecté sur cette photo. Culture apparemment saine.</p>
+            </div>
+            {% endif %}
+
+            {% endwith %}
+        {% endif %}
+        </div>
+
+        {% if analyse_statut == 'terminee' and analyse_resultat %}
+        <a id="waShareBtn" href="#" target="_blank" rel="noopener" class="diag-whatsapp-btn" aria-label="Partager ce résultat sur WhatsApp">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+            Partager ce résultat sur WhatsApp
+        </a>
+        {% endif %}
+
+        <div class="diag-retry">
+            <a href="{% url 'diagnostic_rapide' %}">
+                <i class="fas fa-redo" aria-hidden="true"></i>
+                Analyser une autre photo
+            </a>
+        </div>
+    </div>
+
+    <div class="diag-cta">
+        <p class="diag-cta__title">Gérez toute votre exploitation sur Andd Baay</p>
+        <p class="diag-cta__body">
+            Suivez vos cultures, planifiez vos projets, consultez vos équipes — et relancez des diagnostics illimités avec l'historique complet.
+        </p>
+        <div class="diag-cta__actions">
+            <a href="{% url 'register' %}" class="diag-cta__btn diag-cta__btn--primary">
+                <i class="fas fa-user-plus" aria-hidden="true"></i>
+                Créer un compte gratuit
+            </a>
+            <a href="{% url 'login' %}" class="diag-cta__btn diag-cta__btn--secondary">
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                Se connecter
+            </a>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+(function () {
+    var waBtn = document.getElementById('waShareBtn');
+    if (waBtn) {
+        {% if analyse_statut == 'terminee' and analyse_resultat %}
+        {% with detections=analyse_resultat.detections %}
+        {% if detections %}
+        var top = '{{ detections.0.className|escapejs }}';
+        var msg = 'Diagnostic BaayVision\nProbleme principal : ' + top + '\nVoir le résultat : ' + window.location.origin + '/diagnostic/';
+        {% else %}
+        var msg = 'Diagnostic BaayVision\nAucun probleme detecte — culture saine !\n' + window.location.origin + '/diagnostic/';
+        {% endif %}
+        {% endwith %}
+        waBtn.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+        {% endif %}
+    }
+})();
+</script>
+{% endblock %}
