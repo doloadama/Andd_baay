@@ -40,7 +40,9 @@
 
     <!-- Bootstrap & Icons -->
     {# Bootstrap CSS — vendor local (perf-audit.md) ; même version que le bundle JS 5.3.0 #}
+    {% block bootstrap_css %}
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.3.0.min.css' %}" />
+    {% endblock bootstrap_css %}
     {# Font Awesome subset (159 icônes utilisées) — économie ~306 KB vs CDN complet (CSS + WOFF2). Voir perf-audit.md action #3. #}
     <link rel="stylesheet" href="{% static 'css/fa-subset.css' %}">
     {# Animate.css subset (6 animations utilisées) — économie ~65 KB vs CDN complet. Voir perf-audit.md action #4. #}
@@ -520,7 +522,9 @@
 
     <!-- FIX #4: Removed stray \n characters from script tags -->
     {# Bootstrap JS (bundle Popper inclus) — vendor local, même version que le CSS CDN 5.3.0 #}
+    {% block bootstrap_js %}
     <script src="{% static 'vendor/bootstrap-5.3.0.bundle.min.js' %}"></script>
+    {% endblock bootstrap_js %}
     <script>
         (function () {
             var navWrap = document.querySelector('.navbar-wrapper');

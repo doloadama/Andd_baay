@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+
 {% block title %}{% if seo_culture %}Diagnostic {{ seo_culture }} — Maladies et ravageurs | Andd Baay{% else %}Diagnostic BaayVision — Andd Baay{% endif %}{% endblock %}
 
 {% block meta_description %}
@@ -518,13 +521,13 @@
     <!-- Feature chips -->
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
         <span style="background:#F0FDF7;border:1px solid #BBF7D0;color:#166534;border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:600;">
-            <i class="fas fa-bolt me-1" aria-hidden="true"></i> Résultat en &lt; 10 s
+            <i class="fas fa-bolt" style="margin-right:4px;" aria-hidden="true"></i> Résultat en &lt; 10 s
         </span>
         <span style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:600;">
-            <i class="fas fa-lock me-1" aria-hidden="true"></i> Sans inscription
+            <i class="fas fa-lock" style="margin-right:4px;" aria-hidden="true"></i> Sans inscription
         </span>
         <span style="background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:600;">
-            <i class="fas fa-leaf me-1" aria-hidden="true"></i> 12 cultures supportées
+            <i class="fas fa-leaf" style="margin-right:4px;" aria-hidden="true"></i> 12 cultures supportées
         </span>
     </div>
 

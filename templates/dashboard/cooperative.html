@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+
 {% block title %}Dashboard Coopérative | Andd Baay{% endblock %}
 
 {% block content %}
@@ -74,35 +77,35 @@
     }
 </style>
 
-<div class="container-xl px-3 px-md-4 py-4">
+<div class="max-w-7xl mx-auto px-3 md:px-4 py-4">
 
     <div class="coop-header">
         <div>
-            <h1 class="coop-title"><i class="fas fa-sitemap me-2 text-success"></i>Dashboard Coopérative</h1>
+            <h1 class="coop-title"><i class="fas fa-sitemap text-emerald-600" style="margin-right:8px;"></i>Dashboard Coopérative</h1>
             <p class="coop-subtitle">Vue synthèse — {{ total_fermes }} ferme{{ total_fermes|pluralize }} sous gestion</p>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
+        <div class="flex gap-2 flex-wrap">
             <a href="?{% if ferme_filter %}ferme={{ ferme_filter }}&{% endif %}export=csv"
-               class="btn btn-outline-success btn-sm">
-                <i class="fas fa-file-csv me-1"></i> Exporter CSV
+               class="inline-flex items-center px-3 py-1.5 text-sm border border-emerald-600 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors">
+                <i class="fas fa-file-csv" style="margin-right:4px;"></i> Exporter CSV
             </a>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i> Mon tableau de bord
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center px-3 py-1.5 text-sm border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                <i class="fas fa-arrow-left" style="margin-right:4px;"></i> Mon tableau de bord
             </a>
         </div>
     </div>
 
     <!-- Filter -->
     <form method="get" class="coop-filter-bar">
-        <label for="ferme-filter" class="text-muted small fw-semibold mb-0">Filtrer :</label>
-        <select id="ferme-filter" name="ferme" class="form-select form-select-sm" style="width:auto;min-width:180px;" onchange="this.form.submit()">
+        <label for="ferme-filter" class="text-gray-500 text-sm font-semibold">Filtrer :</label>
+        <select id="ferme-filter" name="ferme" class="block px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" style="width:auto;min-width:180px;" onchange="this.form.submit()">
             <option value="">Toutes les fermes</option>
             {% for f in all_fermes %}
             <option value="{{ f.id }}" {% if ferme_filter == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
             {% endfor %}
         </select>
         {% if ferme_filter %}
-        <a href="?" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
+        <a href="?" class="inline-flex items-center px-3 py-1.5 text-sm border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">Réinitialiser</a>
         {% endif %}
     </form>
 
@@ -123,18 +126,18 @@
             {% for row in rows %}
             <tr>
                 <td>
-                    <a href="{% url 'detail_ferme' row.ferme.id %}" class="fw-semibold text-decoration-none">
+                    <a href="{% url 'detail_ferme' row.ferme.id %}" class="font-semibold no-underline hover:underline">
                         {{ row.ferme.nom }}
                     </a>
                     {% if row.ferme.localite %}
-                    <div class="text-muted" style="font-size:.78rem;">{{ row.ferme.localite }}</div>
+                    <div class="text-gray-500" style="font-size:.78rem;">{{ row.ferme.localite }}</div>
                     {% endif %}
                 </td>
                 <td>
                     {% if row.prevision_min is not None %}
                     <span class="coop-rendement">{{ row.prevision_min|floatformat:0 }}–{{ row.prevision_max|floatformat:0 }} kg/ha</span>
                     {% if row.prevision_confiance %}
-                    <div class="text-muted" style="font-size:.75rem;">Confiance {{ row.prevision_confiance|floatformat:0 }}%</div>
+                    <div class="text-gray-500" style="font-size:.75rem;">Confiance {{ row.prevision_confiance|floatformat:0 }}%</div>
                     {% endif %}
                     {% else %}
                     <span class="coop-badge coop-badge--none"><i class="fas fa-minus"></i> Aucune</span>
@@ -143,7 +146,7 @@
                 <td>
                     {% if row.diag_resume %}
                     <span class="coop-badge coop-badge--ok"><i class="fas fa-check-circle"></i> Disponible</span>
-                    <div class="text-muted mt-1" style="font-size:.75rem;">{{ row.diag_date|date:"d/m/Y" }}</div>
+                    <div class="text-gray-500 mt-1" style="font-size:.75rem;">{{ row.diag_date|date:"d/m/Y" }}</div>
                     {% else %}
                     <span class="coop-badge coop-badge--none"><i class="fas fa-minus"></i> Aucun</span>
                     {% endif %}
@@ -166,7 +169,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'detail_ferme' row.ferme.id %}" class="btn btn-outline-success btn-sm py-1 px-2">
+                    <a href="{% url 'detail_ferme' row.ferme.id %}" class="inline-flex items-center justify-center px-2 py-1 border border-emerald-600 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors">
                         <i class="fas fa-arrow-right"></i>
                     </a>
                 </td>
@@ -177,7 +180,7 @@
     </div>
     {% else %}
     <div class="coop-empty">
-        <i class="fas fa-warehouse fa-2x mb-3 text-muted"></i>
+        <i class="fas fa-warehouse text-gray-400" style="font-size:2rem;margin-bottom:12px;display:block;"></i>
         <p>Aucune ferme correspondante.</p>
     </div>
     {% endif %}
