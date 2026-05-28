@@ -12,7 +12,7 @@
     border-radius: 20px;
     background: rgba(29, 158, 117, 0.12);
     border: 1px solid rgba(29, 158, 117, 0.25);
-    color: var(--cockpit-recette, #1D9E75);
+    color: var(--ab-color-primary, #1D9E75);
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.06em;

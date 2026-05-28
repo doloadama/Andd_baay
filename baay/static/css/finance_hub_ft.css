@@ -25,20 +25,20 @@ body:has(.finance-ft-root) .voice-mic-btn {
     --sahara-success: #146C43; /* deep green, readable in high glare */
     --sahara-warning: #B45309; /* deep amber-brown, high contrast */
 
-    --fh-page-bg: #f9fafb;
-    --fh-surface: #ffffff;
-    --fh-surface2: #f3f4f6;
-    --fh-border: rgba(0, 0, 0, 0.07);
-    --fh-text1: #111827;
-    --fh-text2: #374151;
-    --fh-text3: #6b7280;
-    --fh-danger: #e24b4a;
+    --ab-color-background: #f9fafb;
+    --ab-color-surface: #ffffff;
+    --ab-color-surface-alt: #f3f4f6;
+    --ab-color-border: rgba(0, 0, 0, 0.07);
+    --ab-color-text: #111827;
+    --ab-color-text-secondary: #374151;
+    --ab-color-text-muted: #6b7280;
+    --ab-color-danger: #e24b4a;
 
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 400;
     font-size: 14px;
-    color: var(--fh-text1);
-    background: var(--fh-page-bg);
+    color: var(--ab-color-text);
+    background: var(--ab-color-background);
     max-width: 1100px;
     margin-left: auto;
     margin-right: auto;
@@ -48,20 +48,20 @@ body:has(.finance-ft-root) .voice-mic-btn {
 
 html.dark-mode .finance-ft-root {
     color-scheme: dark;
-    --fh-page-bg: #0d1412;
-    --fh-surface: #162019;
-    --fh-surface2: #1d2b24;
-    --fh-border: rgba(255, 255, 255, 0.07);
-    --fh-text1: #f3f4f6;
-    --fh-text2: #d1d5db;
-    --fh-text3: #9ca3af;
+    --ab-color-background: #0d1412;
+    --ab-color-surface: #162019;
+    --ab-color-surface-alt: #1d2b24;
+    --ab-color-border: rgba(255, 255, 255, 0.07);
+    --ab-color-text: #f3f4f6;
+    --ab-color-text-secondary: #d1d5db;
+    --ab-color-text-muted: #9ca3af;
     /* Montants / accents lisibles sur fond sombre (évite vert trop foncé type mode clair) */
     --sahara-success: #5dcaa5;
     --sahara-warning: #fbbf24;
     /* Pastille « catégorie » */
-    --fh-cat-pill-bg: rgba(159, 225, 203, 0.14);
-    --fh-cat-pill-border: rgba(159, 225, 203, 0.32);
-    --fh-cat-pill-text: #dff9ef;
+    --ab-finance-cat-pill-bg: rgba(159, 225, 203, 0.14);
+    --ab-finance-cat-pill-border: rgba(159, 225, 203, 0.32);
+    --ab-finance-cat-pill-text: #dff9ef;
 }
 
 .finance-ft-mono {
@@ -209,8 +209,8 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 
 /* ---------- Cards ---------- */
 .finance-ft-card {
-    background: var(--fh-surface);
-    border: 1px solid var(--fh-border);
+    background: var(--ab-color-surface);
+    border: 1px solid var(--ab-color-border);
     border-radius: 16px;
     margin-bottom: 16px;
     transition: border-color 0.15s ease, background 0.15s ease;
@@ -221,7 +221,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     align-items: center;
     gap: 10px;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--fh-border);
+    border-bottom: 1px solid var(--ab-color-border);
 }
 
 .finance-ft-card__head--split {
@@ -232,7 +232,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     margin: 0;
     font-size: 14px;
     font-weight: 600;
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
 }
 
 .finance-ft-card__body {
@@ -266,7 +266,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 .finance-ft-details__hint {
     font-size: 11px;
     font-weight: 600;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     flex-shrink: 0;
@@ -290,7 +290,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 
 .finance-ft-details__chev {
     flex-shrink: 0;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     transition: transform 0.2s ease;
 }
 
@@ -341,7 +341,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     margin-bottom: 6px;
 }
 
@@ -352,12 +352,12 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     width: 100%;
     box-sizing: border-box;
     border-radius: var(--radius-input);
-    border: 1px solid var(--fh-border);
-    background: var(--fh-surface2);
+    border: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface-alt);
     padding: 9px 12px;
     font-size: 13px;
     font-family: inherit;
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -382,8 +382,8 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 /* Listes natives (catégorie, périmètre…) : fond/texte cohérents avec le thème */
 .finance-ft-root select.fh-field option,
 .finance-ft-root select.fh-field optgroup {
-    background-color: var(--fh-surface);
-    color: var(--fh-text1);
+    background-color: var(--ab-color-surface);
+    color: var(--ab-color-text);
 }
 
 .finance-ft-info {
@@ -391,7 +391,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     align-items: flex-start;
     gap: 8px;
     font-size: 12px;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     margin-top: 14px;
 }
 
@@ -439,13 +439,13 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 
 .finance-ft-btn--ghost {
     background: transparent;
-    border-color: var(--fh-border);
-    color: var(--fh-text2);
+    border-color: var(--ab-color-border);
+    color: var(--ab-color-text-secondary);
 }
 
 .finance-ft-btn--ghost:hover {
-    border-color: var(--fh-text3);
-    color: var(--fh-text1);
+    border-color: var(--ab-color-text-muted);
+    color: var(--ab-color-text);
 }
 
 .finance-ft-btn--icon {
@@ -453,9 +453,9 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     height: 28px;
     padding: 0;
     border-radius: var(--radius-xs);
-    border: 1px solid var(--fh-border);
-    background: var(--fh-surface);
-    color: var(--fh-text2);
+    border: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface);
+    color: var(--ab-color-text-secondary);
 }
 
 .finance-ft-btn--icon:hover {
@@ -464,8 +464,8 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 }
 
 .finance-ft-btn--danger:hover {
-    border-color: var(--fh-danger);
-    color: var(--fh-danger);
+    border-color: var(--ab-color-danger);
+    color: var(--ab-color-danger);
 }
 
 /* ---------- Table ---------- */
@@ -482,7 +482,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     position: sticky;
     top: 0;
     z-index: 5;
-    background: var(--fh-surface);
+    background: var(--ab-color-surface);
 }
 
 .finance-ft-table th {
@@ -492,8 +492,8 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--fh-text3);
-    border-bottom: 1px solid var(--fh-border);
+    color: var(--ab-color-text-muted);
+    border-bottom: 1px solid var(--ab-color-border);
 }
 
 .finance-ft-table th:last-child,
@@ -503,7 +503,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 
 .finance-ft-table td {
     padding: 14px 20px;
-    border-bottom: 1px solid var(--fh-border);
+    border-bottom: 1px solid var(--ab-color-border);
     vertical-align: middle;
     font-size: 13px;
 }
@@ -513,13 +513,13 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 }
 
 .finance-ft-table tbody tr:hover {
-    background: var(--fh-surface2);
+    background: var(--ab-color-surface-alt);
 }
 
 .finance-ft-table .fh-date {
     font-family: 'DM Mono', monospace;
     font-size: 12px;
-    color: var(--fh-text2);
+    color: var(--ab-color-text-secondary);
 }
 
 .finance-ft-table .fh-libelle {
@@ -545,19 +545,19 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 999px;
-    background: var(--fh-surface2);
+    background: var(--ab-color-surface-alt);
     font-size: 12px;
     font-weight: 500;
-    color: var(--fh-text1);
-    border: 1px solid var(--fh-border);
+    color: var(--ab-color-text);
+    border: 1px solid var(--ab-color-border);
 }
 
 .finance-ft-pill--muted {
     font-weight: 400;
     font-size: 11px;
-    color: var(--fh-text3);
-    background: var(--fh-surface2);
-    border-color: var(--fh-border);
+    color: var(--ab-color-text-muted);
+    background: var(--ab-color-surface-alt);
+    border-color: var(--ab-color-border);
 }
 
 /* Catégorie de dépense : contraste renforcé en mode sombre */
@@ -567,9 +567,9 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 }
 
 html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
-    background: var(--fh-cat-pill-bg);
-    border-color: var(--fh-cat-pill-border);
-    color: var(--fh-cat-pill-text);
+    background: var(--ab-finance-cat-pill-bg);
+    border-color: var(--ab-finance-cat-pill-border);
+    color: var(--ab-finance-cat-pill-text);
 }
 
 .finance-ft-pill--compact {
@@ -581,13 +581,13 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 .finance-ft-dep-mobile-meta {
     margin-top: 8px;
     font-size: 13px;
-    color: var(--fh-text2);
+    color: var(--ab-color-text-secondary);
     line-height: 1.45;
 }
 
 .finance-ft-dep-mobile-meta .finance-ft-dep-mobile-sep {
     margin: 0 0.28em;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
 }
 
 .finance-ft-amount-main {
@@ -599,7 +599,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 
 .finance-ft-amount-suffix {
     font-size: 11px;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     margin-left: 4px;
 }
 
@@ -693,19 +693,19 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
     gap: 16px;
     padding: 14px 16px;
     border-radius: var(--radius-input);
-    border: 1px solid var(--fh-border);
-    background: var(--fh-surface2);
+    border: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface-alt);
 }
 
 .finance-ft-total-box__lbl {
     font-size: 12px;
     font-weight: 500;
-    color: var(--fh-text2);
+    color: var(--ab-color-text-secondary);
 }
 
 .finance-ft-total-box__hint {
     font-size: 11px;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     margin-top: 4px;
 }
 
@@ -713,7 +713,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
     font-family: 'DM Mono', monospace;
     font-size: 22px;
     font-weight: 500;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
 }
 
 .finance-ft-total-preview--positive {
@@ -723,7 +723,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 .finance-ft-total-preview span.finance-ft-fcfa {
     font-size: 13px;
     font-weight: 500;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     margin-left: 6px;
 }
 
@@ -736,7 +736,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 
 .finance-ft-help {
     font-size: 12px;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     margin-top: 6px;
 }
 
@@ -746,9 +746,9 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
     justify-content: space-between;
     align-items: center;
     padding: 12px 20px;
-    border-top: 1px solid var(--fh-border);
+    border-top: 1px solid var(--ab-color-border);
     font-size: 12px;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
 }
 
 .finance-ft-pagination a {
@@ -764,7 +764,7 @@ html.dark-mode .finance-ft-root .finance-ft-pill--categorie {
 }
 
 .finance-ft-pagination a:hover {
-    background: var(--fh-surface2);
+    background: var(--ab-color-surface-alt);
 }
 
 html.dark-mode .finance-ft-pagination a {
@@ -775,7 +775,7 @@ html.dark-mode .finance-ft-pagination a {
 .finance-ft-empty {
     padding: 48px 24px;
     text-align: center;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
 }
 
 .finance-scope-label__inner {
@@ -817,10 +817,10 @@ html.dark-mode .finance-ft-pagination a {
 
 .finance-ft-form-aside {
     padding: 28px;
-    border-right: 1px solid var(--fh-border);
+    border-right: 1px solid var(--ab-color-border);
     background:
         radial-gradient(circle at top left, rgba(29, 158, 117, 0.13), transparent 34%),
-        var(--fh-surface2);
+        var(--ab-color-surface-alt);
 }
 
 .finance-ft-form-aside__icon {
@@ -838,13 +838,13 @@ html.dark-mode .finance-ft-pagination a {
 
 .finance-ft-form-aside h3 {
     margin: 0 0 8px 0;
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
     font-size: 1.05rem;
     font-weight: 700;
 }
 
 .finance-ft-form-aside p {
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     line-height: 1.55;
     font-size: 0.88rem;
     margin: 0;
@@ -865,7 +865,7 @@ html.dark-mode .finance-ft-pagination a {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--fh-text2);
+    color: var(--ab-color-text-secondary);
     font-size: 0.84rem;
 }
 
@@ -897,10 +897,10 @@ html.dark-mode .finance-ft-pagination a {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    border: 1px solid var(--fh-border);
+    border: 1px solid var(--ab-color-border);
     border-radius: 12px;
-    background: var(--fh-surface2);
-    color: var(--fh-text3);
+    background: var(--ab-color-surface-alt);
+    color: var(--ab-color-text-muted);
     padding: 12px 14px;
     font-size: 0.84rem;
     line-height: 1.45;
@@ -920,8 +920,8 @@ html.dark-mode .finance-ft-pagination a {
     gap: 8px;
     padding: 20px 20px;
     margin: 0;
-    border-bottom: 1px solid var(--fh-border);
-    background: var(--fh-surface2);
+    border-bottom: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface-alt);
 }
 
 .projet-form-ft-root .progress-step {
@@ -936,14 +936,14 @@ html.dark-mode .finance-ft-pagination a {
     min-width: 36px;
     min-height: 36px;
     border-radius: 50%;
-    background: var(--fh-surface);
-    border: 2px solid var(--fh-border);
+    background: var(--ab-color-surface);
+    border: 2px solid var(--ab-color-border);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 0.85rem;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -962,7 +962,7 @@ html.dark-mode .finance-ft-pagination a {
 .projet-form-ft-root .step-label {
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     display: none;
 }
 
@@ -974,7 +974,7 @@ html.dark-mode .finance-ft-pagination a {
 .projet-form-ft-root .step-connector {
     width: 28px;
     height: 2px;
-    background: var(--fh-border);
+    background: var(--ab-color-border);
     margin: 0 2px;
 }
 
@@ -1001,8 +1001,8 @@ html.dark-mode .finance-ft-pagination a {
     gap: 14px;
     padding: 16px 18px;
     border-radius: 12px;
-    border: 1px solid var(--fh-border);
-    background: var(--fh-surface2);
+    border: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface-alt);
     margin-bottom: 20px;
 }
 
@@ -1022,21 +1022,21 @@ html.dark-mode .finance-ft-pagination a {
     margin: 0 0 4px 0;
     font-size: 0.92rem;
     font-weight: 600;
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
 }
 
 .projet-form-ft-root .projet-info-tip p {
     margin: 0;
     font-size: 0.82rem;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     line-height: 1.45;
 }
 
 .projet-form-ft-root .product-checkbox-item {
     border-radius: 12px !important;
     border-width: 1px !important;
-    background: var(--fh-surface2);
-    border-color: var(--fh-border) !important;
+    background: var(--ab-color-surface-alt);
+    border-color: var(--ab-color-border) !important;
 }
 
 .projet-form-ft-root .product-checkbox-item:hover {
@@ -1055,7 +1055,7 @@ html.dark-mode .finance-ft-pagination a {
     align-items: center;
     gap: 10px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--fh-border);
+    border-bottom: 1px solid var(--ab-color-border);
 }
 
 .projet-form-ft-root .form-section-title i {
@@ -1073,7 +1073,7 @@ html.dark-mode .finance-ft-pagination a {
     opacity: 0;
     transition: opacity 0.2s ease;
     font-size: 13px;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     text-align: center;
 }
 
@@ -1088,8 +1088,8 @@ html.dark-mode .finance-ft-pagination a {
     gap: 20px;
     padding: 20px 22px;
     border-radius: 16px;
-    border: 1px solid var(--fh-border);
-    background: var(--fh-surface2);
+    border: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface-alt);
     margin-bottom: 18px;
 }
 
@@ -1110,7 +1110,7 @@ html.dark-mode .finance-ft-pagination a {
     margin: 0 0 8px 0;
     font-size: 1.15rem;
     font-weight: 600;
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
 }
 
 .inv-ft-meta {
@@ -1118,7 +1118,7 @@ html.dark-mode .finance-ft-pagination a {
     flex-wrap: wrap;
     gap: 14px;
     font-size: 0.82rem;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
 }
 
 .inv-ft-meta span {
@@ -1136,8 +1136,8 @@ html.dark-mode .finance-ft-pagination a {
     margin-top: 20px;
     padding: 16px 18px;
     border-radius: 12px;
-    border: 1px solid var(--fh-border);
-    background: var(--fh-surface2);
+    border: 1px solid var(--ab-color-border);
+    background: var(--ab-color-surface-alt);
 }
 
 .inv-ft-calculator__head {
@@ -1146,10 +1146,10 @@ html.dark-mode .finance-ft-pagination a {
     gap: 10px;
     margin-bottom: 14px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--fh-border);
+    border-bottom: 1px solid var(--ab-color-border);
     font-weight: 600;
     font-size: 0.92rem;
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
 }
 
 .inv-ft-calculator__head i {
@@ -1161,7 +1161,7 @@ html.dark-mode .finance-ft-pagination a {
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
-    border-bottom: 1px dashed var(--fh-border);
+    border-bottom: 1px dashed var(--ab-color-border);
     font-size: 13px;
 }
 
@@ -1169,17 +1169,17 @@ html.dark-mode .finance-ft-pagination a {
     border-bottom: none;
     margin-top: 8px;
     padding-top: 14px;
-    border-top: 2px solid var(--fh-border);
+    border-top: 2px solid var(--ab-color-border);
     font-weight: 700;
     color: var(--green-500);
 }
 
 .inv-ft-calc-lbl {
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
 }
 
 .inv-ft-calc-val {
-    color: var(--fh-text1);
+    color: var(--ab-color-text);
     font-weight: 600;
 }
 
@@ -1224,7 +1224,7 @@ html.dark-mode .finance-ft-pagination a {
 
     .finance-ft-form-aside {
         border-right: none;
-        border-bottom: 1px solid var(--fh-border);
+        border-bottom: 1px solid var(--ab-color-border);
         padding: 18px;
     }
 
@@ -1380,7 +1380,7 @@ html.dark-mode .finance-ft-pagination a {
 
 .roi-widget__field-legend {
     font-size: 0.72rem;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -1389,10 +1389,10 @@ html.dark-mode .finance-ft-pagination a {
 
 .roi-widget__input {
     padding: 10px 14px;
-    border: 1px solid var(--fh-border);
+    border: 1px solid var(--ab-color-border);
     border-radius: var(--radius-input);
-    background: var(--fh-surface2);
-    color: var(--fh-text1);
+    background: var(--ab-color-surface-alt);
+    color: var(--ab-color-text);
     font-size: 16px;
     font-family: 'DM Mono', ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
@@ -1402,7 +1402,7 @@ html.dark-mode .finance-ft-pagination a {
     min-height: 44px;
 }
 .roi-widget__input:hover {
-    border-color: color-mix(in srgb, var(--green-500) 50%, var(--fh-border));
+    border-color: color-mix(in srgb, var(--green-500) 50%, var(--ab-color-border));
 }
 .roi-widget__input:focus-visible {
     border-color: var(--green-500);
@@ -1423,12 +1423,12 @@ html.dark-mode .finance-ft-pagination a {
     gap: 8px;
     padding: 10px 16px;
     border-radius: 999px;
-    border: 1px solid var(--fh-border);
+    border: 1px solid var(--ab-color-border);
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    background: var(--fh-surface2);
-    color: var(--fh-text2);
+    background: var(--ab-color-surface-alt);
+    color: var(--ab-color-text-secondary);
     transition: background .15s, color .15s, border-color .15s, transform .1s, box-shadow .15s;
     user-select: none;
     flex: 1 1 auto;
@@ -1437,8 +1437,8 @@ html.dark-mode .finance-ft-pagination a {
     position: relative;
 }
 .roi-widget__toggle-opt:hover {
-    border-color: color-mix(in srgb, var(--green-500) 40%, var(--fh-border));
-    color: var(--fh-text1);
+    border-color: color-mix(in srgb, var(--green-500) 40%, var(--ab-color-border));
+    color: var(--ab-color-text);
 }
 .roi-widget__toggle-opt:active { transform: scale(0.98); }
 .roi-widget__toggle-opt:focus-within {
@@ -1489,22 +1489,22 @@ html.dark-mode .finance-ft-pagination a {
     gap: 6px;
     padding: 14px 16px;
     border-radius: var(--radius-sm);
-    background: var(--fh-surface2);
-    border: 1px solid var(--fh-border);
+    background: var(--ab-color-surface-alt);
+    border: 1px solid var(--ab-color-border);
     min-width: 0;
 }
 
 .roi-widget__kpi--main {
     padding: 18px 22px;
     border: 2px solid var(--green-500);
-    background: linear-gradient(135deg, color-mix(in srgb, var(--green-500) 10%, var(--fh-surface2)) 0%, var(--fh-surface2) 75%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--green-500) 10%, var(--ab-color-surface-alt)) 0%, var(--ab-color-surface-alt) 75%);
     box-shadow: 0 1px 3px color-mix(in srgb, var(--green-500) 18%, transparent);
     gap: 8px;
 }
 
 .roi-widget__kpi-label {
     font-size: 0.72rem;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -1537,24 +1537,24 @@ html.dark-mode .roi-widget__kpi--main .roi-widget__kpi-label {
     font-size: 0.78rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: var(--fh-text3);
+    color: var(--ab-color-text-muted);
     display: inline-flex;
     align-items: center;
     gap: 4px;
 }
 .roi-widget__kpi-delta--positive { color: var(--green-500); }
-.roi-widget__kpi-delta--negative { color: var(--fh-danger); }
+.roi-widget__kpi-delta--negative { color: var(--ab-color-danger); }
 
 /* Couleurs sémantiques des valeurs (sans coupler à --sahara-*). */
 .roi-positive { color: var(--green-500); }
 html.dark-mode .roi-positive { color: var(--green-300); }
-.roi-negative { color: var(--fh-danger); }
-.roi-neutral  { color: var(--fh-text1); }
+.roi-negative { color: var(--ab-color-danger); }
+.roi-neutral  { color: var(--ab-color-text); }
 
 /* Pulse subtil à la mise à jour d'une valeur (signal visuel). */
 @keyframes roi-pulse-bg {
-    0%   { background-color: color-mix(in srgb, var(--green-500) 18%, var(--fh-surface2)); }
-    100% { background-color: var(--fh-surface2); }
+    0%   { background-color: color-mix(in srgb, var(--green-500) 18%, var(--ab-color-surface-alt)); }
+    100% { background-color: var(--ab-color-surface-alt); }
 }
 .roi-widget__kpi--pulsing { animation: roi-pulse-bg 0.45s ease-out; }
 
@@ -1572,9 +1572,9 @@ html.dark-mode .roi-positive { color: var(--green-300); }
     gap: 6px;
     padding: 8px 14px;
     border-radius: var(--radius-input);
-    border: 1px solid var(--fh-border);
+    border: 1px solid var(--ab-color-border);
     background: transparent;
-    color: var(--fh-text2);
+    color: var(--ab-color-text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
@@ -1583,8 +1583,8 @@ html.dark-mode .roi-positive { color: var(--green-300); }
     min-width: 44px;
 }
 .roi-widget__reset:hover:not(:disabled) {
-    border-color: var(--fh-text3);
-    color: var(--fh-text1);
+    border-color: var(--ab-color-text-muted);
+    color: var(--ab-color-text);
 }
 .roi-widget__reset:focus-visible {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-500) 25%, transparent);

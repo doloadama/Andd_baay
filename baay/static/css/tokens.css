@@ -4,14 +4,27 @@
   --ab-color-primary: #1D9E75;
   --ab-color-primary-dark: #157a5a;
   --ab-color-primary-light: #e8f8f3;
+  --ab-color-primary-deep: #085041;
+  --ab-color-primary-night: #04342c;
+  --ab-color-primary-mid: #16856a;
+  --ab-color-primary-soft: rgba(29, 158, 117, 0.10);
+  --ab-color-primary-glow: rgba(29, 158, 117, 0.28);
+  --ab-color-primary-bg: rgba(29, 158, 117, 0.16);
+  --ab-color-primary-rgb: 29, 158, 117;
   --ab-color-secondary: #2563eb;
+  --ab-color-accent: #EF9F27;
   --ab-color-warning: #d97706;
   --ab-color-danger: #dc2626;
+  --ab-color-depense: #b91c1c;
+  --ab-color-depense-bg: rgba(185, 28, 28, 0.15);
+  --ab-color-terre: #78350f;
   --ab-color-success: #16a34a;
   --ab-color-surface: #ffffff;
+  --ab-color-surface-alt: #f3f4f6;
   --ab-color-background: #f8fafc;
   --ab-color-border: #e2e8f0;
   --ab-color-text: #0f172a;
+  --ab-color-text-secondary: #374151;
   --ab-color-text-muted: #64748b;
 
   /* Spacing scale */
