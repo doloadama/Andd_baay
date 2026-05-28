@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  Usage: {% include 'commentaires/_section.html' with obj=ferme %}
+  Requires context: ct_id, object_id, commentaires (set in view)
+{% endcomment %}
+<section class="cmnt-section mt-4" aria-labelledby="cmnt-title-{{ object_id }}">
+    <h3 id="cmnt-title-{{ object_id }}" class="h6 fw-semibold mb-3">
+        <i class="fas fa-comments me-1 text-success"></i> Commentaires
+        <span class="badge bg-secondary ms-1" style="font-size:.7rem;">{{ commentaires|length }}</span>
+    </h3>
+
+    <div id="cmnt-list-{{ object_id }}" class="cmnt-list mb-3">
+        {% for c in commentaires %}
+            {% include 'commentaires/_commentaire.html' %}
+        {% empty %}
+            <p class="text-muted small" id="cmnt-empty-{{ object_id }}">Aucun commentaire pour l'instant.</p>
+        {% endfor %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <form hx-post="{% url 'ajouter_commentaire' ct_id object_id %}"
+          hx-target="#cmnt-list-{{ object_id }}"
+          hx-swap="beforeend"
+          hx-on::after-request="this.reset(); document.getElementById('cmnt-empty-{{ object_id }}') && document.getElementById('cmnt-empty-{{ object_id }}').remove()"
+          class="d-flex gap-2 align-items-start mt-2">
+        {% csrf_token %}
+        <textarea name="texte"
+                  class="form-control form-control-sm"
+                  rows="2"
+                  placeholder="Ajouter un commentaire…"
+                  maxlength="2000"
+                  required
+                  style="resize:none;font-size:.875rem;"></textarea>
+        <button type="submit" class="btn btn-success btn-sm px-3 flex-shrink-0">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </form>
+    {% endif %}
+</section>

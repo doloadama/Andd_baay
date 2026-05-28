@@ -1,10 +1,2 @@
-from django.urls import re_path
-from . import consumers
-
-websocket_urlpatterns = [
-    re_path(r"ws/messagerie/inbox/$", consumers.InboxConsumer.as_asgi()),
-    re_path(
-        r"ws/messagerie/conversation/(?P<conversation_id>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/$",
-        consumers.ChatConsumer.as_asgi(),
-    ),
-]
+# WebSocket routing désactivé — plus aucun consumer actif depuis task 3.1.
+websocket_urlpatterns = []

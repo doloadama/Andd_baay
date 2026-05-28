@@ -262,15 +262,6 @@
                                 {% endif %}
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link-modern nav-link-messagerie tw-touch-manipulation {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}"
-                                href="{% url 'messagerie_inbox' %}" data-pjax
-                                data-drawer-toggle="messagerie"{% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-                                <i class="fas fa-envelope" aria-hidden="true"></i>
-                                <span class="nav-label-full">Messagerie</span>
-                                <span class="nav-label-short"></span>
-                            </a>
-                        </li>
                         <li class="nav-item me-lg-1">
                             <a class="btn-baay btn-baay-primary navbar-cta-new py-2 px-3 tw-inline-flex tw-items-center tw-touch-manipulation" href="{% url 'creer_projet' %}" title="Nouveau projet">
                                 <i class="fas fa-plus" aria-hidden="true"></i>
@@ -477,14 +468,9 @@
         </div>
     </footer>
 
-    <!-- Floating actions: bottom-right stack (messagerie desktop only) -->
+    <!-- Floating actions: bottom-right stack -->
     <div class="floating-actions{% if user.is_authenticated %} floating-actions--authed{% else %} d-none d-lg-flex{% endif %}" aria-label="Actions flottantes">
-        <div class="chat-bubble-container d-none d-lg-block">
-            <a href="{% url 'messagerie_inbox' %}" class="chat-bubble text-decoration-none shadow-lg" id="messagerieBubble" aria-label="Ouvrir la messagerie" data-drawer-toggle="messagerie" style="background: linear-gradient(135deg, var(--info), #2563eb); border: 2px solid rgba(255, 255, 255, 0.2);">
-                <i class="fas fa-envelope chat-icon" aria-hidden="true" style="color: white; font-size: 24px;"></i>
-                <div class="chat-notification" id="floatingNotifBadge" aria-live="polite" aria-atomic="true"></div>
-            </a>
-        </div>
+        <div></div>
 
         {% if user.is_authenticated %}
         <button type="button" class="voice-mic-btn" id="voiceMicBtn" aria-label="Assistant vocal" title="Assistant vocal">
@@ -586,6 +572,9 @@
         const notifTabs = document.querySelectorAll('.nav-notif-tab');
         const notifPanels = document.querySelectorAll('[data-notif-panel]');
 
+        // Messagerie WebSocket notifications désactivées (task 3.1).
+        // Le badge reste à 0 et les fonctions de notification messaging sont supprimées.
+
         notifTabs.forEach(function(tab) {
             tab.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -643,105 +632,6 @@
             }
         }
 
-        async function checkUnread() {
-            try {
-                const res = await fetch('{% url "api_messages_non_lus" %}');
-                if (!res.ok) return;
-                const data = await res.json();
-                updateBadge(data.non_lus);
-            } catch (e) { /* silently fail */ }
-        }
-
-        function renderNotifications(notifications) {
-            if (!notifList) return;
-            notifList.innerHTML = '';
-            if (!notifications || notifications.length === 0) {
-                if (notifEmpty) notifList.appendChild(notifEmpty);
-                updateBadge(0);
-                return;
-            }
-            notifications.forEach(function(n) {
-                const item = document.createElement('a');
-                item.className = 'nav-notif-item unread';
-                item.href = '/messagerie/conversation/' + n.conversation_id + '/?msg=' + n.id;
-                item.setAttribute('data-drawer-deep-conversation-id', n.conversation_id);
-                item.setAttribute('data-drawer-deep-conversation-title', n.sender_name || 'Conversation');
-                const initials = n.sender_name.charAt(0).toUpperCase();
-                const attachmentIcon = n.has_attachment ? '<i class="fas fa-paperclip ms-1" title="Pièce jointe"></i>' : '';
-                item.innerHTML =
-                    '<div class="nav-notif-avatar">' + initials + '</div>' +
-                    '<div class="nav-notif-body">' +
-                        '<div class="nav-notif-sender">' + escapeHtml(n.sender_name) + attachmentIcon + '</div>' +
-                        '<div class="nav-notif-preview">' + escapeHtml(n.preview) + '</div>' +
-                        '<div class="nav-notif-meta"><i class="far fa-clock"></i> ' + escapeHtml(n.date) + '</div>' +
-                    '</div>';
-                item.addEventListener('click', function() {
-                    updateBadge(0);
-                });
-                notifList.appendChild(item);
-            });
-            updateBadge(notifications.length);
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        async function loadNotifications() {
-            if (!notifList) return;
-            try {
-                const res = await fetch('{% url "api_notifications_list" %}');
-                if (!res.ok) return;
-                const data = await res.json();
-                renderNotifications(data.notifications);
-            } catch (e) { /* silently fail */ }
-        }
-
-        async function clearAllNotifications() {
-            if (!notifClearAll) return;
-            notifClearAll.disabled = true;
-            try {
-                const res = await fetch('{% url "api_marquer_tout_lu" %}', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
-                });
-                if (res.ok) {
-                    renderNotifications([]);
-                }
-            } catch (e) { /* silently fail */ }
-            notifClearAll.disabled = false;
-        }
-
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        if (notifBellToggle) {
-            notifBellToggle.addEventListener('shown.bs.dropdown', loadNotifications);
-        }
-        if (notifClearAll) {
-            notifClearAll.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                clearAllNotifications();
-            });
-        }
-
-        checkUnread();
-        setInterval(checkUnread, 30000); // every 30s
     })();
     </script>
 
@@ -968,9 +858,6 @@
     </script>
     {% endif %}
 
-    {% if user.is_authenticated %}
-    {% include 'includes/messagerie_drawer.html' %}
-    {% endif %}
 
     <!-- Global Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -1066,12 +953,10 @@
            aria-label="Nouveau projet">
             <div class="mobile-nav-fab-bg"><i class="fas fa-plus" aria-hidden="true"></i></div>
         </a>
-        <a href="{% url 'messagerie_inbox' %}"
-           class="mobile-nav-item mobile-nav-messagerie {% if rm and 'messagerie' in rm %}active{% endif %}"
-           {% if rm and 'messagerie' in rm %}aria-current="page"{% endif %}>
-            <div class="mobile-nav-icon"><i class="fas fa-envelope" aria-hidden="true"></i></div>
-            <span class="mobile-nav-badge" id="bottomNavMessagerieBadge" aria-hidden="true"></span>
-            <span class="mobile-nav-label">Messages</span>
+        <a href="{% url 'assistant_vocal' %}"
+           class="mobile-nav-item {% if rm and 'assistant_vocal' in rm %}active{% endif %}">
+            <div class="mobile-nav-icon"><i class="fas fa-microphone" aria-hidden="true"></i></div>
+            <span class="mobile-nav-label">Vocal</span>
         </a>
         <button type="button"
                 class="mobile-nav-item mobile-nav-menu"
@@ -1162,10 +1047,10 @@
                     </div>
                     {% endif %}
                     <div class="mobile-drawer-section">
-                        <h6 class="mobile-drawer-section-title">Communication</h6>
-                        <a href="{% url 'messagerie_inbox' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name and 'messagerie' in request.resolver_match.url_name %}active{% endif %}">
-                            <i class="fas fa-envelope" aria-hidden="true"></i>
-                            <span>Messagerie</span>
+                        <h6 class="mobile-drawer-section-title">Assistant</h6>
+                        <a href="{% url 'assistant_vocal' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'assistant_vocal' %}active{% endif %}">
+                            <i class="fas fa-microphone" aria-hidden="true"></i>
+                            <span>Assistant vocal Wolof</span>
                         </a>
                     </div>
                 </nav>

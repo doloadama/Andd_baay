@@ -8,7 +8,7 @@ urlpatterns = [
     path("", include("baay.urls_semis")),
     path("", include("baay.urls_fermes")),
     path("", include("baay.urls_taches")),
-    path("", include("baay.urls_messagerie")),
+    path("", include("baay.urls_commentaires")),
     path("", include("baay.urls_api")),
     path("", include("baay.urls_dashboard")),
     path("", include("baay.urls_carte")),

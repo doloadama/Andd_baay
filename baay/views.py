@@ -72,9 +72,12 @@ from baay.services import (
     cloudinary_sahara_url,
     product_placeholder_data_uri,
 )
+from django.contrib.contenttypes.models import ContentType
+
 from baay.models import (
     AnalyseImageCulture,
     CampagneProjet,
+    Commentaire,
     HistoriqueSol,
     Profile,
     Projet,
@@ -2731,6 +2734,10 @@ def detail_ferme(request, ferme_id):
         ("Mes fermes", reverse('liste_fermes')),
         (ferme.nom, None),
     ]
+    ferme_ct = ContentType.objects.get_for_model(Ferme)
+    commentaires_ferme = Commentaire.objects.filter(
+        content_type=ferme_ct, object_id=ferme.pk
+    ).select_related("auteur__user")
     return render(request, 'fermes/detail_ferme.html', {
         'ferme': ferme,
         'projets': projets,
@@ -2752,6 +2759,9 @@ def detail_ferme(request, ferme_id):
         'volume_recoltes': volume_recoltes,
         'peut_modifier_inventaire': peut_modifier_inventaire(request.user.profile, ferme),
         'breadcrumbs': breadcrumbs,
+        'commentaires': commentaires_ferme,
+        'ct_id': ferme_ct.pk,
+        'object_id': ferme.pk,
     })
 
 
@@ -3145,11 +3155,18 @@ def tache_detail(request, tache_id):
             return redirect('tache_detail', tache_id=tache.id)
 
     statut_form = TacheStatutForm(initial={'statut': tache.statut})
+    tache_ct = ContentType.objects.get_for_model(Tache)
+    commentaires_tache = Commentaire.objects.filter(
+        content_type=tache_ct, object_id=tache.pk
+    ).select_related("auteur__user")
     return render(request, 'taches/detail.html', {
         'tache': tache,
         'statut_form': statut_form,
         'peut_changer_statut': peut_changer_statut,
         'peut_supprimer': peut_supprimer,
+        'commentaires': commentaires_tache,
+        'ct_id': tache_ct.pk,
+        'object_id': tache.pk,
     })
 
 

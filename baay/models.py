@@ -1,4 +1,6 @@
 from django.contrib.auth.models import AbstractUser, User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -2644,3 +2646,29 @@ class MouvementStock(models.Model):
     def __str__(self):
         cible = self.stock_intrant or self.stock_recolte
         return f"{self.get_type_display()} — {cible} ({self.quantite}) — {self.date_mouvement.strftime('%d/%m/%Y %H:%M')}"
+
+
+class Commentaire(models.Model):
+    """Commentaire générique attaché à une Ferme, un Projet ou une Tâche.
+
+    Remplace la messagerie WebSocket par un fil de discussion HTMX léger,
+    accessible directement depuis les pages de détail des objets concernés.
+    """
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    auteur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="commentaires")
+    texte = models.TextField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
+        verbose_name = "Commentaire"
+        verbose_name_plural = "Commentaires"
+
+    def __str__(self):
+        return f"{self.auteur} — {self.created_at.strftime('%d/%m/%Y %H:%M')}"

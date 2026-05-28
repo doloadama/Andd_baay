@@ -1,0 +1,14 @@
+<div class="d-flex gap-2 mb-3 cmnt-item" id="cmnt-{{ c.pk }}">
+    <div class="flex-shrink-0">
+        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:34px;height:34px;font-size:.8rem;font-weight:600;">
+            {{ c.auteur.user.get_short_name|default:c.auteur.user.username|slice:":2"|upper }}
+        </div>
+    </div>
+    <div class="flex-grow-1">
+        <div class="d-flex align-items-baseline gap-2">
+            <strong class="small">{{ c.auteur.user.get_full_name|default:c.auteur.user.username }}</strong>
+            <time class="text-muted" style="font-size:.75rem;" datetime="{{ c.created_at|date:'c' }}">{{ c.created_at|timesince }} ago</time>
+        </div>
+        <p class="mb-0 mt-1" style="font-size:.9rem;white-space:pre-wrap;">{{ c.texte }}</p>
+    </div>
+</div>
