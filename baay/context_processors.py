@@ -32,6 +32,17 @@ def finance_section(request):
     }
 
 
+def cooperative_nav(request):
+    """Affiche le lien Dashboard Coopérative si l'owner gère au moins 2 fermes."""
+    show = False
+    if request.user.is_authenticated:
+        from baay.models import Ferme
+        profile = getattr(request.user, "profile", None)
+        if profile:
+            show = Ferme.objects.filter(proprietaire=profile).count() >= 2
+    return {"show_cooperative_nav": show}
+
+
 def auth_backgrounds(request):
     """
     Injecte les URLs de fond d'écran pour les pages d'authentification.

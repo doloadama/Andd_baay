@@ -1,4 +1,5 @@
 from django.urls import path
+from baay.views_dashboard_cooperative import dashboard_cooperative
 from baay.views_bento import (
     bento_dashboard,
     bento_dashboard_simple,
@@ -30,6 +31,9 @@ app_name = "dashboard"
 urlpatterns = [
     # Page principale Bento Dashboard (Baay Pro)
     path("dashboard/", bento_dashboard, name="bento_dashboard"),
+
+    # Dashboard coopérative — owner multi-fermes
+    path("dashboard/cooperative/", dashboard_cooperative, name="dashboard_cooperative"),
 
     # Baay Simple — Dashboard ouvrier
     path("dashboard/simple/", bento_dashboard_simple, name="bento_dashboard_simple"),

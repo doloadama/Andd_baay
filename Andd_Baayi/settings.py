@@ -347,6 +347,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'baay.context_processors.exploitation_section',
                 'baay.context_processors.finance_section',
+                'baay.context_processors.cooperative_nav',
                 'baay.context_processors.auth_backgrounds',
                 'baay.context_processors.cloudinary_config',
             ],
