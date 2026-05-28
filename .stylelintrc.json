@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "custom-property-pattern": ["^ab-", {
+      "message": "Custom properties must use the --ab-* prefix"
+    }]
+  },
+  "ignoreFiles": [
+    "baay/static/vendor/**",
+    "baay/static/css/base.css",
+    "baay/static/css/base-inline.css",
+    "baay/static/css/mobile-v2.css",
+    "baay/static/css/mobile-agri-pages.css",
+    "node_modules/**"
+  ]
+}
