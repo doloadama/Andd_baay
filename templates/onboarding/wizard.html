@@ -122,11 +122,11 @@
         <!-- Progress bar -->
         <div class="ob-progress" role="progressbar" aria-valuenow="{{ onboarding_step }}" aria-valuemin="1" aria-valuemax="3">
             <div class="ob-step {% if onboarding_step == 1 %}is-active{% elif onboarding_step > 1 %}is-done{% endif %}">
-                <div class="ob-step-circle">{% if onboarding_step > 1 %}<i class="fas fa-check" style="font-size:.7rem;"></i>{% else %}1{% endif %}</div>
+                <div class="ob-step-circle">{% if onboarding_step > 1 %}<i class="fas fa-check text-[.7rem]"></i>{% else %}1{% endif %}</div>
                 <span class="ob-step-label">Ferme</span>
             </div>
             <div class="ob-step {% if onboarding_step == 2 %}is-active{% elif onboarding_step > 2 %}is-done{% endif %}">
-                <div class="ob-step-circle">{% if onboarding_step > 2 %}<i class="fas fa-check" style="font-size:.7rem;"></i>{% else %}2{% endif %}</div>
+                <div class="ob-step-circle">{% if onboarding_step > 2 %}<i class="fas fa-check text-[.7rem]"></i>{% else %}2{% endif %}</div>
                 <span class="ob-step-label">Projet</span>
             </div>
             <div class="ob-step {% if onboarding_step == 3 %}is-active{% endif %}">
@@ -143,10 +143,10 @@
         </p>
         <div class="ob-actions">
             <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'creer_ferme' %}">
-                <i class="fas fa-tractor" style="margin-right:8px;"></i> Créer ma ferme
+                <i class="fas fa-tractor mr-2"></i> Créer ma ferme
             </a>
             <a class="btn-baay btn-baay-outline tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'demander_acces_ferme' %}">
-                <i class="fas fa-key" style="margin-right:8px;"></i> J'ai un code d'accès
+                <i class="fas fa-key mr-2"></i> J'ai un code d'accès
             </a>
         </div>
 
@@ -158,7 +158,7 @@
         </p>
         <div class="ob-actions">
             <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{{ creer_projet_url }}">
-                <i class="fas fa-seedling" style="margin-right:8px;"></i> Créer un projet
+                <i class="fas fa-seedling mr-2"></i> Créer un projet
             </a>
         </div>
 
@@ -170,7 +170,7 @@
         </p>
         <div class="ob-actions">
             <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'diagnostic_rapide' %}">
-                <i class="fas fa-microscope" style="margin-right:8px;"></i> Lancer un diagnostic
+                <i class="fas fa-microscope mr-2"></i> Lancer un diagnostic
             </a>
         </div>
         {% endif %}

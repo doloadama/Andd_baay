@@ -81,16 +81,16 @@
 
     <div class="coop-header">
         <div>
-            <h1 class="coop-title"><i class="fas fa-sitemap text-emerald-600" style="margin-right:8px;"></i>Dashboard Coopérative</h1>
+            <h1 class="coop-title"><i class="fas fa-sitemap text-emerald-600 mr-2"></i>Dashboard Coopérative</h1>
             <p class="coop-subtitle">Vue synthèse — {{ total_fermes }} ferme{{ total_fermes|pluralize }} sous gestion</p>
         </div>
         <div class="flex gap-2 flex-wrap">
             <a href="?{% if ferme_filter %}ferme={{ ferme_filter }}&{% endif %}export=csv"
                class="inline-flex items-center px-3 py-1.5 text-sm border border-emerald-600 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors">
-                <i class="fas fa-file-csv" style="margin-right:4px;"></i> Exporter CSV
+                <i class="fas fa-file-csv mr-1"></i> Exporter CSV
             </a>
             <a href="{% url 'dashboard' %}" class="inline-flex items-center px-3 py-1.5 text-sm border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-                <i class="fas fa-arrow-left" style="margin-right:4px;"></i> Mon tableau de bord
+                <i class="fas fa-arrow-left mr-1"></i> Mon tableau de bord
             </a>
         </div>
     </div>
@@ -98,7 +98,7 @@
     <!-- Filter -->
     <form method="get" class="coop-filter-bar">
         <label for="ferme-filter" class="text-gray-500 text-sm font-semibold">Filtrer :</label>
-        <select id="ferme-filter" name="ferme" class="block px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" style="width:auto;min-width:180px;" onchange="this.form.submit()">
+        <select id="ferme-filter" name="ferme" class="block px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-auto min-w-[180px]" onchange="this.form.submit()">
             <option value="">Toutes les fermes</option>
             {% for f in all_fermes %}
             <option value="{{ f.id }}" {% if ferme_filter == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
@@ -131,14 +131,14 @@
                         {{ row.ferme.nom }}
                     </a>
                     {% if row.ferme.localite %}
-                    <div class="text-gray-500" style="font-size:.78rem;">{{ row.ferme.localite }}</div>
+                    <div class="text-gray-500 text-[.78rem]">{{ row.ferme.localite }}</div>
                     {% endif %}
                 </td>
                 <td>
                     {% if row.prevision_min is not None %}
                     <span class="coop-rendement">{{ row.prevision_min|floatformat:0 }}–{{ row.prevision_max|floatformat:0 }} kg/ha</span>
                     {% if row.prevision_confiance %}
-                    <div class="text-gray-500" style="font-size:.75rem;">Confiance {{ row.prevision_confiance|floatformat:0 }}%</div>
+                    <div class="text-gray-500 text-[.75rem]">Confiance {{ row.prevision_confiance|floatformat:0 }}%</div>
                     {% endif %}
                     {% else %}
                     <span class="coop-badge coop-badge--none"><i class="fas fa-minus"></i> Aucune</span>
@@ -147,7 +147,7 @@
                 <td>
                     {% if row.diag_resume %}
                     <span class="coop-badge coop-badge--ok"><i class="fas fa-check-circle"></i> Disponible</span>
-                    <div class="text-gray-500 mt-1" style="font-size:.75rem;">{{ row.diag_date|date:"d/m/Y" }}</div>
+                    <div class="text-gray-500 mt-1 text-[.75rem]">{{ row.diag_date|date:"d/m/Y" }}</div>
                     {% else %}
                     <span class="coop-badge coop-badge--none"><i class="fas fa-minus"></i> Aucun</span>
                     {% endif %}
@@ -178,7 +178,7 @@
                                 <option value="worker">Ouvrier</option>
                             </select>
                             <button type="submit" class="inline-flex items-center px-2 py-1 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                                <i class="fas fa-link" style="margin-right:3px;"></i> Inviter
+                                <i class="fas fa-link mr-[3px]"></i> Inviter
                             </button>
                         </form>
                         <div id="invitation-result-{{ row.ferme.id }}"></div>
@@ -196,7 +196,7 @@
     </div>
     {% else %}
     <div class="coop-empty">
-        <i class="fas fa-warehouse text-gray-400" style="font-size:2rem;margin-bottom:12px;display:block;"></i>
+        <i class="fas fa-warehouse text-gray-400 text-3xl mb-3 block"></i>
         <p>Aucune ferme correspondante.</p>
     </div>
     {% endif %}
