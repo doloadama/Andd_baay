@@ -252,14 +252,9 @@ def confidentialite_view(request):
 
 @login_required
 def onboarding_wizard_view(request):
-    """Assistant première connexion : ferme → projet → prêt."""
+    """Assistant première connexion : ferme (1) → projet (2) → diagnostic BaayVision (3)."""
     profile = request.user.profile
     if profile.onboarding_completed:
-        return redirect('dashboard')
-
-    if projets_accessibles_qs(profile).exists():
-        profile.onboarding_completed = True
-        profile.save(update_fields=['onboarding_completed'])
         return redirect('dashboard')
 
     has_any_ferme = Ferme.objects.filter(
@@ -272,13 +267,21 @@ def onboarding_wizard_view(request):
         profile.save(update_fields=['onboarding_completed'])
         return redirect('dashboard')
 
-    onboarding_step = 1 if not has_any_ferme else 2
+    has_any_projet = projets_accessibles_qs(profile).exists()
+
     premiere_ferme = (
         Ferme.objects.filter(proprietaire=profile).order_by('date_creation').first()
     )
     creer_projet_url = reverse('creer_projet')
     if premiere_ferme:
         creer_projet_url = f'{creer_projet_url}?ferme={premiere_ferme.id}'
+
+    if not has_any_ferme:
+        onboarding_step = 1
+    elif not has_any_projet:
+        onboarding_step = 2
+    else:
+        onboarding_step = 3
 
     return render(
         request,
@@ -730,7 +733,9 @@ def creer_projet(request):
             projet.save()
             _creer_campagne_initiale_si_perenne(projet)
 
-            messages.success(request, "Le projet a ete cree avec succes.")
+            messages.success(request, "Le projet a été créé avec succès.")
+            if not request.user.profile.onboarding_completed:
+                return redirect('onboarding')
             if _htmx_request(request):
                 resp = HttpResponse()
                 resp['HX-Redirect'] = reverse('liste_projets')
@@ -2682,7 +2687,9 @@ def creer_ferme(request):
             ferme = form.save(commit=False)
             ferme.proprietaire = request.user.profile
             ferme.save()
-            messages.success(request, "Fermé créée avec succès.")
+            messages.success(request, "Ferme créée avec succès.")
+            if not request.user.profile.onboarding_completed:
+                return redirect('onboarding')
             return redirect('detail_ferme', ferme_id=ferme.id)
     else:
         form = FermeForm()
