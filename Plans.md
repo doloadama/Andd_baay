@@ -47,6 +47,33 @@ Objectif : supprimer la dette fonctionnelle (WebSocket messaging) et réduire le
 
 ---
 
+---
+
+## Phase 4 : Frontend — Assainissement
+
+Objectif : supprimer la dette CSS (Bootstrap vs Tailwind, namespaces en conflit, 2 598 px en dur) sur le tunnel critique, sans toucher aux écrans périphériques.
+
+| Task | Contenu | DoD | Depends | Status |
+|------|---------|-----|---------|--------|
+| 4.1 | **Trancher le dilemme CSS** — Retirer l'import Bootstrap des 3 pages critiques (`diagnostic/index.html`, `onboarding/wizard.html`, template coopérative). Remplacer les classes Bootstrap résiduelles par des utilitaires Tailwind équivalents. Bootstrap reste chargé uniquement pour l'admin Django et les écrans secondaires. | Bootstrap non chargé sur ces 3 pages (vérifiable via Network > Coverage) ; UI visuellement identique avant/après ; aucune régression sur les formulaires. | — | cc:完了 [dd3967652] |
+| 4.2 | **Créer `tokens.css` central + Stylelint** — Extraire les 6 couleurs de marque, 9 tokens d'espacement, 11 tokens de rayon et 4 ombres dans `baay/static/css/tokens.css` sous namespace `--ab-*`. Configurer `.stylelintrc.json` avec `custom-property-pattern: "^ab-"`. | `tokens.css` existe et est importé dans `base.css` ; `npx stylelint "baay/static/css/tokens.css"` passe sans erreur ; `#1D9E75` n'apparaît qu'une seule fois dans tout le CSS (dans `tokens.css`). | — | cc:完了 [1220762b8] |
+| 4.3 | **Migrer les namespaces obsolètes** — Script `scripts/migrate_tokens.py` qui remplace `--fd-`, `--msg-`, `--cockpit-`, `--fh-` par leurs équivalents `--ab-*` déclarés dans `tokens.css`, dans tous les fichiers CSS de `baay/static/css/`. | `grep -r "\-\-fd-\|\-\-msg-\|\-\-cockpit-\|\-\-fh-" baay/static/css/` retourne 0 résultats. | 4.2 | cc:完了 [72622a466] |
+| 4.4 | **Purger les `style=` inline sur le tunnel critique** — Supprimer les attributs `style=` dans `templates/diagnostic/index.html`, `templates/onboarding/wizard.html`, `templates/dashboard/cooperative.html`. Remplacer par classes Tailwind ou variables `--ab-*` via classes CSS dédiées. | `grep -c 'style=' templates/diagnostic/index.html templates/onboarding/wizard.html templates/dashboard/cooperative.html` retourne 0 sur chacun. | 4.1, 4.2 | cc:完了 [2c1809474] |
+
+---
+
+## Phase 5 : Terrain & GTM
+
+Objectif : rendre le produit utilisable en conditions réelles (3G, terrain) et décrocher les 50 premiers utilisateurs via une coopérative partenaire.
+
+| Task | Contenu | DoD | Depends | Status |
+|------|---------|-----|---------|--------|
+| 5.1 | **Pipeline d'analyse asynchrone (Celery + PWA offline)** — Transformer l'appel Gemini synchrone en tâche Celery (`analyze_plant_pest_async`). Ajouter un Service Worker (`baay/static/sw.js`) qui met en file d'attente les soumissions hors ligne et les rejoue à la reconnexion. Afficher un écran intermédiaire "Analyse en cours — vous serez notifié" au lieu de spinner bloquant. | Soumission retourne immédiatement (< 300 ms) avec un ID de tâche ; `celery -A Andd_Baayi worker` traite la tâche et enregistre le résultat ; page résultat se charge sur poll (HTMX `hx-trigger="every 3s"` jusqu'à completion) ; testé avec Chrome DevTools Network throttling "Slow 3G". | — | cc:完了 [6cf13fafc] |
+| 5.2 | **Complétion des endpoints REST mobile** — Auditer `baay/serializers_mobile.py` + URLs API : Diagnostic, Tâche, Ferme, Commentaire doivent tous avoir des endpoints REST paginés compatibles Flutter. Ajouter les endpoints manquants. Produire `docs/api_mobile.md` listant tous les endpoints avec méthode, auth, et exemple de payload. | `docs/api_mobile.md` existe avec ≥ 8 endpoints documentés ; test DRF pour chaque endpoint nouveau ; Flutter peut soumettre un diagnostic, créer une tâche et poster un commentaire via l'API. | 5.1 | cc:完了 [ca6feb860] |
+| 5.3 | **Flow d'invitation Coopérative (B2B2C)** — Ajouter un système d'invitation : un manager génère un lien `https://<domaine>/rejoindre/<token>/` depuis le dashboard coopératif. Le technicien s'inscrit via ce lien et est automatiquement rattaché à la ferme du manager. Wizard d'onboarding adapté technicien : 2 étapes seulement (profil + première tâche — pas de "créer ferme"). | Manager peut générer et copier un lien d'invitation depuis le dashboard coopératif ; technicien suit le lien, s'inscrit, et apparaît dans la liste membres de la ferme ; wizard technicien n'affiche pas l'étape "Créer ferme". | 3.2, 3.3 | cc:完了 [0302af614] |
+
+---
+
 ## Completed
 
 Voir Phase 1 ci-dessus — 8/8 tâches `cc:完了` (2026-05-27).
