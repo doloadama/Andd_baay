@@ -1,5 +1,7 @@
 import json
 import logging
+import time
+from decimal import Decimal
 from typing import Optional
 
 from django.conf import settings
@@ -10,6 +12,24 @@ from .key_rotation import GeminiKeyRotator
 from .prompts import LANGUAGE_INSTRUCTIONS, PLANT_PEST_PROMPT
 
 logger = logging.getLogger(__name__)
+
+# Gemini 2.0 Flash pricing (USD per call estimate — ~2k input + ~500 output tokens)
+_GEMINI_FLASH_COST_PER_CALL = Decimal("0.000300")
+
+
+def _log_api_call(service: str, model: str, cout: Decimal, cache_hit: bool, duree_ms: int) -> None:
+    """Enregistre un appel API sans bloquer — les erreurs DB sont silencieuses."""
+    try:
+        from baay.models import AppelAPILog
+        AppelAPILog.objects.create(
+            service=service,
+            modele=model,
+            cout_estime_usd=cout,
+            cache_hit=cache_hit,
+            duree_ms=duree_ms,
+        )
+    except Exception:
+        logger.debug("AppelAPILog insert failed (non-bloquant)", exc_info=True)
 
 
 class PlantVisionGeminiError(Exception):
@@ -52,6 +72,7 @@ def call_gemini_vision(
 
     for _ in range(len(rotator.keys)):
         api_key = rotator.current_key
+        t0 = time.monotonic()
         try:
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
@@ -70,14 +91,18 @@ def call_gemini_vision(
                     temperature=0.2,
                 ),
             )
+            duree_ms = int((time.monotonic() - t0) * 1000)
             raw = response.text or ""
             data = json.loads(raw)
             if not isinstance(data, dict) or "subject" not in data:
                 raise PlantVisionGeminiError("Réponse IA invalide (schéma incomplet).")
+            _log_api_call("gemini", model, _GEMINI_FLASH_COST_PER_CALL, False, duree_ms)
             return data
 
         except json.JSONDecodeError as exc:
             raise PlantVisionGeminiError("Le modèle n'a pas renvoyé du JSON valide.") from exc
+        except PlantVisionGeminiError:
+            raise
         except Exception as exc:
             last_error = exc
             err = str(exc).lower()

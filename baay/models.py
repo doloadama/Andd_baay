@@ -2672,3 +2672,32 @@ class Commentaire(models.Model):
 
     def __str__(self):
         return f"{self.auteur} — {self.created_at.strftime('%d/%m/%Y %H:%M')}"
+
+
+class AppelAPILog(models.Model):
+    """Journal des appels API (Gemini, HuggingFace, etc.) pour le monitoring des coûts."""
+    SERVICE_GEMINI = "gemini"
+    SERVICE_GALSENAI = "galsenai"
+    SERVICE_CHOICES = [
+        (SERVICE_GEMINI, "Gemini Vision"),
+        (SERVICE_GALSENAI, "GalsenAI (HuggingFace)"),
+    ]
+
+    service = models.CharField(max_length=32, choices=SERVICE_CHOICES, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    cout_estime_usd = models.DecimalField(max_digits=10, decimal_places=6, default=Decimal("0"))
+    cache_hit = models.BooleanField(default=False, db_index=True)
+    modele = models.CharField(max_length=64, blank=True)
+    duree_ms = models.PositiveIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        verbose_name = "Appel API"
+        verbose_name_plural = "Appels API"
+        indexes = [
+            models.Index(fields=["service", "-timestamp"]),
+            models.Index(fields=["timestamp", "cache_hit"]),
+        ]
+
+    def __str__(self):
+        return f"{self.service} — {self.timestamp.strftime('%d/%m/%Y %H:%M')} — ${self.cout_estime_usd}"

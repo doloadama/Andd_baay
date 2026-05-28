@@ -12,6 +12,16 @@ from baay.services.plant_vision.analyzer import (
 
 logger = logging.getLogger(__name__)
 
+
+def _log_cache_hit() -> None:
+    try:
+        from baay.models import AppelAPILog
+        from django.conf import settings
+        model = getattr(settings, "PLANT_VISION_MODEL", "gemini-2.0-flash")
+        AppelAPILog.objects.create(service="gemini", modele=model, cache_hit=True)
+    except Exception:
+        pass
+
 CULTURES = [
     ("mil", "Mil"),
     ("arachide", "Arachide"),
@@ -111,6 +121,7 @@ def diagnostic_rapide(request, culture: str = ""):
                 if cached is not None:
                     logger.info("diagnostic_rapide: cache hit")
                     resultat = cached
+                    _log_cache_hit()
                 else:
                     resultat = analyze_plant_pest(
                         image_bytes,

@@ -1,7 +1,13 @@
+from decimal import Decimal
+
 from django.contrib import admin
 from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group, User
+from django.conf import settings
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.text import Truncator
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import (
@@ -14,6 +20,7 @@ from unfold.contrib.filters.admin import (
 from baay.dashboard_services import DashboardChangelistMixin
 
 from .models import (
+    AppelAPILog,
     Conversation,
     CampagneProjet,
     DemandeAccesFerme,
@@ -405,3 +412,61 @@ class MouvementStockAdmin(ModelAdmin):
     ordering = ("-date_mouvement",)
     list_select_related = ("ferme", "stock_intrant", "stock_recolte", "utilisateur__user")
     list_filter_submit = True
+
+
+@admin.register(AppelAPILog)
+class AppelAPILogAdmin(ModelAdmin):
+    list_display = ("service", "modele", "timestamp", "cout_estime_usd", "cache_hit", "duree_ms", "alerte_cout")
+    list_filter = [
+        ("service", ChoicesDropdownFilter),
+        ("cache_hit", ChoicesDropdownFilter),
+        ("timestamp", RangeDateTimeFilter),
+    ]
+    ordering = ("-timestamp",)
+    readonly_fields = ("service", "modele", "timestamp", "cout_estime_usd", "cache_hit", "duree_ms")
+    list_filter_submit = True
+
+    def alerte_cout(self, obj):
+        seuil = Decimal(str(getattr(settings, "API_COUT_ALERTE_USD_JOUR", "1.00")))
+        today = timezone.now().date()
+        cout_jour = AppelAPILog.objects.filter(
+            timestamp__date=today,
+            cache_hit=False,
+        ).aggregate(total=Sum("cout_estime_usd"))["total"] or Decimal("0")
+        if cout_jour >= seuil:
+            return format_html('<span style="color:red;font-weight:700;">⚠ ${}</span>', cout_jour)
+        return format_html('<span style="color:green;">${}</span>', cout_jour)
+    alerte_cout.short_description = "Coût jour"
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        today = timezone.now().date()
+        week_ago = today - timezone.timedelta(days=7)
+
+        agg_day = AppelAPILog.objects.filter(timestamp__date=today).aggregate(
+            total=Sum("cout_estime_usd"),
+            hits=Count("id", filter=Q(cache_hit=True)),
+            misses=Count("id", filter=Q(cache_hit=False)),
+        )
+        agg_week = AppelAPILog.objects.filter(timestamp__date__gte=week_ago).aggregate(
+            total=Sum("cout_estime_usd"),
+            hits=Count("id", filter=Q(cache_hit=True)),
+            misses=Count("id", filter=Q(cache_hit=False)),
+        )
+
+        seuil = Decimal(str(getattr(settings, "API_COUT_ALERTE_USD_JOUR", "1.00")))
+        cout_jour = agg_day["total"] or Decimal("0")
+        alerte = cout_jour >= seuil
+
+        total_day = (agg_day["hits"] or 0) + (agg_day["misses"] or 0)
+        total_week = (agg_week["hits"] or 0) + (agg_week["misses"] or 0)
+
+        extra_context.update({
+            "cout_jour": cout_jour,
+            "cout_semaine": agg_week["total"] or Decimal("0"),
+            "taux_cache_jour": round(100 * (agg_day["hits"] or 0) / total_day) if total_day else 0,
+            "taux_cache_semaine": round(100 * (agg_week["hits"] or 0) / total_week) if total_week else 0,
+            "seuil_alerte": seuil,
+            "alerte_active": alerte,
+        })
+        return super().changelist_view(request, extra_context=extra_context)

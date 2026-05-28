@@ -54,6 +54,9 @@ GALSENAI_TTS_MODEL = "galsenai/xTTS-v2-wolof"
 GALSENAI_TRAD_MODEL = "galsenai/wolof-To-French-Translator"
 GALSENAI_TIMEOUT = int(os.getenv("GALSENAI_TIMEOUT", "60"))
 
+# Seuil d'alerte coût API Gemini (USD/jour) — apparaît en rouge dans l'admin AppelAPILog
+API_COUT_ALERTE_USD_JOUR = float(os.getenv("API_COUT_ALERTE_USD_JOUR", "1.00"))
+
 # ── Cloudinary (médias : CLOUDINARY_URL requis pour le stockage distant) ──
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "").strip()
 CLOUDINARY_MEDIA_PREFIX = (
