@@ -630,3 +630,38 @@ def bento_card_messagerie_simple(request: HttpRequest) -> HttpResponse:
         'messages_recents': last_msgs,
         'unread_count': last_msgs.count(),
     })
+
+
+# =============================================================================
+# WIDGET ALERTES PRIX MARCHÉS
+# =============================================================================
+
+@login_required
+@require_GET
+def bento_card_alertes_prix(request: HttpRequest) -> HttpResponse:
+    """
+    Bande pleine largeur au-dessus du bento grid : alertes prix marchés.
+    Masquée si aucune alerte récente (niveau ≥ warning, ≤ 7 jours).
+    """
+    from baay.models import AlertePrix
+    from django.utils.timezone import now
+    from datetime import timedelta
+
+    alertes = (
+        AlertePrix.objects
+        .filter(
+            date_detection__gte=now() - timedelta(days=7),
+            niveau__in=[AlertePrix.NIVEAU_WARNING, AlertePrix.NIVEAU_CRITIQUE],
+        )
+        .order_by("-date_detection")[:5]
+    )
+
+    if not alertes:
+        # Retourne un div vide — le widget disparaît du DOM
+        return HttpResponse(
+            '<div id="widget-alertes-prix" style="display:none;"></div>',
+        )
+
+    return render(request, 'dashboard/bento_cards/_card_alertes_prix.html', {
+        'alertes': alertes,
+    })

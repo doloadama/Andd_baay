@@ -1,0 +1,574 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Prix Agricoles — Marchés Sénégal | Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Suivi des prix agricoles sur les marchés sénégalais : mil, sorgho, arachide, niébé, oignon. Alertes automatiques sur les variations importantes." />
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ── */
+.prix-page { max-width:1200px; margin:0 auto; padding:1.5rem 1rem 4rem; }
+
+/* ── Hero ── */
+.prix-hero {
+  background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+  border-radius: var(--ab-radius-lg,16px);
+  padding: 2rem 2.5rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.prix-hero h1 { font-size:1.75rem; font-weight:700; margin:0 0 .25rem; }
+.prix-hero p  { opacity:.88; margin:0; font-size:.95rem; }
+.prix-hero-badge {
+  background: rgba(255,255,255,.15);
+  border-radius:12px;
+  padding:.5rem 1rem;
+  font-size:.85rem;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+/* ── Alertes ── */
+.alertes-section { margin-bottom:1.5rem; }
+.alertes-section h2 { font-size:1rem; font-weight:700; color:#111827; margin-bottom:.75rem; }
+.alertes-scroll {
+  display:flex;
+  gap:.75rem;
+  overflow-x:auto;
+  padding-bottom:.5rem;
+  scrollbar-width:thin;
+}
+.alerte-chip {
+  flex-shrink:0;
+  background:#fff;
+  border-radius:10px;
+  padding:.65rem 1rem;
+  box-shadow:0 1px 4px rgba(0,0,0,.1);
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  font-size:.82rem;
+  min-width:180px;
+  max-width:240px;
+  cursor:pointer;
+  border:none;
+  text-align:left;
+  transition:transform .15s, box-shadow .15s;
+}
+.alerte-chip:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,.12); }
+.alerte-chip.critique { border-left:4px solid #dc2626; }
+.alerte-chip.warning  { border-left:4px solid #d97706; }
+.alerte-chip .ac-produit { font-weight:700; color:#111827; display:block; font-size:.85rem; }
+.alerte-chip .ac-variation {
+  font-size:1.05rem;
+  font-weight:800;
+  display:block;
+}
+.alerte-chip .ac-variation.hausse { color:#dc2626; }
+.alerte-chip .ac-variation.baisse { color:#16a34a; }
+.alerte-chip .ac-marche { color:#6b7280; font-size:.75rem; display:block; }
+.alerte-chip .ac-icone { font-size:1.2rem; }
+
+/* ── Synthèse cartes produits ── */
+.synthese-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(160px,1fr));
+  gap:.75rem;
+  margin-bottom:1.5rem;
+}
+.synthese-card {
+  background:#fff;
+  border-radius:12px;
+  padding:.9rem 1rem;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:border-color .15s, box-shadow .15s;
+}
+.synthese-card:hover, .synthese-card.active {
+  border-color: var(--ab-color-primary, #1D9E75);
+  box-shadow: 0 4px 12px rgba(29,158,117,.15);
+}
+.sc-nom { font-size:.8rem; font-weight:700; color:#374151; text-transform:capitalize; margin-bottom:.35rem; }
+.sc-prix { font-size:1.15rem; font-weight:800; color:#111827; }
+.sc-unite { font-size:.68rem; color:#9ca3af; margin-left:.2rem; }
+.sc-var { font-size:.78rem; font-weight:600; margin-top:.2rem; }
+.sc-var.hausse { color:#dc2626; }
+.sc-var.baisse { color:#16a34a; }
+.sc-var.stable { color:#6b7280; }
+.sc-niveau-critique { border-color:#dc2626 !important; }
+.sc-niveau-warning  { border-color:#d97706 !important; }
+
+/* ── Filtres ── */
+.prix-filters {
+  display:flex;
+  flex-wrap:wrap;
+  gap:.6rem;
+  margin-bottom:1.25rem;
+  align-items:flex-end;
+}
+.prix-filter-group { display:flex; flex-direction:column; gap:.25rem; }
+.prix-filter-group label { font-size:.72rem; font-weight:600; color:#6b7280; text-transform:uppercase; }
+.prix-filter-select, .prix-filter-input {
+  padding:.4rem .7rem;
+  border:1.5px solid #d1d5db;
+  border-radius:8px;
+  font-size:.85rem;
+  background:#fff;
+  color:#374151;
+  min-width:130px;
+}
+.prix-filter-select:focus, .prix-filter-input:focus {
+  outline:none;
+  border-color: var(--ab-color-primary, #1D9E75);
+}
+.prix-filter-btn {
+  padding:.42rem 1rem;
+  background: var(--ab-color-primary, #1D9E75);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:.85rem;
+  font-weight:600;
+  cursor:pointer;
+  align-self:flex-end;
+}
+.prix-filter-btn:hover { opacity:.9; }
+.periode-chips { display:flex; gap:.4rem; align-self:flex-end; }
+.periode-chip {
+  padding:.35rem .75rem;
+  border:1.5px solid #d1d5db;
+  border-radius:20px;
+  font-size:.8rem;
+  font-weight:500;
+  background:#fff;
+  color:#374151;
+  text-decoration:none;
+  transition:all .15s;
+}
+.periode-chip:hover, .periode-chip.active {
+  background: var(--ab-color-primary, #1D9E75);
+  border-color: var(--ab-color-primary, #1D9E75);
+  color:#fff;
+}
+
+/* ── Graphique ── */
+.graphique-section {
+  background:#fff;
+  border-radius:var(--ab-radius-lg,14px);
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  padding:1.25rem 1.5rem;
+  margin-bottom:1.5rem;
+}
+.graphique-section h3 { font-size:.95rem; font-weight:700; color:#111827; margin-bottom:1rem; }
+#prix-chart-container { height:260px; position:relative; }
+#graphique-placeholder {
+  display:flex; align-items:center; justify-content:center;
+  height:200px; color:#9ca3af; font-size:.9rem;
+}
+
+/* ── Tableau ── */
+.prix-table-section {
+  background:#fff;
+  border-radius:var(--ab-radius-lg,14px);
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  overflow:hidden;
+  margin-bottom:1.5rem;
+}
+.prix-table-header {
+  padding:.9rem 1.25rem;
+  border-bottom:1px solid #f3f4f6;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.prix-table-header h3 { font-size:.9rem; font-weight:700; color:#111827; margin:0; }
+.prix-count { font-size:.8rem; color:#6b7280; }
+.prix-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+.prix-table th {
+  background:#f9fafb; padding:.65rem 1rem; text-align:left;
+  font-size:.75rem; font-weight:600; color:#6b7280;
+  text-transform:uppercase; letter-spacing:.04em;
+  border-bottom:1px solid #e5e7eb;
+  white-space:nowrap;
+}
+.prix-table td {
+  padding:.65rem 1rem; border-bottom:1px solid #f3f4f6;
+  color:#374151; vertical-align:middle;
+}
+.prix-table tr:last-child td { border-bottom:none; }
+.prix-table tr:hover td { background:#fafafa; }
+.prix-produit { font-weight:600; color:#111827; text-transform:capitalize; }
+.prix-valeur { font-weight:700; color:#111827; font-variant-numeric:tabular-nums; }
+.source-badge {
+  font-size:.68rem; font-weight:600; padding:.15rem .45rem;
+  border-radius:4px; letter-spacing:.03em; text-transform:uppercase;
+}
+.source-fao_fpma { background:#dbeafe; color:#1d4ed8; }
+.source-oma      { background:#dcfce7; color:#15803d; }
+.source-resimao  { background:#fef3c7; color:#92400e; }
+.source-autre    { background:#f3f4f6; color:#6b7280; }
+
+/* ── Pagination ── */
+.prix-pagination { display:flex; justify-content:center; gap:.4rem; flex-wrap:wrap; margin-top:1rem; padding-bottom:1rem; }
+.prix-page-btn {
+  padding:.35rem .8rem; border-radius:8px;
+  border:1.5px solid #d1d5db; background:#fff;
+  color:#374151; font-size:.82rem; font-weight:500;
+  text-decoration:none; transition:all .15s;
+}
+.prix-page-btn:hover, .prix-page-btn.current {
+  background: var(--ab-color-primary, #1D9E75);
+  border-color: var(--ab-color-primary, #1D9E75);
+  color:#fff;
+}
+
+/* ── Empty ── */
+.prix-empty { text-align:center; padding:3rem 1rem; color:#6b7280; }
+.prix-empty i { font-size:2.5rem; opacity:.3; margin-bottom:.75rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="prix-page">
+
+  {# ── Hero ── #}
+  <div class="prix-hero">
+    <div>
+      <h1><i class="fas fa-chart-line me-2"></i>Prix des marchés agricoles</h1>
+      <p>Cours hebdomadaires — Sources : FAO FPMA, OMA Sénégal. Alertes automatiques sur les variations ≥ 15 %.</p>
+    </div>
+    {% if nb_alertes_non_vues %}
+    <div class="prix-hero-badge">
+      🔔 {{ nb_alertes_non_vues }} alerte{{ nb_alertes_non_vues|pluralize }} non vue{{ nb_alertes_non_vues|pluralize }}
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Alertes actives ── #}
+  {% if alertes %}
+  <div class="alertes-section">
+    <h2><i class="fas fa-exclamation-triangle me-1" style="color:#d97706;"></i>Variations importantes cette semaine</h2>
+    <div class="alertes-scroll">
+      {% for alerte in alertes %}
+      <button class="alerte-chip {{ alerte.niveau }}"
+              onclick="selectionnerProduit('{{ alerte.produit_nom }}')"
+              hx-post="{% url 'marche_alerte_vue' alerte.pk %}"
+              hx-trigger="click"
+              hx-swap="none"
+              title="{{ alerte.marche_nom }} — {{ alerte.periode_jours }} jours">
+        <span class="ac-icone">{{ alerte.icone }}</span>
+        <span>
+          <span class="ac-produit">{{ alerte.produit_nom|capfirst }}</span>
+          <span class="ac-variation {% if alerte.est_hausse %}hausse{% else %}baisse{% endif %}">
+            {% if alerte.est_hausse %}↑{% else %}↓{% endif %}{{ alerte.variation_abs|floatformat:1 }}%
+          </span>
+          <span class="ac-marche">{{ alerte.marche_nom|truncatechars:25 }}</span>
+        </span>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Synthèse par produit ── #}
+  {% if synthese %}
+  <div class="synthese-grid">
+    {% for s in synthese %}
+    <div class="synthese-card {% if s.alerte_niveau %}sc-niveau-{{ s.alerte_niveau }}{% endif %}"
+         onclick="selectionnerProduit('{{ s.produit_nom }}')">
+      <div class="sc-nom">{{ s.produit_nom|capfirst }}</div>
+      {% if s.prix_moyen %}
+      <div class="sc-prix">
+        {{ s.prix_moyen|floatformat:0 }}
+        <span class="sc-unite">FCFA/kg</span>
+      </div>
+      {% if s.variation_7j is not None %}
+      <div class="sc-var {% if s.variation_7j > 0 %}hausse{% elif s.variation_7j < 0 %}baisse{% else %}stable{% endif %}">
+        {% if s.variation_7j > 0 %}↑{% elif s.variation_7j < 0 %}↓{% endif %}
+        {{ s.variation_7j|floatformat:1 }}% / 7j
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="sc-prix" style="color:#9ca3af;font-size:.85rem;">Pas de données</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Graphique ── #}
+  <div class="graphique-section">
+    <h3 id="graphique-titre">
+      <i class="fas fa-chart-area me-1" style="color:#1D9E75;"></i>
+      Évolution du prix — <span id="graphique-produit-nom">Sélectionnez un produit</span>
+    </h3>
+    <div id="prix-chart-container">
+      <canvas id="prix-chart" style="display:none;"></canvas>
+      <div id="graphique-placeholder">
+        <div style="text-align:center;">
+          <i class="fas fa-hand-pointer" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.4;"></i>
+          Cliquez sur un produit ci-dessus pour afficher son évolution de prix
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Filtres ── #}
+  <form method="get" class="prix-filters">
+    <div class="prix-filter-group">
+      <label>Produit</label>
+      <select name="produit" class="prix-filter-select" id="filtre-produit">
+        <option value="">Tous les produits</option>
+        {% for p in produits_en_base %}
+        <option value="{{ p }}" {% if p == produit_filtre %}selected{% endif %}>{{ p|capfirst }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="prix-filter-group">
+      <label>Région</label>
+      <select name="region" class="prix-filter-select">
+        <option value="">Toutes les régions</option>
+        {% for r in regions_en_base %}
+        <option value="{{ r }}" {% if r == region_filtre %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="prix-filter-group">
+      <label>Marché</label>
+      <input type="text" name="marche" value="{{ marche_filtre }}"
+             placeholder="Ex: Kaolack" class="prix-filter-input">
+    </div>
+    <button type="submit" class="prix-filter-btn">
+      <i class="fas fa-search me-1"></i>Filtrer
+    </button>
+    <div class="periode-chips">
+      <a href="?produit={{ produit_filtre }}&region={{ region_filtre }}&marche={{ marche_filtre }}&periode=7"
+         class="periode-chip {% if periode == 7 %}active{% endif %}">7j</a>
+      <a href="?produit={{ produit_filtre }}&region={{ region_filtre }}&marche={{ marche_filtre }}&periode=30"
+         class="periode-chip {% if periode == 30 %}active{% endif %}">30j</a>
+      <a href="?produit={{ produit_filtre }}&region={{ region_filtre }}&marche={{ marche_filtre }}&periode=90"
+         class="periode-chip {% if periode == 90 %}active{% endif %}">90j</a>
+    </div>
+    <input type="hidden" name="page" value="1">
+  </form>
+
+  {# ── Compteur ── #}
+  {% if total %}
+  <p style="font-size:.82rem;color:#6b7280;margin-bottom:1rem;">
+    {{ total }} relevé{{ total|pluralize }} sur {{ periode }} jours
+    {% if produit_filtre %}— <strong>{{ produit_filtre|capfirst }}</strong>{% endif %}
+    {% if region_filtre %}— {{ region_filtre }}{% endif %}
+  </p>
+  {% endif %}
+
+  {# ── Tableau ── #}
+  {% if page_obj.object_list %}
+  <div class="prix-table-section">
+    <div class="prix-table-header">
+      <h3><i class="fas fa-table me-1"></i>Relevés de prix</h3>
+      <span class="prix-count">{{ total }} entrée{{ total|pluralize }}</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="prix-table">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Marché</th>
+            <th>Région</th>
+            <th>Prix</th>
+            <th>Unité</th>
+            <th>Date</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in page_obj %}
+          <tr>
+            <td class="prix-produit">{{ p.produit_nom|capfirst }}</td>
+            <td>{{ p.marche_nom }}</td>
+            <td>{{ p.region|default:"—" }}</td>
+            <td class="prix-valeur">{{ p.prix_unitaire|floatformat:0 }}</td>
+            <td style="color:#6b7280;font-size:.8rem;">{{ p.unite }}</td>
+            <td style="color:#9ca3af;font-size:.8rem;">{{ p.date_relevee|date:"d/m/Y" }}</td>
+            <td><span class="source-badge source-{{ p.source }}">{{ p.source|upper }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Pagination #}
+    {% if page_obj.has_other_pages %}
+    <div class="prix-pagination">
+      {% if page_obj.has_previous %}
+      <a class="prix-page-btn"
+         href="?page={{ page_obj.previous_page_number }}&produit={{ produit_filtre }}&region={{ region_filtre }}&marche={{ marche_filtre }}&periode={{ periode }}">
+        ← Précédent
+      </a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="prix-page-btn current">{{ num }}</span>
+        {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+          <a class="prix-page-btn"
+             href="?page={{ num }}&produit={{ produit_filtre }}&region={{ region_filtre }}&marche={{ marche_filtre }}&periode={{ periode }}">
+            {{ num }}
+          </a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a class="prix-page-btn"
+         href="?page={{ page_obj.next_page_number }}&produit={{ produit_filtre }}&region={{ region_filtre }}&marche={{ marche_filtre }}&periode={{ periode }}">
+        Suivant →
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  {% else %}
+  {# ── État vide ── #}
+  <div class="prix-empty">
+    <div><i class="fas fa-store-slash"></i></div>
+    <h3 style="font-size:1.05rem;font-weight:600;color:#374151;margin:.75rem 0 .5rem;">
+      Aucune donnée de prix disponible
+    </h3>
+    <p style="max-width:420px;margin:0 auto;font-size:.9rem;">
+      Les prix sont collectés automatiquement depuis la FAO FPMA et l'OMA Sénégal
+      toutes les 12 heures. Revenez dans quelques instants ou vérifiez que les tâches
+      Celery sont bien en cours d'exécution.
+    </p>
+    {% if request.user.is_staff %}
+    <button
+      onclick="lancerCollecte()"
+      style="margin-top:1.5rem;padding:.6rem 1.5rem;background:#b45309;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+      <i class="fas fa-sync-alt me-1"></i>Lancer la collecte maintenant
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+        crossorigin="anonymous"></script>
+<script>
+// ── Graphique Chart.js ─────────────────────────────────────────────────────
+let prixChart = null;
+const GRAPHIQUE_URL = "{% url 'marche_prix_graphique' %}";
+
+async function chargerGraphique(produit) {
+  const params = new URLSearchParams({
+    produit,
+    periode: {{ periode }},
+  });
+  {% if marche_filtre %}
+  params.set('marche', '{{ marche_filtre }}');
+  {% endif %}
+
+  document.getElementById('graphique-produit-nom').textContent = produit;
+  document.getElementById('graphique-placeholder').style.display = 'none';
+  document.getElementById('prix-chart').style.display = 'block';
+
+  try {
+    const resp = await fetch(`${GRAPHIQUE_URL}?${params}`);
+    const data = await resp.json();
+
+    if (!data.labels || data.labels.length === 0) {
+      document.getElementById('graphique-placeholder').style.display = 'flex';
+      document.getElementById('prix-chart').style.display = 'none';
+      document.getElementById('graphique-placeholder').innerHTML =
+        '<div style="text-align:center;color:#9ca3af;">Pas de données pour ce produit sur cette période.</div>';
+      return;
+    }
+
+    const ctx = document.getElementById('prix-chart').getContext('2d');
+    if (prixChart) prixChart.destroy();
+
+    prixChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: data.datasets,
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { usePointStyle: true, padding: 16 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toLocaleString('fr-FR') ?? '—'} FCFA`,
+            },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+          y: {
+            beginAtZero: false,
+            ticks: {
+              callback: v => v.toLocaleString('fr-FR') + ' F',
+            },
+          },
+        },
+      },
+    });
+  } catch(e) {
+    console.warn('Graphique prix : erreur réseau', e);
+  }
+}
+
+function selectionnerProduit(produit) {
+  // Mettre à jour le filtre select
+  const sel = document.getElementById('filtre-produit');
+  if (sel) {
+    for (const opt of sel.options) {
+      if (opt.value.toLowerCase() === produit.toLowerCase()) {
+        sel.value = opt.value;
+        break;
+      }
+    }
+  }
+  // Surligner la carte
+  document.querySelectorAll('.synthese-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.synthese-card').forEach(c => {
+    if (c.querySelector('.sc-nom')?.textContent.trim().toLowerCase() === produit.toLowerCase()) {
+      c.classList.add('active');
+    }
+  });
+  chargerGraphique(produit);
+}
+
+{% if request.user.is_staff %}
+function lancerCollecte() {
+  fetch("{% url 'marche_prix' %}", { method: 'GET' });  // juste une indication
+  // On peut ajouter un endpoint de trigger staff si besoin
+  alert('Lancez manuellement via: python manage.py shell -c "from baay.tasks.prix import fetch_prix_marche_task; fetch_prix_marche_task.delay()"');
+}
+{% endif %}
+
+// Charger automatiquement le premier produit s'il y a des données
+document.addEventListener('DOMContentLoaded', () => {
+  const premiere = document.querySelector('.synthese-card .sc-nom');
+  if (premiere) {
+    selectionnerProduit(premiere.textContent.trim());
+  }
+  {% if produit_filtre %}
+  selectionnerProduit('{{ produit_filtre }}');
+  {% endif %}
+});
+</script>
+{% endblock %}

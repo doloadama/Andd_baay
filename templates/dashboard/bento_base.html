@@ -304,6 +304,13 @@
     {% endif %}
 </div>
 
+<!-- Widget Alertes Prix Marchés (pleine largeur, HTMX) -->
+<div id="widget-alertes-prix"
+     hx-get="{% url 'bento_card_alertes_prix' %}"
+     hx-trigger="load"
+     hx-swap="outerHTML">
+</div>
+
 <!-- Container principal Bento Grid -->
 <div class="bento-container" id="bento-grid">
     

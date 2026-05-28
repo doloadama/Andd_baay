@@ -56,6 +56,32 @@ def liste_actualites(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@require_GET
+def bandeau_alertes_prix(request: HttpRequest) -> HttpResponse:
+    """
+    Fragment HTMX : bandeau d'alertes prix pour la page Actualités.
+    Retourne un div vide (masqué) si aucune alerte récente.
+    """
+    from baay.models import AlertePrix
+    from django.utils.timezone import now
+    from datetime import timedelta
+
+    alertes = list(
+        AlertePrix.objects
+        .filter(
+            date_detection__gte=now() - timedelta(days=7),
+            niveau__in=[AlertePrix.NIVEAU_WARNING, AlertePrix.NIVEAU_CRITIQUE],
+        )
+        .order_by("-date_detection")[:6]
+    )
+
+    if not alertes:
+        return HttpResponse('<div id="bandeau-alertes-prix" style="display:none;"></div>')
+
+    return render(request, "actualites/_bandeau_prix.html", {"alertes": alertes})
+
+
+@login_required
 def rafraichir_actualites(request: HttpRequest) -> JsonResponse:
     """
     Déclenche manuellement la tâche de collecte.

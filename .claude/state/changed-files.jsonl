@@ -1,0 +1,12 @@
+{"file":"baay/tasks/__init__.py","action":"Write","timestamp":"2026-05-28T17:17:51Z","important":false}
+{"file":"baay/models.py","action":"Edit","timestamp":"2026-05-28T17:24:01Z","important":false}
+{"file":"baay/tasks/actualites.py","action":"Write","timestamp":"2026-05-28T17:26:22Z","important":false}
+{"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-28T17:27:03Z","important":false}
+{"file":"baay/views_actualites.py","action":"Write","timestamp":"2026-05-28T17:27:20Z","important":false}
+{"file":"baay/urls_actualites.py","action":"Write","timestamp":"2026-05-28T17:27:31Z","important":false}
+{"file":"baay/urls.py","action":"Edit","timestamp":"2026-05-28T17:27:41Z","important":false}
+{"file":"templates/actualites/liste.html","action":"Write","timestamp":"2026-05-28T17:28:48Z","important":false}
+{"file":"baay/urls_api_mobile.py","action":"Edit","timestamp":"2026-05-28T17:29:07Z","important":false}
+{"file":"baay/views_api_mobile.py","action":"Edit","timestamp":"2026-05-28T17:31:25Z","important":false}
+{"file":"baay/admin.py","action":"Edit","timestamp":"2026-05-28T17:32:15Z","important":false}
+{"file":"templates/base.html","action":"Edit","timestamp":"2026-05-28T17:35:41Z","important":false}

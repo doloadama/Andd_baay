@@ -487,6 +487,16 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'baay.tasks.fetch_actualites_task',
         'schedule': timedelta(hours=6),
     },
+    # Prix marchés agricoles — FAO FPMA + OMA Sénégal (toutes les 12h)
+    'fetch-prix-marche': {
+        'task': 'baay.tasks.fetch_prix_marche_task',
+        'schedule': timedelta(hours=12),
+    },
+    # Détection des variations de prix (quotidien à 06h00)
+    'detecter-alertes-prix': {
+        'task': 'baay.tasks.detecter_alertes_prix_task',
+        'schedule': crontab(hour=6, minute=0),
+    },
 }
 
 # Django-Axes — brute force protection

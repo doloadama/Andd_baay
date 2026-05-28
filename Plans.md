@@ -74,6 +74,32 @@ Objectif : rendre le produit utilisable en conditions réelles (3G, terrain) et 
 
 ---
 
+---
+
+## Phase 6 : Agent Prix & Alertes Marché
+
+Objectif : collecter automatiquement les prix agricoles (FAO FPMA + OMA Sénégal), détecter les variations
+significatives (±15 % sur 7 j / ±30 % critique) et les reporter sur l'application web et mobile.
+
+**Sources :** FAO FPMA API (primaire, sans clé, données SEN), OMA Sénégal scraping (fallback).
+**Produits cibles :** mil, sorgho, maïs, riz, arachide, niébé, oignon, tomate, patate douce.
+**Seuils :** warning ≥ 15 % / 7 j — critique ≥ 30 % / 7 j.
+
+| Task | Contenu | DoD | Depends | Status |
+|------|---------|-----|---------|--------|
+| 6.1 | **Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma \| oma \| autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info\|warning\|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence. | `python manage.py migrate --check` passe ; les deux modèles apparaissent dans l'admin. | — | cc:TODO |
+| 6.2 | **Service collecte FAO FPMA API** (`baay/services/prix_service.py`) — `fetch_prix_fao_fpma(pays="SEN")` : GET `https://fpma.fao.org/giews/fpma/rest/data/CommodityPriceData`, timeout 10 s, parse JSON, `update_or_create` sur `source_id=entry["id"]`. Cache Redis 12 h sur la clé `prix_fao_fpma_SEN`. Retourne `(nb_crees, nb_mis_a_jour)`. | Appel manuel retourne ≥ 5 entrées pour le Sénégal sans erreur ; les prix s'affichent dans l'admin. | 6.1 | cc:TODO |
+| 6.3 | **Scraper OMA Sénégal** (dans `prix_service.py`) — `fetch_prix_oma()` : GET `http://www.oma.gouv.sn/prix-des-produits.html`, parse tableau HTML (BeautifulSoup), extrait produit / marché / prix / unité. Actif seulement si FAO FPMA retourne < 3 produits sénégalais. | `fetch_prix_oma()` retourne ≥ 1 entrée ou lève `PrixServiceUnavailable` proprement (pas de crash) ; logs INFO tracés. | 6.1 | cc:TODO |
+| 6.4 | **Service détection de variations** — `detecter_variations_significatives(periode_jours=7, seuil_warning=15, seuil_critique=30)` : pour chaque couple (produit, marché) ayant ≥ 2 relevés, compare dernier prix vs prix N jours avant via queryset annoté. Crée / met à jour `AlertePrix` en évitant les doublons (même produit × même marché × même jour de détection). | Avec 10 `PrixMarche` injectés en fixture, la fonction crée les `AlertePrix` attendues ; 0 doublon si appelée 2× le même jour. | 6.1 | cc:TODO |
+| 6.5 | **Tâches Celery + planification Beat** — `fetch_prix_marche_task` (toutes les 12 h, appelle 6.2 puis 6.3 si besoin) + `detecter_alertes_prix_task` (quotidien 06 h 00, appelle 6.4). Lock Redis pour éviter l'exécution concurrente. Ajout dans `settings.CELERY_BEAT_SCHEDULE`. | Les deux tâches apparaissent dans `celery inspect registered` ; Beat log montre les prochaines exécutions. | 6.2, 6.3, 6.4 | cc:TODO |
+| 6.6 | **Page `/marche/prix/`** — Vue `liste_prix` (login_required) : tableau des 7 derniers jours par produit + marché, filtre région / produit / période. Graphique Chart.js (ligne) de l'historique 30 j pour le produit sélectionné. Section "Alertes actives" en haut avec badges rouge/orange. Template `templates/marche/prix.html`. URL `marche/prix/` dans `urls_marche.py`. | Page répond HTTP 200 ; graphique affiché pour au moins 1 produit ; filtres fonctionnels (pas de rechargement complet — HTMX ou JS). | 6.1, 6.4 | cc:TODO |
+| 6.7 | **Widget alertes prix sur le dashboard** — Sur `templates/dashboard/index.html` (ou équivalent), ajouter une carte "⚠️ Alertes Prix" listant les 3 dernières `AlertePrix` non vues (niveau ≥ warning) avec badge coloré et lien vers `/marche/prix/`. Marquer comme vues au clic. | Widget visible sur le dashboard pour tout utilisateur authentifié ; clic sur une alerte la marque `vue=True` (HTMX PATCH ou JS fetch). | 6.6 | cc:TODO |
+| 6.8 | **Section prix dans la page Actualités** — En tête de `/actualites/`, avant la grille d'articles, afficher un bandeau horizontal "Variations de prix cette semaine" avec les alertes niveau critique/warning de moins de 7 jours, badges colorés, et lien "Voir tous les prix →". Masqué si 0 alertes. | Bandeau visible dans `/actualites/` quand ≥ 1 alerte existe ; absent si 0 alertes (pas d'espace vide). | 6.4 | cc:TODO |
+| 6.9 | **Admin Django `PrixMarche` + `AlertePrix`** — `list_display` : produit, marché, prix, unité, source, date_relevee pour PrixMarche ; produit, marché, variation_pct, niveau, vue, date_detection pour AlertePrix. Filtre par source / niveau / région. Action "Marquer comme vues". | Les deux modèles apparaissent dans l'admin Unfold avec filtres fonctionnels. | 6.1 | cc:TODO |
+| 6.10 | **API mobile `/api/mobile/prix/`** — Endpoint GET : `?produit=mil&region=Kaolack&periode=30` → liste `PrixMarche` paginée (20/page). Endpoint GET `/api/mobile/prix/alertes/` : alertes actives (niveau ≥ warning, ≤ 30 j), triées par `variation_pct` desc. Serializers dans `serializers_mobile.py`. URLs dans `urls_api_mobile.py`. | Curl sur les deux endpoints retourne JSON valide ; filtre `produit` et `region` fonctionnels ; pagination present. | 6.1, 6.4 | cc:TODO |
+
+---
+
 ## Completed
 
 Voir Phase 1 ci-dessus — 8/8 tâches `cc:完了` (2026-05-27).

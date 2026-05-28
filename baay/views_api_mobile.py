@@ -757,3 +757,173 @@ def actualites_api(request):
         "pages":     -(-total // page_size),   # ceil division
         "results":   results,
     })
+
+
+# ── Prix marchés ──────────────────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def prix_marche_api(request):
+    """
+    GET /api/mobile/prix/
+    Retourne les relevés de prix agricoles (paginé).
+
+    Filtres :
+      produit  — nom du produit (recherche partielle)
+      region   — région (recherche partielle)
+      marche   — nom du marché (recherche partielle)
+      periode  — nombre de jours d'historique (7, 30, 90 ; défaut 30)
+      page     — numéro de page (défaut 1)
+      page_size — taille de page (max 50 ; défaut 20)
+
+    Réponse :
+      {count, page, page_size, pages, results: [{id, produit_nom, marche_nom,
+       region, prix_unitaire, unite, source, date_relevee, date_collecte}]}
+    """
+    from baay.models import PrixMarche
+    from datetime import date, timedelta
+
+    produit = request.query_params.get("produit", "").strip()
+    region  = request.query_params.get("region", "").strip()
+    marche  = request.query_params.get("marche", "").strip()
+    try:
+        periode = int(request.query_params.get("periode", 30))
+        periode = max(7, min(90, periode))
+    except (ValueError, TypeError):
+        periode = 30
+
+    try:
+        page = max(1, int(request.query_params.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+    try:
+        page_size = min(50, max(1, int(request.query_params.get("page_size", 20))))
+    except (ValueError, TypeError):
+        page_size = 20
+
+    date_debut = date.today() - timedelta(days=periode)
+    qs = PrixMarche.objects.filter(date_relevee__gte=date_debut)
+
+    if produit:
+        qs = qs.filter(produit_nom__icontains=produit)
+    if region:
+        qs = qs.filter(region__icontains=region)
+    if marche:
+        qs = qs.filter(marche_nom__icontains=marche)
+
+    qs = qs.order_by("-date_relevee", "produit_nom")
+    total  = qs.count()
+    offset = (page - 1) * page_size
+    items  = qs[offset: offset + page_size]
+
+    results = [
+        {
+            "id":           str(p.id),
+            "produit_nom":  p.produit_nom,
+            "marche_nom":   p.marche_nom,
+            "region":       p.region,
+            "pays":         p.pays,
+            "prix_unitaire": float(p.prix_unitaire),
+            "unite":        p.unite,
+            "qualite":      p.qualite,
+            "source":       p.source,
+            "source_label": p.get_source_display(),
+            "date_relevee": str(p.date_relevee),
+            "date_collecte": p.date_collecte.isoformat(),
+        }
+        for p in items
+    ]
+
+    return Response({
+        "count":     total,
+        "page":      page,
+        "page_size": page_size,
+        "pages":     -(-total // page_size),
+        "periode_jours": periode,
+        "results":   results,
+    })
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def alertes_prix_api(request):
+    """
+    GET /api/mobile/prix/alertes/
+    Retourne les alertes de variation de prix actives.
+
+    Filtres :
+      niveau    — info | warning | critique
+      produit   — filtrer par produit
+      jours     — fenêtre max en jours depuis la détection (défaut 30)
+      page      — numéro de page
+      page_size — taille de page (max 50 ; défaut 20)
+
+    Réponse :
+      {count, page, page_size, pages, results: [{id, produit_nom, marche_nom,
+       variation_pct, variation_sens, prix_actuel, prix_reference, unite,
+       periode_jours, niveau, icone, date_detection}]}
+    """
+    from baay.models import AlertePrix
+    from django.utils.timezone import now
+    from datetime import timedelta
+
+    niveau_filtre  = request.query_params.get("niveau", "").strip()
+    produit_filtre = request.query_params.get("produit", "").strip()
+    try:
+        jours = min(90, max(1, int(request.query_params.get("jours", 30))))
+    except (ValueError, TypeError):
+        jours = 30
+    try:
+        page = max(1, int(request.query_params.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+    try:
+        page_size = min(50, max(1, int(request.query_params.get("page_size", 20))))
+    except (ValueError, TypeError):
+        page_size = 20
+
+    qs = AlertePrix.objects.filter(date_detection__gte=now() - timedelta(days=jours))
+
+    if niveau_filtre in (AlertePrix.NIVEAU_INFO, AlertePrix.NIVEAU_WARNING, AlertePrix.NIVEAU_CRITIQUE):
+        qs = qs.filter(niveau=niveau_filtre)
+    else:
+        # Par défaut : warning + critique uniquement
+        qs = qs.filter(niveau__in=[AlertePrix.NIVEAU_WARNING, AlertePrix.NIVEAU_CRITIQUE])
+
+    if produit_filtre:
+        qs = qs.filter(produit_nom__icontains=produit_filtre)
+
+    qs = qs.order_by("-date_detection")
+    total  = qs.count()
+    offset = (page - 1) * page_size
+    items  = qs[offset: offset + page_size]
+
+    results = [
+        {
+            "id":             str(a.id),
+            "produit_nom":    a.produit_nom,
+            "marche_nom":     a.marche_nom,
+            "region":         a.region,
+            "variation_pct":  a.variation_pct,
+            "variation_sens": "hausse" if a.variation_pct > 0 else "baisse",
+            "variation_abs":  abs(a.variation_pct),
+            "prix_actuel":    float(a.prix_actuel),
+            "prix_reference": float(a.prix_reference),
+            "unite":          a.unite,
+            "periode_jours":  a.periode_jours,
+            "niveau":         a.niveau,
+            "niveau_label":   a.get_niveau_display(),
+            "icone":          a.icone,
+            "vue":            a.vue,
+            "date_detection": a.date_detection.isoformat(),
+        }
+        for a in items
+    ]
+
+    return Response({
+        "count":     total,
+        "page":      page,
+        "page_size": page_size,
+        "pages":     -(-total // page_size),
+        "results":   results,
+    })
