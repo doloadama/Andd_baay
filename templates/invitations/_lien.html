@@ -1,0 +1,13 @@
+<div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 mt-4">
+  <p class="text-sm font-semibold text-emerald-800 mb-2">Lien d'invitation créé</p>
+  <div class="flex gap-2">
+    <input type="text" readonly value="{{ lien }}"
+           class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white font-mono"
+           id="lien-invitation-{{ invitation.pk }}">
+    <button onclick="navigator.clipboard.writeText('{{ lien }}'); this.textContent='Copié';"
+            class="px-3 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors">
+      Copier
+    </button>
+  </div>
+  <p class="text-xs text-gray-500 mt-2">Valide 7 jours &middot; Rôle : {{ invitation.get_role_invite_display }}</p>
+</div>

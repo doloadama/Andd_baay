@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+{% block title %}Rejoindre {{ invitation.ferme.nom }}{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div class="mb-6 text-center">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h1 class="text-xl font-bold text-gray-900">Rejoindre {{ invitation.ferme.nom }}</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Vous êtes connecté en tant que <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>.
+      </p>
+      <p class="text-sm text-gray-500 mt-1">
+        Vous allez rejoindre cette ferme comme <strong>{{ invitation.get_role_invite_display|lower }}</strong>.
+      </p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="confirmer">
+      <button type="submit" class="w-full py-2.5 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors">
+        Confirmer et rejoindre la ferme
+      </button>
+    </form>
+    <p class="text-center text-xs text-gray-400 mt-4">
+      Pas vous ? <a href="{% url 'login' %}?next={{ request.path }}" class="text-emerald-600 hover:underline">Changer de compte</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

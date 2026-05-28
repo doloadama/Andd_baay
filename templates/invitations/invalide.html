@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block bootstrap_css %}{% endblock %}
+{% block bootstrap_js %}{% endblock %}
+{% block title %}Lien invalide{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+      <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+    </div>
+    <h1 class="text-xl font-bold text-gray-900 mb-2">Lien d'invitation invalide</h1>
+    {% if raison == 'expiree' %}
+    <p class="text-sm text-gray-500">Ce lien d'invitation a déjà été utilisé. Demandez un nouveau lien au responsable de la ferme.</p>
+    {% else %}
+    <p class="text-sm text-gray-500">Ce lien d'invitation a expiré (validité 7 jours). Demandez un nouveau lien au responsable de la ferme.</p>
+    {% endif %}
+    <a href="{% url 'dashboard' %}" class="mt-6 inline-block px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+      Retour au tableau de bord
+    </a>
+  </div>
+</div>
+{% endblock %}

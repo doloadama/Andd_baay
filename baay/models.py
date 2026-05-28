@@ -175,6 +175,43 @@ class MembreFerme(models.Model):
         return f"{self.utilisateur.user.username} - {self.get_role_display()} de {self.ferme.nom}"
 
 
+class InvitationFerme(models.Model):
+    """Lien d'invitation tokenisé permettant à un propriétaire d'inviter techniciens/ouvriers."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ferme = models.ForeignKey(Ferme, on_delete=models.CASCADE, related_name='invitations')
+    token = models.CharField(max_length=64, unique=True, editable=False)
+    cree_par = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='invitations_creees')
+    role_invite = models.CharField(
+        max_length=20,
+        choices=[('technician', 'Technicien'), ('worker', 'Ouvrier')],
+        default='technician'
+    )
+    email_invite = models.EmailField(blank=True)
+    utilisee = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(32)
+        if not self.expires_at:
+            from django.utils import timezone as _tz
+            from datetime import timedelta
+            self.expires_at = _tz.now() + timedelta(days=7)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_valid(self):
+        from django.utils import timezone as _tz
+        return not self.utilisee and self.expires_at > _tz.now()
+
+    def __str__(self):
+        return f"Invitation {self.ferme.nom} ({self.role_invite}) — {'utilisée' if self.utilisee else 'active'}"
+
+
 class DemandeAccesFerme(models.Model):
     STATUT_CHOICES = [
         ('en_attente', 'En attente'),

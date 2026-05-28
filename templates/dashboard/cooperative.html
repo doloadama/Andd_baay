@@ -119,6 +119,7 @@
                     <th>Dernier diagnostic</th>
                     <th>Projets actifs</th>
                     <th>Tâches critiques</th>
+                    <th>Inviter</th>
                     <th></th>
                 </tr>
             </thead>
@@ -167,6 +168,21 @@
                     {% else %}
                     <span class="coop-badge coop-badge--ok"><i class="fas fa-check"></i> OK</span>
                     {% endif %}
+                </td>
+                <td>
+                    <div hx-target="#invitation-result-{{ row.ferme.id }}" hx-swap="innerHTML">
+                        <form hx-post="{% url 'creer_invitation' row.ferme.id %}" class="inline-flex gap-1 items-center">
+                            {% csrf_token %}
+                            <select name="role_invite" class="px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                                <option value="technician">Technicien</option>
+                                <option value="worker">Ouvrier</option>
+                            </select>
+                            <button type="submit" class="inline-flex items-center px-2 py-1 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                                <i class="fas fa-link" style="margin-right:3px;"></i> Inviter
+                            </button>
+                        </form>
+                        <div id="invitation-result-{{ row.ferme.id }}"></div>
+                    </div>
                 </td>
                 <td>
                     <a href="{% url 'detail_ferme' row.ferme.id %}" class="inline-flex items-center justify-center px-2 py-1 border border-emerald-600 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors">
