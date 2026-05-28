@@ -361,9 +361,35 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Andd_Baayi.wsgi.application'
 ASGI_APPLICATION = 'Andd_Baayi.asgi.application'
 
+# ── Redis URL with Authentication (Railway support) ───────────────────────
+# Railway Redis nécessite un mot de passe. Construit l'URL complète si nécessaire.
+_redis_url_raw = os.getenv('REDIS_URL', '').strip()
+_redis_password = os.getenv('REDISPASSWORD', '').strip()
+_redis_host = os.getenv('REDISHOST', '').strip()
+_redis_port = os.getenv('REDISPORT', '6379').strip()
+_redis_user = os.getenv('REDISUSER', '').strip()
+
+# Construction URL avec auth si mot de passe présent mais pas dans l'URL
+if _redis_url_raw and _redis_password and ':' not in _redis_url_raw.replace('://', ''):
+    # URL sans auth mais mot de passe fourni séparément
+    # Format: redis://:[password]@host:port/0
+    _redis_auth = f"{_redis_user}:{_redis_password}" if _redis_user else f":{_redis_password}"
+    # Remplacer redis:// par redis://:password@ ou utiliser le host fourni
+    if _redis_host:
+        _redis_url = f"redis://{_redis_auth}@{_redis_host}:{_redis_port}/0"
+    else:
+        # Extraction host:port de l'URL existante
+        _redis_url = _redis_url_raw.replace('redis://', f'redis://{_redis_auth}@')
+        # S'assurer qu'il y a un DB number à la fin
+        if not _redis_url.endswith('/0') and not _redis_url.endswith('/1'):
+            _redis_url = _redis_url.rstrip('/') + '/0'
+elif _redis_url_raw:
+    _redis_url = _redis_url_raw
+else:
+    _redis_url = ''
+
 # Channels (WebSockets) — in-memory en dev ; Redis si REDIS_URL (hors Vercel).
 # Sur Vercel : pas de package channels_redis ; couche mémoire uniquement.
-_redis_url = os.getenv('REDIS_URL', '').strip()
 if IS_VERCEL:
     CHANNEL_LAYERS = {
         'default': {
@@ -455,6 +481,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'baay.tasks.auto_retrain_models_task',
         'schedule': crontab(hour=3, minute=0, day_of_week=0),  # 0 = dimanche
         'kwargs': {'declencheur': 'auto', 'min_new_obs': 5, 'min_n': 5},
+    },
+    # Actualités agro-météo — ANACIM + Ministère Agriculture (toutes les 6h)
+    'fetch-actualites': {
+        'task': 'baay.tasks.fetch_actualites_task',
+        'schedule': timedelta(hours=6),
     },
 }
 

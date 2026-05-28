@@ -2738,3 +2738,83 @@ class AppelAPILog(models.Model):
 
     def __str__(self):
         return f"{self.service} — {self.timestamp.strftime('%d/%m/%Y %H:%M')} — ${self.cout_estime_usd}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ArticleActualite — Agrégation de l'actualité agro-météo (ANACIM + MAE)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ArticleActualite(models.Model):
+    """
+    Article d'actualité agro-météo agrégé depuis des sources officielles.
+
+    Sources supportées :
+      - ANACIM (Agence Nationale de l'Aviation Civile et de la Météorologie)
+      - MAE (Ministère de l'Agriculture et de l'Équipement Rural du Sénégal)
+      - Autres sources agro (ANSD, FAO, etc.)
+
+    Mis à jour toutes les 6h via la tâche Celery `fetch_actualites_task`.
+    """
+
+    SOURCE_ANACIM = "anacim"
+    SOURCE_MAE    = "mae"
+    SOURCE_ANSD   = "ansd"
+    SOURCE_FAO    = "fao"
+    SOURCE_AUTRE  = "autre"
+
+    SOURCE_CHOICES = [
+        (SOURCE_ANACIM, "ANACIM — Météo & Agroclimat"),
+        (SOURCE_MAE,    "Ministère de l'Agriculture"),
+        (SOURCE_ANSD,   "ANSD — Statistiques"),
+        (SOURCE_FAO,    "FAO Sénégal"),
+        (SOURCE_AUTRE,  "Autre source"),
+    ]
+
+    CATEGORIE_METEO    = "meteo"
+    CATEGORIE_CONSEIL  = "conseil"
+    CATEGORIE_POLITIQUE = "politique"
+    CATEGORIE_MARCHE   = "marche"
+    CATEGORIE_AUTRE    = "autre"
+
+    CATEGORIE_CHOICES = [
+        (CATEGORIE_METEO,     "Météo & Agroclimat"),
+        (CATEGORIE_CONSEIL,   "Conseils agricoles"),
+        (CATEGORIE_POLITIQUE, "Politique agricole"),
+        (CATEGORIE_MARCHE,    "Marchés & prix"),
+        (CATEGORIE_AUTRE,     "Autre"),
+    ]
+
+    id              = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    source          = models.CharField(max_length=20, choices=SOURCE_CHOICES, default=SOURCE_AUTRE, db_index=True)
+    categorie       = models.CharField(max_length=20, choices=CATEGORIE_CHOICES, default=CATEGORIE_AUTRE, db_index=True)
+    titre           = models.CharField(max_length=500)
+    resume          = models.TextField(blank=True)
+    contenu         = models.TextField(blank=True)
+    url_originale   = models.URLField(max_length=2000, unique=True)
+    image_url       = models.URLField(max_length=2000, blank=True)
+    date_publication = models.DateTimeField(null=True, blank=True, db_index=True)
+    date_collecte   = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+    actif           = models.BooleanField(default=True, db_index=True,
+                                          help_text="False = masqué de la liste publique (spam, erreur).")
+
+    class Meta:
+        ordering = ["-date_publication", "-date_collecte"]
+        verbose_name = "Article actualité"
+        verbose_name_plural = "Articles actualités"
+        indexes = [
+            models.Index(fields=["source", "-date_publication"]),
+            models.Index(fields=["categorie", "-date_publication"]),
+            models.Index(fields=["actif", "-date_publication"]),
+        ]
+
+    def __str__(self):
+        return f"[{self.get_source_display()}] {self.titre[:80]}"
+
+    @property
+    def source_label(self) -> str:
+        return self.get_source_display()
+
+    @property
+    def categorie_label(self) -> str:
+        return self.get_categorie_display()

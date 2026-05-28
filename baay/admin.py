@@ -21,6 +21,7 @@ from baay.dashboard_services import DashboardChangelistMixin
 
 from .models import (
     AppelAPILog,
+    ArticleActualite,
     Conversation,
     CampagneProjet,
     DemandeAccesFerme,
@@ -470,3 +471,23 @@ class AppelAPILogAdmin(ModelAdmin):
             "alerte_active": alerte,
         })
         return super().changelist_view(request, extra_context=extra_context)
+
+
+# ─── Actualités ───────────────────────────────────────────────────────────────
+
+@admin.register(ArticleActualite)
+class ArticleActualiteAdmin(ModelAdmin):
+    list_display  = ("titre_tronque", "source", "categorie", "date_publication", "actif", "date_collecte")
+    list_filter   = (
+        ("source", ChoicesDropdownFilter),
+        ("categorie", ChoicesDropdownFilter),
+        "actif",
+    )
+    search_fields = ("titre", "resume", "url_originale")
+    readonly_fields = ("date_collecte", "date_modification", "id")
+    ordering = ("-date_publication", "-date_collecte")
+    list_per_page = 50
+
+    @admin.display(description="Titre")
+    def titre_tronque(self, obj):
+        return Truncator(obj.titre).chars(80)

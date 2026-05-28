@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Actualités Agro-Météo — Andd Baay{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Dernières actualités de l'ANACIM, du Ministère de l'Agriculture et des partenaires agro au Sénégal." />
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ── */
+.actu-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+/* ── Hero ── */
+.actu-hero {
+  background: linear-gradient(135deg, var(--ab-color-primary, #1D9E75) 0%, #0d7a5a 100%);
+  border-radius: var(--ab-radius-lg, 16px);
+  padding: 2rem 2.5rem;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+.actu-hero h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 .25rem; }
+.actu-hero p  { opacity: .88; margin: 0; font-size: .95rem; }
+
+/* ── Filters ── */
+.actu-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+.actu-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .85rem;
+  border-radius: 20px;
+  font-size: .82rem;
+  font-weight: 500;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  text-decoration: none;
+  transition: all .18s;
+}
+.actu-filter-chip:hover,
+.actu-filter-chip.active {
+  background: var(--ab-color-primary, #1D9E75);
+  border-color: var(--ab-color-primary, #1D9E75);
+  color: #fff;
+}
+.actu-filter-chip .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .7;
+}
+
+/* ── Grid ── */
+.actu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Card ── */
+.actu-card {
+  background: #fff;
+  border-radius: var(--ab-radius-lg, 14px);
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .2s, transform .2s;
+}
+.actu-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  transform: translateY(-2px);
+}
+.actu-card-img {
+  width: 100%; height: 170px;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+.actu-card-img-placeholder {
+  width: 100%; height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+.actu-card-body {
+  padding: 1rem 1.1rem 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.actu-card-badges {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin-bottom: .55rem;
+}
+.actu-badge {
+  font-size: .7rem;
+  font-weight: 600;
+  padding: .18rem .55rem;
+  border-radius: 6px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.actu-badge-source  { background: #e0f2fe; color: #0369a1; }
+.actu-badge-meteo   { background: #dbeafe; color: #1d4ed8; }
+.actu-badge-conseil { background: #dcfce7; color: #15803d; }
+.actu-badge-politique{ background: #fef3c7; color: #92400e; }
+.actu-badge-marche  { background: #fce7f3; color: #9d174d; }
+.actu-badge-autre   { background: #f3f4f6; color: #6b7280; }
+
+.actu-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #111827;
+  margin: 0 0 .5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.actu-card-resume {
+  font-size: .85rem;
+  color: #6b7280;
+  line-height: 1.5;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: .75rem;
+}
+.actu-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: .75rem;
+  border-top: 1px solid #f3f4f6;
+}
+.actu-card-date {
+  font-size: .75rem;
+  color: #9ca3af;
+}
+.actu-card-link {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--ab-color-primary, #1D9E75);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+.actu-card-link:hover { text-decoration: underline; }
+
+/* ── Empty state ── */
+.actu-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #6b7280;
+}
+.actu-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: .4; }
+
+/* ── Pagination ── */
+.actu-pagination {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.actu-page-btn {
+  padding: .4rem .9rem;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  font-size: .85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all .18s;
+}
+.actu-page-btn:hover,
+.actu-page-btn.current {
+  background: var(--ab-color-primary, #1D9E75);
+  border-color: var(--ab-color-primary, #1D9E75);
+  color: #fff;
+}
+
+/* ── Source color dots ── */
+.dot-anacim { background: #0369a1; }
+.dot-mae    { background: #15803d; }
+.dot-fao    { background: #b45309; }
+.dot-ansd   { background: #7c3aed; }
+.dot-autre  { background: #6b7280; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="actu-page">
+
+  {# ── Hero ── #}
+  <div class="actu-hero">
+    <h1><i class="fas fa-newspaper me-2"></i>Actualités Agro-Météo</h1>
+    <p>Informations officielles de l'ANACIM, du Ministère de l'Agriculture et des partenaires agro au Sénégal.</p>
+  </div>
+
+  {# ── Filtres ── #}
+  <div class="actu-filters">
+    <span style="font-size:.85rem;font-weight:600;color:#374151;margin-right:.25rem;">Source :</span>
+    <a href="{% url 'actualites' %}{% if categorie_actif %}?categorie={{ categorie_actif }}{% endif %}"
+       class="actu-filter-chip {% if not source_actif %}active{% endif %}">
+      <span class="dot"></span>Toutes
+    </a>
+    {% for val, label in sources %}
+    <a href="?source={{ val }}{% if categorie_actif %}&categorie={{ categorie_actif }}{% endif %}"
+       class="actu-filter-chip {% if source_actif == val %}active{% endif %}">
+      <span class="dot dot-{{ val }}"></span>{{ label }}
+    </a>
+    {% endfor %}
+
+    <span style="font-size:.85rem;font-weight:600;color:#374151;margin-left:.75rem;margin-right:.25rem;">Catégorie :</span>
+    <a href="{% url 'actualites' %}{% if source_actif %}?source={{ source_actif }}{% endif %}"
+       class="actu-filter-chip {% if not categorie_actif %}active{% endif %}">
+      Toutes
+    </a>
+    {% for val, label in categories %}
+    <a href="?categorie={{ val }}{% if source_actif %}&source={{ source_actif }}{% endif %}"
+       class="actu-filter-chip {% if categorie_actif == val %}active{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  {# ── Compteur ── #}
+  {% if total %}
+  <p style="font-size:.85rem;color:#6b7280;margin-bottom:1.25rem;">
+    {{ total }} article{{ total|pluralize }} disponible{{ total|pluralize }}
+  </p>
+  {% endif %}
+
+  {# ── Grille ── #}
+  {% if page_obj.object_list %}
+  <div class="actu-grid">
+    {% for article in page_obj %}
+    <article class="actu-card">
+
+      {# Image ou placeholder emoji #}
+      {% if article.image_url %}
+        <img class="actu-card-img"
+             src="{{ article.image_url }}"
+             alt="{{ article.titre|truncatechars:80 }}"
+             loading="lazy"
+             onerror="this.parentNode.innerHTML='<div class=actu-card-img-placeholder>{{ article.source|emoji_source|default:"🌿" }}</div>'">
+      {% else %}
+        <div class="actu-card-img-placeholder">
+          {% if article.source == "anacim" %}☁️
+          {% elif article.source == "mae" %}🌾
+          {% elif article.source == "fao" %}🌍
+          {% else %}📰
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="actu-card-body">
+        <div class="actu-card-badges">
+          <span class="actu-badge actu-badge-source">{{ article.get_source_display }}</span>
+          <span class="actu-badge actu-badge-{{ article.categorie }}">{{ article.get_categorie_display }}</span>
+        </div>
+
+        <h2 class="actu-card-title">{{ article.titre }}</h2>
+
+        {% if article.resume %}
+        <p class="actu-card-resume">{{ article.resume|striptags }}</p>
+        {% endif %}
+
+        <div class="actu-card-footer">
+          <span class="actu-card-date">
+            {% if article.date_publication %}
+              <i class="far fa-calendar-alt me-1"></i>{{ article.date_publication|date:"d M Y" }}
+            {% else %}
+              <i class="far fa-clock me-1"></i>{{ article.date_collecte|date:"d M Y" }}
+            {% endif %}
+          </span>
+          <a class="actu-card-link"
+             href="{{ article.url_originale }}"
+             target="_blank"
+             rel="noopener noreferrer">
+            Lire <i class="fas fa-external-link-alt" style="font-size:.7rem;"></i>
+          </a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  {# ── Pagination ── #}
+  {% if page_obj.has_other_pages %}
+  <nav class="actu-pagination">
+    {% if page_obj.has_previous %}
+    <a class="actu-page-btn"
+       href="?page={{ page_obj.previous_page_number }}{% if source_actif %}&source={{ source_actif }}{% endif %}{% if categorie_actif %}&categorie={{ categorie_actif }}{% endif %}">
+      ← Précédent
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="actu-page-btn current">{{ num }}</span>
+      {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+        <a class="actu-page-btn"
+           href="?page={{ num }}{% if source_actif %}&source={{ source_actif }}{% endif %}{% if categorie_actif %}&categorie={{ categorie_actif }}{% endif %}">
+          {{ num }}
+        </a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a class="actu-page-btn"
+       href="?page={{ page_obj.next_page_number }}{% if source_actif %}&source={{ source_actif }}{% endif %}{% if categorie_actif %}&categorie={{ categorie_actif }}{% endif %}">
+      Suivant →
+    </a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  {# ── État vide ── #}
+  <div class="actu-empty">
+    <div><i class="fas fa-newspaper"></i></div>
+    <h3 style="font-size:1.1rem;font-weight:600;color:#374151;margin:.75rem 0 .5rem;">
+      Aucune actualité disponible
+    </h3>
+    <p style="max-width:380px;margin:0 auto;">
+      Les actualités sont collectées automatiquement toutes les 6 heures depuis l'ANACIM
+      et le Ministère de l'Agriculture. Revenez dans quelques instants.
+    </p>
+    {% if request.user.is_staff %}
+    <button onclick="fetch('/actualites/rafraichir/').then(r=>r.json()).then(d=>alert(d.ok?'Collecte lancée !':'Erreur: '+d.error))"
+            style="margin-top:1.5rem;padding:.6rem 1.5rem;background:var(--ab-color-primary,#1D9E75);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+      <i class="fas fa-sync-alt me-1"></i>Lancer la collecte maintenant
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

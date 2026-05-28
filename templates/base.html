@@ -203,6 +203,13 @@
                                 <span>Tableau de bord</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link-modern tw-touch-manipulation tw-min-h-[44px] tw-items-center tw-inline-flex tw-gap-2 {% if request.resolver_match and request.resolver_match.url_name == 'actualites' %}active{% endif %}"
+                                href="{% url 'actualites' %}" data-pjax{% if request.resolver_match and request.resolver_match.url_name == 'actualites' %} aria-current="page"{% endif %}>
+                                <i class="fas fa-newspaper" aria-hidden="true"></i>
+                                <span>Actualités</span>
+                            </a>
+                        </li>
                         <li class="nav-item tw-relative nav-exploitation-dropdown"
                             x-data="{ open: {% if exploitation_section_active or finance_section_active %}true{% else %}false{% endif %} }"
                             @click.outside="open = false"
@@ -1029,6 +1036,10 @@
                         <a href="{% url 'dashboard' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                             <i class="fas fa-chart-pie" aria-hidden="true"></i>
                             <span>Vue d'ensemble</span>
+                        </a>
+                        <a href="{% url 'actualites' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'actualites' %}active{% endif %}">
+                            <i class="fas fa-newspaper" aria-hidden="true"></i>
+                            <span>Actualités Agro-Météo</span>
                         </a>
                     </div>
                     <div class="mobile-drawer-section">

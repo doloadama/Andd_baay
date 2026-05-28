@@ -697,3 +697,63 @@ def diagnostic_result_api(request, task_id: str):
         return Response({"status": "done", "result": task_data["result"]})
     else:
         return Response({"status": "error", "error": task_data.get("error", "Erreur inconnue.")})
+
+
+# ── Actualités agro-météo ──────────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def actualites_api(request):
+    """GET /api/mobile/actualites/
+    Retourne les articles d'actualité agro-météo (ANACIM, MAE, FAO…).
+
+    Query params :
+      source    — filtre par source (anacim | mae | fao | ansd | autre)
+      categorie — filtre par catégorie (meteo | conseil | politique | marche | autre)
+      page      — page (défaut 1)
+      page_size — taille de page (défaut 20, max 50)
+    """
+    from .models import ArticleActualite
+
+    source    = request.query_params.get("source", "").strip()
+    categorie = request.query_params.get("categorie", "").strip()
+    try:
+        page      = max(1, int(request.query_params.get("page", 1)))
+        page_size = min(50, max(1, int(request.query_params.get("page_size", 20))))
+    except (ValueError, TypeError):
+        page, page_size = 1, 20
+
+    qs = ArticleActualite.objects.filter(actif=True)
+    if source and source in dict(ArticleActualite.SOURCE_CHOICES):
+        qs = qs.filter(source=source)
+    if categorie and categorie in dict(ArticleActualite.CATEGORIE_CHOICES):
+        qs = qs.filter(categorie=categorie)
+
+    total  = qs.count()
+    offset = (page - 1) * page_size
+    articles = qs[offset: offset + page_size]
+
+    results = [
+        {
+            "id":               str(a.id),
+            "source":           a.source,
+            "source_label":     a.get_source_display(),
+            "categorie":        a.categorie,
+            "categorie_label":  a.get_categorie_display(),
+            "titre":            a.titre,
+            "resume":           a.resume,
+            "url":              a.url_originale,
+            "image_url":        a.image_url,
+            "date_publication": a.date_publication.isoformat() if a.date_publication else None,
+            "date_collecte":    a.date_collecte.isoformat(),
+        }
+        for a in articles
+    ]
+
+    return Response({
+        "count":     total,
+        "page":      page,
+        "page_size": page_size,
+        "pages":     -(-total // page_size),   # ceil division
+        "results":   results,
+    })

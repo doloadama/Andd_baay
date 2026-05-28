@@ -25,6 +25,7 @@ from .views_api_mobile import (
     projet_avancement_view,
     projet_produit_etat_view,
     projet_statut_view,
+    actualites_api,
 )
 
 _p = "api/mobile"
@@ -77,4 +78,7 @@ urlpatterns = [
     # ── Diagnostic async ──────────────────────────────────────────────────
     path("api/v1/diagnostic/", diagnostic_submit_api, name="api_v1_diagnostic_submit"),
     path("api/v1/diagnostic/<str:task_id>/", diagnostic_result_api, name="api_v1_diagnostic_result"),
+
+    # ── Actualités agro-météo ─────────────────────────────────────────────
+    path(f"{_p}/actualites/", actualites_api, name="mobile_actualites"),
 ]
