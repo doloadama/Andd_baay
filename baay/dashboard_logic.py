@@ -247,6 +247,84 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
         .first()
     )
 
+    # ── 10. Dashboard stats JSON for immediate chart rendering ────────────────
+    # Évite l'appel API /api/dashboard/stats/ asynchrone qui ralentit le chargement
+    import json
+    from django.utils.html import mark_safe
+
+    # Format projets pour le JS (similaire à dashboard_stats_api)
+    projets_list = []
+    for p in projets_qs[:100]:  # Limiter à 100 projets pour la taille du JSON
+        projets_list.append({
+            'id': str(p.id),
+            'nom': p.nom,
+            'statut': p.statut,
+            'culture_id': str(p.culture.id) if p.culture else '',
+            'culture_nom': p.culture.nom if p.culture else 'N/A',
+            'superficie': float(p.superficie) if p.superficie else 0,
+            'rendement_estime': float(p.rendement_estime) if p.rendement_estime else 0,
+            'date_lancement': p.date_lancement.strftime('%Y-%m-%d') if p.date_lancement else '',
+            'ferme_nom': p.ferme.nom if p.ferme else '',
+        })
+
+    # Format cultures pour les graphiques
+    projets_par_culture = [
+        {
+            'culture': c['culture']['nom'],
+            'count': c['projets_count'],
+            'superficie': c['superficie'],
+            'rendement': c['rendement_total']
+        }
+        for c in cultures_data
+    ]
+
+    # Stats par statut
+    projets_par_statut = []
+    for statut, label in [('en_cours', 'En cours'), ('en_pause', 'En pause'), ('fini', 'Terminé')]:
+        count = projets_qs.filter(statut=statut).count()
+        if count > 0:
+            projets_par_statut.append({'statut': statut, 'count': count})
+
+    dashboard_stats_data = {
+        'superficie_totale': superficie_totale,
+        'rendement_total': rendement_total,
+        'investissement_total': float(cockpit_payload.get('investissement_total', 0)),
+        'nb_projets': total_count,
+        'projets_en_cours': projets_en_cours,
+        'projets_en_pause': projets_en_pause,
+        'projets_finis': projets_finis,
+        'completion_rate': completion_rate,
+        'projets_par_statut': projets_par_statut,
+        'projets_par_culture': projets_par_culture,
+        'nombre_fermes': len(user_fermes),
+        'fermes_data': [
+            {
+                'id': str(f['ferme'].id),
+                'nom': f['ferme'].nom,
+                'projets_count': f['ferme'].projets_count_ann or 0,
+                'projets_actifs': f['ferme'].projets_actifs_ann or 0,
+                'superficie_ferme': float(f['ferme'].superficie_totale or 0),
+                'superficie_utilisee': f['superficie_utilisee'],
+                'membres_count': (f['ferme'].membres_count_ann or 0) + 1,
+                'utilisation_pct': f['taux_utilisation'],
+            }
+            for f in fermes_performance
+        ],
+        'selected_ferme': {
+            'id': str(selected_ferme.id),
+            'nom': selected_ferme.nom,
+            'utilisation': round(
+                sum(p.superficie or 0 for p in projets_qs.filter(ferme=selected_ferme, statut='en_cours')) /
+                float(selected_ferme.superficie_totale or 1) * 100, 1
+            ) if selected_ferme else 0,
+            'membres': (selected_ferme.membres_count_ann or 0) + 1,
+        } if selected_ferme else None,
+        'projets_list': projets_list,
+        'quick_stats': cockpit_payload.get('quick_stats', {}),
+        'finance_monthly': cockpit_payload.get('finance_monthly', {'mois': [], 'recettes': [], 'depenses': []}),
+        'invest_by_category': cockpit_payload.get('invest_by_category', {'labels': [], 'values': []}),
+    }
+
     return {
         'projets': projets_qs.order_by('-date_lancement'),
         'projets_en_cours': projets_en_cours,
@@ -278,4 +356,5 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
         'burn_rates': burn_rates[:5],
         'prochaine_recolte': prochaine_recolte,
         'map_markers': map_markers,
+        'dashboard_stats_json': mark_safe(json.dumps(dashboard_stats_data, default=str)),
     }

@@ -467,6 +467,22 @@ function buildStatsApiUrl() {
 }
 
 function dashboardStatsBootstrap() {
+    // ── Priorité 1: données JSON embarquées dans le HTML ─────────────────────
+    // Évite l'appel API /api/dashboard/stats/ asynchrone qui ralentit Railway
+    const embeddedScript = document.getElementById('dashboard-stats-bootstrap');
+    if (embeddedScript) {
+        try {
+            const embeddedData = JSON.parse(embeddedScript.textContent);
+            if (embeddedData && embeddedData.nb_projets !== undefined) {
+                dashboardStatsData = embeddedData;
+                // Retourne une Promise résolue immédiatement avec les données
+                return Promise.resolve(embeddedData);
+            }
+        } catch (e) {
+            console.warn('Dashboard: embedded stats JSON parse error, fallback to API', e);
+        }
+    }
+    // ── Fallback: appel API si données embarquées indisponibles ─────────────
     return fetchDashboardStats(buildStatsApiUrl());
 }
 

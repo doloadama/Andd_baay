@@ -676,6 +676,9 @@
 {{ cockpit.invest_by_category|json_script:"cockpit-invest-by-category" }}
 {% endif %}
 
+{# Dashboard stats JSON - chargement immédiat des graphiques sans appel API #}
+{{ dashboard_stats_json|json_script:"dashboard-stats-bootstrap" }}
+
 <link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
 <script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
 <!-- Charting & Logic -->
