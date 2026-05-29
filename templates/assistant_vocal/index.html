@@ -414,37 +414,79 @@
         wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
 
+    var POLL_INTERVAL = 2500;   // ms — assez réactif, assez léger pour la 3G
+    var POLL_MAX_MS   = 120000; // abandon après 2 min
+
+    function resetMic() {
+        micBtn.disabled = false;
+        micHint.textContent = 'Appuyer pour parler en Wolof';
+    }
+
+    function showResult(result) {
+        hideStatus();
+        if (result.transcript) addBubble(result.transcript, 'user');
+        if (result.response)   addBubble(result.response, 'bot', result.audio_b64 || null);
+    }
+
+    function handleError(code, message) {
+        if (code === 'model_loading') {
+            setStatus('Modèle GalsenAI en démarrage — votre message est en file d\'attente, patientez.', 'error');
+        } else if (code === 'not_configured') {
+            setStatus('Token HuggingFace manquant — voir l\'avertissement ci-dessus.', 'error');
+        } else {
+            setStatus(message || 'Erreur inattendue.', 'error');
+        }
+    }
+
+    function pollResult(pollUrl, startedAt) {
+        fetch(pollUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) {
+                if (r.status === 410) { resetMic(); setStatus('Session expirée, réenregistrez votre message.', 'error'); return null; }
+                return r.json();
+            })
+            .then(function (data) {
+                if (!data) return;
+                if (data.status === 'pending') {
+                    if (Date.now() - startedAt > POLL_MAX_MS) {
+                        resetMic(); setStatus('Traitement trop long — réessayez.', 'error'); return;
+                    }
+                    setTimeout(function () { pollResult(pollUrl, startedAt); }, POLL_INTERVAL);
+                    return;
+                }
+                resetMic();
+                if (data.status === 'error') { handleError(data.code, data.error); return; }
+                if (data.status === 'done')  { showResult(data.result || {}); }
+            })
+            .catch(function () {
+                // Coupure réseau transitoire (3G) : on retente, le résultat est en cache serveur.
+                if (Date.now() - startedAt > POLL_MAX_MS) {
+                    resetMic(); setStatus('Connexion perdue — réessayez.', 'error'); return;
+                }
+                setTimeout(function () { pollResult(pollUrl, startedAt); }, POLL_INTERVAL);
+            });
+    }
+
     function sendAudio(blob, mimeType) {
         var form = new FormData();
         form.append('audio', blob, 'recording.' + (mimeType.includes('webm') ? 'webm' : 'ogg'));
         form.append('csrfmiddlewaretoken', CSRF);
 
+        setStatus('Jëf Baay y\'angi dégg... (traitement en cours)', 'loading');
+
         fetch(API_URL, { method: 'POST', body: form })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                micBtn.disabled = false;
-                micHint.textContent = 'Appuyer pour parler en Wolof';
-
-                if (data.error === 'model_loading') {
-                    setStatus('Modèle GalsenAI en démarrage (' + Math.round(data.estimated_time) + 's) — réessayez.', 'error');
+            .then(function (r) { return r.json().then(function (d) { return { code: r.status, data: d }; }); })
+            .then(function (res) {
+                var data = res.data;
+                if (res.code === 429) { resetMic(); setStatus(data.message || 'Trop de requêtes.', 'error'); return; }
+                if (data.error)       { resetMic(); handleError(data.error, data.message); return; }
+                if (data.status === 'pending' && data.poll_url) {
+                    pollResult(data.poll_url, Date.now());
                     return;
                 }
-                if (data.error === 'not_configured') {
-                    setStatus('Token HuggingFace manquant — voir l\'avertissement ci-dessus.', 'error');
-                    return;
-                }
-                if (data.error) {
-                    setStatus(data.message || 'Erreur inattendue.', 'error');
-                    return;
-                }
-
-                hideStatus();
-                if (data.transcript) addBubble(data.transcript, 'user');
-                if (data.response)   addBubble(data.response, 'bot', data.audio_b64 || null);
+                resetMic(); setStatus('Réponse inattendue du serveur.', 'error');
             })
             .catch(function (err) {
-                micBtn.disabled = false;
-                micHint.textContent = 'Appuyer pour parler en Wolof';
+                resetMic();
                 setStatus('Erreur réseau : ' + err.message, 'error');
             });
     }
