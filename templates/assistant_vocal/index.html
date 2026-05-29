@@ -207,19 +207,17 @@
             <i class="fas fa-seedling" aria-hidden="true"></i>
             Andd Baay
         </a>
-        <p class="jb-brand__sub">Jëf Baay — Assistant vocal agricole en Wolof · propulsé par GalsenAI</p>
+        <p class="jb-brand__sub">Jëf Baay — Assistant vocal agricole en Wolof · propulsé par Gemini</p>
     </div>
 
-    {% if not hf_configured %}
-    <!-- Token warning -->
+    {% if not ai_configured %}
+    <!-- Clé IA manquante -->
     <div class="jb-warning" role="alert">
         <i class="fas fa-exclamation-triangle"></i>
         <div>
-            <strong>Token HuggingFace manquant.</strong>
-            L'assistant est en mode démonstration (aucun appel IA réel).
-            Pour activer : créez un token sur
-            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">huggingface.co/settings/tokens</a>
-            et ajoutez <code>HF_API_TOKEN=hf_...</code> dans votre <code>.env</code>.
+            <strong>Clé API Gemini manquante.</strong>
+            L'assistant ne peut pas répondre tant que la clé n'est pas configurée.
+            Ajoutez <code>GEMINI_API_KEY=...</code> dans votre <code>.env</code>.
         </div>
     </div>
     {% endif %}

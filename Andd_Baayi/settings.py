@@ -43,6 +43,8 @@ def _parse_gemini_keys():
 GEMINI_API_KEYS = _parse_gemini_keys()
 GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else ""
 PLANT_VISION_MODEL = (os.getenv("PLANT_VISION_MODEL", "gemini-2.0-flash") or "gemini-2.0-flash").strip()
+# Modèle Gemini pour l'assistant vocal Wolof (audio en entrée : transcription + réponse).
+GEMINI_VOCAL_MODEL = (os.getenv("GEMINI_VOCAL_MODEL", "gemini-2.0-flash") or "gemini-2.0-flash").strip()
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 
