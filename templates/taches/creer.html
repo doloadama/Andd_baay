@@ -22,35 +22,35 @@
         font-size: 1.45rem;
         font-weight: 700;
         margin: 0 0 .35rem;
-        color: var(--text-main);
+        color: var(--ab-text-main);
         letter-spacing: -0.02em;
     }
     .tache-create-head .lead {
         margin: 0;
         font-size: .92rem;
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
         max-width: 36rem;
         line-height: 1.5;
     }
     .tache-create-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-md);
+        background: var(--ab-card-bg);
+        border: 1px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-md);
+        box-shadow: var(--ab-shadow-md);
         overflow: hidden;
     }
     .tache-create-card .card-inner { padding: clamp(1.25rem, 3vw, 2rem); }
     .tache-create-section {
         margin-bottom: 1.5rem;
         padding-bottom: 1.25rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--ab-border-color);
     }
     .tache-create-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .tache-create-section h2 {
         font-size: .72rem;
         text-transform: uppercase;
         letter-spacing: .08em;
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
         font-weight: 700;
         margin: 0 0 1rem;
     }
@@ -60,10 +60,10 @@
         align-items: center;
         gap: .65rem .9rem;
         font-size: .88rem;
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
     }
-    .tache-meta-bar strong { color: var(--text-main); font-weight: 600; }
-    .role-chip-proprio { background: rgba(29, 158, 117, 0.15); color: var(--brand-deep); border: 1px solid rgba(29, 158, 117, 0.35); }
+    .tache-meta-bar strong { color: var(--ab-text-main); font-weight: 600; }
+    .role-chip-proprio { background: rgba(29, 158, 117, 0.15); color: var(--ab-brand-deep); border: 1px solid rgba(29, 158, 117, 0.35); }
     .role-chip-manager { background: rgba(59, 130, 246, 0.12); color: #1e40af; border: 1px solid rgba(59, 130, 246, 0.35); }
     .role-chip-tech { background: rgba(14, 165, 233, 0.12); color: #0369a1; border: 1px solid rgba(14, 165, 233, 0.35); }
     .ferme-switch {
@@ -73,9 +73,9 @@
         align-items: center;
         margin-top: .85rem;
         padding-top: .85rem;
-        border-top: 1px dashed var(--border-color);
+        border-top: 1px dashed var(--ab-border-color);
     }
-    .ferme-switch-label { font-size: .78rem; color: var(--text-muted); width: 100%; }
+    .ferme-switch-label { font-size: .78rem; color: var(--ab-text-muted); width: 100%; }
     .ferme-chip {
         display: inline-flex;
         align-items: center;
@@ -84,18 +84,18 @@
         font-size: .82rem;
         font-weight: 600;
         text-decoration: none;
-        border: 1px solid var(--border-color);
-        color: var(--text-main);
-        background: var(--bg-secondary);
+        border: 1px solid var(--ab-border-color);
+        color: var(--ab-text-main);
+        background: var(--ab-bg-secondary);
         transition: border-color .15s ease, background .15s ease;
     }
-    .ferme-chip:hover { border-color: var(--accent); color: var(--text-main); }
+    .ferme-chip:hover { border-color: var(--accent); color: var(--ab-text-main); }
     .ferme-chip.is-current {
         border-color: var(--accent);
         background: rgba(74, 222, 128, 0.12);
-        color: var(--brand-deep);
+        color: var(--ab-brand-deep);
     }
-    .fh-help { font-size: .82rem; color: var(--text-muted); margin-top: .35rem; line-height: 1.45; }
+    .fh-help { font-size: .82rem; color: var(--ab-text-muted); margin-top: .35rem; line-height: 1.45; }
     .tache-actions {
         display: flex;
         flex-wrap: wrap;
@@ -103,15 +103,15 @@
         align-items: center;
         margin-top: 1.5rem;
         padding-top: 1.25rem;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--ab-border-color);
     }
     .alert-assign-empty {
-        border-radius: var(--radius-input);
+        border-radius: var(--ab-radius-input);
         padding: .85rem 1rem;
         font-size: .9rem;
         background: rgba(245, 158, 11, 0.12);
         border: 1px solid rgba(245, 158, 11, 0.45);
-        color: var(--text-main);
+        color: var(--ab-text-main);
         margin-bottom: 1rem;
     }
     .tache-create-form-root.finance-ft-root {
@@ -122,16 +122,16 @@
         font-family: inherit;
         font-size: inherit;
         color: inherit;
-        --fh-surface2: var(--card-bg-solid, var(--card-bg));
-        --fh-border: var(--border-color);
-        --fh-text1: var(--text-main);
-        --fh-text3: var(--text-muted);
+        --fh-surface2: var(--ab-card-bg-solid, var(--ab-card-bg));
+        --fh-border: var(--ab-border-color);
+        --fh-text1: var(--ab-text-main);
+        --fh-text3: var(--ab-text-muted);
     }
     html.dark-mode .tache-create-form-root.finance-ft-root {
-        --fh-surface2: var(--card-bg-solid, var(--card-bg));
-        --fh-border: var(--border-color);
-        --fh-text1: var(--text-main);
-        --fh-text3: var(--text-muted);
+        --fh-surface2: var(--ab-card-bg-solid, var(--ab-card-bg));
+        --fh-border: var(--ab-border-color);
+        --fh-text1: var(--ab-text-main);
+        --fh-text3: var(--ab-text-muted);
     }
 </style>
 

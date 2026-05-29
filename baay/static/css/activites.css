@@ -5,13 +5,13 @@
 .activite-section {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: var(--bg-card, #fff);
+    background: var(--ab-bg-card, #fff);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
 }
 
 .dark-mode .activite-section {
-    background: var(--bg-card-dark, #1e293b);
+    background: var(--ab-bg-card-dark, #1e293b);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -19,7 +19,7 @@
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -47,23 +47,23 @@
     align-items: flex-start;
     gap: 1rem;
     padding: 1rem 1.25rem;
-    background: var(--bg-subtle, #f8fafc);
+    background: var(--ab-bg-subtle, #f8fafc);
     border-radius: 12px;
     border-left: 4px solid var(--accent, #1D9E75);
     transition: all 0.2s ease;
 }
 
 .dark-mode .activite-item {
-    background: var(--bg-subtle-dark, #0f172a);
+    background: var(--ab-bg-subtle-dark, #0f172a);
 }
 
 .activite-item:hover {
-    background: var(--bg-hover, #f1f5f9);
+    background: var(--ab-bg-hover, #f1f5f9);
     transform: translateX(4px);
 }
 
 .dark-mode .activite-item:hover {
-    background: var(--bg-hover-dark, #1e293b);
+    background: var(--ab-bg-hover-dark, #1e293b);
 }
 
 .activite-item--urgent {
@@ -100,7 +100,7 @@
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 0.5rem;
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
 }
 
 .activite-meta {
@@ -121,7 +121,7 @@
 }
 
 .echeance-badge {
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -133,7 +133,7 @@
 }
 
 .activite-description {
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
     font-size: 0.875rem;
     margin: 0;
     line-height: 1.5;
@@ -149,7 +149,7 @@
 .empty-state-small {
     text-align: center;
     padding: 2rem 1rem;
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
 }
 
 .empty-state-small i {
@@ -196,7 +196,7 @@
 
 .alerte-content p {
     margin: 0;
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
 }
 
 .alerte-actions {
@@ -215,21 +215,21 @@
     align-items: flex-start;
     gap: 1rem;
     padding: 1rem 1.25rem;
-    background: var(--bg-subtle, #f8fafc);
+    background: var(--ab-bg-subtle, #f8fafc);
     border-radius: 12px;
     transition: all 0.2s ease;
 }
 
 .dark-mode .message-item {
-    background: var(--bg-subtle-dark, #0f172a);
+    background: var(--ab-bg-subtle-dark, #0f172a);
 }
 
 .message-item:hover {
-    background: var(--bg-hover, #f1f5f9);
+    background: var(--ab-bg-hover, #f1f5f9);
 }
 
 .dark-mode .message-item:hover {
-    background: var(--bg-hover-dark, #1e293b);
+    background: var(--ab-bg-hover-dark, #1e293b);
 }
 
 .message-avatar {
@@ -255,11 +255,11 @@
     font-size: 0.9375rem;
     font-weight: 600;
     margin: 0 0 0.25rem;
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
 }
 
 .message-content p {
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
     font-size: 0.875rem;
     margin: 0 0 0.25rem;
     line-height: 1.5;

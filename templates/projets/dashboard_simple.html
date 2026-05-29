@@ -84,7 +84,7 @@
 
     <!-- Navigation rapide vers les pages spécialisées -->
     <section class="dashboard-quick-links animate__animated animate__fadeInUp" style="margin: 1.5rem 0;">
-        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main, #0f172a);">
+        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ab-text-main, #0f172a);">
             <i class="fas fa-compass" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
             Navigation rapide
         </h2>
@@ -97,8 +97,8 @@
                                 <i class="fas fa-chart-line"></i>
                             </div>
                             <div>
-                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main, #0f172a);">Performance</h5>
-                                <p style="margin: 0; font-size: 0.875rem; color: var(--text-muted, #64748b);">Rendements et analyses</p>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--ab-text-main, #0f172a);">Performance</h5>
+                                <p style="margin: 0; font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Rendements et analyses</p>
                             </div>
                         </div>
                     </div>
@@ -112,8 +112,8 @@
                                 <i class="fas fa-list-check"></i>
                             </div>
                             <div>
-                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main, #0f172a);">Activités</h5>
-                                <p style="margin: 0; font-size: 0.875rem; color: var(--text-muted, #64748b);">Tâches et alertes</p>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--ab-text-main, #0f172a);">Activités</h5>
+                                <p style="margin: 0; font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Tâches et alertes</p>
                             </div>
                         </div>
                     </div>
@@ -128,8 +128,8 @@
                                 <i class="fas fa-wallet"></i>
                             </div>
                             <div>
-                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main, #0f172a);">Finance</h5>
-                                <p style="margin: 0; font-size: 0.875rem; color: var(--text-muted, #64748b);">KPIs financiers</p>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--ab-text-main, #0f172a);">Finance</h5>
+                                <p style="margin: 0; font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">KPIs financiers</p>
                             </div>
                         </div>
                     </div>
@@ -141,59 +141,59 @@
 
     <!-- Stats Grid simplifié -->
     <section class="dashboard-summary" style="margin: 2rem 0;">
-        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main, #0f172a);">
+        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ab-text-main, #0f172a);">
             <i class="fas fa-th-large" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
             Vue d'ensemble
         </h2>
         <div class="row g-3">
             {% if selected_ferme %}
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ projets.count }}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Projets</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Projets</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #eab308;">{{ ferme_utilisation }}%</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Utilisation</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Utilisation</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #6366f1;">{{ projets_en_cours }}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Actifs</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Actifs</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #22c55e;">{{ completion_rate }}%</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Complétion</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Complétion</div>
                 </div>
             </div>
             {% else %}
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ nombre_fermes }}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Fermes</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Fermes</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #eab308;">{{ projets.count }}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Projets</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Projets</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #6366f1;">{{ projets_en_cours }}</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Actifs</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Actifs</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="summary-card" style="background: var(--bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
+                <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #22c55e;">{{ completion_rate }}%</div>
-                    <div style="font-size: 0.875rem; color: var(--text-muted, #64748b);">Complétion</div>
+                    <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Complétion</div>
                 </div>
             </div>
             {% endif %}
@@ -202,7 +202,7 @@
 
     <!-- Actions rapides -->
     <section class="dashboard-actions" style="margin: 2rem 0;">
-        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main, #0f172a);">
+        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ab-text-main, #0f172a);">
             <i class="fas fa-bolt" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
             Actions rapides
         </h2>

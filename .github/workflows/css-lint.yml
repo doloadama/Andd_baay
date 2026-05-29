@@ -1,0 +1,39 @@
+name: CSS quality gate (ratchet)
+
+# Stratégie ratchet : on ne lint QUE les fichiers CSS modifiés dans la PR.
+# Le legacy non encore migré (tokens sémantiques --danger-/--success-/...) ne
+# bloque pas le merge, mais tout NOUVEAU custom property doit être --ab-*
+# (ou vendor --tw-/--bs-/--fa-). La dette ne peut que décroître.
+
+on:
+  pull_request:
+    paths:
+      - "baay/static/css/**"
+      - ".stylelintrc.json"
+      - "package.json"
+
+jobs:
+  stylelint-changed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - run: npm ci || npm install
+
+      - name: Lint des fichiers CSS modifiés uniquement
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          CHANGED=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD -- 'baay/static/css/**/*.css' || true)
+          if [ -z "$CHANGED" ]; then
+            echo "Aucun fichier CSS modifié — rien à linter."
+            exit 0
+          fi
+          echo "Fichiers CSS à linter :"
+          echo "$CHANGED"
+          npx stylelint $CHANGED --max-warnings 0

@@ -3,12 +3,12 @@
    ============================================================ */
 
 .fl-page {
-    --fl-brand: var(--brand-primary, #1d9e75);
-    --fl-deep: var(--brand-deep, #085041);
-    --fl-night: var(--brand-night, #04342c);
-    --fl-accent: #ef9f27;
-    --fl-surface: var(--card-bg-solid, #fff);
-    --fl-border: var(--border-color, rgba(8, 80, 65, 0.1));
+    --ab-fl-brand: var(--ab-brand-primary, #1d9e75);
+    --ab-fl-deep: var(--ab-brand-deep, #085041);
+    --ab-fl-night: var(--ab-brand-night, #04342c);
+    --ab-fl-accent: #ef9f27;
+    --ab-fl-surface: var(--ab-card-bg-solid, #fff);
+    --ab-fl-border: var(--ab-border-color, rgba(8, 80, 65, 0.1));
     max-width: 1200px;
     margin: 0 auto;
     padding: clamp(12px, 3vw, 28px) clamp(12px, 2.5vw, 20px) 3rem;
@@ -17,16 +17,16 @@
 /* —— Hero —— */
 .fl-hero {
     position: relative;
-    border-radius: var(--radius-card, 20px);
+    border-radius: var(--ab-radius-card, 20px);
     padding: clamp(20px, 4vw, 32px);
     margin-bottom: clamp(16px, 3vw, 24px);
     color: #fff;
     overflow: hidden;
     background: linear-gradient(
         135deg,
-        var(--fl-night) 0%,
-        var(--fl-deep) 48%,
-        var(--fl-brand) 100%
+        var(--ab-fl-night) 0%,
+        var(--ab-fl-deep) 48%,
+        var(--ab-fl-brand) 100%
     );
 }
 
@@ -60,7 +60,7 @@
 }
 
 .fl-hero__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: clamp(1.5rem, 4vw, 2rem);
     font-weight: 700;
     margin: 0 0 8px;
@@ -103,12 +103,12 @@
 
 .fl-btn--primary {
     background: #fff;
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 .fl-btn--primary:hover {
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
@@ -124,18 +124,18 @@
 }
 
 .fl-btn--surface {
-    background: var(--fl-surface);
-    color: var(--fl-deep);
-    border: 1px solid var(--fl-border);
+    background: var(--ab-fl-surface);
+    color: var(--ab-fl-deep);
+    border: 1px solid var(--ab-fl-border);
 }
 
 .fl-btn--surface:hover {
     border-color: rgba(29, 158, 117, 0.4);
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
 }
 
 .fl-btn--brand {
-    background: var(--fl-brand);
+    background: var(--ab-fl-brand);
     color: #fff;
     box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
 }
@@ -160,9 +160,9 @@
 }
 
 .fl-stat {
-    background: var(--fl-surface);
-    border: 1px solid var(--fl-border);
-    border-radius: var(--radius-tight, 14px);
+    background: var(--ab-fl-surface);
+    border: 1px solid var(--ab-fl-border);
+    border-radius: var(--ab-radius-tight, 14px);
     padding: 14px 16px;
     transition: border-color 0.15s ease, transform 0.15s ease;
 }
@@ -173,10 +173,10 @@
 }
 
 .fl-stat__value {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.65rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1.1;
 }
 
@@ -185,12 +185,12 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-top: 4px;
 }
 
 .fl-stat--owned .fl-stat__value {
-    color: var(--fl-brand);
+    color: var(--ab-fl-brand);
 }
 
 .fl-stat--member .fl-stat__value {
@@ -217,7 +217,7 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.85rem;
     pointer-events: none;
 }
@@ -226,9 +226,9 @@
     width: 100%;
     padding: 11px 14px 11px 40px;
     border-radius: 999px;
-    border: 1px solid var(--fl-border);
-    background: var(--fl-surface);
-    color: var(--text-main);
+    border: 1px solid var(--ab-fl-border);
+    background: var(--ab-fl-surface);
+    color: var(--ab-text-main);
     font-size: 0.9rem;
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -248,9 +248,9 @@
 .fl-filter {
     padding: 8px 14px;
     border-radius: 999px;
-    border: 1px solid var(--fl-border);
+    border: 1px solid var(--ab-fl-border);
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
@@ -259,13 +259,13 @@
 
 .fl-filter:hover {
     border-color: rgba(29, 158, 117, 0.35);
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
 }
 
 .fl-filter.is-active {
     background: rgba(29, 158, 117, 0.12);
     border-color: rgba(29, 158, 117, 0.4);
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
 }
 
 /* —— Sections —— */
@@ -281,11 +281,11 @@
 }
 
 .fl-section__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1rem;
     font-weight: 700;
     margin: 0;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .fl-section__count {
@@ -294,7 +294,7 @@
     padding: 3px 10px;
     border-radius: 999px;
     background: rgba(29, 158, 117, 0.1);
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
 }
 
 .fl-section--member .fl-section__count {
@@ -313,9 +313,9 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: var(--fl-surface);
-    border: 1px solid var(--fl-border);
-    border-radius: var(--radius-card, 18px);
+    background: var(--ab-fl-surface);
+    border: 1px solid var(--ab-fl-border);
+    border-radius: var(--ab-radius-card, 18px);
     overflow: hidden;
     text-decoration: none;
     color: inherit;
@@ -337,7 +337,7 @@
 .fl-card__media {
     position: relative;
     height: 140px;
-    background: linear-gradient(145deg, var(--fl-deep), var(--fl-brand));
+    background: linear-gradient(145deg, var(--ab-fl-deep), var(--ab-fl-brand));
     overflow: hidden;
 }
 
@@ -353,7 +353,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 2.5rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
@@ -376,7 +376,7 @@
 
 .fl-card__badge--owner {
     background: rgba(255, 255, 255, 0.92);
-    color: var(--fl-deep);
+    color: var(--ab-fl-deep);
 }
 
 .fl-card__badge--member {
@@ -392,17 +392,17 @@
 }
 
 .fl-card__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.05rem;
     font-weight: 700;
     margin: 0 0 6px;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1.25;
 }
 
 .fl-card__location {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin: 0 0 10px;
     display: flex;
     align-items: center;
@@ -411,7 +411,7 @@
 
 .fl-card__desc {
     font-size: 0.82rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     line-height: 1.45;
     margin: 0 0 14px;
     flex: 1;
@@ -426,10 +426,10 @@
     flex-wrap: wrap;
     gap: 12px;
     padding-top: 12px;
-    border-top: 1px solid var(--fl-border);
+    border-top: 1px solid var(--ab-fl-border);
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .fl-card__meta span {
@@ -439,7 +439,7 @@
 }
 
 .fl-card__meta i {
-    color: var(--fl-brand);
+    color: var(--ab-fl-brand);
     opacity: 0.85;
 }
 
@@ -447,7 +447,7 @@
     margin-top: 14px;
     font-size: 0.82rem;
     font-weight: 700;
-    color: var(--fl-brand);
+    color: var(--ab-fl-brand);
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -461,9 +461,9 @@
 .fl-empty {
     text-align: center;
     padding: clamp(40px, 8vw, 72px) 24px;
-    background: var(--fl-surface);
-    border: 1px dashed var(--fl-border);
-    border-radius: var(--radius-card, 20px);
+    background: var(--ab-fl-surface);
+    border: 1px dashed var(--ab-fl-border);
+    border-radius: var(--ab-radius-card, 20px);
 }
 
 .fl-empty__icon {
@@ -472,7 +472,7 @@
     margin: 0 auto 20px;
     border-radius: 22px;
     background: linear-gradient(135deg, rgba(29, 158, 117, 0.15), rgba(239, 159, 39, 0.1));
-    color: var(--fl-brand);
+    color: var(--ab-fl-brand);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -480,15 +480,15 @@
 }
 
 .fl-empty__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.15rem;
     font-weight: 700;
     margin: 0 0 8px;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .fl-empty__text {
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin: 0 auto 20px;
     max-width: 28rem;
     font-size: 0.9rem;
@@ -505,7 +505,7 @@
 .fl-no-results {
     text-align: center;
     padding: 2rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.9rem;
 }
 
@@ -521,12 +521,12 @@
 .dark-mode .fl-stat,
 .dark-mode .fl-card,
 .dark-mode .fl-empty {
-    background: var(--card-bg-solid, #121c19);
+    background: var(--ab-card-bg-solid, #121c19);
     border-color: rgba(255, 255, 255, 0.08);
 }
 
 .dark-mode .fl-search__input {
-    background: var(--card-bg-solid, #121c19);
+    background: var(--ab-card-bg-solid, #121c19);
     border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -536,13 +536,13 @@
 
 /* Buttons — dark mode */
 .dark-mode .fl-btn--surface {
-    background: var(--card-bg-solid, #121c19);
-    color: var(--text-main, #e8f5f0);
+    background: var(--ab-card-bg-solid, #121c19);
+    color: var(--ab-text-main, #e8f5f0);
     border-color: rgba(255, 255, 255, 0.14);
 }
 
 .dark-mode .fl-btn--surface:hover {
-    color: var(--brand-light, #5dcaa5);
+    color: var(--ab-brand-light, #5dcaa5);
     border-color: rgba(29, 158, 117, 0.45);
     background: rgba(29, 158, 117, 0.14);
 }
@@ -553,15 +553,15 @@
 
 .dark-mode .fl-btn--primary {
     background: #fff;
-    color: var(--fl-deep, #085041);
+    color: var(--ab-fl-deep, #085041);
 }
 
 .dark-mode .fl-filter:hover {
-    color: var(--brand-light, #5dcaa5);
+    color: var(--ab-brand-light, #5dcaa5);
 }
 
 .dark-mode .fl-filter.is-active {
-    color: var(--brand-light, #5dcaa5);
+    color: var(--ab-brand-light, #5dcaa5);
     background: rgba(29, 158, 117, 0.18);
     border-color: rgba(29, 158, 117, 0.4);
 }

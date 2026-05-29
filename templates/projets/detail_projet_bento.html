@@ -17,22 +17,22 @@
 
 :root {
     --bento-gap: clamp(12px, 2vw, 20px);
-    --card-radius: clamp(16px, 2.5vw, 24px);
-    --card-padding: clamp(16px, 3vw, 24px);
-    --brand-primary: #2d5a3d;
-    --brand-light: #4a9c5d;
-    --brand-accent: #e89a3c;
-    --brand-night: #1a3d2e;
-    --brand-deep: #0d2818;
+    --ab-card-radius: clamp(16px, 2.5vw, 24px);
+    --ab-card-padding: clamp(16px, 3vw, 24px);
+    --ab-brand-primary: #2d5a3d;
+    --ab-brand-light: #4a9c5d;
+    --ab-brand-accent: #e89a3c;
+    --ab-brand-night: #1a3d2e;
+    --ab-brand-deep: #0d2818;
     --surface-0: #ffffff;
     --surface-1: #f8faf9;
     --surface-2: #eef2f0;
-    --text-primary: #1a1a1a;
-    --text-secondary: #5a5a5a;
-    --text-muted: #8a8a8a;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    --ab-text-primary: #1a1a1a;
+    --ab-text-secondary: #5a5a5a;
+    --ab-text-muted: #8a8a8a;
+    --ab-shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --ab-shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --ab-shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
 }
 
 /* ============================================
@@ -52,9 +52,9 @@
    ============================================ */
 .bento-hero {
     grid-column: 1 / -1;
-    background: linear-gradient(135deg, var(--brand-night) 0%, var(--brand-deep) 50%, var(--brand-primary) 100%);
-    border-radius: var(--card-radius);
-    padding: var(--card-padding);
+    background: linear-gradient(135deg, var(--ab-brand-night) 0%, var(--ab-brand-deep) 50%, var(--ab-brand-primary) 100%);
+    border-radius: var(--ab-card-radius);
+    padding: var(--ab-card-padding);
     color: white;
     position: relative;
     overflow: hidden;
@@ -104,7 +104,7 @@
 }
 
 .bento-hero__status {
-    background: var(--brand-light);
+    background: var(--ab-brand-light);
     color: white;
     font-size: 11px;
     font-weight: 700;
@@ -165,9 +165,9 @@
 
 .bento-stat-card {
     background: var(--surface-0);
-    border-radius: var(--card-radius);
-    padding: var(--card-padding);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--ab-card-radius);
+    padding: var(--ab-card-padding);
+    box-shadow: var(--ab-shadow-sm);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -178,7 +178,7 @@
 
 .bento-stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--ab-shadow-md);
 }
 
 .bento-stat-card__icon {
@@ -190,20 +190,20 @@
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    color: var(--brand-primary);
+    color: var(--ab-brand-primary);
     margin-bottom: 12px;
 }
 
 .bento-stat-card__value {
     font-size: clamp(1.25rem, 3vw, 1.5rem);
     font-weight: 800;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
     line-height: 1.2;
 }
 
 .bento-stat-card__label {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 4px;
@@ -211,7 +211,7 @@
 
 .bento-stat-card__hint {
     font-size: 11px;
-    color: var(--brand-light);
+    color: var(--ab-brand-light);
     margin-top: 2px;
 }
 
@@ -226,16 +226,16 @@
 
 .bento-card {
     background: var(--surface-0);
-    border-radius: var(--card-radius);
-    padding: var(--card-padding);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--ab-card-radius);
+    padding: var(--ab-card-padding);
+    box-shadow: var(--ab-shadow-sm);
     display: flex;
     flex-direction: column;
     transition: all 0.2s ease;
 }
 
 .bento-card:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--ab-shadow-md);
 }
 
 .bento-card__header {
@@ -250,20 +250,20 @@
 .bento-card__title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
 .bento-card__title i {
-    color: var(--brand-primary);
+    color: var(--ab-brand-primary);
     font-size: 18px;
 }
 
 .bento-card__badge {
     background: var(--surface-2);
-    color: var(--text-secondary);
+    color: var(--ab-text-secondary);
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
@@ -292,14 +292,14 @@
 .bento-prediction__value {
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;
-    color: var(--brand-primary);
+    color: var(--ab-brand-primary);
     margin-bottom: 8px;
 }
 
 .bento-prediction__value span {
     font-size: 0.5em;
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .bento-prediction__chart {
@@ -337,24 +337,24 @@
 
 .bento-prediction-stat__icon--confidence {
     background: #e8f5e9;
-    color: var(--brand-light);
+    color: var(--ab-brand-light);
 }
 
 .bento-prediction-stat__icon--quality {
     background: #fdf6f0;
-    color: var(--brand-accent);
+    color: var(--ab-brand-accent);
 }
 
 .bento-prediction-stat__label {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     display: block;
 }
 
 .bento-prediction-stat__value {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
 }
 
 /* ============================================
@@ -383,7 +383,7 @@
 .bento-product-item__icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, var(--brand-light) 0%, var(--brand-primary) 100%);
+    background: linear-gradient(135deg, var(--ab-brand-light) 0%, var(--ab-brand-primary) 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -400,20 +400,20 @@
 .bento-product-item__name {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
     margin-bottom: 4px;
 }
 
 .bento-product-item__meta {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .bento-product-item__badge {
-    background: var(--brand-accent);
+    background: var(--ab-brand-accent);
     color: white;
     font-size: 10px;
     font-weight: 600;
@@ -434,12 +434,12 @@
 .bento-product-item__stat-value {
     font-size: 18px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
 }
 
 .bento-product-item__stat-label {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .bento-product-item__actions {
@@ -462,17 +462,17 @@
 }
 
 .bento-btn--primary {
-    background: var(--brand-primary);
+    background: var(--ab-brand-primary);
     color: white;
 }
 
 .bento-btn--primary:hover {
-    background: var(--brand-night);
+    background: var(--ab-brand-night);
 }
 
 .bento-btn--secondary {
     background: var(--surface-2);
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
 }
 
 .bento-btn--secondary:hover {
@@ -495,13 +495,13 @@
 
 .bento-budget__progress-label {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .bento-budget__progress-value {
     font-size: 14px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
 }
 
 .bento-budget__bar {
@@ -513,7 +513,7 @@
 
 .bento-budget__bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--brand-light) 0%, var(--brand-primary) 100%);
+    background: linear-gradient(90deg, var(--ab-brand-light) 0%, var(--ab-brand-primary) 100%);
     border-radius: 4px;
     transition: width 0.5s ease;
 }
@@ -534,19 +534,19 @@
 }
 
 .bento-budget__item-name {
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
     font-weight: 500;
 }
 
 .bento-budget__item-amount {
-    color: var(--brand-primary);
+    color: var(--ab-brand-primary);
     font-weight: 700;
 }
 
 .bento-budget__empty {
     text-align: center;
     padding: 40px 20px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .bento-budget__empty-icon {
@@ -568,7 +568,7 @@
     flex: 1;
     min-height: 250px;
     background: var(--surface-1);
-    border-radius: calc(var(--card-radius) - var(--card-padding));
+    border-radius: calc(var(--ab-card-radius) - var(--ab-card-padding));
 }
 
 /* ============================================
@@ -586,7 +586,7 @@
     padding: 16px;
     background: var(--surface-1);
     border-radius: 16px;
-    border-left: 4px solid var(--brand-accent);
+    border-left: 4px solid var(--ab-brand-accent);
 }
 
 .bento-task-item--urgent {
@@ -594,7 +594,7 @@
 }
 
 .bento-task-item--done {
-    border-left-color: var(--brand-light);
+    border-left-color: var(--ab-brand-light);
     opacity: 0.7;
 }
 
@@ -611,8 +611,8 @@
 }
 
 .bento-task-item--done .bento-task-item__checkbox {
-    background: var(--brand-light);
-    border-color: var(--brand-light);
+    background: var(--ab-brand-light);
+    border-color: var(--ab-brand-light);
     color: white;
 }
 
@@ -624,7 +624,7 @@
 .bento-task-item__title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
     margin-bottom: 4px;
 }
 
@@ -634,7 +634,7 @@
 
 .bento-task-item__meta {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -679,8 +679,8 @@
     gap: 12px;
     padding: 16px;
     background: var(--surface-0);
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--ab-card-radius);
+    box-shadow: var(--ab-shadow-sm);
 }
 
 .bento-btn {
@@ -700,19 +700,19 @@
 }
 
 .bento-btn--primary {
-    background: var(--brand-primary);
+    background: var(--ab-brand-primary);
     color: white;
 }
 
 .bento-btn--primary:hover {
-    background: var(--brand-night);
+    background: var(--ab-brand-night);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--ab-shadow-md);
 }
 
 .bento-btn--secondary {
     background: var(--surface-2);
-    color: var(--text-primary);
+    color: var(--ab-text-primary);
 }
 
 .bento-btn--secondary:hover {
@@ -754,7 +754,7 @@
 @media (max-width: 768px) {
     :root {
         --bento-gap: 12px;
-        --card-padding: 16px;
+        --ab-card-padding: 16px;
     }
     
     .bento-card--small,
@@ -839,7 +839,7 @@
     height: 24px;
     margin: -12px 0 0 -12px;
     border: 2px solid var(--surface-2);
-    border-top-color: var(--brand-primary);
+    border-top-color: var(--ab-brand-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -997,7 +997,7 @@
                 <div class="bento-prediction__value">
                     -- – -- <span>kg</span>
                 </div>
-                <p style="color: var(--text-muted); text-align: center; padding: 40px 20px;">
+                <p style="color: var(--ab-text-muted); text-align: center; padding: 40px 20px;">
                     <i class="fas fa-bolt" style="font-size: 32px; margin-bottom: 12px; display: block;"></i>
                     Générez une prédiction IA pour estimer votre rendement
                 </p>
@@ -1048,7 +1048,7 @@
                 </div>
                 
                 {% if investissements.count > 3 %}
-                <a href="{% url 'liste_investissements' projet.id %}" style="display: block; text-align: center; margin-top: 12px; color: var(--brand-primary); font-size: 13px;">
+                <a href="{% url 'liste_investissements' projet.id %}" style="display: block; text-align: center; margin-top: 12px; color: var(--ab-brand-primary); font-size: 13px;">
                     Voir les {{ investissements.count }} investissements <i class="fas fa-arrow-right"></i>
                 </a>
                 {% endif %}
@@ -1068,7 +1068,7 @@
 
         <!-- CARTE (Medium) -->
         <div class="bento-card bento-card--medium bento-map">
-            <div class="bento-card__header" style="padding: var(--card-padding) var(--card-padding) 0;">
+            <div class="bento-card__header" style="padding: var(--ab-card-padding) var(--ab-card-padding) 0;">
                 <h3 class="bento-card__title">
                     <i class="fas fa-map-marked-alt"></i> Localisation
                 </h3>
@@ -1106,7 +1106,7 @@
                                 <div class="bento-product-item__stat-label">hectares</div>
                             </div>
                             <div class="bento-product-item__stat">
-                                <div class="bento-product-item__stat-value" style="color: var(--brand-light);">
+                                <div class="bento-product-item__stat-value" style="color: var(--ab-brand-light);">
                                     {{ pp.rendement_estime|default:"--" }}
                                 </div>
                                 <div class="bento-product-item__stat-label">kg estimé</div>
@@ -1140,12 +1140,12 @@
                 <h3 class="bento-card__title">
                     <i class="fas fa-tasks"></i> Tâches récentes
                 </h3>
-                <a href="{% url 'liste_taches' %}?projet={{ projet.id }}" style="font-size: 13px; color: var(--brand-primary);">
+                <a href="{% url 'liste_taches' %}?projet={{ projet.id }}" style="font-size: 13px; color: var(--ab-brand-primary);">
                     Voir tout <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <div class="bento-card__content">
-                <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+                <p style="color: var(--ab-text-muted); text-align: center; padding: 20px;">
                     Chargement des tâches...
                 </p>
             </div>

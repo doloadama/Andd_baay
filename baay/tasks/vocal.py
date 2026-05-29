@@ -1,74 +1,125 @@
 """
 Tache Celery — pipeline vocal Wolof asynchrone (Jef Baay).
 
-Moteur : Gemini 2.0 Flash (audio en entree) — transcription + reponse en UN appel.
-Remplace l'ancienne voie HuggingFace serverless, qui ne sert plus les modeles
-galsenai/* (ASR/LLM/TTS tous "not deployed by any Inference Provider").
+Pipeline : Audio -> ASR Wolof -> LLM (FineLlama) -> TTS (optionnel).
+Sort le traitement bloquant (cold start HuggingFace ~12s) de la requete HTTP :
+la vue enqueue et repond 202 immediatement, le front polle le resultat.
 
-La vue enqueue cette tache et repond 202 immediatement ; le front polle le resultat.
-TTS (reponse parlee) differe : on renvoie texte + transcription (audio_b64 = None).
+Calque sur baay/tasks/diagnostic.py (meme contrat de cache + AppelAPILog).
 """
 from __future__ import annotations
 
+import base64
+import hashlib
 import logging
+import time
+from decimal import Decimal
 
 from celery import shared_task
+from django.conf import settings
 from django.core.cache import cache
 
-from baay.services.gemini_vocal import (
-    GeminiVocalError,
-    GeminiVocalNotConfigured,
-    GeminiVocalRateLimited,
-    process_vocal_wolof,
+from baay.services.galsenai_service import (
+    GalsenAIError,
+    GalsenAIModelLoading,
+    GalsenAINotConfigured,
+    generate_wolof_response,
+    synthesize_wolof,
+    transcribe_wolof,
 )
 
 logger = logging.getLogger(__name__)
 
-_RESULT_TTL = 3600  # 1h — duree de vie du resultat de tache dans le cache
+# Cache reponse LLM par question normalisee (questions agricoles recurrentes).
+_QUESTION_TTL = 60 * 60 * 24 * 30  # 30 jours
+_RESULT_TTL = 3600                  # 1h — duree de vie du resultat de tache
 
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=8)
+def _log_api(cache_hit: bool, duree_ms: int) -> None:
+    """Journalise l'appel pour le monitoring des couts (modele AppelAPILog)."""
+    try:
+        from baay.models import AppelAPILog
+
+        AppelAPILog.objects.create(
+            service=AppelAPILog.SERVICE_GALSENAI,
+            modele=getattr(settings, "GALSENAI_LLM_MODEL", ""),
+            cache_hit=cache_hit,
+            duree_ms=duree_ms,
+            cout_estime_usd=Decimal("0"),
+        )
+    except Exception:  # journalisation best-effort, ne bloque jamais le pipeline
+        logger.debug("AppelAPILog non enregistre", exc_info=True)
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=10)
 def process_vocal_task(self, audio_bytes_hex: str, mime: str, task_cache_key: str):
     """
-    Traite un enregistrement vocal de maniere asynchrone via Gemini.
+    Traite un enregistrement vocal de maniere asynchrone.
     Stocke le resultat dans le cache Django sous task_cache_key :
-      {"status": "done",  "result": {transcript, response, audio_b64, tts_available}}
-      {"status": "error", "code": "...", "error": "..."}
+      {"status": "done",    "result": {...}}
+      {"status": "error",   "code": "...", "error": "..."}
     """
+    t0 = time.monotonic()
     try:
         audio_bytes = bytes.fromhex(audio_bytes_hex)
 
-        result = process_vocal_wolof(audio_bytes, mime_type=mime)
+        # Etape 1 : ASR Wolof
+        transcript = transcribe_wolof(audio_bytes, mime_type=mime)
+        logger.info("ASR transcript: %s", transcript[:120])
+
+        # Etape 2 : LLM — cache par question normalisee
+        norm = " ".join(transcript.lower().split())
+        qkey = f"vocal_q:{hashlib.sha256(norm.encode()).hexdigest()}"
+        cached_reply = cache.get(qkey) if norm else None
+        if cached_reply is not None:
+            response_text = cached_reply
+            logger.info("process_vocal_task: cache hit (question)")
+            _log_api(cache_hit=True, duree_ms=int((time.monotonic() - t0) * 1000))
+        else:
+            response_text = generate_wolof_response(transcript)
+            if norm:
+                cache.set(qkey, response_text, _QUESTION_TTL)
+            _log_api(cache_hit=False, duree_ms=int((time.monotonic() - t0) * 1000))
+        logger.info("LLM response: %s", response_text[:120])
+
+        # Etape 3 : TTS (optionnel — ne bloque pas si indisponible)
+        audio_b64 = None
+        try:
+            tts_bytes = synthesize_wolof(response_text)
+            if tts_bytes:
+                audio_b64 = base64.b64encode(tts_bytes).decode()
+        except Exception:
+            logger.warning("TTS indisponible, reponse texte seule", exc_info=True)
 
         cache.set(task_cache_key, {
             "status": "done",
             "result": {
-                "transcript": result.get("transcript", ""),
-                "response": result["response"],
-                "audio_b64": None,        # TTS differe
-                "tts_available": False,
+                "transcript": transcript,
+                "response": response_text,
+                "audio_b64": audio_b64,
+                "tts_available": audio_b64 is not None,
             },
         }, _RESULT_TTL)
 
-    except GeminiVocalNotConfigured:
+    except GalsenAINotConfigured:
         cache.set(task_cache_key, {
             "status": "error", "code": "not_configured",
-            "error": "Cle API Gemini absente. Ajoutez GEMINI_API_KEY dans votre .env.",
+            "error": "Token HuggingFace manquant. Ajoutez HF_API_TOKEN dans votre .env.",
         }, _RESULT_TTL)
 
-    except GeminiVocalRateLimited as exc:
-        # Limite par minute (429) : transitoire. On retente cote worker avec backoff.
-        logger.info("Gemini rate-limit, retry...")
+    except GalsenAIModelLoading as exc:
+        # Cold start HF : on attend cote worker (pas cote utilisateur) puis on relance.
+        logger.info("Modele HF en chargement, retry dans %.0fs", exc.estimated_time)
         try:
-            raise self.retry(exc=exc, countdown=20)
+            raise self.retry(exc=exc, countdown=max(5, int(exc.estimated_time)))
         except self.MaxRetriesExceededError:
             cache.set(task_cache_key, {
-                "status": "error", "code": "rate_limit",
-                "error": "Service occupe (quota Gemini). Reessayez dans une minute.",
+                "status": "error", "code": "model_loading",
+                "error": "Le modele n'a pas demarre a temps. Reessayez dans une minute.",
             }, _RESULT_TTL)
 
-    except GeminiVocalError as exc:
-        logger.exception("Erreur pipeline vocal Gemini")
+    except GalsenAIError as exc:
+        logger.exception("Erreur GalsenAI pipeline")
         cache.set(task_cache_key, {
             "status": "error", "code": "api_error", "error": str(exc),
         }, _RESULT_TTL)

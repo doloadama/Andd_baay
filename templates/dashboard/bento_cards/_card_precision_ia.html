@@ -33,7 +33,7 @@
                 <div class="fw-bold" style="font-size:1.05rem;">
                     {% if stats.mape is not None %}{{ stats.mape|floatformat:1 }}%{% else %}—{% endif %}
                 </div>
-                <div class="small" style="font-size:0.65rem; color:var(--text-muted);">MAPE</div>
+                <div class="small" style="font-size:0.65rem; color:var(--ab-text-muted);">MAPE</div>
             </div>
         </div>
 
@@ -47,7 +47,7 @@
                 <div class="fw-bold" style="font-size:1.05rem;">
                     {% if stats.coverage_pct is not None %}{{ stats.coverage_pct|floatformat:0 }}%{% else %}—{% endif %}
                 </div>
-                <div class="small" style="font-size:0.65rem; color:var(--text-muted);">Intervalle</div>
+                <div class="small" style="font-size:0.65rem; color:var(--ab-text-muted);">Intervalle</div>
             </div>
         </div>
 
@@ -60,7 +60,7 @@
                         {% if stats.biais >= 0 %}+{% endif %}{{ stats.biais|floatformat:1 }}%
                     {% else %}—{% endif %}
                 </div>
-                <div class="small" style="font-size:0.65rem; color:var(--text-muted);">±</div>
+                <div class="small" style="font-size:0.65rem; color:var(--ab-text-muted);">±</div>
             </div>
         </div>
 

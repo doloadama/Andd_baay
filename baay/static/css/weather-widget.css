@@ -6,10 +6,10 @@
     border-radius: 14px;
     overflow: hidden;
     min-height: 128px;
-    --pd-meteo-ink: #0f172a;
-    --pd-meteo-muted: rgba(15, 23, 42, 0.68);
-    --pd-meteo-ink-sub: rgba(15, 23, 42, 0.88);
-    color: var(--pd-meteo-ink);
+    --ab-pd-meteo-ink: #0f172a;
+    --ab-pd-meteo-muted: rgba(15, 23, 42, 0.68);
+    --ab-pd-meteo-ink-sub: rgba(15, 23, 42, 0.88);
+    color: var(--ab-pd-meteo-ink);
 }
 
 .pd-meteo-widget__sky {
@@ -24,7 +24,7 @@
     position: absolute;
     line-height: 1;
     opacity: 0.42;
-    color: var(--pd-meteo-ink);
+    color: var(--ab-pd-meteo-ink);
     animation: pd-meteo-float 5s ease-in-out infinite;
 }
 
@@ -37,7 +37,7 @@
     text-shadow: 0 2px 18px rgba(251, 191, 36, 0.5);
 }
 
-.pd-meteo-deco--cloud-tiny {
+.pd-meteo-deco--ab-cloud-tiny {
     top: 18%;
     right: 22%;
     font-size: 1.75rem;
@@ -54,7 +54,7 @@
     opacity: 0.45;
 }
 
-.pd-meteo-deco--cloud-2 {
+.pd-meteo-deco--ab-cloud-2 {
     top: 22%;
     right: 18%;
     font-size: 2.4rem;
@@ -63,7 +63,7 @@
     animation-delay: 0.8s;
 }
 
-.pd-meteo-deco--cloud-3 {
+.pd-meteo-deco--ab-cloud-3 {
     top: 4%;
     right: 30%;
     font-size: 2rem;
@@ -108,7 +108,7 @@
     animation: pd-meteo-twinkle 2.2s ease-in-out infinite 0.6s;
 }
 
-.pd-meteo-deco--rain-main {
+.pd-meteo-deco--ab-rain-main {
     top: 6%;
     right: 2%;
     font-size: 3.8rem;
@@ -116,7 +116,7 @@
     opacity: 0.55;
 }
 
-.pd-meteo-deco--cloud-back {
+.pd-meteo-deco--ab-cloud-back {
     top: 0;
     right: 12%;
     font-size: 2.8rem;
@@ -134,7 +134,7 @@
     text-shadow: 0 0 24px rgba(250, 204, 21, 0.7);
 }
 
-.pd-meteo-deco--cloud-dark {
+.pd-meteo-deco--ab-cloud-dark {
     top: 14%;
     right: 22%;
     font-size: 2.5rem;
@@ -142,7 +142,7 @@
     opacity: 0.45;
 }
 
-.pd-meteo-deco--cloud-light {
+.pd-meteo-deco--ab-cloud-light {
     top: 6%;
     right: 10%;
     font-size: 2.6rem;
@@ -150,7 +150,7 @@
     opacity: 0.45;
 }
 
-.pd-meteo-deco--snow-1 {
+.pd-meteo-deco--ab-snow-1 {
     top: 10%;
     right: 8%;
     font-size: 2.2rem;
@@ -159,7 +159,7 @@
     animation: pd-meteo-spin 12s linear infinite;
 }
 
-.pd-meteo-deco--snow-2 {
+.pd-meteo-deco--ab-snow-2 {
     top: 24%;
     right: 20%;
     font-size: 1.35rem;
@@ -259,16 +259,16 @@
 }
 
 .pd-meteo-widget .pd-meteo-temp {
-    color: var(--pd-meteo-ink-sub);
+    color: var(--ab-pd-meteo-ink-sub);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .pd-meteo-widget .pd-meteo-desc {
-    color: var(--pd-meteo-ink);
+    color: var(--ab-pd-meteo-ink);
 }
 
 .pd-meteo-widget .pd-meteo-meta {
-    color: var(--pd-meteo-muted);
+    color: var(--ab-pd-meteo-muted);
 }
 
 .pd-meteo-widget .pd-meteo-credit {
@@ -276,7 +276,7 @@
     z-index: 1;
     padding: 0 18px 14px;
     margin-top: 0;
-    color: var(--pd-meteo-muted);
+    color: var(--ab-pd-meteo-muted);
 }
 
 /* ——— Thèmes (dégradés) ——— */
@@ -285,9 +285,9 @@
 }
 
 .pd-meteo--clear-night {
-    --pd-meteo-ink: #f1f5f9;
-    --pd-meteo-muted: rgba(241, 245, 249, 0.75);
-    --pd-meteo-ink-sub: #fff;
+    --ab-pd-meteo-ink: #f1f5f9;
+    --ab-pd-meteo-muted: rgba(241, 245, 249, 0.75);
+    --ab-pd-meteo-ink-sub: #fff;
     background: linear-gradient(155deg, #1e1b4b 0%, #312e81 42%, #1e3a5f 100%);
 }
 
@@ -301,9 +301,9 @@
 }
 
 .pd-meteo--few-clouds-night {
-    --pd-meteo-ink: #e2e8f0;
-    --pd-meteo-muted: rgba(226, 232, 240, 0.72);
-    --pd-meteo-ink-sub: #f8fafc;
+    --ab-pd-meteo-ink: #e2e8f0;
+    --ab-pd-meteo-muted: rgba(226, 232, 240, 0.72);
+    --ab-pd-meteo-ink-sub: #f8fafc;
     background: linear-gradient(145deg, #172554 0%, #312e81 50%, #0f172a 100%);
 }
 
@@ -317,9 +317,9 @@
 }
 
 .pd-meteo--cloudy-night {
-    --pd-meteo-ink: #e2e8f0;
-    --pd-meteo-muted: rgba(226, 232, 240, 0.7);
-    --pd-meteo-ink-sub: #f1f5f9;
+    --ab-pd-meteo-ink: #e2e8f0;
+    --ab-pd-meteo-muted: rgba(226, 232, 240, 0.7);
+    --ab-pd-meteo-ink-sub: #f1f5f9;
     background: linear-gradient(165deg, #1e293b 0%, #334155 100%);
 }
 
@@ -332,9 +332,9 @@
 }
 
 .pd-meteo--overcast-night {
-    --pd-meteo-ink: #e2e8f0;
-    --pd-meteo-muted: rgba(226, 232, 240, 0.68);
-    --pd-meteo-ink-sub: #f8fafc;
+    --ab-pd-meteo-ink: #e2e8f0;
+    --ab-pd-meteo-muted: rgba(226, 232, 240, 0.68);
+    --ab-pd-meteo-ink-sub: #f8fafc;
     background: linear-gradient(180deg, #0f172a 0%, #334155 100%);
 }
 
@@ -342,34 +342,34 @@
     background: rgba(15, 23, 42, 0.55);
 }
 
-.pd-meteo--rain-day,
-.pd-meteo--rain-night {
-    --pd-meteo-ink: #0c4a6e;
-    --pd-meteo-muted: rgba(12, 74, 110, 0.72);
-    --pd-meteo-ink-sub: #075985;
+.pd-meteo--ab-rain-day,
+.pd-meteo--ab-rain-night {
+    --ab-pd-meteo-ink: #0c4a6e;
+    --ab-pd-meteo-muted: rgba(12, 74, 110, 0.72);
+    --ab-pd-meteo-ink-sub: #075985;
     background: linear-gradient(145deg, #bae6fd 0%, #38bdf8 45%, #0369a1 100%);
 }
 
-.pd-meteo--rain-day .pd-meteo-owm-wrap,
-.pd-meteo--rain-night .pd-meteo-owm-wrap {
+.pd-meteo--ab-rain-day .pd-meteo-owm-wrap,
+.pd-meteo--ab-rain-night .pd-meteo-owm-wrap {
     background: rgba(255, 255, 255, 0.92);
 }
 
-.pd-meteo--rain-night {
-    --pd-meteo-ink: #e0f2fe;
-    --pd-meteo-muted: rgba(224, 242, 254, 0.75);
-    --pd-meteo-ink-sub: #fff;
+.pd-meteo--ab-rain-night {
+    --ab-pd-meteo-ink: #e0f2fe;
+    --ab-pd-meteo-muted: rgba(224, 242, 254, 0.75);
+    --ab-pd-meteo-ink-sub: #fff;
     background: linear-gradient(150deg, #0c4a6e 0%, #082f49 50%, #0f172a 100%);
 }
 
-.pd-meteo--rain-night .pd-meteo-owm-wrap {
+.pd-meteo--ab-rain-night .pd-meteo-owm-wrap {
     background: rgba(15, 23, 42, 0.4);
 }
 
 .pd-meteo--storm-day {
-    --pd-meteo-ink: #f1f5f9;
-    --pd-meteo-muted: rgba(241, 245, 249, 0.75);
-    --pd-meteo-ink-sub: #fff;
+    --ab-pd-meteo-ink: #f1f5f9;
+    --ab-pd-meteo-muted: rgba(241, 245, 249, 0.75);
+    --ab-pd-meteo-ink-sub: #fff;
     background: linear-gradient(130deg, #475569 0%, #312e81 40%, #1e1b4b 100%);
 }
 
@@ -378,9 +378,9 @@
 }
 
 .pd-meteo--storm-night {
-    --pd-meteo-ink: #fef9c3;
-    --pd-meteo-muted: rgba(254, 249, 195, 0.8);
-    --pd-meteo-ink-sub: #fff;
+    --ab-pd-meteo-ink: #fef9c3;
+    --ab-pd-meteo-muted: rgba(254, 249, 195, 0.8);
+    --ab-pd-meteo-ink-sub: #fff;
     background: linear-gradient(145deg, #1a1025 0%, #312481 48%, #0f172a 100%);
 }
 
@@ -388,32 +388,32 @@
     background: rgba(15, 23, 42, 0.45);
 }
 
-.pd-meteo--snow-day {
-    --pd-meteo-ink: #0c4a6e;
-    --pd-meteo-muted: rgba(12, 74, 110, 0.65);
+.pd-meteo--ab-snow-day {
+    --ab-pd-meteo-ink: #0c4a6e;
+    --ab-pd-meteo-muted: rgba(12, 74, 110, 0.65);
     background: linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 40%, #bae6fd 100%);
 }
 
-.pd-meteo--snow-night {
-    --pd-meteo-ink: #e0f2fe;
-    --pd-meteo-muted: rgba(224, 242, 254, 0.72);
-    --pd-meteo-ink-sub: #fff;
+.pd-meteo--ab-snow-night {
+    --ab-pd-meteo-ink: #e0f2fe;
+    --ab-pd-meteo-muted: rgba(224, 242, 254, 0.72);
+    --ab-pd-meteo-ink-sub: #fff;
     background: linear-gradient(165deg, #1e3a5f 0%, #0f172a 100%);
 }
 
-.pd-meteo--snow-night .pd-meteo-owm-wrap {
+.pd-meteo--ab-snow-night .pd-meteo-owm-wrap {
     background: rgba(30, 58, 95, 0.45);
 }
 
 .pd-meteo--fog-day {
-    --pd-meteo-ink: #334155;
-    --pd-meteo-muted: rgba(51, 65, 85, 0.72);
+    --ab-pd-meteo-ink: #334155;
+    --ab-pd-meteo-muted: rgba(51, 65, 85, 0.72);
     background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 55%, #94a3b8 100%);
 }
 
 .pd-meteo--fog-night {
-    --pd-meteo-ink: #e2e8f0;
-    --pd-meteo-muted: rgba(226, 232, 240, 0.72);
+    --ab-pd-meteo-ink: #e2e8f0;
+    --ab-pd-meteo-muted: rgba(226, 232, 240, 0.72);
     background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
 }
 
@@ -428,15 +428,15 @@ body.dark-mode .pd-meteo--overcast-day .pd-meteo-owm-wrap {
     background: rgba(15, 23, 42, 0.25);
 }
 
-body.dark-mode .pd-meteo--snow-day {
-    --pd-meteo-ink: #e0f2fe;
-    --pd-meteo-muted: rgba(224, 242, 254, 0.7);
+body.dark-mode .pd-meteo--ab-snow-day {
+    --ab-pd-meteo-ink: #e0f2fe;
+    --ab-pd-meteo-muted: rgba(224, 242, 254, 0.7);
     background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 55%, #0c4a6e 100%);
 }
 
 body.dark-mode .pd-meteo--fog-day {
-    --pd-meteo-ink: #e2e8f0;
-    --pd-meteo-muted: rgba(226, 232, 240, 0.7);
+    --ab-pd-meteo-ink: #e2e8f0;
+    --ab-pd-meteo-muted: rgba(226, 232, 240, 0.7);
     background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
 }
 
@@ -446,34 +446,34 @@ body.dark-mode .pd-meteo--fog-day {
 }
 
 .pd-meteo-temp {
-    font-family: var(--font-display);
+    font-family: var(--ab-font-display);
     font-size: 1.6rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1.1;
 }
 
 .pd-meteo-desc {
     font-size: 0.88rem;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .pd-meteo-meta {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-top: 2px;
 }
 
 .pd-meteo-credit {
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     opacity: 0.8;
     margin-top: 8px;
 }
 
 .pd-meteo-widget .pd-meteo-temp {
-    font-family: "Space Grotesk", var(--font-display, system-ui), sans-serif;
+    font-family: "Space Grotesk", var(--ab-font-display, system-ui), sans-serif;
     font-size: 1.6rem;
     font-weight: 800;
     line-height: 1.1;
@@ -573,11 +573,11 @@ body.dark-mode .pd-meteo--fog-day {
 
 .at-card--weather-host > .at-card-title {
     margin-bottom: 10px;
-    color: var(--at-muted, #5c5c57);
+    color: var(--ab-at-muted, #5c5c57);
 }
 
 .at-card--weather-host > .at-card-title i {
-    color: var(--at-brand, #1d9e75);
+    color: var(--ab-at-brand, #1d9e75);
 }
 
 /* Cockpit topbar : le widget remplit la capsule existante */

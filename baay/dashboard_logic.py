@@ -26,12 +26,52 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
     else:
         user_fermes = farms_qs
 
+    # Annotations attendues plus bas dans le contexte (projets_count_ann, etc.)
+    # — appliquées seulement si on a un vrai queryset.
+    try:
+        user_fermes = user_fermes.annotate(
+            projets_count_ann=Count('projets', distinct=True),
+            projets_actifs_ann=Count(
+                'projets', filter=Q(projets__statut='en_cours'), distinct=True,
+            ),
+            membres_count_ann=Count('membres', distinct=True),
+        )
+    except AttributeError:
+        # farms_qs n'était pas un queryset (liste passée par l'appelant) :
+        # on injecte les attributs manuellement pour éviter l'AttributeError.
+        for _f in user_fermes:
+            if not hasattr(_f, 'projets_count_ann'):
+                _f.projets_count_ann = Projet.objects.filter(ferme=_f).count()
+            if not hasattr(_f, 'projets_actifs_ann'):
+                _f.projets_actifs_ann = Projet.objects.filter(
+                    ferme=_f, statut='en_cours',
+                ).count()
+            if not hasattr(_f, 'membres_count_ann'):
+                _f.membres_count_ann = MembreFerme.objects.filter(ferme=_f).count()
+
     projets_qs = projets_accessibles_qs(utilisateur).select_related(
         'culture', 'localite', 'ferme'
     ).prefetch_related('projet_produits__produit', 'taches')
 
     if selected_ferme:
         projets_qs = projets_qs.filter(ferme=selected_ferme)
+        # Récupérer la version annotée pour éviter l'AttributeError ligne ~320
+        try:
+            _selected_ann = next(
+                (f for f in user_fermes if f.id == selected_ferme.id),
+                None,
+            )
+            if _selected_ann is not None:
+                selected_ferme = _selected_ann
+            elif not hasattr(selected_ferme, 'membres_count_ann'):
+                selected_ferme.membres_count_ann = MembreFerme.objects.filter(
+                    ferme=selected_ferme,
+                ).count()
+        except Exception:
+            if not hasattr(selected_ferme, 'membres_count_ann'):
+                selected_ferme.membres_count_ann = MembreFerme.objects.filter(
+                    ferme=selected_ferme,
+                ).count()
 
     # ── 2. Strategic Aggregates — une seule requête DB ───────────────────────
     agg = projets_qs.aggregate(
