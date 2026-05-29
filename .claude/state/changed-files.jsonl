@@ -10,3 +10,15 @@
 {"file":"baay/views_api_mobile.py","action":"Edit","timestamp":"2026-05-28T17:31:25Z","important":false}
 {"file":"baay/admin.py","action":"Edit","timestamp":"2026-05-28T17:32:15Z","important":false}
 {"file":"templates/base.html","action":"Edit","timestamp":"2026-05-28T17:35:41Z","important":false}
+{"file":"baay/tasks/vocal.py","action":"Edit","timestamp":"2026-05-29T11:24:46Z","important":false}
+{"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-29T11:25:07Z","important":false}
+{"file":"baay/management/commands/verify_galsenai.py","action":"Write","timestamp":"2026-05-29T11:25:54Z","important":false}
+{"file":"baay/services/gemini_vocal.py","action":"Write","timestamp":"2026-05-29T11:38:50Z","important":false}
+{"file":"baay/views_assistant_vocal.py","action":"Edit","timestamp":"2026-05-29T11:39:44Z","important":false}
+{"file":"templates/assistant_vocal/index.html","action":"Edit","timestamp":"2026-05-29T11:40:05Z","important":false}
+{"file":"baay/services/gemini_vocal.py","action":"Edit","timestamp":"2026-05-29T15:00:56Z","important":false}
+{"file":"baay/tasks/vocal.py","action":"Edit","timestamp":"2026-05-29T15:01:24Z","important":false}
+{"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-29T15:09:54Z","important":false}
+{"file":".gitignore","action":"Edit","timestamp":"2026-05-29T15:13:12Z","important":false}
+{"file":"baay/tests/test_vocal.py","action":"Write","timestamp":"2026-05-29T15:14:25Z","important":false}
+{"file":"docs/assistant-vocal-plan.md","action":"Write","timestamp":"2026-05-29T15:24:23Z","important":false}
