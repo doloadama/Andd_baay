@@ -1,6 +1,7 @@
 """
 Vue de l'assistant vocal Wolof — Jëf Baay.
-Pipeline : Audio → ASR Wolof → FineLlama-3.1-8B → (TTS optionnel).
+Pipeline : Audio Wolof → Gemini 2.0 Flash (transcription + réponse) en un appel.
+TTS différé. Traitement asynchrone via Celery + polling.
 """
 from __future__ import annotations
 
@@ -44,10 +45,13 @@ def _check_rate(ip: str) -> bool:
 @require_http_methods(["GET", "POST"])
 def assistant_vocal(request):
     if request.method == "GET":
-        hf_configured = bool(getattr(settings, "HF_API_TOKEN", "").strip())
+        ai_configured = bool(
+            getattr(settings, "GEMINI_API_KEYS", None)
+            or getattr(settings, "GEMINI_API_KEY", "").strip()
+        )
         return render(request, "assistant_vocal/index.html", {
-            "hf_configured": hf_configured,
-            "llm_model": getattr(settings, "GALSENAI_LLM_MODEL", "galsenai/FineLlama-3.1-8B"),
+            "ai_configured": ai_configured,
+            "llm_model": getattr(settings, "GEMINI_VOCAL_MODEL", "gemini-2.0-flash"),
         })
 
     # ── POST — enqueue asynchrone, retour immédiat (anti-latence 3G) ──────────
