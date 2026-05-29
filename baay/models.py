@@ -2818,3 +2818,166 @@ class ArticleActualite(models.Model):
     @property
     def categorie_label(self) -> str:
         return self.get_categorie_display()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Prix marché & alertes
+# ──────────────────────────────────────────────────────────────────────────────
+
+class PrixMarche(models.Model):
+    """
+    Prix observé d'un produit agricole sur un marché à une date donnée.
+
+    Collecté automatiquement via :
+      - FAO FPMA API (primaire, sans clé, données SEN)
+      - Scraping OMA Sénégal (fallback)
+
+    Idempotence : unique_together (produit_nom, marche_nom, date_relevee, source).
+    """
+
+    SOURCE_FAO_FPMA = "fao_fpma"
+    SOURCE_OMA      = "oma"
+    SOURCE_RESIMAO  = "resimao"
+    SOURCE_AUTRE    = "autre"
+
+    SOURCE_CHOICES = [
+        (SOURCE_FAO_FPMA, "FAO FPMA (Global Food Prices)"),
+        (SOURCE_OMA,      "OMA Sénégal"),
+        (SOURCE_RESIMAO,  "RESIMAO (Afrique de l'Ouest)"),
+        (SOURCE_AUTRE,    "Autre source"),
+    ]
+
+    id            = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    produit_nom   = models.CharField(
+        max_length=100, db_index=True,
+        help_text="Nom normalisé du produit (mil, sorgho, maïs, arachide…).",
+    )
+    marche_nom    = models.CharField(
+        max_length=150, db_index=True,
+        help_text="Nom du marché (Kaolack, Dakar-Sandaga, Ziguinchor…).",
+    )
+    region        = models.CharField(max_length=100, blank=True, db_index=True)
+    pays          = models.CharField(max_length=50, default="Sénégal")
+    prix_unitaire = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        help_text="Prix en FCFA par unité (généralement kg ou sac 50 kg).",
+    )
+    unite         = models.CharField(
+        max_length=30, default="FCFA/kg",
+        help_text="Unité du prix : FCFA/kg, FCFA/sac50kg, etc.",
+    )
+    qualite       = models.CharField(
+        max_length=50, blank=True,
+        help_text="Qualité ou type : local, importé, gros, détail…",
+    )
+    source        = models.CharField(
+        max_length=20, choices=SOURCE_CHOICES, default=SOURCE_AUTRE, db_index=True,
+    )
+    source_id     = models.CharField(
+        max_length=200, blank=True,
+        help_text="Identifiant externe utilisé pour l'idempotence (ex: FAO FPMA point ID).",
+    )
+    date_relevee  = models.DateField(db_index=True, help_text="Date d'observation du prix.")
+    date_collecte = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date_relevee", "produit_nom"]
+        verbose_name = "Prix marché"
+        verbose_name_plural = "Prix marchés"
+        unique_together = [("produit_nom", "marche_nom", "date_relevee", "source")]
+        indexes = [
+            models.Index(fields=["produit_nom", "-date_relevee"]),
+            models.Index(fields=["marche_nom", "-date_relevee"]),
+            models.Index(fields=["region", "-date_relevee"]),
+            models.Index(fields=["source", "-date_relevee"]),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.produit_nom} — {self.marche_nom} "
+            f"({self.prix_unitaire} {self.unite}, {self.date_relevee})"
+        )
+
+    @property
+    def source_label(self) -> str:
+        return self.get_source_display()
+
+
+class AlertePrix(models.Model):
+    """
+    Variation significative de prix détectée automatiquement par comparaison
+    entre le dernier prix relevé et le prix N jours avant.
+
+    Niveaux :
+      - info     : variation < seuil warning (informatif)
+      - warning  : ≥ 15 % sur 7 j  / ≥ 20 % sur 30 j
+      - critique : ≥ 30 % sur 7 j  / ≥ 40 % sur 30 j
+
+    Idempotence : unique_together (produit_nom, marche_nom, periode_jours, date_detection).
+    """
+
+    NIVEAU_INFO     = "info"
+    NIVEAU_WARNING  = "warning"
+    NIVEAU_CRITIQUE = "critique"
+
+    NIVEAU_CHOICES = [
+        (NIVEAU_INFO,     "ℹ️ Informatif"),
+        (NIVEAU_WARNING,  "⚠️ Variation importante"),
+        (NIVEAU_CRITIQUE, "🔴 Variation critique"),
+    ]
+
+    id              = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    produit_nom     = models.CharField(max_length=100, db_index=True)
+    marche_nom      = models.CharField(max_length=150)
+    region          = models.CharField(max_length=100, blank=True)
+    variation_pct   = models.FloatField(
+        help_text="Variation en % (positif = hausse, négatif = baisse).",
+    )
+    prix_actuel     = models.DecimalField(max_digits=12, decimal_places=2)
+    prix_reference  = models.DecimalField(max_digits=12, decimal_places=2)
+    unite           = models.CharField(max_length=30, default="FCFA/kg")
+    periode_jours   = models.IntegerField(
+        default=7, help_text="Fenêtre de comparaison : 7 ou 30 jours.",
+    )
+    niveau          = models.CharField(
+        max_length=20, choices=NIVEAU_CHOICES, default=NIVEAU_WARNING, db_index=True,
+    )
+    date_detection  = models.DateTimeField(auto_now_add=True, db_index=True)
+    vue             = models.BooleanField(
+        default=False, db_index=True,
+        help_text="True = l'alerte a été vue dans le dashboard.",
+    )
+
+    class Meta:
+        ordering = ["-date_detection"]
+        verbose_name = "Alerte prix"
+        verbose_name_plural = "Alertes prix"
+        unique_together = [("produit_nom", "marche_nom", "periode_jours", "date_detection")]
+        indexes = [
+            models.Index(fields=["niveau", "-date_detection"]),
+            models.Index(fields=["vue", "-date_detection"]),
+            models.Index(fields=["produit_nom", "-date_detection"]),
+        ]
+
+    def __str__(self) -> str:
+        sens = "↑" if self.variation_pct > 0 else "↓"
+        return (
+            f"{self.produit_nom} {sens}{abs(self.variation_pct):.1f}% "
+            f"— {self.marche_nom} ({self.periode_jours}j) [{self.niveau}]"
+        )
+
+    @property
+    def est_hausse(self) -> bool:
+        return self.variation_pct > 0
+
+    @property
+    def icone(self) -> str:
+        if self.niveau == self.NIVEAU_CRITIQUE:
+            return "🔴"
+        if self.niveau == self.NIVEAU_WARNING:
+            return "⚠️"
+        return "ℹ️"
+
+    @property
+    def variation_abs(self) -> float:
+        return abs(self.variation_pct)

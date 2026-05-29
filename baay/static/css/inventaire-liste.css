@@ -3,13 +3,13 @@
    ============================================================ */
 
 .invl-page {
-    --invl-brand: var(--brand-primary, #1d9e75);
-    --invl-deep: var(--brand-deep, #085041);
-    --invl-night: var(--brand-night, #04342c);
-    --invl-accent: #ef9f27;
-    --invl-surface: var(--card-bg-solid, #fff);
-    --invl-border: var(--border-color, rgba(8, 80, 65, 0.1));
-    --invl-muted-bg: var(--bg-secondary, #f3f7f6);
+    --ab-invl-brand: var(--ab-brand-primary, #1d9e75);
+    --ab-invl-deep: var(--ab-brand-deep, #085041);
+    --ab-invl-night: var(--ab-brand-night, #04342c);
+    --ab-invl-accent: #ef9f27;
+    --ab-invl-surface: var(--ab-card-bg-solid, #fff);
+    --ab-invl-border: var(--ab-border-color, rgba(8, 80, 65, 0.1));
+    --ab-invl-muted-bg: var(--ab-bg-secondary, #f3f7f6);
     max-width: 1100px;
     margin: 0 auto;
     padding: clamp(12px, 3vw, 28px) clamp(12px, 2.5vw, 20px) 3rem;
@@ -22,21 +22,21 @@
     margin-bottom: 14px;
     font-size: 0.88rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-decoration: none;
 }
 
 .invl-back:hover {
-    color: var(--invl-brand);
+    color: var(--ab-invl-brand);
 }
 
 /* Hero */
 .invl-hero {
-    border-radius: var(--radius-card, 20px);
+    border-radius: var(--ab-radius-card, 20px);
     padding: clamp(18px, 4vw, 28px);
     margin-bottom: 16px;
     color: #fff;
-    background: linear-gradient(135deg, var(--invl-night), var(--invl-deep) 50%, var(--invl-brand));
+    background: linear-gradient(135deg, var(--ab-invl-night), var(--ab-invl-deep) 50%, var(--ab-invl-brand));
     position: relative;
     overflow: hidden;
 }
@@ -69,7 +69,7 @@
 }
 
 .invl-hero__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: clamp(1.4rem, 4vw, 1.85rem);
     font-weight: 700;
     margin: 0 0 4px;
@@ -103,7 +103,7 @@
 
 .invl-btn--primary {
     background: #fff;
-    color: var(--invl-deep);
+    color: var(--ab-invl-deep);
 }
 
 .invl-btn--ghost {
@@ -118,7 +118,7 @@
 }
 
 .invl-btn--brand {
-    background: var(--invl-brand);
+    background: var(--ab-invl-brand);
     color: #fff;
 }
 
@@ -128,9 +128,9 @@
 }
 
 .invl-btn--outline {
-    background: var(--invl-surface);
-    color: var(--invl-deep);
-    border: 1px solid var(--invl-border);
+    background: var(--ab-invl-surface);
+    color: var(--ab-invl-deep);
+    border: 1px solid var(--ab-invl-border);
 }
 
 /* KPIs */
@@ -149,9 +149,9 @@
 
 .invl-kpi {
     padding: 12px 14px;
-    border-radius: var(--radius-tight, 14px);
-    border: 1px solid var(--invl-border);
-    background: var(--invl-surface);
+    border-radius: var(--ab-radius-tight, 14px);
+    border: 1px solid var(--ab-invl-border);
+    background: var(--ab-invl-surface);
     text-decoration: none;
     color: inherit;
 }
@@ -162,7 +162,7 @@ a.invl-kpi:hover {
 }
 
 .invl-kpi.is-active {
-    border-color: var(--invl-brand);
+    border-color: var(--ab-invl-brand);
     box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15);
 }
 
@@ -171,10 +171,10 @@ a.invl-kpi:hover {
 }
 
 .invl-kpi__value {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.35rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .invl-kpi__label {
@@ -182,7 +182,7 @@ a.invl-kpi:hover {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-top: 2px;
 }
 
@@ -193,9 +193,9 @@ a.invl-kpi:hover {
     gap: 8px;
     margin-bottom: 0;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--invl-border);
-    background: var(--invl-muted-bg);
-    border-radius: var(--radius-card, 18px) var(--radius-card, 18px) 0 0;
+    border-bottom: 1px solid var(--ab-invl-border);
+    background: var(--ab-invl-muted-bg);
+    border-radius: var(--ab-radius-card, 18px) var(--ab-radius-card, 18px) 0 0;
 }
 
 .invl-tab {
@@ -207,29 +207,29 @@ a.invl-kpi:hover {
     font-size: 0.8rem;
     font-weight: 600;
     text-decoration: none;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     border: 1px solid transparent;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .invl-tab:hover {
-    color: var(--invl-deep);
-    border-color: var(--invl-border);
-    background: var(--invl-surface);
+    color: var(--ab-invl-deep);
+    border-color: var(--ab-invl-border);
+    background: var(--ab-invl-surface);
 }
 
 .invl-tab.is-active {
-    background: var(--invl-brand);
+    background: var(--ab-invl-brand);
     color: #fff;
-    border-color: var(--invl-brand);
+    border-color: var(--ab-invl-brand);
 }
 
 /* Panel */
 .invl-panel {
-    background: var(--invl-surface);
-    border: 1px solid var(--invl-border);
+    background: var(--ab-invl-surface);
+    border: 1px solid var(--ab-invl-border);
     border-top: none;
-    border-radius: 0 0 var(--radius-card, 18px) var(--radius-card, 18px);
+    border-radius: 0 0 var(--ab-radius-card, 18px) var(--ab-radius-card, 18px);
     padding: 16px 18px 20px;
 }
 
@@ -260,14 +260,14 @@ a.invl-kpi:hover {
 .invl-alert-banner li {
     font-size: 0.82rem;
     padding: 2px 0;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 /* Table */
 .invl-table-wrap {
     overflow-x: auto;
     border-radius: 12px;
-    border: 1px solid var(--invl-border);
+    border: 1px solid var(--ab-invl-border);
     margin-bottom: 16px;
 }
 
@@ -280,7 +280,7 @@ a.invl-kpi:hover {
 }
 
 .invl-table thead {
-    background: linear-gradient(135deg, var(--invl-deep), var(--invl-night));
+    background: linear-gradient(135deg, var(--ab-invl-deep), var(--ab-invl-night));
     color: #fff;
 }
 
@@ -295,8 +295,8 @@ a.invl-kpi:hover {
 
 .invl-table td {
     padding: 11px 12px;
-    border-top: 1px solid var(--invl-border);
-    color: var(--text-main);
+    border-top: 1px solid var(--ab-invl-border);
+    color: var(--ab-text-main);
     vertical-align: middle;
 }
 
@@ -314,7 +314,7 @@ a.invl-kpi:hover {
     padding: 3px 8px;
     border-radius: 999px;
     background: rgba(100, 116, 139, 0.12);
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .invl-badge-low {
@@ -342,9 +342,9 @@ a.invl-kpi:hover {
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 1px solid var(--invl-border);
-    background: var(--invl-surface);
-    color: var(--text-main);
+    border: 1px solid var(--ab-invl-border);
+    background: var(--ab-invl-surface);
+    color: var(--ab-text-main);
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
@@ -363,12 +363,12 @@ a.invl-kpi:hover {
 .invl-adjust__btn--plus:hover {
     border-color: rgba(29, 158, 117, 0.4);
     background: rgba(29, 158, 117, 0.08);
-    color: var(--invl-deep);
+    color: var(--ab-invl-deep);
 }
 
 .invl-type-entree {
     background: rgba(29, 158, 117, 0.12);
-    color: var(--invl-deep);
+    color: var(--ab-invl-deep);
     font-size: 0.68rem;
     font-weight: 700;
     padding: 3px 8px;
@@ -384,7 +384,7 @@ a.invl-kpi:hover {
     border-radius: 999px;
 }
 
-.invl-qualite--a { background: rgba(29, 158, 117, 0.15); color: var(--invl-deep); }
+.invl-qualite--a { background: rgba(29, 158, 117, 0.15); color: var(--ab-invl-deep); }
 .invl-qualite--b { background: rgba(14, 165, 233, 0.12); color: #0369a1; }
 .invl-qualite--c { background: rgba(217, 119, 6, 0.12); color: #b45309; }
 .invl-qualite--d,
@@ -400,7 +400,7 @@ a.invl-kpi:hover {
 .invl-empty {
     text-align: center;
     padding: 40px 20px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .invl-empty i {
@@ -433,7 +433,7 @@ a.invl-kpi:hover {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--invl-deep);
+    color: var(--ab-invl-deep);
     margin: 0 0 12px;
 }
 
@@ -448,7 +448,7 @@ a.invl-kpi:hover {
     display: block;
     font-size: 0.72rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-bottom: 4px;
 }
 
@@ -457,9 +457,9 @@ a.invl-kpi:hover {
     width: 100%;
     padding: 8px 10px;
     border-radius: 8px;
-    border: 1px solid var(--invl-border);
-    background: var(--invl-surface);
-    color: var(--text-main);
+    border: 1px solid var(--ab-invl-border);
+    background: var(--ab-invl-surface);
+    color: var(--ab-text-main);
     font-size: 0.88rem;
 }
 
@@ -476,7 +476,7 @@ a.invl-kpi:hover {
 .dark-mode .invl-field input,
 .dark-mode .invl-field select,
 .dark-mode .invl-adjust__btn {
-    background: var(--card-bg-solid, #121c19);
+    background: var(--ab-card-bg-solid, #121c19);
     border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -494,13 +494,13 @@ a.invl-kpi:hover {
 
 /* Buttons & tabs — dark mode */
 .dark-mode .invl-btn--outline {
-    background: var(--card-bg-solid, #121c19);
-    color: var(--text-main, #e8f5f0);
+    background: var(--ab-card-bg-solid, #121c19);
+    color: var(--ab-text-main, #e8f5f0);
     border-color: rgba(255, 255, 255, 0.14);
 }
 
 .dark-mode .invl-btn--outline:hover {
-    color: var(--brand-light, #5dcaa5);
+    color: var(--ab-brand-light, #5dcaa5);
     border-color: rgba(29, 158, 117, 0.45);
 }
 
@@ -510,12 +510,12 @@ a.invl-kpi:hover {
 
 .dark-mode .invl-btn--primary {
     background: #fff;
-    color: var(--invl-deep, #085041);
+    color: var(--ab-invl-deep, #085041);
 }
 
 .dark-mode .invl-tab:hover {
-    color: var(--text-main, #e8f5f0);
-    background: var(--card-bg-solid, #121c19);
+    color: var(--ab-text-main, #e8f5f0);
+    background: var(--ab-card-bg-solid, #121c19);
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -524,7 +524,7 @@ a.invl-kpi:hover {
 }
 
 .dark-mode .invl-adjust__btn {
-    color: var(--text-main, #e8f5f0);
+    color: var(--ab-text-main, #e8f5f0);
     border-color: rgba(255, 255, 255, 0.14);
 }
 
@@ -535,7 +535,7 @@ a.invl-kpi:hover {
 }
 
 .dark-mode .invl-adjust__btn--plus:hover {
-    color: var(--brand-light, #5dcaa5);
+    color: var(--ab-brand-light, #5dcaa5);
     background: rgba(29, 158, 117, 0.15);
     border-color: rgba(29, 158, 117, 0.4);
 }

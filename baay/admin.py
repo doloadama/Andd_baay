@@ -20,8 +20,10 @@ from unfold.contrib.filters.admin import (
 from baay.dashboard_services import DashboardChangelistMixin
 
 from .models import (
+    AlertePrix,
     AppelAPILog,
     ArticleActualite,
+    PrixMarche,
     Conversation,
     CampagneProjet,
     DemandeAccesFerme,
@@ -491,3 +493,58 @@ class ArticleActualiteAdmin(ModelAdmin):
     @admin.display(description="Titre")
     def titre_tronque(self, obj):
         return Truncator(obj.titre).chars(80)
+
+
+# ─── Prix marchés ─────────────────────────────────────────────────────────────
+
+@admin.register(PrixMarche)
+class PrixMarcheAdmin(ModelAdmin):
+    list_display  = (
+        "produit_nom", "marche_nom", "region",
+        "prix_unitaire", "unite", "source", "date_relevee", "date_collecte",
+    )
+    list_filter   = (
+        ("source",      ChoicesDropdownFilter),
+        ("date_relevee", RangeDateFilter),
+    )
+    search_fields  = ("produit_nom", "marche_nom", "region")
+    readonly_fields = ("id", "date_collecte", "source_id")
+    ordering       = ("-date_relevee", "produit_nom")
+    list_per_page  = 50
+    date_hierarchy = "date_relevee"
+
+
+@admin.register(AlertePrix)
+class AlertePrixAdmin(ModelAdmin):
+    list_display   = (
+        "produit_nom", "marche_nom", "variation_affichee",
+        "niveau", "periode_jours", "vue", "date_detection",
+    )
+    list_filter    = (
+        ("niveau",         ChoicesDropdownFilter),
+        "vue",
+        ("date_detection", RangeDateTimeFilter),
+    )
+    search_fields  = ("produit_nom", "marche_nom", "region")
+    readonly_fields = (
+        "id", "date_detection",
+        "prix_actuel", "prix_reference", "variation_pct",
+    )
+    ordering       = ("-date_detection",)
+    list_per_page  = 50
+    actions        = ["marquer_vues", "marquer_non_vues"]
+
+    @admin.display(description="Variation")
+    def variation_affichee(self, obj) -> str:
+        sens = "↑" if obj.variation_pct > 0 else "↓"
+        return f"{sens} {abs(obj.variation_pct):.1f}%"
+
+    @admin.action(description="Marquer comme vues")
+    def marquer_vues(self, request, queryset):
+        nb = queryset.update(vue=True)
+        self.message_user(request, f"{nb} alerte(s) marquée(s) comme vues.")
+
+    @admin.action(description="Marquer comme non vues")
+    def marquer_non_vues(self, request, queryset):
+        nb = queryset.update(vue=False)
+        self.message_user(request, f"{nb} alerte(s) marquée(s) comme non vues.")

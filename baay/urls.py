@@ -17,4 +17,5 @@ urlpatterns = [
     path("", include("baay.urls_assistant_vocal")),
     path("", include("baay.urls_invitations")),
     path("", include("baay.urls_actualites")),
+    path("", include("baay.urls_marche")),
 ]

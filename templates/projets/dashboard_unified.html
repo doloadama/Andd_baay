@@ -14,34 +14,34 @@
        ANDD BAAY V3 - UNIFIED MULTI-TAB DASHBOARD (Premium Afro-Tech)
        ============================================================ */
     :root {
-        --at-brand: #1D9E75;
-        --at-brand-deep: #085041;
-        --at-brand-night: #04342C;
-        --at-accent: #EF9F27;
-        --at-surface: #ffffff;
-        --at-bg: #f8faf9;
-        --at-text: #2C2C2A;
-        --at-muted: #5c5c57;
-        --at-border: rgba(8,80,65,0.08);
-        --at-shadow: 0 4px 16px rgba(8,80,65,0.08);
-        --at-radius: 22px;
-        --at-radius-sm: 14px;
-        --at-glass: rgba(255, 255, 255, 0.92);
+        --ab-at-brand: #1D9E75;
+        --ab-at-brand-deep: #085041;
+        --ab-at-brand-night: #04342C;
+        --ab-at-accent: #EF9F27;
+        --ab-at-surface: #ffffff;
+        --ab-at-bg: #f8faf9;
+        --ab-at-text: #2C2C2A;
+        --ab-at-muted: #5c5c57;
+        --ab-at-border: rgba(8,80,65,0.08);
+        --ab-at-shadow: 0 4px 16px rgba(8,80,65,0.08);
+        --ab-at-radius: 22px;
+        --ab-at-radius-sm: 14px;
+        --ab-at-glass: rgba(255, 255, 255, 0.92);
     }
 
     /* Dark mode overrides */
     .dark-mode {
-        --at-brand: #5dcaa5;
-        --at-brand-deep: #a8c8bb;
-        --at-brand-night: #E8F5F0;
-        --at-accent: #EF9F27;
-        --at-surface: #121c19;
-        --at-bg: #0a0f0e;
-        --at-text: #E8F5F0;
-        --at-muted: #a8c8bb;
-        --at-border: rgba(93,202,165,0.12);
-        --at-shadow: 0 4px 16px rgba(0,0,0,0.25);
-        --at-glass: rgba(18, 28, 25, 0.92);
+        --ab-at-brand: #5dcaa5;
+        --ab-at-brand-deep: #a8c8bb;
+        --ab-at-brand-night: #E8F5F0;
+        --ab-at-accent: #EF9F27;
+        --ab-at-surface: #121c19;
+        --ab-at-bg: #0a0f0e;
+        --ab-at-text: #E8F5F0;
+        --ab-at-muted: #a8c8bb;
+        --ab-at-border: rgba(93,202,165,0.12);
+        --ab-at-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        --ab-at-glass: rgba(18, 28, 25, 0.92);
     }
 
     .at-dashboard {
@@ -60,18 +60,18 @@
         flex-wrap: wrap;
         gap: 16px;
     }
-    .at-topbar__title h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800; margin: 0; color: var(--at-brand-night); }
-    .at-topbar__title p { margin: 0; color: var(--at-muted); font-size: 14px; }
+    .at-topbar__title h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800; margin: 0; color: var(--ab-at-brand-night); }
+    .at-topbar__title p { margin: 0; color: var(--ab-at-muted); font-size: 14px; }
 
     /* --- TABS NAVIGATION --- */
     .at-tabs-nav {
         display: flex;
-        background: var(--at-surface);
+        background: var(--ab-at-surface);
         padding: 6px;
         border-radius: 50px;
         margin-bottom: 32px;
-        box-shadow: var(--at-shadow);
-        border: 1px solid var(--at-border);
+        box-shadow: var(--ab-at-shadow);
+        border: 1px solid var(--ab-at-border);
         position: sticky;
         top: 80px;
         z-index: 100;
@@ -87,7 +87,7 @@
         border-radius: 40px;
         border: none;
         background: transparent;
-        color: var(--at-muted);
+        color: var(--ab-at-muted);
         font-weight: 700;
         font-size: 14px;
         cursor: pointer;
@@ -99,7 +99,7 @@
         white-space: nowrap;
     }
     .at-tab-btn.active {
-        background: var(--at-brand);
+        background: var(--ab-at-brand);
         color: white;
         box-shadow: 0 4px 12px rgba(29, 158, 117, 0.25);
     }
@@ -113,11 +113,11 @@
     }
     .at-card {
         grid-column: span 12;
-        background: var(--at-surface);
-        border-radius: var(--at-radius);
+        background: var(--ab-at-surface);
+        border-radius: var(--ab-at-radius);
         padding: 24px;
-        box-shadow: var(--at-shadow);
-        border: 1px solid var(--at-border);
+        box-shadow: var(--ab-at-shadow);
+        border: 1px solid var(--ab-at-border);
         transition: 0.3s;
         position: relative;
         overflow: hidden;
@@ -146,59 +146,59 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: var(--at-muted);
+        color: var(--ab-at-muted);
         margin-bottom: 20px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    .at-card-title i { color: var(--at-brand); }
+    .at-card-title i { color: var(--ab-at-brand); }
 
     /* --- KPI COMPONENTS --- */
     .at-stat-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
-    .at-stat { background: var(--at-bg); padding: 18px; border-radius: var(--at-radius-sm); border: 1px solid var(--at-border); }
-    .at-stat__label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--at-muted); display: block; margin-bottom: 4px; }
-    .at-stat__value { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--at-brand-deep); line-height: 1; }
-    .at-stat__hint { font-size: 11px; color: var(--at-brand); font-weight: 600; margin-top: 4px; }
+    .at-stat { background: var(--ab-at-bg); padding: 18px; border-radius: var(--ab-at-radius-sm); border: 1px solid var(--ab-at-border); }
+    .at-stat__label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ab-at-muted); display: block; margin-bottom: 4px; }
+    .at-stat__value { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--ab-at-brand-deep); line-height: 1; }
+    .at-stat__hint { font-size: 11px; color: var(--ab-at-brand); font-weight: 600; margin-top: 4px; }
 
     /* --- PROJECT ROWS --- */
     .at-project-row {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 12px 16px; border-radius: 14px; background: var(--at-bg); margin-bottom: 8px;
+        padding: 12px 16px; border-radius: 14px; background: var(--ab-at-bg); margin-bottom: 8px;
         transition: 0.2s; text-decoration: none; color: inherit;
     }
     .at-project-row:hover { transform: translateX(5px); background: #f0f4f2; }
     .dark-mode .at-project-row:hover { background: rgba(93,202,165,0.08); }
     .at-project-name { font-weight: 700; font-size: 14px; }
-    .at-project-meta { font-size: 11px; color: var(--at-muted); }
+    .at-project-meta { font-size: 11px; color: var(--ab-at-muted); }
 
     /* --- ACTIVITY FEED --- */
     .at-feed-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
-    .at-feed-item::after { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: var(--at-border); }
+    .at-feed-item::after { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: var(--ab-at-border); }
     .at-feed-item:last-child::after { display: none; }
-    .at-feed-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--at-brand); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; z-index: 1; }
+    .at-feed-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--ab-at-brand); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; z-index: 1; }
 
     /* --- TASK ITEMS --- */
     .at-task-item {
-        display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: var(--at-radius-sm);
-        background: var(--at-bg); margin-bottom: 12px; border-left: 4px solid var(--at-brand);
+        display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: var(--ab-at-radius-sm);
+        background: var(--ab-at-bg); margin-bottom: 12px; border-left: 4px solid var(--ab-at-brand);
     }
     .at-task-item--urgent { border-left-color: #ef4444; }
     .at-task-info { flex: 1; }
     .at-task-title { font-weight: 700; font-size: 14px; }
-    .at-task-meta { font-size: 12px; color: var(--at-muted); }
+    .at-task-meta { font-size: 12px; color: var(--ab-at-muted); }
 
     /* --- TABLES --- */
     .at-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
-    .at-table th { padding: 12px; font-size: 11px; text-transform: uppercase; color: var(--at-muted); font-weight: 700; }
-    .at-table td { padding: 14px 12px; background: var(--at-bg); }
+    .at-table th { padding: 12px; font-size: 11px; text-transform: uppercase; color: var(--ab-at-muted); font-weight: 700; }
+    .at-table td { padding: 14px 12px; background: var(--ab-at-bg); }
     .at-table tr td:first-child { border-radius: 12px 0 0 12px; }
     .at-table tr td:last-child { border-radius: 0 12px 12px 0; }
 
     /* --- ACTION HUB (FAB) --- */
     .at-action-hub { position: fixed; bottom: 32px; right: 32px; z-index: 9999; }
     .at-fab {
-        width: 60px; height: 60px; border-radius: 50%; background: var(--at-accent); color: white;
+        width: 60px; height: 60px; border-radius: 50%; background: var(--ab-at-accent); color: white;
         display: flex; align-items: center; justify-content: center; font-size: 24px;
         box-shadow: 0 8px 24px rgba(239, 159, 39, 0.4); cursor: pointer; transition: 0.3s; border: none;
     }
@@ -209,31 +209,31 @@
     }
     .at-fab-menu.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
     .at-fab-item {
-        background: white; padding: 10px 20px; border-radius: 50px; box-shadow: var(--at-shadow);
-        display: flex; align-items: center; gap: 12px; white-space: nowrap; text-decoration: none; color: var(--at-text);
-        font-weight: 700; font-size: 14px; border: 1px solid var(--at-border);
+        background: white; padding: 10px 20px; border-radius: 50px; box-shadow: var(--ab-at-shadow);
+        display: flex; align-items: center; gap: 12px; white-space: nowrap; text-decoration: none; color: var(--ab-at-text);
+        font-weight: 700; font-size: 14px; border: 1px solid var(--ab-at-border);
     }
-    .dark-mode .at-fab-item { background: var(--at-surface); }
+    .dark-mode .at-fab-item { background: var(--ab-at-surface); }
 
     /* --- DARK MODE: Bootstrap & misc overrides --- */
     .dark-mode .at-topbar .btn-light {
-        background: var(--at-surface);
-        border-color: var(--at-border);
-        color: var(--at-text);
+        background: var(--ab-at-surface);
+        border-color: var(--ab-at-border);
+        color: var(--ab-at-text);
     }
     .dark-mode .at-topbar .btn-light:hover { background: rgba(93,202,165,0.08); }
     .dark-mode .at-topbar .dropdown-menu {
-        background: var(--at-surface);
-        border: 1px solid var(--at-border);
+        background: var(--ab-at-surface);
+        border: 1px solid var(--ab-at-border);
     }
-    .dark-mode .at-topbar .dropdown-item { color: var(--at-text); }
+    .dark-mode .at-topbar .dropdown-item { color: var(--ab-at-text); }
     .dark-mode .at-topbar .dropdown-item:hover { background: rgba(93,202,165,0.08); }
     .dark-mode .at-topbar .btn-primary {
-        background: var(--at-brand);
-        border-color: var(--at-brand);
+        background: var(--ab-at-brand);
+        border-color: var(--ab-at-brand);
         color: #0a0f0e;
     }
-    .dark-mode .at-table td { color: var(--at-text); }
+    .dark-mode .at-table td { color: var(--ab-at-text); }
 
     /* --- RESPONSIVE --- */
     @media (max-width: 992px) {
@@ -401,7 +401,7 @@
                     <i class="fas fa-seedling"></i>
                 </div>
                 <p class="at-muted mb-2">Aucun projet pour le moment.</p>
-                <a href="{% url 'creer_projet' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:var(--radius-pill);padding:8px 20px;">
+                <a href="{% url 'creer_projet' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:var(--ab-radius-pill);padding:8px 20px;">
                     <i class="fas fa-plus me-1"></i> Créer un projet
                 </a>
             </div>
@@ -416,7 +416,7 @@
                     <i class="fas fa-map-marker-alt"></i>
                 </div>
                 <p class="small at-muted mb-2">Aucune coordonnée GPS enregistrée pour vos fermes.</p>
-                <a href="{% url 'liste_fermes' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:var(--radius-pill);padding:6px 16px;font-size:0.8rem;">
+                <a href="{% url 'liste_fermes' %}" class="btn btn-sm" style="background:var(--accent);color:#fff;border-radius:var(--ab-radius-pill);padding:6px 16px;font-size:0.8rem;">
                     <i class="fas fa-cog me-1"></i> Configurer mes fermes
                 </a>
             </div>

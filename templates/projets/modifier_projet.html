@@ -5,7 +5,7 @@
     .form-page-bg {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
+        background: linear-gradient(135deg, var(--ab-bg-main) 0%, var(--ab-bg-secondary) 100%);
         z-index: 0;
     }
     
@@ -25,30 +25,30 @@
     }
     
     .glass-form-card {
-        background: var(--card-bg);
+        background: var(--ab-card-bg);
         backdrop-filter: blur(24px);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-panel);
+        border: 1px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-panel);
         overflow: hidden;
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--ab-shadow-lg);
     }
     
     .card-header-modern {
-        background: var(--card-bg-solid);
+        background: var(--ab-card-bg-solid);
         padding: 32px 40px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--ab-border-color);
     }
     
     .card-header-modern h4 {
         margin: 0;
         font-size: 1.4rem;
-        color: var(--text-main);
-        font-family: var(--font-display);
+        color: var(--ab-text-main);
+        font-family: var(--ab-font-display);
         font-weight: 700;
     }
     
     .form-label-modern {
-        color: var(--text-main);
+        color: var(--ab-text-main);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 10px;
@@ -58,20 +58,20 @@
         position: relative;
         display: flex;
         align-items: center;
-        background: var(--bg-secondary);
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-md);
+        background: var(--ab-bg-secondary);
+        border: 2px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-md);
         transition: all 0.3s;
         overflow: hidden;
     }
     
     .input-wrapper:focus-within {
         border-color: var(--accent);
-        background: var(--bg-main);
+        background: var(--ab-bg-main);
     }
     
     .input-icon {
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
         padding-left: 20px;
         width: 48px;
         text-align: center;
@@ -86,7 +86,7 @@
     .modern-form textarea {
         background: transparent !important;
         border: none !important;
-        color: var(--text-main) !important;
+        color: var(--ab-text-main) !important;
         width: 100%;
         padding: 18px 20px 18px 12px;
         font-size: 1rem;
@@ -95,8 +95,8 @@
     }
     
     .modern-form select option {
-        background: var(--card-bg-solid);
-        color: var(--text-main);
+        background: var(--ab-card-bg-solid);
+        color: var(--ab-text-main);
     }
     
     .btn-submit-modern {
@@ -106,7 +106,7 @@
         padding: 16px 32px;
         background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
         border: none;
-        border-radius: var(--radius-tight);
+        border-radius: var(--ab-radius-tight);
         color: #022c22;
         font-weight: 700;
         font-size: 1rem;
@@ -126,9 +126,9 @@
     }
     
     .product-checkbox-item {
-        background: var(--bg-secondary);
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-input);
+        background: var(--ab-bg-secondary);
+        border: 2px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-input);
         padding: 16px;
         transition: all 0.3s;
         cursor: pointer;
@@ -136,7 +136,7 @@
     
     .product-checkbox-item:hover {
         border-color: rgba(163, 230, 53, 0.3);
-        background: var(--bg-main);
+        background: var(--ab-bg-main);
     }
     
     .product-checkbox-item.selected {
@@ -153,7 +153,7 @@
     .rendement-section {
         background: rgba(16, 185, 129, 0.1);
         border: 2px solid rgba(16, 185, 129, 0.3);
-        border-radius: var(--radius-card);
+        border-radius: var(--ab-radius-card);
         padding: 24px;
         margin-bottom: 32px;
     }
@@ -164,8 +164,8 @@
     }
     
     .rendement-card {
-        background: var(--bg-secondary);
-        border-radius: var(--radius-input);
+        background: var(--ab-bg-secondary);
+        border-radius: var(--ab-radius-input);
         padding: 20px;
         margin-bottom: 16px;
     }
@@ -291,7 +291,7 @@
                         
                         <!-- Plant Details Section -->
                         {% if plants_data %}
-                        <div class="rendement-section mb-4" style="background: var(--bg-main); border-color: rgba(163, 230, 53, 0.2);">
+                        <div class="rendement-section mb-4" style="background: var(--ab-bg-main); border-color: rgba(163, 230, 53, 0.2);">
                             <h5 style="color: var(--accent);"><i class="fas fa-camera me-2"></i> Suivi des plants</h5>
                             <p class="text-muted mb-4">Ajoutez une photo et precisez l'age pour chaque type de plant.</p>
                             
@@ -386,7 +386,7 @@
                             <p class="text-muted small mb-3">Selectionnez un ou plusieurs produits et indiquez la superficie allouee a chacun</p>
                             <div class="product-checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px;">
                                 {% for produit in produits %}
-                                <label class="product-checkbox-item" data-produit-id="{{ produit.id }}" style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: var(--radius-input); padding: 16px; cursor: pointer; transition: all 0.3s;">
+                                <label class="product-checkbox-item" data-produit-id="{{ produit.id }}" style="background: var(--ab-bg-secondary); border: 2px solid var(--ab-border-color); border-radius: var(--ab-radius-input); padding: 16px; cursor: pointer; transition: all 0.3s;">
                                     <div class="d-flex align-items-center gap-3">
                                         <input type="checkbox"
                                                class="produit-checkbox"
@@ -602,8 +602,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function applyItemStyle(item, checked) {
-        item.style.borderColor = checked ? 'var(--accent)' : 'var(--border-color)';
-        item.style.background = checked ? 'rgba(163, 230, 53, 0.1)' : 'var(--bg-secondary)';
+        item.style.borderColor = checked ? 'var(--accent)' : 'var(--ab-border-color)';
+        item.style.background = checked ? 'rgba(163, 230, 53, 0.1)' : 'var(--ab-bg-secondary)';
     }
 
     produitItems.forEach(function(item) {

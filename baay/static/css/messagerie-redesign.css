@@ -3,11 +3,11 @@
    ============================================================ */
 
 :root {
-    --at-whatsapp-bg: #e5ddd5;
-    --at-whatsapp-green: #25d366;
-    --at-whatsapp-teal: #075e54;
-    --at-whatsapp-light: #dcf8c6;
-    --at-safran: #EF9F27;
+    --ab-at-whatsapp-bg: #e5ddd5;
+    --ab-at-whatsapp-green: #25d366;
+    --ab-at-whatsapp-teal: #075e54;
+    --ab-at-whatsapp-light: #dcf8c6;
+    --ab-at-safran: #EF9F27;
 }
 
 /* Shell & Columns */
@@ -38,7 +38,7 @@
 
 /* Sidebar Styling */
 .msg-sidebar-header {
-    background: var(--brand-deep) !important;
+    background: var(--ab-brand-deep) !important;
     color: white !important;
 }
 
@@ -47,11 +47,11 @@
 }
 
 .msg-sidebar-title-icon {
-    background: var(--at-safran) !important;
+    background: var(--ab-at-safran) !important;
 }
 
 .msg-new-btn {
-    background: var(--at-safran) !important;
+    background: var(--ab-at-safran) !important;
     width: 32px;
     height: 32px;
     padding: 0;
@@ -72,7 +72,7 @@
     bottom: 0;
     width: 0;
     height: 2px;
-    background: var(--brand-primary);
+    background: var(--ab-brand-primary);
     transition: width 0.3s ease;
 }
 
@@ -90,18 +90,18 @@
 
 /* Chat Area Styling (WhatsApp Vibes + Afro-Tech Patterns) */
 .chat-messages-bg {
-    background-color: var(--at-whatsapp-bg) !important;
+    background-color: var(--ab-at-whatsapp-bg) !important;
     background-image:
-        radial-gradient(var(--brand-primary) 0.5px, transparent 0.5px),
-        radial-gradient(var(--brand-primary) 0.5px, var(--at-whatsapp-bg) 0.5px) !important;
+        radial-gradient(var(--ab-brand-primary) 0.5px, transparent 0.5px),
+        radial-gradient(var(--ab-brand-primary) 0.5px, var(--ab-at-whatsapp-bg) 0.5px) !important;
     background-size: 20px 20px !important;
     background-position: 0 0, 10px 10px !important;
     opacity: 0.9;
 }
 
 .msg-conv-header {
-    background: linear-gradient(135deg, var(--brand-night) 0%, var(--brand-deep) 100%) !important;
-    border-bottom: 2px solid var(--at-safran) !important;
+    background: linear-gradient(135deg, var(--ab-brand-night) 0%, var(--ab-brand-deep) 100%) !important;
+    border-bottom: 2px solid var(--ab-at-safran) !important;
 }
 
 .chat-header-title {
@@ -111,11 +111,11 @@
 }
 
 .chat-header-status {
-    color: var(--brand-pale) !important;
+    color: var(--ab-brand-pale) !important;
 }
 
 .msg-bubble-own {
-    background: var(--brand-primary) !important;
+    background: var(--ab-brand-primary) !important;
     color: white !important;
     border: none !important;
     box-shadow: 0 4px 12px rgba(29, 158, 117, 0.2) !important;
@@ -130,7 +130,7 @@
     right: -8px;
     width: 10px;
     height: 12px;
-    background: var(--brand-primary);
+    background: var(--ab-brand-primary);
     clip-path: polygon(0 0, 0 100%, 100% 0);
 }
 
@@ -170,7 +170,7 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--at-safran);
+    color: var(--ab-at-safran);
     font-weight: 800;
     margin-bottom: 1rem;
     display: flex;
@@ -229,14 +229,14 @@
     right: 20px;
     width: 56px;
     height: 56px;
-    background: var(--at-safran);
+    background: var(--ab-at-safran);
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--ab-shadow-lg);
     z-index: 1000;
     text-decoration: none;
 }

@@ -26,6 +26,8 @@ from .views_api_mobile import (
     projet_produit_etat_view,
     projet_statut_view,
     actualites_api,
+    prix_marche_api,
+    alertes_prix_api,
 )
 
 _p = "api/mobile"
@@ -81,4 +83,8 @@ urlpatterns = [
 
     # ── Actualités agro-météo ─────────────────────────────────────────────
     path(f"{_p}/actualites/", actualites_api, name="mobile_actualites"),
+
+    # ── Prix marchés & alertes ────────────────────────────────────────────
+    path(f"{_p}/prix/",         prix_marche_api,  name="mobile_prix"),
+    path(f"{_p}/prix/alertes/", alertes_prix_api, name="mobile_prix_alertes"),
 ]

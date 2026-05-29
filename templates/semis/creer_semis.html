@@ -15,21 +15,21 @@
     .page-title {
         font-size: 2rem;
         font-weight: 800;
-        color: var(--text-main);
+        color: var(--ab-text-main);
         margin-bottom: 8px;
     }
     
     .page-subtitle {
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
         font-size: 1rem;
     }
     
     .form-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
+        background: var(--ab-card-bg);
+        border: 1px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-card);
         padding: 32px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--ab-shadow-sm);
     }
     
     .form-section {
@@ -41,13 +41,13 @@
     }
     
     .section-title {
-        font-family: var(--font-display);
+        font-family: var(--ab-font-display);
         font-size: 1.1rem;
         font-weight: 700;
-        color: var(--text-main);
+        color: var(--ab-text-main);
         margin-bottom: 20px;
         padding-bottom: 12px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--ab-border-color);
         display: flex;
         align-items: center;
         gap: 10px;
@@ -74,7 +74,7 @@
     .form-label {
         display: block;
         font-weight: 600;
-        color: var(--text-main);
+        color: var(--ab-text-main);
         margin-bottom: 8px;
         font-size: 0.9rem;
     }
@@ -87,10 +87,10 @@
     .form-control {
         width: 100%;
         padding: 14px 16px;
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-input);
-        background: var(--bg-secondary);
-        color: var(--text-main);
+        border: 2px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-input);
+        background: var(--ab-bg-secondary);
+        color: var(--ab-text-main);
         font-size: 0.95rem;
         transition: all var(--transition-fast);
     }
@@ -98,12 +98,12 @@
     .form-control:focus {
         outline: none;
         border-color: var(--accent);
-        background: var(--card-bg-solid);
+        background: var(--ab-card-bg-solid);
         box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.15);
     }
     
     .form-control::placeholder {
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
     }
     
     select.form-control {
@@ -117,7 +117,7 @@
     
     .form-hint {
         font-size: 0.8rem;
-        color: var(--text-muted);
+        color: var(--ab-text-muted);
         margin-top: 6px;
     }
     
@@ -133,15 +133,15 @@
         justify-content: flex-end;
         margin-top: 32px;
         padding-top: 24px;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--ab-border-color);
     }
     
     .btn-submit {
         padding: 14px 32px;
         background: linear-gradient(135deg, var(--accent) 0%, #84cc16 100%);
-        color: var(--text-inverse);
+        color: var(--ab-text-inverse);
         border: none;
-        border-radius: var(--radius-input);
+        border-radius: var(--ab-radius-input);
         font-weight: 700;
         font-size: 1rem;
         cursor: pointer;
@@ -158,10 +158,10 @@
     
     .btn-cancel {
         padding: 14px 32px;
-        background: var(--bg-secondary);
-        color: var(--text-main);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-input);
+        background: var(--ab-bg-secondary);
+        color: var(--ab-text-main);
+        border: 1px solid var(--ab-border-color);
+        border-radius: var(--ab-radius-input);
         font-weight: 600;
         font-size: 1rem;
         cursor: pointer;
@@ -173,8 +173,8 @@
     }
     
     .btn-cancel:hover {
-        background: var(--border-color);
-        color: var(--text-main);
+        background: var(--ab-border-color);
+        color: var(--ab-text-main);
     }
     
     @media (max-width: 768px) {
@@ -319,7 +319,7 @@
             </div>
             
             {% if form.non_field_errors %}
-            <div class="alert alert-danger" style="margin-top: 20px; padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: var(--radius-sm); color: var(--danger);">
+            <div class="alert alert-danger" style="margin-top: 20px; padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: var(--ab-radius-sm); color: var(--danger);">
                 {% for error in form.non_field_errors %}
                 <p style="margin: 0;">{{ error }}</p>
                 {% endfor %}

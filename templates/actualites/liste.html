@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load actualites_tags %}
 
 {% block title %}Actualités Agro-Météo — Andd Baay{% endblock %}
 
@@ -219,6 +220,13 @@
     <p>Informations officielles de l'ANACIM, du Ministère de l'Agriculture et des partenaires agro au Sénégal.</p>
   </div>
 
+  {# ── Bandeau alertes prix (chargé en HTMX, masqué si 0 alertes) ── #}
+  <div id="bandeau-alertes-prix"
+       hx-get="{% url 'actualites_bandeau_prix' %}"
+       hx-trigger="load"
+       hx-swap="outerHTML">
+  </div>
+
   {# ── Filtres ── #}
   <div class="actu-filters">
     <span style="font-size:.85rem;font-weight:600;color:#374151;margin-right:.25rem;">Source :</span>
@@ -265,7 +273,7 @@
              src="{{ article.image_url }}"
              alt="{{ article.titre|truncatechars:80 }}"
              loading="lazy"
-             onerror="this.parentNode.innerHTML='<div class=actu-card-img-placeholder>{{ article.source|emoji_source|default:"🌿" }}</div>'">
+             onerror="this.parentNode.innerHTML='<div class=actu-card-img-placeholder>{{ article.source|emoji_source|default:"&#127807;" }}</div>'">
       {% else %}
         <div class="actu-card-img-placeholder">
           {% if article.source == "anacim" %}☁️

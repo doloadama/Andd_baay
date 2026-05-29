@@ -51,10 +51,10 @@
 
 /* Carte Bento individuelle */
 .bento-card {
-    background: var(--card-bg-solid, #ffffff);
-    border: 1px solid var(--border-glass, rgba(8, 80, 65, 0.1));
-    border-radius: var(--radius-card, 22px);
-    box-shadow: var(--shadow-sm, 0 2px 8px rgba(8, 80, 65, 0.06));
+    background: var(--ab-card-bg-solid, #ffffff);
+    border: 1px solid var(--ab-border-glass, rgba(8, 80, 65, 0.1));
+    border-radius: var(--ab-radius-card, 22px);
+    box-shadow: var(--ab-shadow-sm, 0 2px 8px rgba(8, 80, 65, 0.06));
     display: flex;
     flex-direction: column;
     min-height: 180px;
@@ -64,13 +64,13 @@
 
 .bento-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md, 0 4px 16px rgba(8, 80, 65, 0.12));
+    box-shadow: var(--ab-shadow-md, 0 4px 16px rgba(8, 80, 65, 0.12));
 }
 
 /* Header de carte */
 .bento-card__header {
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+    border-bottom: 1px solid var(--ab-border-glass, rgba(8, 80, 65, 0.08));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -80,7 +80,7 @@
 .bento-card__title {
     font-size: 1rem;
     font-weight: 700;
-    color: var(--text-main, #2C2C2A);
+    color: var(--ab-text-main, #2C2C2A);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -88,13 +88,13 @@
 }
 
 .bento-card__title i {
-    color: var(--brand-primary, #1D9E75);
+    color: var(--ab-brand-primary, #1D9E75);
     font-size: 1.125rem;
 }
 
 .bento-card__badge {
-    background: var(--brand-bg, #E1F5EE);
-    color: var(--brand-deep, #085041);
+    background: var(--ab-brand-bg, #E1F5EE);
+    color: var(--ab-brand-deep, #085041);
     padding: 0.25rem 0.625rem;
     border-radius: 9999px;
     font-size: 0.75rem;
@@ -112,12 +112,12 @@
 /* Footer de carte */
 .bento-card__footer {
     padding: 0.75rem 1.25rem;
-    border-top: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+    border-top: 1px solid var(--ab-border-glass, rgba(8, 80, 65, 0.08));
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.75rem;
-    color: var(--text-muted, #5c5c57);
+    color: var(--ab-text-muted, #5c5c57);
 }
 
 /* État de chargement HTMX */
@@ -132,14 +132,14 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 2rem;
-    color: var(--text-muted, #5c5c57);
+    color: var(--ab-text-muted, #5c5c57);
 }
 
 /* Header dashboard */
 .bento-header {
     padding: 1rem;
-    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.1));
-    background: var(--card-bg-solid, #ffffff);
+    border-bottom: 1px solid var(--ab-border-glass, rgba(8, 80, 65, 0.1));
+    background: var(--ab-card-bg-solid, #ffffff);
 }
 
 @media (min-width: 768px) {
@@ -151,7 +151,7 @@
 .bento-header__title {
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--brand-deep, #085041);
+    color: var(--ab-brand-deep, #085041);
     margin-bottom: 0.5rem;
 }
 
@@ -165,18 +165,18 @@
 
 .ferme-selector__label {
     font-size: 0.875rem;
-    color: var(--text-muted, #5c5c57);
+    color: var(--ab-text-muted, #5c5c57);
     font-weight: 500;
 }
 
 /* Dark mode adjustments */
 .dark-mode .bento-card {
-    background: var(--card-bg-solid, #121c19);
-    border-color: var(--border-glass, rgba(255, 255, 255, 0.08));
+    background: var(--ab-card-bg-solid, #121c19);
+    border-color: var(--ab-border-glass, rgba(255, 255, 255, 0.08));
 }
 
 .dark-mode .bento-card__title {
-    color: var(--text-main, #E8F5F0);
+    color: var(--ab-text-main, #E8F5F0);
 }
 
 .dark-mode .bento-card__header,
@@ -234,7 +234,7 @@
     align-items: center;
     justify-content: space-between;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-glass, rgba(8, 80, 65, 0.08));
+    border-bottom: 1px solid var(--ab-border-glass, rgba(8, 80, 65, 0.08));
 }
 
 .bento-skel__body {
@@ -302,6 +302,13 @@
         <span id="ferme-status"></span>
     </div>
     {% endif %}
+</div>
+
+<!-- Widget Alertes Prix Marchés (pleine largeur, HTMX) -->
+<div id="widget-alertes-prix"
+     hx-get="{% url 'bento_card_alertes_prix' %}"
+     hx-trigger="load"
+     hx-swap="outerHTML">
 </div>
 
 <!-- Container principal Bento Grid -->

@@ -196,4 +196,9 @@ def auto_retrain_models_task(
 
 from baay.tasks.plant_vision import *   # noqa: F401, F403, E402
 from baay.tasks.diagnostic import *     # noqa: F401, F403, E402
+from baay.tasks.vocal import process_vocal_task  # noqa: F401, E402
 from baay.tasks.actualites import fetch_actualites_task  # noqa: F401, E402
+from baay.tasks.prix import (           # noqa: F401, E402
+    fetch_prix_marche_task,
+    detecter_alertes_prix_task,
+)

@@ -8,7 +8,7 @@
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: var(--brand-primary) transparent;
+    scrollbar-color: var(--ab-brand-primary) transparent;
 }
 
 .farm-cards-row::-webkit-scrollbar {
@@ -20,19 +20,19 @@
 }
 
 .farm-cards-row::-webkit-scrollbar-thumb {
-    background: var(--brand-primary);
+    background: var(--ab-brand-primary);
     border-radius: 3px;
 }
 
 .farm-card {
     min-width: 260px;
     flex: 0 0 auto;
-    background: var(--card-bg);
-    border-radius: var(--radius-input);
+    background: var(--ab-card-bg);
+    border-radius: var(--ab-radius-input);
     padding: 16px;
     text-decoration: none;
     color: inherit;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--ab-border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     scroll-snap-align: start;
     display: flex;
@@ -42,7 +42,7 @@
 .farm-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: var(--brand-primary);
+    border-color: var(--ab-brand-primary);
 }
 
 .farm-card__header {
@@ -55,7 +55,7 @@
 
 .farm-card__title {
     font-size: 1.05rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -68,7 +68,7 @@
     color: #14b8a6;
     font-size: 0.75rem;
     padding: 2px 8px;
-    border-radius: var(--radius-xs);
+    border-radius: var(--ab-radius-xs);
     font-weight: 500;
     flex-shrink: 0;
 }
@@ -78,7 +78,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-bottom: 4px;
 }
 
@@ -96,7 +96,7 @@
 .farm-card__utilization {
     margin-top: 10px;
     height: 4px;
-    background: var(--bg-tertiary);
+    background: var(--ab-bg-tertiary);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -168,5 +168,5 @@ body.dark-mode .farm-card__bar {
 
 /* Scrollbar dark mode */
 body.dark-mode .farm-cards-row::-webkit-scrollbar-thumb {
-    background: var(--brand-primary);
+    background: var(--ab-brand-primary);
 }

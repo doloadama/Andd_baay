@@ -1,6 +1,6 @@
 /**
  * Andd Baay — Django Unfold chrome (loads after unfold/css/styles.css).
- * Uses Unfold CSS variables (--color-*, --border-radius) from UNFOLD settings.
+ * Uses Unfold CSS variables (--color-*, --ab-border-radius) from UNFOLD settings.
  */
 
 html body {

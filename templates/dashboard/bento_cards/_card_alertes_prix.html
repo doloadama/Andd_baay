@@ -1,0 +1,50 @@
+{% load static %}
+{# Widget alertes prix marchés — bande pleine largeur au-dessus du bento grid #}
+<div id="widget-alertes-prix" style="
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  padding:.85rem 1.25rem;
+  margin-bottom:1rem;
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  flex-wrap:wrap;
+  border-left:4px solid #d97706;
+">
+
+  {# Titre #}
+  <div style="display:flex;align-items:center;gap:.5rem;white-space:nowrap;">
+    <span style="font-size:1.1rem;">📊</span>
+    <span style="font-size:.85rem;font-weight:700;color:#92400e;">Marchés — variations de prix</span>
+  </div>
+
+  {# Chips alertes #}
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;flex:1;">
+    {% for alerte in alertes %}
+    <a href="{% url 'marche_prix' %}?produit={{ alerte.produit_nom }}"
+       style="
+         display:inline-flex;align-items:center;gap:.35rem;
+         padding:.3rem .75rem;border-radius:20px;
+         font-size:.78rem;font-weight:600;text-decoration:none;
+         {% if alerte.niveau == 'critique' %}
+           background:#fee2e2;color:#991b1b;
+         {% else %}
+           background:#fef3c7;color:#92400e;
+         {% endif %}
+       "
+       title="{{ alerte.marche_nom }} — {{ alerte.periode_jours }}j">
+      {% if alerte.est_hausse %}↑{% else %}↓{% endif %}
+      {{ alerte.produit_nom|capfirst }}
+      <strong>{{ alerte.variation_abs|floatformat:0 }}%</strong>
+    </a>
+    {% endfor %}
+  </div>
+
+  {# Lien voir tout #}
+  <a href="{% url 'marche_prix' %}"
+     style="font-size:.78rem;font-weight:600;color:#1D9E75;text-decoration:none;white-space:nowrap;">
+    Voir tous les prix →
+  </a>
+
+</div>
