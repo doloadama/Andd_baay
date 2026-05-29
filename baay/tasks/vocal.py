@@ -18,6 +18,7 @@ from django.core.cache import cache
 from baay.services.gemini_vocal import (
     GeminiVocalError,
     GeminiVocalNotConfigured,
+    GeminiVocalRateLimited,
     process_vocal_wolof,
 )
 
@@ -54,6 +55,17 @@ def process_vocal_task(self, audio_bytes_hex: str, mime: str, task_cache_key: st
             "status": "error", "code": "not_configured",
             "error": "Cle API Gemini absente. Ajoutez GEMINI_API_KEY dans votre .env.",
         }, _RESULT_TTL)
+
+    except GeminiVocalRateLimited as exc:
+        # Limite par minute (429) : transitoire. On retente cote worker avec backoff.
+        logger.info("Gemini rate-limit, retry...")
+        try:
+            raise self.retry(exc=exc, countdown=20)
+        except self.MaxRetriesExceededError:
+            cache.set(task_cache_key, {
+                "status": "error", "code": "rate_limit",
+                "error": "Service occupe (quota Gemini). Reessayez dans une minute.",
+            }, _RESULT_TTL)
 
     except GeminiVocalError as exc:
         logger.exception("Erreur pipeline vocal Gemini")

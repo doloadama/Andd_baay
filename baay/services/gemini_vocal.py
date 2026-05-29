@@ -55,6 +55,10 @@ class GeminiVocalNotConfigured(GeminiVocalError):
     """Clé API Gemini absente."""
 
 
+class GeminiVocalRateLimited(GeminiVocalError):
+    """Quota / limite par minute atteint (429) — transitoire, à retenter."""
+
+
 def _build_rotator() -> GeminiKeyRotator:
     keys = list(getattr(settings, "GEMINI_API_KEYS", None) or [])
     if not keys:
@@ -139,7 +143,9 @@ def process_vocal_wolof(audio_bytes: bytes, mime_type: str = "audio/webm") -> di
             if any(k in err for k in ("429", "resource_exhausted", "quota", "rate")):
                 rotator.rotate()
                 if rotator.current_key == initial_key:
-                    raise GeminiVocalError("Quota Gemini dépassé sur toutes les clés.") from exc
+                    raise GeminiVocalRateLimited(
+                        "Quota/limite Gemini atteint sur toutes les clés."
+                    ) from exc
                 continue
             logger.exception("Erreur Gemini vocal")
             raise GeminiVocalError(f"Erreur API Gemini : {exc}") from exc
