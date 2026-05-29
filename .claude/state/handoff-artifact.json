@@ -2,43 +2,54 @@
   "version": "2.0.0",
   "legacy_version": "1.0.0",
   "artifactType": "structured-handoff",
-  "timestamp": "2026-05-28T15:51:21Z",
+  "timestamp": "2026-05-29T08:15:58Z",
   "sessionId": "",
   "previous_state": {
-    "summary": "Before compaction: 3 recent edit(s)",
+    "summary": "Before compaction: 14 recent edit(s)",
     "plan_counts": {
-      "total": 0,
+      "total": 10,
       "wip": 0,
       "blocked": 0,
-      "recent_edits": 3
+      "recent_edits": 14
     }
   },
   "next_action": {
-    "summary": "Re-read Plans.md and determine the next task",
-    "source": "fallback",
+    "summary": "Continue 6.1 **Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence.",
+    "taskId": "6.1",
+    "task": "**Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence.",
+    "dod": "`python manage.py migrate --check` passe ; les deux modèles apparaissent dans l'admin.",
+    "depends": "—",
+    "status": "cc:TODO",
+    "source": "Plans.md",
     "priority": "normal"
   },
   "open_risks": [
     {
       "severity": "medium",
       "kind": "verification",
-      "summary": "3 recent edit(s) should be re-validated after resume",
-      "detail": ".claude/state/instructions-loaded.jsonl, .claude/state/session-skills-used.json, .claude/state/usage-stats.jsonl"
+      "summary": "14 recent edit(s) should be re-validated after resume",
+      "detail": ".claude/sessions/.last_inbox_check, .claude/state/changed-files.jsonl, .claude/state/handoff-artifact.json, .claude/state/instructions-loaded.jsonl, .claude/state/precompact-snapshot.json"
     }
   ],
   "failed_checks": null,
   "decision_log": [
     {
-      "timestamp": "2026-05-28T15:51:21Z",
+      "timestamp": "2026-05-29T08:15:58Z",
       "actor": "pre-compact-save",
       "decision": "canonical_handoff_artifact_written",
       "rationale": "Persist a stable JSON artifact in .claude/state for long-running session handoff."
     },
     {
-      "timestamp": "2026-05-28T15:51:21Z",
+      "timestamp": "2026-05-29T08:15:58Z",
       "actor": "pre-compact-save",
       "decision": "legacy_snapshot_mirrored",
       "rationale": "Keep precompact-snapshot.json for backward compatibility with older hooks."
+    },
+    {
+      "timestamp": "2026-05-29T08:15:58Z",
+      "actor": "pre-compact-save",
+      "decision": "next_action_selected",
+      "rationale": "Continue 6.1 **Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence. (source: Plans.md)"
     }
   ],
   "context_reset": {
@@ -53,9 +64,11 @@
         "sessionAgeMinutes": 120
       }
     },
-    "recommended": false,
-    "summary": "Context reset not required (auto)",
-    "reasons": null,
+    "recommended": true,
+    "summary": "Context reset recommended (auto): 14 recent edit count exceed threshold 8",
+    "reasons": [
+      "14 recent edit count exceed threshold 8"
+    ],
     "candidates": [
       {
         "key": "wip_tasks",
@@ -74,9 +87,9 @@
       {
         "key": "recent_edits",
         "label": "recent edit count",
-        "actual": 3,
+        "actual": 14,
         "threshold": 8,
-        "triggered": false
+        "triggered": true
       },
       {
         "key": "failed_checks",
@@ -96,7 +109,7 @@
     "counters": {
       "wipTasks": 0,
       "blockedTasks": 0,
-      "recentEdits": 3,
+      "recentEdits": 14,
       "failedChecks": 0,
       "sessionAgeMinutes": null
     }
@@ -105,13 +118,156 @@
     "plugin_first_workflow": true,
     "resume_aware_effort_continuity": true,
     "effort_hint": "medium",
-    "summary": "plugin-first workflow: enabled; resume-aware effort continuity: medium"
+    "summary": "plugin-first workflow: enabled; resume-aware effort continuity: medium; next_task=6.1"
   },
-  "planItems": null,
-  "wipTasks": null,
+  "planItems": [
+    {
+      "taskId": "6.1",
+      "title": "**Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence.",
+      "dod": "`python manage.py migrate --check` passe ; les deux modèles apparaissent dans l'admin.",
+      "depends": "—",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.2",
+      "title": "**Service collecte FAO FPMA API** (`baay/services/prix_service.py`) — `fetch_prix_fao_fpma(pays=\"SEN\")` : GET `https://fpma.fao.org/giews/fpma/rest/data/CommodityPriceData`, timeout 10 s, parse JSON, `update_or_create` sur `source_id=entry[\"id\"]`. Cache Redis 12 h sur la clé `prix_fao_fpma_SEN`. Retourne `(nb_crees, nb_mis_a_jour)`.",
+      "dod": "Appel manuel retourne ≥ 5 entrées pour le Sénégal sans erreur ; les prix s'affichent dans l'admin.",
+      "depends": "6.1",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.3",
+      "title": "**Scraper OMA Sénégal** (dans `prix_service.py`) — `fetch_prix_oma()` : GET `http://www.oma.gouv.sn/prix-des-produits.html`, parse tableau HTML (BeautifulSoup), extrait produit / marché / prix / unité. Actif seulement si FAO FPMA retourne \u003c 3 produits sénégalais.",
+      "dod": "`fetch_prix_oma()` retourne ≥ 1 entrée ou lève `PrixServiceUnavailable` proprement (pas de crash) ; logs INFO tracés.",
+      "depends": "6.1",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.4",
+      "title": "**Service détection de variations** — `detecter_variations_significatives(periode_jours=7, seuil_warning=15, seuil_critique=30)` : pour chaque couple (produit, marché) ayant ≥ 2 relevés, compare dernier prix vs prix N jours avant via queryset annoté. Crée / met à jour `AlertePrix` en évitant les doublons (même produit × même marché × même jour de détection).",
+      "dod": "Avec 10 `PrixMarche` injectés en fixture, la fonction crée les `AlertePrix` attendues ; 0 doublon si appelée 2× le même jour.",
+      "depends": "6.1",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.5",
+      "title": "**Tâches Celery + planification Beat** — `fetch_prix_marche_task` (toutes les 12 h, appelle 6.2 puis 6.3 si besoin) + `detecter_alertes_prix_task` (quotidien 06 h 00, appelle 6.4). Lock Redis pour éviter l'exécution concurrente. Ajout dans `settings.CELERY_BEAT_SCHEDULE`.",
+      "dod": "Les deux tâches apparaissent dans `celery inspect registered` ; Beat log montre les prochaines exécutions.",
+      "depends": "6.2, 6.3, 6.4",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.6",
+      "title": "**Page `/marche/prix/`** — Vue `liste_prix` (login_required) : tableau des 7 derniers jours par produit + marché, filtre région / produit / période. Graphique Chart.js (ligne) de l'historique 30 j pour le produit sélectionné. Section \"Alertes actives\" en haut avec badges rouge/orange. Template `templates/marche/prix.html`. URL `marche/prix/` dans `urls_marche.py`.",
+      "dod": "Page répond HTTP 200 ; graphique affiché pour au moins 1 produit ; filtres fonctionnels (pas de rechargement complet — HTMX ou JS).",
+      "depends": "6.1, 6.4",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.7",
+      "title": "**Widget alertes prix sur le dashboard** — Sur `templates/dashboard/index.html` (ou équivalent), ajouter une carte \"⚠️ Alertes Prix\" listant les 3 dernières `AlertePrix` non vues (niveau ≥ warning) avec badge coloré et lien vers `/marche/prix/`. Marquer comme vues au clic.",
+      "dod": "Widget visible sur le dashboard pour tout utilisateur authentifié ; clic sur une alerte la marque `vue=True` (HTMX PATCH ou JS fetch).",
+      "depends": "6.6",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.8",
+      "title": "**Section prix dans la page Actualités** — En tête de `/actualites/`, avant la grille d'articles, afficher un bandeau horizontal \"Variations de prix cette semaine\" avec les alertes niveau critique/warning de moins de 7 jours, badges colorés, et lien \"Voir tous les prix →\". Masqué si 0 alertes.",
+      "dod": "Bandeau visible dans `/actualites/` quand ≥ 1 alerte existe ; absent si 0 alertes (pas d'espace vide).",
+      "depends": "6.4",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.9",
+      "title": "**Admin Django `PrixMarche` + `AlertePrix`** — `list_display` : produit, marché, prix, unité, source, date_relevee pour PrixMarche ; produit, marché, variation_pct, niveau, vue, date_detection pour AlertePrix. Filtre par source / niveau / région. Action \"Marquer comme vues\".",
+      "dod": "Les deux modèles apparaissent dans l'admin Unfold avec filtres fonctionnels.",
+      "depends": "6.1",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    },
+    {
+      "taskId": "6.10",
+      "title": "**API mobile `/api/mobile/prix/`** — Endpoint GET : `?produit=mil\u0026region=Kaolack\u0026periode=30` → liste `PrixMarche` paginée (20/page). Endpoint GET `/api/mobile/prix/alertes/` : alertes actives (niveau ≥ warning, ≤ 30 j), triées par `variation_pct` desc. Serializers dans `serializers_mobile.py`. URLs dans `urls_api_mobile.py`.",
+      "dod": "Curl sur les deux endpoints retourne JSON valide ; filtre `produit` et `region` fonctionnels ; pagination present.",
+      "depends": "6.1, 6.4",
+      "status": "cc:TODO",
+      "tags": {
+        "todo": true,
+        "wip": false,
+        "blocked": false
+      }
+    }
+  ],
+  "wipTasks": [
+    "**Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence.",
+    "**Service collecte FAO FPMA API** (`baay/services/prix_service.py`) — `fetch_prix_fao_fpma(pays=\"SEN\")` : GET `https://fpma.fao.org/giews/fpma/rest/data/CommodityPriceData`, timeout 10 s, parse JSON, `update_or_create` sur `source_id=entry[\"id\"]`. Cache Redis 12 h sur la clé `prix_fao_fpma_SEN`. Retourne `(nb_crees, nb_mis_a_jour)`.",
+    "**Scraper OMA Sénégal** (dans `prix_service.py`) — `fetch_prix_oma()` : GET `http://www.oma.gouv.sn/prix-des-produits.html`, parse tableau HTML (BeautifulSoup), extrait produit / marché / prix / unité. Actif seulement si FAO FPMA retourne \u003c 3 produits sénégalais.",
+    "**Service détection de variations** — `detecter_variations_significatives(periode_jours=7, seuil_warning=15, seuil_critique=30)` : pour chaque couple (produit, marché) ayant ≥ 2 relevés, compare dernier prix vs prix N jours avant via queryset annoté. Crée / met à jour `AlertePrix` en évitant les doublons (même produit × même marché × même jour de détection).",
+    "**Tâches Celery + planification Beat** — `fetch_prix_marche_task` (toutes les 12 h, appelle 6.2 puis 6.3 si besoin) + `detecter_alertes_prix_task` (quotidien 06 h 00, appelle 6.4). Lock Redis pour éviter l'exécution concurrente. Ajout dans `settings.CELERY_BEAT_SCHEDULE`.",
+    "**Page `/marche/prix/`** — Vue `liste_prix` (login_required) : tableau des 7 derniers jours par produit + marché, filtre région / produit / période. Graphique Chart.js (ligne) de l'historique 30 j pour le produit sélectionné. Section \"Alertes actives\" en haut avec badges rouge/orange. Template `templates/marche/prix.html`. URL `marche/prix/` dans `urls_marche.py`.",
+    "**Widget alertes prix sur le dashboard** — Sur `templates/dashboard/index.html` (ou équivalent), ajouter une carte \"⚠️ Alertes Prix\" listant les 3 dernières `AlertePrix` non vues (niveau ≥ warning) avec badge coloré et lien vers `/marche/prix/`. Marquer comme vues au clic.",
+    "**Section prix dans la page Actualités** — En tête de `/actualites/`, avant la grille d'articles, afficher un bandeau horizontal \"Variations de prix cette semaine\" avec les alertes niveau critique/warning de moins de 7 jours, badges colorés, et lien \"Voir tous les prix →\". Masqué si 0 alertes.",
+    "**Admin Django `PrixMarche` + `AlertePrix`** — `list_display` : produit, marché, prix, unité, source, date_relevee pour PrixMarche ; produit, marché, variation_pct, niveau, vue, date_detection pour AlertePrix. Filtre par source / niveau / région. Action \"Marquer comme vues\".",
+    "**API mobile `/api/mobile/prix/`** — Endpoint GET : `?produit=mil\u0026region=Kaolack\u0026periode=30` → liste `PrixMarche` paginée (20/page). Endpoint GET `/api/mobile/prix/alertes/` : alertes actives (niveau ≥ warning, ≤ 30 j), triées par `variation_pct` desc. Serializers dans `serializers_mobile.py`. URLs dans `urls_api_mobile.py`."
+  ],
   "recentEdits": [
+    ".claude/sessions/.last_inbox_check",
+    ".claude/state/changed-files.jsonl",
+    ".claude/state/handoff-artifact.json",
     ".claude/state/instructions-loaded.jsonl",
+    ".claude/state/precompact-snapshot.json",
     ".claude/state/session-skills-used.json",
-    ".claude/state/usage-stats.jsonl"
+    ".claude/state/usage-stats.jsonl",
+    "baay/dashboard_logic.py",
+    "baay/views_marche.py",
+    ".claude/state/cursor-notification.md",
+    ".claude/state/locks/plans.flock",
+    ".claude/state/plans-state.json",
+    ".claude/state/pm-notification.md",
+    "ANDROID_APP_PROMPT.md"
   ]
 }

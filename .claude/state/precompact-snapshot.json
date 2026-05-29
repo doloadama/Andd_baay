@@ -12,9 +12,11 @@
         "sessionAgeMinutes": 120
       }
     },
-    "recommended": false,
-    "summary": "Context reset not required (auto)",
-    "reasons": null,
+    "recommended": true,
+    "summary": "Context reset recommended (auto): 14 recent edit count exceed threshold 8",
+    "reasons": [
+      "14 recent edit count exceed threshold 8"
+    ],
     "candidates": [
       {
         "key": "wip_tasks",
@@ -33,9 +35,9 @@
       {
         "key": "recent_edits",
         "label": "recent edit count",
-        "actual": 3,
+        "actual": 14,
         "threshold": 8,
-        "triggered": false
+        "triggered": true
       },
       {
         "key": "failed_checks",
@@ -55,7 +57,7 @@
     "counters": {
       "wipTasks": 0,
       "blockedTasks": 0,
-      "recentEdits": 3,
+      "recentEdits": 14,
       "failedChecks": 0,
       "sessionAgeMinutes": null
     }
@@ -64,17 +66,39 @@
     "plugin_first_workflow": true,
     "resume_aware_effort_continuity": true,
     "effort_hint": "medium",
-    "summary": "plugin-first workflow: enabled; resume-aware effort continuity: medium"
+    "summary": "plugin-first workflow: enabled; resume-aware effort continuity: medium; next_task=6.1"
   },
   "legacy_version": "1.0.0",
   "metrics": null,
   "recentEdits": [
+    ".claude/sessions/.last_inbox_check",
+    ".claude/state/changed-files.jsonl",
+    ".claude/state/handoff-artifact.json",
     ".claude/state/instructions-loaded.jsonl",
+    ".claude/state/precompact-snapshot.json",
     ".claude/state/session-skills-used.json",
-    ".claude/state/usage-stats.jsonl"
+    ".claude/state/usage-stats.jsonl",
+    "baay/dashboard_logic.py",
+    "baay/views_marche.py",
+    ".claude/state/cursor-notification.md",
+    ".claude/state/locks/plans.flock",
+    ".claude/state/plans-state.json",
+    ".claude/state/pm-notification.md",
+    "ANDROID_APP_PROMPT.md"
   ],
   "sessionId": "",
-  "timestamp": "2026-05-28T15:51:21Z",
+  "timestamp": "2026-05-29T08:15:58Z",
   "version": "1.0.0",
-  "wipTasks": null
+  "wipTasks": [
+    "**Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence.",
+    "**Service collecte FAO FPMA API** (`baay/services/prix_service.py`) — `fetch_prix_fao_fpma(pays=\"SEN\")` : GET `https://fpma.fao.org/giews/fpma/rest/data/CommodityPriceData`, timeout 10 s, parse JSON, `update_or_create` sur `source_id=entry[\"id\"]`. Cache Redis 12 h sur la clé `prix_fao_fpma_SEN`. Retourne `(nb_crees, nb_mis_a_jour)`.",
+    "**Scraper OMA Sénégal** (dans `prix_service.py`) — `fetch_prix_oma()` : GET `http://www.oma.gouv.sn/prix-des-produits.html`, parse tableau HTML (BeautifulSoup), extrait produit / marché / prix / unité. Actif seulement si FAO FPMA retourne \u003c 3 produits sénégalais.",
+    "**Service détection de variations** — `detecter_variations_significatives(periode_jours=7, seuil_warning=15, seuil_critique=30)` : pour chaque couple (produit, marché) ayant ≥ 2 relevés, compare dernier prix vs prix N jours avant via queryset annoté. Crée / met à jour `AlertePrix` en évitant les doublons (même produit × même marché × même jour de détection).",
+    "**Tâches Celery + planification Beat** — `fetch_prix_marche_task` (toutes les 12 h, appelle 6.2 puis 6.3 si besoin) + `detecter_alertes_prix_task` (quotidien 06 h 00, appelle 6.4). Lock Redis pour éviter l'exécution concurrente. Ajout dans `settings.CELERY_BEAT_SCHEDULE`.",
+    "**Page `/marche/prix/`** — Vue `liste_prix` (login_required) : tableau des 7 derniers jours par produit + marché, filtre région / produit / période. Graphique Chart.js (ligne) de l'historique 30 j pour le produit sélectionné. Section \"Alertes actives\" en haut avec badges rouge/orange. Template `templates/marche/prix.html`. URL `marche/prix/` dans `urls_marche.py`.",
+    "**Widget alertes prix sur le dashboard** — Sur `templates/dashboard/index.html` (ou équivalent), ajouter une carte \"⚠️ Alertes Prix\" listant les 3 dernières `AlertePrix` non vues (niveau ≥ warning) avec badge coloré et lien vers `/marche/prix/`. Marquer comme vues au clic.",
+    "**Section prix dans la page Actualités** — En tête de `/actualites/`, avant la grille d'articles, afficher un bandeau horizontal \"Variations de prix cette semaine\" avec les alertes niveau critique/warning de moins de 7 jours, badges colorés, et lien \"Voir tous les prix →\". Masqué si 0 alertes.",
+    "**Admin Django `PrixMarche` + `AlertePrix`** — `list_display` : produit, marché, prix, unité, source, date_relevee pour PrixMarche ; produit, marché, variation_pct, niveau, vue, date_detection pour AlertePrix. Filtre par source / niveau / région. Action \"Marquer comme vues\".",
+    "**API mobile `/api/mobile/prix/`** — Endpoint GET : `?produit=mil\u0026region=Kaolack\u0026periode=30` → liste `PrixMarche` paginée (20/page). Endpoint GET `/api/mobile/prix/alertes/` : alertes actives (niveau ≥ warning, ≤ 30 j), triées par `variation_pct` desc. Serializers dans `serializers_mobile.py`. URLs dans `urls_api_mobile.py`."
+  ]
 }
