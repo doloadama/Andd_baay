@@ -45,6 +45,13 @@ GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else ""
 PLANT_VISION_MODEL = (os.getenv("PLANT_VISION_MODEL", "gemini-2.0-flash") or "gemini-2.0-flash").strip()
 # Modèle Gemini pour l'assistant vocal Wolof (audio en entrée : transcription + réponse).
 GEMINI_VOCAL_MODEL = (os.getenv("GEMINI_VOCAL_MODEL", "gemini-2.0-flash") or "gemini-2.0-flash").strip()
+
+# Vertex AI : contourne le quota régional UE de l'API Generative Language en
+# forçant une région US. Activé si GEMINI_USE_VERTEX=true ET GOOGLE_CLOUD_PROJECT défini.
+# Auth via service account (GOOGLE_APPLICATION_CREDENTIALS=chemin/sa.json — ADC standard).
+GEMINI_USE_VERTEX = os.getenv("GEMINI_USE_VERTEX", "false").lower() in ("true", "1", "yes")
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "").strip()
+GEMINI_VERTEX_LOCATION = (os.getenv("GEMINI_VERTEX_LOCATION", "us-central1") or "us-central1").strip()
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 
