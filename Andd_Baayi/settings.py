@@ -369,8 +369,11 @@ _redis_host = os.getenv('REDISHOST', '').strip()
 _redis_port = os.getenv('REDISPORT', '6379').strip()
 _redis_user = os.getenv('REDISUSER', '').strip()
 
-# Construction URL avec auth si mot de passe présent mais pas dans l'URL
-if _redis_url_raw and _redis_password and ':' not in _redis_url_raw.replace('://', ''):
+# Construction URL avec auth si mot de passe présent mais pas dans l'URL.
+# NB : on détecte l'auth déjà présente par '@' (séparateur user:pass@host),
+# PAS par ':' — le ':' du port (host:6379) est toujours présent et faisait
+# échouer l'injection du mot de passe (-> "Authentication required" Railway).
+if _redis_url_raw and _redis_password and '@' not in _redis_url_raw:
     # URL sans auth mais mot de passe fourni séparément
     # Format: redis://:[password]@host:port/0
     _redis_auth = f"{_redis_user}:{_redis_password}" if _redis_user else f":{_redis_password}"
