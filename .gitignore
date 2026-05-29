@@ -47,3 +47,10 @@ node_modules/
 # Harness binaries (compiled, regenerated via: cd go && go build ./cmd/harness/)
 bin/*.exe
 bin/harness-*
+
+# Google Cloud service account keys (Vertex AI) — NE JAMAIS committer
+vertex-sa.json
+*-service-account.json
+*-sa.json
+gcp-credentials*.json
+service-account*.json
