@@ -53,6 +53,9 @@ GALSENAI_LLM_MODEL = "galsenai/FineLlama-3.1-8B"
 GALSENAI_TTS_MODEL = "galsenai/xTTS-v2-wolof"
 GALSENAI_TRAD_MODEL = "galsenai/wolof-To-French-Translator"
 GALSENAI_TIMEOUT = int(os.getenv("GALSENAI_TIMEOUT", "60"))
+# TTS (synthèse vocale Wolof) différé : désactivé par défaut. Le pipeline
+# renvoie texte + transcription. Mettre GALSENAI_TTS_ENABLED=true pour réactiver.
+GALSENAI_TTS_ENABLED = os.getenv("GALSENAI_TTS_ENABLED", "false").lower() in ("true", "1", "yes")
 
 # Seuil d'alerte coût API Gemini (USD/jour) — apparaît en rouge dans l'admin AppelAPILog
 API_COUT_ALERTE_USD_JOUR = float(os.getenv("API_COUT_ALERTE_USD_JOUR", "1.00"))

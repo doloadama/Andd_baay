@@ -82,14 +82,18 @@ def process_vocal_task(self, audio_bytes_hex: str, mime: str, task_cache_key: st
             _log_api(cache_hit=False, duree_ms=int((time.monotonic() - t0) * 1000))
         logger.info("LLM response: %s", response_text[:120])
 
-        # Etape 3 : TTS (optionnel — ne bloque pas si indisponible)
+        # Etape 3 : TTS (DIFFERE — desactive par defaut via GALSENAI_TTS_ENABLED).
+        # Le TTS Wolof est le maillon le plus fragile : on livre d'abord texte +
+        # transcription. Reactiver en mettant GALSENAI_TTS_ENABLED=true une fois
+        # un modele TTS fiable confirme.
         audio_b64 = None
-        try:
-            tts_bytes = synthesize_wolof(response_text)
-            if tts_bytes:
-                audio_b64 = base64.b64encode(tts_bytes).decode()
-        except Exception:
-            logger.warning("TTS indisponible, reponse texte seule", exc_info=True)
+        if getattr(settings, "GALSENAI_TTS_ENABLED", False):
+            try:
+                tts_bytes = synthesize_wolof(response_text)
+                if tts_bytes:
+                    audio_b64 = base64.b64encode(tts_bytes).decode()
+            except Exception:
+                logger.warning("TTS indisponible, reponse texte seule", exc_info=True)
 
         cache.set(task_cache_key, {
             "status": "done",
