@@ -1,6 +1,6 @@
 /**
  * finance.css — Hub Finance styling
- * Couleurs dérivées des tokens :root (base.html) via color-mix : --brand-primary, --brand-deep, --brand-accent, --brand-light, --info.
+ * Couleurs dérivées des tokens :root (base.html) via color-mix : --ab-brand-primary, --ab-brand-deep, --ab-brand-accent, --ab-brand-light, --info.
  */
 
 /* ========== HERO ========== */
@@ -10,20 +10,20 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
     gap: clamp(16px, 3vw, 28px);
     padding: clamp(24px, 4vw, 36px);
-    border-radius: calc(var(--radius-card, 18px) + 6px);
-    border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, transparent);
+    border-radius: calc(var(--ab-radius-card, 18px) + 6px);
+    border: 1px solid color-mix(in srgb, var(--ab-brand-accent) 35%, transparent);
     background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--brand-primary) 22%, transparent), transparent 38%),
+        radial-gradient(circle at top left, color-mix(in srgb, var(--ab-brand-primary) 22%, transparent), transparent 38%),
         linear-gradient(
             135deg,
-            color-mix(in srgb, var(--brand-deep) 96%, transparent),
-            color-mix(in srgb, var(--brand-deep) 82%, var(--brand-primary) 18%) 55%,
-            color-mix(in srgb, var(--brand-deep) 58%, #0f172a 42%)
+            color-mix(in srgb, var(--ab-brand-deep) 96%, transparent),
+            color-mix(in srgb, var(--ab-brand-deep) 82%, var(--ab-brand-primary) 18%) 55%,
+            color-mix(in srgb, var(--ab-brand-deep) 58%, #0f172a 42%)
         );
     box-shadow:
-        0 24px 60px color-mix(in srgb, var(--brand-deep) 22%, transparent),
+        0 24px 60px color-mix(in srgb, var(--ab-brand-deep) 22%, transparent),
         inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        inset 0 0 0 1px color-mix(in srgb, var(--brand-accent) 10%, transparent);
+        inset 0 0 0 1px color-mix(in srgb, var(--ab-brand-accent) 10%, transparent);
     overflow: hidden;
 }
 
@@ -35,7 +35,7 @@
     width: 300px;
     height: 300px;
     border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--brand-accent) 18%, transparent), transparent 66%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--ab-brand-accent) 18%, transparent), transparent 66%);
     pointer-events: none;
 }
 
@@ -49,10 +49,10 @@
     display: inline-flex;
     align-items: center;
     padding: 6px 14px;
-    margin-bottom: var(--space-4, 14px);
-    border-radius: var(--radius-pill, 999px);
+    margin-bottom: var(--ab-space-4, 14px);
+    border-radius: var(--ab-radius-pill, 999px);
     background: rgba(252, 252, 251, 0.08);
-    border: 1px solid color-mix(in srgb, var(--brand-accent) 25%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ab-brand-accent) 25%, transparent);
     color: rgba(248, 250, 252, 0.92);
     font-size: 0.75rem;
     font-weight: 700;
@@ -61,7 +61,7 @@
 }
 
 .finance-title {
-    margin: 0 0 var(--space-3, 10px);
+    margin: 0 0 var(--ab-space-3, 10px);
     color: #f8fafc;
     font-size: clamp(1.8rem, 4vw, 2.8rem);
     font-weight: 800;
@@ -70,7 +70,7 @@
 
 .finance-subtitle {
     max-width: 56ch;
-    margin: 0 0 var(--space-5, 18px);
+    margin: 0 0 var(--ab-space-5, 18px);
     color: rgba(248, 250, 252, 0.72);
     line-height: 1.7;
     font-size: clamp(0.92rem, 1.2vw, 1.02rem);
@@ -91,7 +91,7 @@
     padding: 16px 18px;
     border-radius: 16px;
     background: rgba(252, 252, 251, 0.08);
-    border: 1px solid color-mix(in srgb, var(--brand-accent) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ab-brand-accent) 18%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -99,7 +99,7 @@
 
 .finance-stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px color-mix(in srgb, var(--brand-deep) 18%, transparent);
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--ab-brand-deep) 18%, transparent);
 }
 
 .finance-stat-icon {
@@ -112,8 +112,8 @@
     justify-content: center;
     font-size: 1.05rem;
     flex-shrink: 0;
-    background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
-    color: var(--brand-light);
+    background: color-mix(in srgb, var(--ab-brand-primary) 22%, transparent);
+    color: var(--ab-brand-light);
 }
 
 .finance-stat-icon i {
@@ -122,8 +122,8 @@
 }
 
 .finance-stat-icon--gold {
-    background: color-mix(in srgb, var(--brand-accent) 22%, transparent);
-    color: color-mix(in srgb, var(--brand-accent) 42%, white 58%);
+    background: color-mix(in srgb, var(--ab-brand-accent) 22%, transparent);
+    color: color-mix(in srgb, var(--ab-brand-accent) 42%, white 58%);
 }
 
 .finance-stat-icon--blue {
@@ -144,7 +144,7 @@
 .finance-stat-value {
     display: block;
     color: #f8fafc;
-    font-family: var(--font-display, system-ui);
+    font-family: var(--ab-font-display, system-ui);
     font-size: clamp(1.2rem, 2.4vw, 1.7rem);
     font-weight: 800;
     line-height: 1;
@@ -157,10 +157,10 @@
 
 /* ========== FILTERS ========== */
 .finance-filters-shell {
-    border-radius: var(--radius-card, 18px);
-    border: 1px solid var(--border-color, rgba(0,0,0,0.06));
-    background: var(--card-bg, rgba(255,255,255,0.72));
-    box-shadow: 0 14px 32px color-mix(in srgb, var(--brand-deep) 8%, transparent);
+    border-radius: var(--ab-radius-card, 18px);
+    border: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
+    background: var(--ab-card-bg, rgba(255,255,255,0.72));
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--ab-brand-deep) 8%, transparent);
     overflow: hidden;
 }
 
@@ -169,10 +169,10 @@
     align-items: center;
     gap: 10px;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.06));
+    border-bottom: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
     background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--brand-primary) 10%, transparent) 0%,
+        color-mix(in srgb, var(--ab-brand-primary) 10%, transparent) 0%,
         color-mix(in srgb, var(--info) 5%, transparent) 100%
     );
 }
@@ -181,7 +181,7 @@
     font-size: 1.05rem;
     font-weight: 700;
     margin: 0;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .finance-filters-body {
@@ -191,20 +191,20 @@
 .finance-filters-note {
     margin: 10px 0 0;
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .finance-filters-note i {
-    color: var(--accent, var(--brand-primary));
+    color: var(--accent, var(--ab-brand-primary));
 }
 
 /* ========== TABLE (desktop) ========== */
 .finance-table-shell {
     overflow: auto;
-    background: var(--card-bg, rgba(255,255,255,0.72));
-    border: 1px solid var(--border-color, rgba(0,0,0,0.06));
-    border-radius: var(--radius-card, 18px);
-    box-shadow: 0 14px 32px color-mix(in srgb, var(--brand-deep) 8%, transparent);
+    background: var(--ab-card-bg, rgba(255,255,255,0.72));
+    border: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
+    border-radius: var(--ab-radius-card, 18px);
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--ab-brand-deep) 8%, transparent);
 }
 
 .finance-table-shell table {
@@ -217,20 +217,20 @@
 .finance-table-shell thead {
     background: linear-gradient(
         180deg,
-        color-mix(in srgb, var(--brand-primary) 10%, transparent),
-        color-mix(in srgb, var(--brand-primary) 4%, transparent)
+        color-mix(in srgb, var(--ab-brand-primary) 10%, transparent),
+        color-mix(in srgb, var(--ab-brand-primary) 4%, transparent)
     );
 }
 
 .finance-table-shell th {
     padding: 14px 18px;
     text-align: left;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.06));
+    border-bottom: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
     white-space: nowrap;
 }
 
@@ -240,8 +240,8 @@
 
 .finance-table-shell td {
     padding: 14px 18px;
-    border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.04));
-    color: var(--text-main);
+    border-bottom: 1px solid var(--ab-border-color, rgba(0,0,0,0.04));
+    color: var(--ab-text-main);
     font-size: 0.92rem;
     vertical-align: middle;
 }
@@ -251,7 +251,7 @@
 }
 
 .finance-table-shell tbody tr:hover {
-    background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+    background: color-mix(in srgb, var(--ab-brand-primary) 6%, transparent);
     transform: translateX(3px);
 }
 
@@ -279,8 +279,8 @@
 .finance-amount {
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    color: var(--accent-dark, var(--brand-deep));
-    font-family: var(--font-display, system-ui);
+    color: var(--ab-accent-dark, var(--ab-brand-deep));
+    font-family: var(--ab-font-display, system-ui);
     font-size: 1rem;
     line-height: 1.2;
 }
@@ -289,7 +289,7 @@
 .finance-amount__suffix {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: var(--accent-dark, var(--brand-deep));
+    color: var(--ab-accent-dark, var(--ab-brand-deep));
     opacity: 0.88;
     letter-spacing: 0.03em;
     line-height: 1.2;
@@ -315,32 +315,32 @@
 
 /* Boutons primaires du hub : priorité sur tout reset tiers */
 .finance-hub-page .btn-modern.btn-accent {
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    background: linear-gradient(135deg, var(--accent), var(--ab-accent-dark));
     color: #022c22 !important;
     border: none;
-    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 32%, transparent);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ab-brand-primary) 32%, transparent);
 }
 
 .finance-hub-page .btn-modern.btn-accent:hover {
     color: #022c22 !important;
     opacity: 1;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 42%, transparent);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--ab-brand-primary) 42%, transparent);
 }
 
 .dark-mode .finance-hub-page .btn-modern.btn-accent {
-    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
-    color: var(--text-inverse) !important;
-    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-deep) 48%, transparent);
+    background: linear-gradient(135deg, var(--ab-brand-primary), var(--ab-brand-deep));
+    color: var(--ab-text-inverse) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ab-brand-deep) 48%, transparent);
 }
 
 .dark-mode .finance-hub-page .btn-modern.btn-accent:hover {
-    color: var(--text-inverse) !important;
-    box-shadow: 0 8px 22px color-mix(in srgb, var(--brand-deep) 58%, transparent);
+    color: var(--ab-text-inverse) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--ab-brand-deep) 58%, transparent);
 }
 
 .dark-mode .finance-badge {
-    color: var(--brand-light);
+    color: var(--ab-brand-light);
 }
 
 .finance-badge {
@@ -349,8 +349,8 @@
     gap: 6px;
     padding: 4px 10px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
-    color: var(--accent-dark, var(--brand-deep));
+    background: color-mix(in srgb, var(--ab-brand-primary) 12%, transparent);
+    color: var(--ab-accent-dark, var(--ab-brand-deep));
     font-size: 0.72rem;
     font-weight: 700;
 }
@@ -360,9 +360,9 @@
     position: relative;
     padding: 16px 18px;
     border-radius: 16px;
-    background: var(--card-bg-solid, #fff);
-    border: 1px solid var(--border-glass, rgba(0,0,0,0.05));
-    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-deep) 7%, transparent);
+    background: var(--ab-card-bg-solid, #fff);
+    border: 1px solid var(--ab-border-glass, rgba(0,0,0,0.05));
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ab-brand-deep) 7%, transparent);
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     overflow: hidden;
 }
@@ -375,15 +375,15 @@
     bottom: 10px;
     width: 3px;
     border-radius: 99px;
-    background: linear-gradient(180deg, var(--accent, var(--brand-primary)), var(--info));
+    background: linear-gradient(180deg, var(--accent, var(--ab-brand-primary)), var(--info));
     opacity: 0.7;
     transition: opacity 0.18s ease;
 }
 
 .finance-mobile-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 28px color-mix(in srgb, var(--brand-deep) 11%, transparent);
-    border-color: color-mix(in srgb, var(--brand-primary) 28%, transparent);
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--ab-brand-deep) 11%, transparent);
+    border-color: color-mix(in srgb, var(--ab-brand-primary) 28%, transparent);
 }
 
 .finance-mobile-card:hover::before {
@@ -401,7 +401,7 @@
 .finance-mobile-card__title {
     font-weight: 700;
     font-size: 0.96rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1.35;
     flex: 1;
 }
@@ -425,7 +425,7 @@
 
 .finance-mobile-card__label {
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -433,20 +433,20 @@
 
 .finance-mobile-card__value {
     font-size: 0.85rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-weight: 500;
 }
 
 .finance-mobile-card__value--muted {
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 /* ========== FORMULAIRE AJOUT ========== */
 .finance-form-shell {
-    border-radius: var(--radius-card, 18px);
-    border: 1px solid var(--border-color, rgba(0,0,0,0.06));
-    background: var(--card-bg, rgba(255,255,255,0.72));
-    box-shadow: 0 14px 32px color-mix(in srgb, var(--brand-deep) 8%, transparent);
+    border-radius: var(--ab-radius-card, 18px);
+    border: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
+    background: var(--ab-card-bg, rgba(255,255,255,0.72));
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--ab-brand-deep) 8%, transparent);
     overflow: hidden;
 }
 
@@ -455,11 +455,11 @@
     align-items: center;
     gap: 10px;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.06));
+    border-bottom: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
     background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--brand-primary) 10%, transparent) 0%,
-        color-mix(in srgb, var(--brand-deep) 8%, transparent) 100%
+        color-mix(in srgb, var(--ab-brand-primary) 10%, transparent) 0%,
+        color-mix(in srgb, var(--ab-brand-deep) 8%, transparent) 100%
     );
 }
 
@@ -467,7 +467,7 @@
     font-size: 1.05rem;
     font-weight: 700;
     margin: 0;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .finance-form-body {
@@ -477,23 +477,23 @@
 .finance-form-body .form-label {
     font-size: 0.82rem;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin-bottom: 6px;
 }
 
 .finance-hub-page .finance-filters-shell .form-control,
 .finance-hub-page .finance-filters-shell select {
     border-radius: 12px;
-    border: 1.5px solid color-mix(in srgb, var(--brand-deep) 16%, transparent);
-    background: var(--bg-main, #f8fafc);
+    border: 1.5px solid color-mix(in srgb, var(--ab-brand-deep) 16%, transparent);
+    background: var(--ab-bg-main, #f8fafc);
 }
 
 .finance-form-body .form-control,
 .finance-form-body select,
 .finance-form-body textarea {
     border-radius: 12px;
-    border: 1.5px solid color-mix(in srgb, var(--brand-deep) 16%, transparent);
-    background: var(--bg-main, #f8fafc);
+    border: 1.5px solid color-mix(in srgb, var(--ab-brand-deep) 16%, transparent);
+    background: var(--ab-bg-main, #f8fafc);
     padding: 11px 14px;
     font-size: 0.94rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -503,14 +503,14 @@
 .finance-form-body select:focus,
 .finance-form-body textarea:focus {
     outline: none;
-    border-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
-    background: var(--card-bg-solid, #fff);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+    border-color: color-mix(in srgb, var(--ab-brand-primary) 50%, transparent);
+    background: var(--ab-card-bg-solid, #fff);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ab-brand-primary) 12%, transparent);
 }
 
 .finance-form-body .form-text {
     font-size: 0.78rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-top: 4px;
 }
 
@@ -518,14 +518,14 @@
 .dark-mode .finance-hub-page .finance-filters-header {
     background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--brand-primary) 14%, transparent) 0%,
-        color-mix(in srgb, var(--brand-deep) 22%, transparent) 100%
+        color-mix(in srgb, var(--ab-brand-primary) 14%, transparent) 0%,
+        color-mix(in srgb, var(--ab-brand-deep) 22%, transparent) 100%
     );
 }
 
 .dark-mode .finance-hub-page .finance-form-header {
-    background: var(--bg-secondary);
-    border-bottom-color: var(--border-color);
+    background: var(--ab-bg-secondary);
+    border-bottom-color: var(--ab-border-color);
 }
 
 .dark-mode .finance-hub-page .finance-filters-shell .form-control,
@@ -533,15 +533,15 @@
 .dark-mode .finance-hub-page .finance-form-body .form-control,
 .dark-mode .finance-hub-page .finance-form-body select,
 .dark-mode .finance-hub-page .finance-form-body textarea {
-    background: var(--card-bg-solid);
-    color: var(--text-main);
-    border-color: var(--border-color);
+    background: var(--ab-card-bg-solid);
+    color: var(--ab-text-main);
+    border-color: var(--ab-border-color);
 }
 
 .dark-mode .finance-hub-page .finance-filters-shell select option,
 .dark-mode .finance-hub-page .finance-form-body select option {
-    background-color: var(--card-bg-solid);
-    color: var(--text-main);
+    background-color: var(--ab-card-bg-solid);
+    color: var(--ab-text-main);
 }
 
 .dark-mode .finance-hub-page .finance-form-body .form-control:focus,
@@ -549,8 +549,8 @@
 .dark-mode .finance-hub-page .finance-form-body textarea:focus,
 .dark-mode .finance-hub-page .finance-filters-shell .form-control:focus,
 .dark-mode .finance-hub-page .finance-filters-shell select:focus {
-    background: var(--card-bg-solid);
-    color: var(--text-main);
+    background: var(--ab-card-bg-solid);
+    color: var(--ab-text-main);
 }
 
 .finance-scope-label__inner {
@@ -584,25 +584,25 @@
     justify-content: space-between;
     gap: 10px;
     padding: 14px 20px;
-    border-top: 1px solid var(--border-color, rgba(0,0,0,0.06));
-    background: var(--card-bg-solid, #fff);
+    border-top: 1px solid var(--ab-border-color, rgba(0,0,0,0.06));
+    background: var(--ab-card-bg-solid, #fff);
 }
 
 .finance-pagination .page-link {
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    border-radius: var(--ab-radius-sm);
+    border: 1px solid var(--ab-border-color, rgba(0,0,0,0.08));
     padding: 7px 14px;
     font-size: 0.84rem;
     font-weight: 600;
-    color: var(--text-main);
-    background: var(--bg-main, #f8fafc);
+    color: var(--ab-text-main);
+    background: var(--ab-bg-main, #f8fafc);
     transition: all 0.15s ease;
 }
 
 .finance-pagination .page-link:hover {
-    border-color: var(--accent, var(--brand-primary));
-    background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
-    color: var(--accent-dark, var(--brand-deep));
+    border-color: var(--accent, var(--ab-brand-primary));
+    background: color-mix(in srgb, var(--ab-brand-primary) 10%, transparent);
+    color: var(--ab-accent-dark, var(--ab-brand-deep));
 }
 
 /* ========== EMPTY STATE ========== */
@@ -612,9 +612,9 @@
     align-items: center;
     text-align: center;
     padding: 56px 24px;
-    background: var(--card-bg, rgba(255,255,255,0.72));
-    border: 2px dashed var(--border-color, rgba(0,0,0,0.08));
-    border-radius: var(--radius-card, 18px);
+    background: var(--ab-card-bg, rgba(255,255,255,0.72));
+    border: 2px dashed var(--ab-border-color, rgba(0,0,0,0.08));
+    border-radius: var(--ab-radius-card, 18px);
 }
 
 .finance-empty-icon {
@@ -623,28 +623,28 @@
     border-radius: 22px;
     background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--brand-primary) 18%, transparent),
-        color-mix(in srgb, var(--brand-accent) 14%, transparent)
+        color-mix(in srgb, var(--ab-brand-primary) 18%, transparent),
+        color-mix(in srgb, var(--ab-brand-accent) 14%, transparent)
     );
-    color: var(--accent-dark, var(--brand-deep));
+    color: var(--ab-accent-dark, var(--ab-brand-deep));
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 1.8rem;
     margin-bottom: 18px;
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ab-brand-primary) 18%, transparent);
 }
 
 .finance-empty-title {
-    font-family: var(--font-display, system-ui);
+    font-family: var(--ab-font-display, system-ui);
     font-weight: 700;
     font-size: 1.25rem;
     margin: 0 0 6px;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .finance-empty-text {
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     max-width: 380px;
     font-size: 0.9rem;
 }
@@ -662,7 +662,7 @@
 @media (max-width: 768px) {
     .finance-hero {
         padding: 20px 18px;
-        border-radius: var(--radius-card, 22px) var(--radius-card, 22px) 0 0;
+        border-radius: var(--ab-radius-card, 22px) var(--ab-radius-card, 22px) 0 0;
         border-left: none;
         border-right: none;
     }

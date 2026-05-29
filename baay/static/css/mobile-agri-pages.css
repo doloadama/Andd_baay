@@ -39,7 +39,7 @@
         padding: 6px 10px !important;
         bottom: 8px !important;
         background: rgba(0, 0, 0, 0.72) !important;
-        border-radius: var(--radius-sm) !important;
+        border-radius: var(--ab-radius-sm) !important;
     }
 
     .projet-detail-page #photoCarousel .carousel-caption h6 {

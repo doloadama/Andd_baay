@@ -5,13 +5,13 @@
 .performance-section {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: var(--bg-card, #fff);
+    background: var(--ab-bg-card, #fff);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
 }
 
 .dark-mode .performance-section {
-    background: var(--bg-card-dark, #1e293b);
+    background: var(--ab-bg-card-dark, #1e293b);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -19,7 +19,7 @@
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -36,8 +36,8 @@
 
 .performance-table th {
     font-weight: 600;
-    color: var(--text-muted, #64748b);
-    border-bottom: 2px solid var(--border-color, #e2e8f0);
+    color: var(--ab-text-muted, #64748b);
+    border-bottom: 2px solid var(--ab-border-color, #e2e8f0);
     padding: 1rem 0.75rem;
 }
 
@@ -53,8 +53,8 @@
 
 /* Ferme Cards */
 .ferme-card {
-    background: var(--bg-card, #fff);
-    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--ab-bg-card, #fff);
+    border: 1px solid var(--ab-border-color, #e2e8f0);
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.2s ease;
@@ -67,18 +67,18 @@
 }
 
 .dark-mode .ferme-card {
-    background: var(--bg-card-dark, #1e293b);
-    border-color: var(--border-color-dark, #334155);
+    background: var(--ab-bg-card-dark, #1e293b);
+    border-color: var(--ab-border-color-dark, #334155);
 }
 
 .ferme-card-header {
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    border-bottom: 1px solid var(--ab-border-color, #e2e8f0);
     background: linear-gradient(135deg, rgba(29, 158, 117, 0.05), rgba(29, 158, 117, 0.02));
 }
 
 .dark-mode .ferme-card-header {
-    border-color: var(--border-color-dark, #334155);
+    border-color: var(--ab-border-color-dark, #334155);
     background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05));
 }
 
@@ -86,7 +86,7 @@
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
 }
 
 .ferme-card-body {
@@ -100,7 +100,7 @@
 .metric-label {
     display: block;
     font-size: 0.875rem;
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
     margin-bottom: 0.5rem;
 }
 
@@ -113,11 +113,11 @@
     display: flex;
     gap: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--border-color, #e2e8f0);
+    border-top: 1px solid var(--ab-border-color, #e2e8f0);
 }
 
 .dark-mode .ferme-stats {
-    border-color: var(--border-color-dark, #334155);
+    border-color: var(--ab-border-color-dark, #334155);
 }
 
 .ferme-stat {
@@ -135,7 +135,7 @@
 .stat-label {
     display: block;
     font-size: 0.75rem;
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
     margin-top: 0.25rem;
 }
 
@@ -152,12 +152,12 @@
 }
 
 .empty-state h4 {
-    color: var(--text-main, #0f172a);
+    color: var(--ab-text-main, #0f172a);
     margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-    color: var(--text-muted, #64748b);
+    color: var(--ab-text-muted, #64748b);
     margin-bottom: 1.5rem;
 }
 
@@ -179,7 +179,7 @@
     /* Table scrollable horizontalement */
     .table-responsive {
         border-radius: 8px;
-        border: 1px solid var(--border-color, #e2e8f0);
+        border: 1px solid var(--ab-border-color, #e2e8f0);
     }
 
     .performance-table th,

@@ -3,13 +3,13 @@
    ============================================================ */
 
 .fd-page {
-    --ab-color-primary:   var(--brand-primary, #1d9e75);
-    --ab-color-primary-deep:    var(--brand-deep,    #085041);
-    --ab-color-primary-night:   var(--brand-night,   #04342c);
+    --ab-color-primary:   var(--ab-brand-primary, #1d9e75);
+    --ab-color-primary-deep:    var(--ab-brand-deep,    #085041);
+    --ab-color-primary-night:   var(--ab-brand-night,   #04342c);
     --ab-color-accent:  #ef9f27;
-    --ab-color-surface: var(--card-bg-solid, #fff);
-    --ab-color-border:  var(--border-color,  rgba(8, 80, 65, 0.1));
-    --ab-color-background:   var(--bg-secondary,  #f3f7f6);
+    --ab-color-surface: var(--ab-card-bg-solid, #fff);
+    --ab-color-border:  var(--ab-border-color,  rgba(8, 80, 65, 0.1));
+    --ab-color-background:   var(--ab-bg-secondary,  #f3f7f6);
     max-width: 1240px;
     margin: 0 auto;
     padding: clamp(12px, 3vw, 28px) clamp(12px, 2.5vw, 20px) 4rem;
@@ -23,7 +23,7 @@
     margin-bottom: 16px;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-decoration: none;
     transition: color 0.15s;
 }
@@ -171,7 +171,7 @@
 }
 
 .fd-hero__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: clamp(1.8rem, 5vw, 2.6rem);
     font-weight: 800;
     margin: 0 0 10px;
@@ -319,10 +319,10 @@
 .fd-kpi__body { flex: 1; min-width: 0; }
 
 .fd-kpi__value {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1;
 }
 
@@ -331,7 +331,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-top: 4px;
 }
 
@@ -407,10 +407,10 @@
 
 .fd-panel__title {
     margin: 0;
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 0.98rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .fd-panel__count {
@@ -475,7 +475,7 @@
 .fd-projet-card__name {
     font-weight: 700;
     font-size: 0.95rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1.25;
     flex: 1;
 }
@@ -485,7 +485,7 @@
     align-items: center;
     gap: 6px;
     font-size: 0.78rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin: 0;
     line-height: 1.4;
 }
@@ -520,7 +520,7 @@
 .fd-status--en_cours { background: rgba(29,158,117,0.14); color: var(--ab-color-primary-deep); }
 .fd-status--en_pause { background: rgba(239,159,39,0.15); color: #b45309; }
 .fd-status--fini,
-.fd-status--cloture  { background: rgba(100,116,139,0.12); color: var(--text-muted); }
+.fd-status--cloture  { background: rgba(100,116,139,0.12); color: var(--ab-text-muted); }
 
 /* ============================================================
    EMPTY STATE
@@ -533,7 +533,7 @@
 
 .fd-empty__icon {
     font-size: 2.2rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     opacity: 0.35;
     margin-bottom: 14px;
 }
@@ -542,11 +542,11 @@
 .fd-empty__title {
     font-weight: 700;
     font-size: 0.95rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin: 0 0 6px;
 }
 .fd-empty__sub {
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.82rem;
     margin: 0 0 16px;
 }
@@ -579,13 +579,13 @@
 .fd-sol-callout__body { flex: 1; min-width: 0; }
 .fd-sol-callout__title {
     font-size: 0.9rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin-bottom: 4px;
 }
 .fd-sol-callout__title strong { color: var(--ab-color-primary-deep); }
 .fd-sol-callout__reason {
     font-size: 0.78rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin: 0;
     line-height: 1.45;
 }
@@ -620,7 +620,7 @@
 
 .fd-muted-text {
     font-size: 0.82rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin: 0;
 }
 
@@ -653,7 +653,7 @@
 .fd-table td {
     padding: 10px 12px;
     border-top: 1px solid var(--ab-color-border);
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 .fd-table tbody tr:hover { background: rgba(29,158,117,0.03); }
 
@@ -693,7 +693,7 @@
 .fd-member__name {
     font-weight: 700;
     font-size: 0.88rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -737,7 +737,7 @@
    ============================================================ */
 .fd-access-hint {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     line-height: 1.45;
     margin: 0 0 12px;
 }
@@ -769,7 +769,7 @@
     border-radius: 50%;
     border: 1px solid var(--ab-color-border);
     background: var(--ab-color-surface);
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -792,7 +792,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 .fd-divider::before,
 .fd-divider::after {
@@ -845,11 +845,11 @@
     font-weight: 700;
     font-size: 0.88rem;
     margin: 0 0 2px;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 .fd-request__email {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin: 0;
 }
 .fd-request__form {
@@ -868,7 +868,7 @@
     border: 1px solid var(--ab-color-border);
     border-radius: 8px;
     background: var(--ab-color-surface);
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-family: inherit;
 }
 
@@ -877,7 +877,7 @@
     align-items: center;
     gap: 6px;
     font-size: 0.78rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
     white-space: nowrap;
 }
@@ -892,7 +892,7 @@
    ============================================================ */
 .dark-mode .fd-panel,
 .dark-mode .fd-kpi {
-    background: var(--card-bg-solid, #111916);
+    background: var(--ab-card-bg-solid, #111916);
     border-color: rgba(255,255,255,0.07);
 }
 .dark-mode .fd-panel::before,
@@ -922,15 +922,15 @@
 .dark-mode .fd-access-regen {
     background: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.1);
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 .dark-mode .fd-btn--outline {
-    background: var(--card-bg-solid, #111916);
-    color: var(--text-main, #e8f5f0);
+    background: var(--ab-card-bg-solid, #111916);
+    color: var(--ab-text-main, #e8f5f0);
     border-color: rgba(255,255,255,0.13);
 }
 .dark-mode .fd-btn--outline:hover {
-    color: var(--brand-light, #5dcaa5);
+    color: var(--ab-brand-light, #5dcaa5);
     border-color: rgba(29,158,117,0.4);
     background: rgba(29,158,117,0.12);
 }
@@ -957,9 +957,9 @@
     color: var(--ab-color-primary-deep);
 }
 .dark-mode .fd-select {
-    background: var(--card-bg-solid, #111916);
+    background: var(--ab-card-bg-solid, #111916);
     border-color: rgba(255,255,255,0.1);
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 .dark-mode .fd-divider { color: rgba(255,255,255,0.3); }
 .dark-mode .fd-divider::before,

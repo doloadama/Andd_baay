@@ -1,7 +1,7 @@
 .projects-shell {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--ab-space-6);
 }
 
 .projects-finance-hero {
@@ -29,15 +29,15 @@
 }
 
 .btn-secondary-surface {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
+    background: var(--ab-card-bg);
+    border: 1px solid var(--ab-border-color);
+    color: var(--ab-text-main);
 }
 
 .btn-secondary-surface:hover {
     border-color: rgba(29, 158, 117, 0.35);
     background: rgba(29, 158, 117, 0.08);
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .projects-toolbar {
@@ -45,20 +45,20 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-card);
+    gap: var(--ab-space-4);
+    padding: var(--ab-space-4) var(--ab-space-5);
+    background: var(--ab-card-bg);
+    border: 1px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-card);
     box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
 }
 
 .projects-toolbar.sticky {
     position: sticky;
-    top: var(--space-4);
+    top: var(--ab-space-4);
     z-index: 100;
     border-color: rgba(29, 158, 117, 0.28);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--ab-shadow-md);
 }
 
 .toolbar-search {
@@ -71,10 +71,10 @@
 .toolbar-search input {
     width: 100%;
     padding: 13px 84px 13px 42px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--ab-border-color);
     border-radius: 16px;
-    background: var(--bg-tertiary);
-    color: var(--text-main);
+    background: var(--ab-bg-tertiary);
+    color: var(--ab-text-main);
     font-size: 0.92rem;
     transition: all var(--transition);
 }
@@ -82,7 +82,7 @@
 .toolbar-search input:focus {
     outline: none;
     border-color: var(--accent);
-    background: var(--bg-main);
+    background: var(--ab-bg-main);
     box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.14);
 }
 
@@ -91,7 +91,7 @@
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     pointer-events: none;
 }
 
@@ -104,14 +104,14 @@
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .search-action:hover {
     background: rgba(29, 158, 117, 0.08);
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .clear-search {
@@ -143,10 +143,10 @@
     display: inline-flex;
     align-items: center;
     padding: 8px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    background: var(--bg-tertiary);
-    color: var(--text-main);
+    border: 1px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-pill);
+    background: var(--ab-bg-tertiary);
+    color: var(--ab-text-main);
     font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
@@ -157,38 +157,38 @@
 .filter-chip.is-active {
     background: rgba(29, 158, 117, 0.14);
     border-color: rgba(29, 158, 117, 0.3);
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .view-toggle {
     display: inline-flex;
     padding: 4px;
     border-radius: 14px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: var(--ab-bg-tertiary);
+    border: 1px solid var(--ab-border-color);
 }
 
 .view-toggle button {
     width: 40px;
     height: 40px;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ab-radius-sm);
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .view-toggle button.is-active {
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    background: linear-gradient(135deg, var(--accent), var(--ab-accent-dark));
     color: #022c22;
 }
 
 .selection-pill {
     padding: 9px 14px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--ab-radius-pill);
     background: rgba(29, 158, 117, 0.12);
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
     font-size: 0.8rem;
     font-weight: 700;
     white-space: nowrap;
@@ -224,7 +224,7 @@
 .projects-stage {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--ab-space-5);
 }
 
 .projects-table-shell,
@@ -239,9 +239,9 @@
 
 .projects-table {
     overflow: auto;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-card);
+    background: var(--ab-card-bg);
+    border: 1px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-card);
     box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
 }
 
@@ -255,22 +255,22 @@
     position: sticky;
     top: 0;
     z-index: 5;
-    background: var(--bg-secondary);
+    background: var(--ab-bg-secondary);
 }
 
 .projects-table thead {
-    background: var(--bg-secondary);
+    background: var(--ab-bg-secondary);
 }
 
 .projects-table th {
     padding: 16px 18px;
     text-align: left;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--ab-border-color);
 }
 
 .projects-table th.sortable {
@@ -286,19 +286,19 @@
 .projects-table th.sort-asc::after {
     content: '↑';
     opacity: 1;
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .projects-table th.sort-desc::after {
     content: '↓';
     opacity: 1;
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .projects-table td {
     padding: 18px;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--text-main);
+    border-bottom: 1px solid var(--ab-border-color);
+    color: var(--ab-text-main);
     vertical-align: middle;
 }
 
@@ -339,30 +339,30 @@
 .project-name-cell {
     font-weight: 700;
     font-size: 1rem;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .project-name-cell.editable {
     cursor: text;
-    border-radius: var(--radius-input);
+    border-radius: var(--ab-radius-input);
     padding: 2px 4px;
 }
 
 .project-name-cell.editable:hover {
-    background: var(--bg-tertiary);
+    background: var(--ab-bg-tertiary);
 }
 
 .project-name-cell.editing {
     padding: 4px 8px;
     border: 1px solid rgba(29, 158, 117, 0.35);
-    background: var(--bg-tertiary);
+    background: var(--ab-bg-tertiary);
 }
 
 .project-name-input {
     width: 100%;
     border: none;
     background: transparent;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-size: 1rem;
     font-weight: 700;
     outline: none;
@@ -372,7 +372,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.85rem;
 }
 
@@ -380,14 +380,14 @@
     width: 100%;
     height: 6px;
     margin-top: 2px;
-    background: var(--bg-tertiary);
+    background: var(--ab-bg-tertiary);
     border-radius: 999px;
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--tech-green));
+    background: linear-gradient(90deg, var(--accent), var(--ab-tech-green));
     border-radius: inherit;
     transition: width 0.4s ease;
 }
@@ -396,14 +396,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.74rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .project-inline-meta strong {
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-size: 0.82rem;
     letter-spacing: normal;
 }
@@ -414,7 +414,7 @@
     gap: 8px;
     padding: 8px 14px;
     border: 1px solid transparent;
-    border-radius: var(--radius-pill);
+    border-radius: var(--ab-radius-pill);
     font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -428,7 +428,7 @@ button.status-badge {
 .status-en_cours {
     background: rgba(29, 158, 117, 0.14);
     border-color: rgba(29, 158, 117, 0.26);
-    color: var(--tech-green);
+    color: var(--ab-tech-green);
 }
 
 .status-en_pause {
@@ -464,7 +464,7 @@ button.status-badge {
     border-radius: 12px;
     border: 1px solid transparent;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -473,7 +473,7 @@ button.status-badge {
 .action-link:hover {
     background: rgba(29, 158, 117, 0.08);
     border-color: rgba(29, 158, 117, 0.18);
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .action-link:focus-visible {
@@ -481,7 +481,7 @@ button.status-badge {
     border-color: rgba(29, 158, 117, 0.55);
     box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.14);
     background: rgba(29, 158, 117, 0.08);
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .projects-table tbody tr:focus-within .action-link {
@@ -507,8 +507,8 @@ button.status-badge {
 }
 
 .action-menu-trigger {
-    border-color: var(--border-color);
-    background: var(--bg-tertiary);
+    border-color: var(--ab-border-color);
+    background: var(--ab-bg-tertiary);
 }
 
 .quick-actions-menu,
@@ -518,10 +518,10 @@ button.status-badge {
     position: absolute;
     min-width: 180px;
     padding: 6px 0;
-    background: var(--card-bg-solid);
-    border: 1px solid var(--border-color);
+    background: var(--ab-card-bg-solid);
+    border: 1px solid var(--ab-border-color);
     border-radius: 14px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--ab-shadow-lg);
     z-index: 1000;
 }
 
@@ -546,7 +546,7 @@ button.status-badge {
     padding: 10px 14px;
     border: none;
     background: transparent;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-size: 0.86rem;
     text-decoration: none;
     text-align: left;
@@ -558,7 +558,7 @@ button.status-badge {
 .context-menu-item:hover,
 .status-menu-item:hover {
     background: rgba(29, 158, 117, 0.08);
-    color: var(--accent-dark);
+    color: var(--ab-accent-dark);
 }
 
 .quick-actions-item.danger,
@@ -574,13 +574,13 @@ button.status-badge {
 .context-menu-divider {
     height: 1px;
     margin: 4px 0;
-    background: var(--border-color);
+    background: var(--ab-border-color);
 }
 
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-4);
+    gap: var(--ab-space-4);
 }
 
 .project-card {
@@ -589,9 +589,9 @@ button.status-badge {
     flex-direction: column;
     gap: 14px;
     padding: 22px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-card);
+    background: var(--ab-card-bg);
+    border: 1px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-card);
     box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
     transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
@@ -599,7 +599,7 @@ button.status-badge {
 .project-card:hover {
     transform: translateY(-4px);
     border-color: rgba(29, 158, 117, 0.24);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--ab-shadow-lg);
 }
 
 .project-card.is-selected {
@@ -613,9 +613,9 @@ button.status-badge {
     left: 16px;
     width: 22px;
     height: 22px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-xs);
-    background: var(--bg-tertiary);
+    border: 2px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-xs);
+    background: var(--ab-bg-tertiary);
     cursor: pointer;
 }
 
@@ -654,7 +654,7 @@ button.status-badge {
 
 .project-card-title {
     margin: 0 0 6px;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-size: 1.05rem;
     font-weight: 700;
 }
@@ -663,7 +663,7 @@ button.status-badge {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.84rem;
 }
 
@@ -672,7 +672,7 @@ button.status-badge {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     padding-top: 16px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--ab-border-color);
 }
 
 .project-card-stat {
@@ -682,7 +682,7 @@ button.status-badge {
 }
 
 .project-card-stat-label {
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -690,7 +690,7 @@ button.status-badge {
 }
 
 .project-card-stat-value {
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-size: 1rem;
     font-weight: 700;
 }
@@ -700,20 +700,20 @@ button.status-badge {
     flex-direction: column;
     gap: 8px;
     padding-top: 16px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--ab-border-color);
 }
 
 .empty-state {
     padding: 60px 20px;
     text-align: center;
-    background: var(--card-bg);
-    border: 2px dashed var(--border-color);
-    border-radius: var(--radius-card);
+    background: var(--ab-card-bg);
+    border: 2px dashed var(--ab-border-color);
+    border-radius: var(--ab-radius-card);
 }
 
 .empty-state-icon {
     margin-bottom: 16px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 48px;
 }
 
@@ -725,7 +725,7 @@ button.status-badge {
 .empty-state-text {
     max-width: 480px;
     margin: 0 auto 20px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .modal-overlay {
@@ -750,9 +750,9 @@ button.status-badge {
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: var(--card-bg-solid);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-card);
+    background: var(--ab-card-bg-solid);
+    border: 1px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-card);
     overflow: hidden;
 }
 
@@ -763,13 +763,13 @@ button.status-badge {
     justify-content: space-between;
     gap: 12px;
     padding: 18px 22px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--ab-border-color);
 }
 
 .modal-actions {
     justify-content: flex-end;
     border-bottom: none;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--ab-border-color);
 }
 
 .modal-body {
@@ -783,14 +783,14 @@ button.status-badge {
     border: none;
     border-radius: 12px;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-main);
+    background: var(--ab-bg-tertiary);
+    color: var(--ab-text-main);
 }
 
 .modal-project-detail {
@@ -803,15 +803,15 @@ button.status-badge {
     justify-content: space-between;
     gap: 16px;
     padding-bottom: 14px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--ab-border-color);
 }
 
 .modal-detail-label {
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .modal-detail-value {
-    color: var(--text-main);
+    color: var(--ab-text-main);
     font-weight: 700;
     text-align: right;
 }
@@ -822,10 +822,10 @@ button.status-badge {
     bottom: 24px;
     width: min(320px, calc(100vw - 32px));
     padding: 18px;
-    background: var(--card-bg-solid);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-lg);
+    background: var(--ab-card-bg-solid);
+    border: 1px solid var(--ab-border-color);
+    border-radius: var(--ab-radius-card);
+    box-shadow: var(--ab-shadow-lg);
     transform: translateY(130%);
     transition: transform 0.25s ease;
     z-index: 1100;
@@ -841,7 +841,7 @@ button.status-badge {
     justify-content: space-between;
     margin-bottom: 14px;
     padding-bottom: 14px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--ab-border-color);
 }
 
 .shortcuts-list {
@@ -858,9 +858,9 @@ button.status-badge {
 
 .shortcut-key {
     padding: 2px 8px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-input);
-    color: var(--accent-dark);
+    background: var(--ab-bg-tertiary);
+    border-radius: var(--ab-radius-input);
+    color: var(--ab-accent-dark);
     font-family: monospace;
     font-weight: 700;
 }
@@ -882,10 +882,10 @@ button.status-badge {
     min-width: 240px;
     max-width: 360px;
     padding: 14px 16px;
-    background: var(--card-bg-solid);
-    border: 1px solid var(--border-color);
+    background: var(--ab-card-bg-solid);
+    border: 1px solid var(--ab-border-color);
     border-radius: 14px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--ab-shadow-lg);
     transform: translateX(-120%);
     transition: transform 0.2s ease;
 }
@@ -905,7 +905,7 @@ button.status-badge {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--bg-tertiary);
+    background: var(--ab-bg-tertiary);
 }
 
 .toast-message {
@@ -919,7 +919,7 @@ button.status-badge {
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     cursor: pointer;
 }
 
@@ -945,7 +945,7 @@ button.status-badge {
 
 @media (max-width: 767.98px) {
     .projects-shell {
-        gap: var(--space-5);
+        gap: var(--ab-space-5);
     }
 
     .projects-finance-hero {

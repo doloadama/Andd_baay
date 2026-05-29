@@ -39,7 +39,7 @@
     border-radius: 16px;
     padding: 1.1rem 1.15rem;
     border: 1px solid rgba(15, 23, 42, 0.08);
-    background: var(--card-bg);
+    background: var(--ab-card-bg);
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
     overflow: hidden;
 }
@@ -127,7 +127,7 @@ body.dark-mode .cockpit-qcard {
 .cockpit-qcard .cq-value {
     font-size: 1.65rem;
     font-weight: 800;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     line-height: 1.15;
     margin: 4px 0;
 }
@@ -142,7 +142,7 @@ body.dark-mode .cockpit-qcard .cq-value {
     border-radius: 18px;
     padding: 20px;
     border: 1px solid rgba(15, 23, 42, 0.06);
-    background: var(--card-bg);
+    background: var(--ab-card-bg);
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
     overflow: hidden;
 }
@@ -215,7 +215,7 @@ body.dark-mode .cockpit-qcard .cq-value {
 .tile-completion-track {
     width: 100%;
     height: 5px;
-    background: var(--bg-tertiary);
+    background: var(--ab-bg-tertiary);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -245,7 +245,7 @@ body.dark-mode .cockpit-qcard .cq-value {
 
 .empty-state-visual .empty-state-icon {
     font-size: 52px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     opacity: 0.45;
 }
 
@@ -269,13 +269,13 @@ body.dark-mode .cockpit-qcard .cq-value {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .empty-state-text-v2 {
     max-width: 360px;
     margin: 0 auto;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 0.9rem;
     line-height: 1.6;
 }
@@ -284,7 +284,7 @@ body.dark-mode .cockpit-qcard .cq-value {
     margin-top: 8px;
     padding: 10px 22px;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    background: linear-gradient(135deg, var(--accent), var(--ab-accent-dark));
     color: #fff;
     font-weight: 700;
     font-size: 0.88rem;
@@ -317,7 +317,7 @@ body.dark-mode .cockpit-qcard .cq-value {
 .cockpit-topbar__meta span + span::before {
     content: '·';
     margin-right: 2px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     opacity: 0.5;
 }
 

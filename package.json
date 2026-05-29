@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "lint:css": "stylelint \"baay/static/css/**/*.css\"",
+    "lint:css:fix": "stylelint \"baay/static/css/**/*.css\" --fix"
+  },
   "devDependencies": {
     "stylelint": "^17.12.0"
   }

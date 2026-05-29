@@ -2,15 +2,15 @@
 {% block content %}
 <style>
     .tache-detail { padding:2.5rem 0; }
-    .tache-card { background:var(--card-bg); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden; }
-    .tache-card-header { padding:1.5rem 1.75rem; border-bottom:1px solid var(--border-color); }
-    .tache-card-header h1 { font-size:1.4rem; font-weight:700; margin:0; color:var(--text-main); }
+    .tache-card { background:var(--ab-card-bg); border:1px solid var(--ab-border-color); border-radius:var(--ab-radius-md); overflow:hidden; }
+    .tache-card-header { padding:1.5rem 1.75rem; border-bottom:1px solid var(--ab-border-color); }
+    .tache-card-header h1 { font-size:1.4rem; font-weight:700; margin:0; color:var(--ab-text-main); }
     .tache-card-body { padding:1.75rem; }
     .tache-meta-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.5rem; }
-    .meta-item { background:var(--bg-secondary); border-radius:var(--radius-sm); padding:.7rem .85rem; }
-    .meta-item .label { font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); margin-bottom:.15rem; }
-    .meta-item .value { font-size:.95rem; font-weight:600; color:var(--text-main); }
-    .description-block { background:var(--bg-secondary); border-radius:var(--radius-sm); padding:1rem 1.25rem; white-space:pre-wrap; color:var(--text-main); margin-bottom:1.5rem; line-height:1.55; }
+    .meta-item { background:var(--ab-bg-secondary); border-radius:var(--ab-radius-sm); padding:.7rem .85rem; }
+    .meta-item .label { font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ab-text-muted); margin-bottom:.15rem; }
+    .meta-item .value { font-size:.95rem; font-weight:600; color:var(--ab-text-main); }
+    .description-block { background:var(--ab-bg-secondary); border-radius:var(--ab-radius-sm); padding:1rem 1.25rem; white-space:pre-wrap; color:var(--ab-text-main); margin-bottom:1.5rem; line-height:1.55; }
     .badge-prio { font-size:.75rem; padding:.25rem .65rem; border-radius:999px; font-weight:600; text-transform:uppercase; }
     .prio-basse { background:#e5e7eb; color:#374151; }
     .prio-normale { background:#dbeafe; color:#1e40af; }
@@ -21,8 +21,8 @@
     .stat-en_cours { background:#dbeafe; color:#1e40af; }
     .stat-terminee { background:#d1fae5; color:#065f46; }
     .stat-annulee { background:#e5e7eb; color:#374151; }
-    .actions-zone { background:var(--bg-secondary); border-radius:var(--radius-input); padding:1.25rem; margin-top:1rem; }
-    .retard-banner { background:#fee2e2; color:#991b1b; padding:.65rem 1rem; border-radius:var(--radius-input); margin-bottom:1rem; font-weight:600; font-size:.9rem; }
+    .actions-zone { background:var(--ab-bg-secondary); border-radius:var(--ab-radius-input); padding:1.25rem; margin-top:1rem; }
+    .retard-banner { background:#fee2e2; color:#991b1b; padding:.65rem 1rem; border-radius:var(--ab-radius-input); margin-bottom:1rem; font-weight:600; font-size:.9rem; }
 </style>
 
 <div class="container tache-detail">

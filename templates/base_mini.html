@@ -22,40 +22,40 @@
 
     <style>
         :root {
-            --neon-green: #1D9E75;
+            --ab-neon-green: #1D9E75;
             --accent: #1D9E75;
-            --accent-dark: #085041;
+            --ab-accent-dark: #085041;
             --danger: #ef4444;
             --success: #1D9E75;
             --info: #5DCAA5;
             --warning: #EF9F27;
-            --bg-main: #E1F5EE;
-            --bg-secondary: #f4fbf8;
-            --card-bg: rgba(252, 252, 251, 0.85);
-            --card-bg-solid: #fcfcfb;
-            --text-main: #2C2C2A;
-            --text-muted: #5c5c57;
-            --border-glass: rgba(0, 0, 0, 0.08);
-            --radius-card: 22px;
-            --radius-pill: 40px;
-            --font-main: 'Inter', sans-serif;
-            --font-display: 'Space Grotesk', sans-serif;
+            --ab-bg-main: #E1F5EE;
+            --ab-bg-secondary: #f4fbf8;
+            --ab-card-bg: rgba(252, 252, 251, 0.85);
+            --ab-card-bg-solid: #fcfcfb;
+            --ab-text-main: #2C2C2A;
+            --ab-text-muted: #5c5c57;
+            --ab-border-glass: rgba(0, 0, 0, 0.08);
+            --ab-radius-card: 22px;
+            --ab-radius-pill: 40px;
+            --ab-font-main: 'Inter', sans-serif;
+            --ab-font-display: 'Space Grotesk', sans-serif;
         }
 
         .dark-mode {
-            --bg-main: #04342C;
-            --bg-secondary: #121c19;
-            --card-bg: rgba(18, 28, 25, 0.7);
-            --card-bg-solid: #121c19;
-            --text-main: #E8F5F0;
-            --text-muted: #8aa89e;
-            --border-glass: rgba(255, 255, 255, 0.08);
+            --ab-bg-main: #04342C;
+            --ab-bg-secondary: #121c19;
+            --ab-card-bg: rgba(18, 28, 25, 0.7);
+            --ab-card-bg-solid: #121c19;
+            --ab-text-main: #E8F5F0;
+            --ab-text-muted: #8aa89e;
+            --ab-border-glass: rgba(255, 255, 255, 0.08);
         }
 
         body {
             background: transparent; /* Iframe will have transparent background */
-            color: var(--text-main);
-            font-family: var(--font-main);
+            color: var(--ab-text-main);
+            font-family: var(--ab-font-main);
             overflow-x: hidden;
             margin: 0;
             padding: 0;
@@ -74,9 +74,9 @@
 
         /* Glass card styling specifically for mini mode */
         .glass-card {
-            background: var(--card-bg-solid);
+            background: var(--ab-card-bg-solid);
             border: none;
-            border-radius: var(--radius-card);
+            border-radius: var(--ab-radius-card);
             box-shadow: none;
         }
 
@@ -87,8 +87,8 @@
         
         .btn-modern {
             padding: 8px 16px;
-            border-radius: var(--radius-pill);
-            font-family: var(--font-display);
+            border-radius: var(--ab-radius-pill);
+            font-family: var(--ab-font-display);
             font-weight: 700;
             font-size: 0.8rem;
             border: none;
@@ -100,7 +100,7 @@
             text-decoration: none;
         }
         .btn-primary-modern {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--ab-accent-dark) 100%);
             color: #022c22 !important;
         }
     </style>

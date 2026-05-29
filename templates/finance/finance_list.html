@@ -10,14 +10,14 @@
 <style>
 /* Finance Hub — palette alignée sur base.css (:root / .dark-mode) */
 .finance-hub {
-    --primary-green: var(--brand-primary);
-    --dark-green: var(--brand-deep);
-    --light-green: var(--brand-light);
-    --accent-orange: var(--brand-accent);
+    --primary-green: var(--ab-brand-primary);
+    --dark-green: var(--ab-brand-deep);
+    --light-green: var(--ab-brand-light);
+    --ab-accent-orange: var(--ab-brand-accent);
     --danger-red: var(--danger);
-    --bg-light: var(--brand-bg);
-    --card-bg: var(--card-bg-solid);
-    --border-light: var(--border-glass);
+    --ab-bg-light: var(--ab-brand-bg);
+    --ab-card-bg: var(--ab-card-bg-solid);
+    --ab-border-light: var(--ab-border-glass);
     --success-bg: var(--success-subtle);
     --danger-bg: var(--danger-subtle);
     width: 100%;
@@ -31,9 +31,9 @@
 .fh-hero {
     background: linear-gradient(
         135deg,
-        var(--brand-night) 0%,
-        var(--brand-deep) 44%,
-        var(--brand-primary) 100%
+        var(--ab-brand-night) 0%,
+        var(--ab-brand-deep) 44%,
+        var(--ab-brand-primary) 100%
     );
     border-radius: clamp(14px, 3vw, 20px);
     padding: clamp(16px, 4vw, 28px);
@@ -311,7 +311,7 @@
 
 /* Filters Bar */
 .fh-filters-bar {
-    background: var(--card-bg-solid);
+    background: var(--ab-card-bg-solid);
     border-radius: 16px;
     padding: clamp(14px, 3vw, 20px) clamp(14px, 3vw, 24px);
     margin: clamp(8px, 2.5vw, 16px);
@@ -335,18 +335,18 @@
 .fh-filter-group label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .fh-filter-group select {
     padding: 12px 36px 12px 16px;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--ab-border-light);
     border-radius: 10px;
     font-size: 14px;
-    color: var(--text-main);
-    background-color: var(--card-bg-solid);
+    color: var(--ab-text-main);
+    background-color: var(--ab-card-bg-solid);
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235c5c57' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -357,34 +357,34 @@
 
 .fh-filter-group select:focus {
     outline: none;
-    border-color: var(--brand-primary);
+    border-color: var(--ab-brand-primary);
 }
 
 .fh-btn--primary {
-    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
-    color: var(--text-inverse);
+    background: linear-gradient(135deg, var(--ab-brand-primary), var(--ab-brand-deep));
+    color: var(--ab-text-inverse);
     height: 46px;
     padding: 0 24px;
-    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 28%, transparent);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ab-brand-primary) 28%, transparent);
 }
 
 .fh-btn--primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 38%, transparent);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--ab-brand-primary) 38%, transparent);
     filter: brightness(1.03);
 }
 
 .fh-btn--ghost {
     background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border-light);
+    color: var(--ab-text-muted);
+    border: 1px solid var(--ab-border-light);
     height: 46px;
     padding: 0 20px;
 }
 
 .fh-btn--ghost:hover {
-    background: var(--bg-light);
-    color: var(--text-main);
+    background: var(--ab-bg-light);
+    color: var(--ab-text-main);
 }
 
 /* Charts Section */
@@ -426,7 +426,7 @@
 }
 
 .fh-chart-card {
-    background: var(--card-bg-solid);
+    background: var(--ab-card-bg-solid);
     border-radius: 16px;
     padding: clamp(14px, 3vw, 20px);
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
@@ -445,7 +445,7 @@
 .fh-chart-card__title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -479,7 +479,7 @@
     justify-content: center;
     text-align: center;
     padding: 16px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-size: 14px;
     gap: 8px;
     pointer-events: none;
@@ -552,7 +552,7 @@
 }
 
 .fh-transaction-card {
-    background: var(--card-bg-solid);
+    background: var(--ab-card-bg-solid);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     overflow: hidden;
@@ -563,13 +563,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--ab-border-light);
 }
 
 .fh-transaction-card__title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -606,12 +606,12 @@
     align-items: center;
     gap: 14px;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--ab-border-light);
     transition: background 0.2s;
 }
 
 .fh-transaction-item:hover {
-    background: var(--bg-light);
+    background: var(--ab-bg-light);
 }
 
 .fh-transaction-item:last-child {
@@ -642,7 +642,7 @@
 .fh-transaction-item__label {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -651,7 +651,7 @@
 
 .fh-transaction-item__date {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .fh-transaction-item__amount {
@@ -682,18 +682,18 @@
 .fh-empty-state__title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin-bottom: 8px;
 }
 
 .fh-empty-state__text {
     font-size: 13px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 /* ROI Simulator */
 .fh-roi-section {
-    background: var(--card-bg-solid);
+    background: var(--ab-card-bg-solid);
     border-radius: 16px;
     padding: clamp(16px, 3vw, 24px);
     margin: clamp(8px, 2.5vw, 16px);
@@ -710,7 +710,7 @@
 .fh-roi-section__title {
     font-size: 18px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -723,7 +723,7 @@
 
 .fh-roi-section__subtitle {
     font-size: 13px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .fh-roi-grid {
@@ -837,7 +837,7 @@
 }
 
 .fh-roi-stat {
-    background: var(--bg-light);
+    background: var(--ab-bg-light);
     border-radius: 10px;
     padding: 14px;
     display: flex;
@@ -848,7 +848,7 @@
 .fh-roi-stat__label {
     font-size: 10px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
@@ -857,7 +857,7 @@
 .fh-roi-stat__value {
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .fh-roi-stat__value.income {
@@ -887,13 +887,13 @@
 .fh-roi-info__title {
     font-size: 14px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin-bottom: 4px;
 }
 
 .fh-roi-info__text {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     line-height: 1.5;
     margin-bottom: 6px;
 }
@@ -909,7 +909,7 @@
 
 .fh-roi-info__example {
     font-size: 11px;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     background: rgba(255,255,255,0.5);
     padding: 6px 10px;
     border-radius: 6px;
@@ -924,7 +924,7 @@
 .fh-roi-current__title {
     font-size: 12px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -952,7 +952,7 @@
 
 /* ROI Simulator */
 .fh-roi-simulator {
-    background: var(--bg-light);
+    background: var(--ab-bg-light);
     border-radius: 12px;
     padding: 16px;
 }
@@ -960,7 +960,7 @@
 .fh-roi-simulator__title {
     font-size: 14px;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -973,7 +973,7 @@
 
 .fh-roi-simulator__desc {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-bottom: 14px;
     margin-left: 22px;
 }
@@ -1000,40 +1000,40 @@
 .fh-roi-input-group label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .fh-roi-input-group input {
     padding: 10px 14px;
-    border: 2px solid var(--border-light);
+    border: 2px solid var(--ab-border-light);
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
-    background: var(--card-bg-solid);
-    color: var(--text-main);
+    background: var(--ab-card-bg-solid);
+    color: var(--ab-text-main);
     transition: border-color 0.2s;
 }
 
 .fh-roi-input-group input:focus {
     outline: none;
-    border-color: var(--brand-primary);
+    border-color: var(--ab-brand-primary);
 }
 
 .fh-roi-result {
-    background: var(--card-bg-solid);
+    background: var(--ab-card-bg-solid);
     border-radius: 12px;
     padding: 16px;
     text-align: center;
     margin-bottom: 14px;
-    border: 2px dashed var(--border-light);
+    border: 2px dashed var(--ab-border-light);
 }
 
 .fh-roi-result__label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
@@ -1047,7 +1047,7 @@
 
 .fh-roi-result__text {
     font-size: 13px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
 }
 
 .fh-roi-scenarios {
@@ -1063,7 +1063,7 @@
 }
 
 .fh-roi-scenario {
-    background: var(--card-bg-solid);
+    background: var(--ab-card-bg-solid);
     border-radius: 10px;
     padding: 12px;
     text-align: center;
@@ -1073,7 +1073,7 @@
 }
 
 .fh-roi-scenario:hover {
-    border-color: var(--brand-primary);
+    border-color: var(--ab-brand-primary);
     transform: translateY(-2px);
 }
 
@@ -1085,7 +1085,7 @@
 .fh-roi-scenario__label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .fh-roi-scenario__label small {
@@ -1094,25 +1094,25 @@
 
 .fh-roi-scenario__label small {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-weight: 400;
 }
 
 /* ─── Formulaires dépense / recette ─── */
 .fh-forms-section {
     margin: clamp(12px, 2.5vw, 20px) clamp(8px, 2.5vw, 16px) clamp(20px, 3vw, 32px);
-    --fh-form-surface: var(--card-bg-solid, #ffffff);
-    --fh-form-border: var(--border-color, rgba(8, 80, 65, 0.1));
-    --fh-form-muted: var(--text-muted, #5c5c57);
-    --fh-form-text: var(--text-main, #2C2C2A);
+    --fh-form-surface: var(--ab-card-bg-solid, #ffffff);
+    --fh-form-border: var(--ab-border-color, rgba(8, 80, 65, 0.1));
+    --fh-form-muted: var(--ab-text-muted, #5c5c57);
+    --fh-form-text: var(--ab-text-main, #2C2C2A);
     --fh-form-accent: var(--accent, #1D9E75);
     --fh-form-danger: var(--danger, #ef4444);
-    --fh-form-radius: var(--radius-card, 22px);
-    --fh-form-radius-sm: var(--radius-input, 12px);
+    --fh-form-radius: var(--ab-radius-card, 22px);
+    --fh-form-radius-sm: var(--ab-radius-input, 12px);
 }
 
 .dark-mode .fh-forms-section {
-    --fh-form-surface: var(--card-bg-solid, #121c19);
+    --fh-form-surface: var(--ab-card-bg-solid, #121c19);
 }
 
 .fh-forms-quick__intro {
@@ -1121,10 +1121,10 @@
 }
 
 .fh-forms-quick__intro h2 {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: clamp(1.125rem, 2.8vw, 1.35rem);
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--ab-text-main);
     margin: 0 0 6px;
     letter-spacing: -0.02em;
 }
@@ -1132,7 +1132,7 @@
 .fh-forms-quick__intro p {
     margin: 0;
     font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     line-height: 1.5;
     max-width: 42rem;
 }
@@ -1153,7 +1153,7 @@
 .fh-form-card {
     background: var(--fh-form-surface);
     border-radius: var(--fh-form-radius);
-    box-shadow: var(--shadow-md, 0 4px 16px rgba(8, 80, 65, 0.08));
+    box-shadow: var(--ab-shadow-md, 0 4px 16px rgba(8, 80, 65, 0.08));
     overflow: hidden;
     border: 1px solid var(--fh-form-border);
     display: flex;
@@ -1238,7 +1238,7 @@ button.fh-form-card__header--toggle::before {
 }
 
 .fh-form-card__title span {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.125rem;
     font-weight: 700;
     color: var(--fh-form-text);
@@ -1294,7 +1294,7 @@ button.fh-form-card__header--toggle::before {
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 800;
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     background: color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 12%, var(--fh-form-surface));
     color: var(--fh-form-card-accent, var(--fh-form-accent));
     border: 1px solid color-mix(in srgb, var(--fh-form-card-accent, var(--fh-form-accent)) 25%, transparent);
@@ -1302,7 +1302,7 @@ button.fh-form-card__header--toggle::before {
 }
 
 .fh-form-step__title {
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 0.8125rem;
     font-weight: 700;
     color: var(--fh-form-text);
@@ -1476,7 +1476,7 @@ button.fh-form-card__header--toggle::before {
 }
 
 .fh-form-control--readonly {
-    background: var(--bg-secondary, rgba(8, 80, 65, 0.08));
+    background: var(--ab-bg-secondary, rgba(8, 80, 65, 0.08));
     cursor: default;
     color: var(--fh-form-muted);
 }
@@ -1532,7 +1532,7 @@ select.fh-form-control {
     font-weight: 800;
     color: var(--fh-form-card-accent, var(--fh-form-danger));
     font-variant-numeric: tabular-nums;
-    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     letter-spacing: -0.02em;
 }
 
@@ -1572,7 +1572,7 @@ select.fh-form-control {
 }
 
 .fh-btn--large.fh-btn--success {
-    background: linear-gradient(135deg, var(--fh-form-accent), var(--accent-dark, #085041));
+    background: linear-gradient(135deg, var(--fh-form-accent), var(--ab-accent-dark, #085041));
     color: #ffffff;
 }
 
@@ -1587,12 +1587,12 @@ select.fh-form-control {
 }
 
 .fh-form-actions .fh-btn--secondary:hover:not(:disabled) {
-    background: var(--bg-secondary, rgba(29, 158, 117, 0.12));
+    background: var(--ab-bg-secondary, rgba(29, 158, 117, 0.12));
 }
 
 .fh-alert {
     padding: 12px 14px;
-    border-radius: var(--radius-input, 12px);
+    border-radius: var(--ab-radius-input, 12px);
     font-size: 0.875rem;
     font-weight: 500;
 }
@@ -1603,12 +1603,12 @@ select.fh-form-control {
 
 .fh-alert.success {
     background: var(--success-subtle, rgba(29, 158, 117, 0.12));
-    color: var(--accent-dark, #085041);
+    color: var(--ab-accent-dark, #085041);
     border: 1px solid color-mix(in srgb, var(--fh-form-accent) 40%, transparent);
 }
 
 .dark-mode .fh-alert.success {
-    color: var(--brand-pale, #9FE1CB);
+    color: var(--ab-brand-pale, #9FE1CB);
 }
 
 .fh-alert.error {
@@ -1762,24 +1762,24 @@ button.fh-form-card__header--toggle:focus-visible {
 .fh-btn--add {
     flex: 1;
     min-width: min(100%, 200px);
-    background: linear-gradient(135deg, var(--brand-primary), var(--brand-deep));
-    color: var(--text-inverse);
+    background: linear-gradient(135deg, var(--ab-brand-primary), var(--ab-brand-deep));
+    color: var(--ab-text-inverse);
     padding: 16px 24px;
     font-size: 15px;
     border-radius: 12px;
-    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 28%, transparent);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ab-brand-primary) 28%, transparent);
 }
 
 .fh-btn--add:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 38%, transparent);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--ab-brand-primary) 38%, transparent);
     filter: brightness(1.03);
 }
 
 .fh-btn--add.outline {
-    background: var(--card-bg-solid);
-    color: var(--brand-primary);
-    border: 2px solid var(--brand-primary);
+    background: var(--ab-card-bg-solid);
+    color: var(--ab-brand-primary);
+    border: 2px solid var(--ab-brand-primary);
 }
 
 .fh-btn--add.outline:hover {
@@ -1792,16 +1792,16 @@ button.fh-form-card__header--toggle:focus-visible {
 }
 
 .fh-transaction-list::-webkit-scrollbar-track {
-    background: var(--bg-light);
+    background: var(--ab-bg-light);
 }
 
 .fh-transaction-list::-webkit-scrollbar-thumb {
-    background: var(--border-light);
+    background: var(--ab-border-light);
     border-radius: 3px;
 }
 
 .fh-transaction-list::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
+    background: var(--ab-text-muted);
 }
 
 /* —— Tabs —— */
@@ -1810,10 +1810,10 @@ button.fh-form-card__header--toggle:focus-visible {
     gap: 6px;
     padding: 6px;
     margin: 0 clamp(8px, 2.5vw, 16px) clamp(16px, 3vw, 22px);
-    background: var(--card-bg);
-    border: 1px solid var(--border-light);
+    background: var(--ab-card-bg);
+    border: 1px solid var(--ab-border-light);
     border-radius: 999px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--ab-shadow-sm);
     overflow-x: auto;
     scrollbar-width: none;
     position: sticky;
@@ -1832,7 +1832,7 @@ button.fh-form-card__header--toggle:focus-visible {
     border: none;
     border-radius: 999px;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     font-weight: 600;
     font-size: 0.8125rem;
     cursor: pointer;
@@ -1850,7 +1850,7 @@ button.fh-form-card__header--toggle:focus-visible {
 }
 
 .fh-tab-btn.active {
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-deep) 100%);
+    background: linear-gradient(135deg, var(--ab-brand-primary) 0%, var(--ab-brand-deep) 100%);
     color: #fff;
     box-shadow: 0 4px 14px rgba(29, 158, 117, 0.28);
 }
@@ -1860,7 +1860,7 @@ button.fh-form-card__header--toggle:focus-visible {
 }
 
 .fh-tab-btn:focus-visible {
-    outline: 2px solid var(--brand-primary);
+    outline: 2px solid var(--ab-brand-primary);
     outline-offset: 2px;
 }
 
@@ -1874,8 +1874,8 @@ button.fh-form-card__header--toggle:focus-visible {
 }
 
 .fh-tab-btn:not(.active) .fh-tab-badge {
-    background: var(--bg-light);
-    color: var(--text-muted);
+    background: var(--ab-bg-light);
+    color: var(--ab-text-muted);
 }
 
 .fh-tab-panel {
@@ -1890,9 +1890,9 @@ button.fh-form-card__header--toggle:focus-visible {
 }
 
 .fh-bilan-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-card, 14px);
+    background: var(--ab-card-bg);
+    border: 1px solid var(--ab-border-light);
+    border-radius: var(--ab-radius-card, 14px);
     padding: 14px 16px;
     text-align: center;
 }
@@ -1901,19 +1901,19 @@ button.fh-form-card__header--toggle:focus-visible {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-muted);
+    color: var(--ab-text-muted);
     margin-bottom: 6px;
 }
 
 .fh-bilan-card__value {
-    font-family: var(--font-display);
+    font-family: var(--ab-font-display);
     font-size: 1.15rem;
     font-weight: 800;
-    color: var(--text-main);
+    color: var(--ab-text-main);
 }
 
 .fh-bilan-card__value.income {
-    color: var(--brand-primary);
+    color: var(--ab-brand-primary);
 }
 
 .fh-bilan-card__value.expense {
@@ -2744,7 +2744,7 @@ function simulateROI() {
         simResult.style.borderColor = 'var(--danger-red)';
     } else {
         simText.textContent = 'Seuil de rentabilité atteint';
-        simResult.style.borderColor = 'var(--border-light)';
+        simResult.style.borderColor = 'var(--ab-border-light)';
     }
 }
 

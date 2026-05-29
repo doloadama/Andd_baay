@@ -4,16 +4,16 @@
  */
 
 .leaflet-popup-content-wrapper {
-    border-radius: var(--radius-input) !important;
+    border-radius: var(--ab-radius-input) !important;
 }
 
 .leaflet-bar,
 .leaflet-bar a,
 .leaflet-control-layers-expanded,
 .leaflet-control-layers-list {
-    border-radius: var(--radius-input) !important;
+    border-radius: var(--ab-radius-input) !important;
 }
 
 .leaflet-tooltip {
-    border-radius: var(--radius-xs) !important;
+    border-radius: var(--ab-radius-xs) !important;
 }

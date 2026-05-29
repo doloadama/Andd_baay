@@ -1,7 +1,7 @@
 {
   "rules": {
-    "custom-property-pattern": ["^ab-", {
-      "message": "Custom properties must use the --ab-* prefix"
+    "custom-property-pattern": ["^(ab|tw|bs|fa)-", {
+      "message": "Custom properties must use --ab-* (vendor --tw-/--bs-/--fa- tolérés)"
     }]
   },
   "ignoreFiles": [
