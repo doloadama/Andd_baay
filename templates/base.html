@@ -377,9 +377,12 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item text-danger logout-link" href="{% url 'logout' %}" data-logout-url="{% url 'logout' %}">
-                                        <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i> Déconnexion
-                                    </a>
+                                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger logout-link" data-logout-url="{% url 'logout' %}">
+                                            <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i> Déconnexion
+                                        </button>
+                                    </form>
                                 </li>
                             </ul>
                         </li>
@@ -447,9 +450,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-baay btn-baay-outline" data-bs-dismiss="modal">Annuler</button>
-                    <a class="btn-baay btn-baay-primary" id="confirmLogoutBtn" href="{% url 'logout' %}">
-                        <i class="fas fa-check" aria-hidden="true"></i> Oui, me déconnecter
-                    </a>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline" id="logoutConfirmForm">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-baay btn-baay-primary" id="confirmLogoutBtn">
+                            <i class="fas fa-check" aria-hidden="true"></i> Oui, me déconnecter
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -570,7 +576,6 @@
                     return;
                 }
                 event.preventDefault();
-                confirmButton.href = link.dataset.logoutUrl || link.href;
                 bootstrap.Modal.getOrCreateInstance(modalElement).show();
             });
         });
@@ -1097,10 +1102,13 @@
                     <i class="fas fa-cog" aria-hidden="true"></i>
                     <span>Profil</span>
                 </a>
-                <a href="{% url 'logout' %}" class="mobile-drawer-action-btn text-danger logout-link" data-logout-url="{% url 'logout' %}">
-                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-                    <span>Quitter</span>
-                </a>
+                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="mobile-drawer-action-btn text-danger logout-link" data-logout-url="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                        <span>Quitter</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>

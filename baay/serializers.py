@@ -5,13 +5,13 @@ from .models import Conversation, Ferme, Message, MessageReaction, Projet
 class ProjetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Projet
-        fields = '__all__'
+        exclude = ['utilisateur']
 
 
 class FermeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ferme
-        fields = ['id', 'nom', 'description', 'code_acces', 'date_creation', 'latitude', 'longitude']
+        fields = ['id', 'nom', 'description', 'date_creation', 'latitude', 'longitude']
 
 
 class ConversationSerializer(serializers.ModelSerializer):
