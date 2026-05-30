@@ -8,12 +8,13 @@ from __future__ import annotations
 import logging
 import uuid
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_GET
 from django.core.cache import cache
+
+from baay.services.vocal_config import vocal_ai_configured, vocal_model_label
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +46,9 @@ def _check_rate(ip: str) -> bool:
 @require_http_methods(["GET", "POST"])
 def assistant_vocal(request):
     if request.method == "GET":
-        ai_configured = bool(
-            getattr(settings, "GEMINI_API_KEYS", None)
-            or getattr(settings, "GEMINI_API_KEY", "").strip()
-        )
         return render(request, "assistant_vocal/index.html", {
-            "ai_configured": ai_configured,
-            "llm_model": getattr(settings, "GEMINI_VOCAL_MODEL", "gemini-2.0-flash"),
+            "ai_configured": vocal_ai_configured(),
+            "llm_model": vocal_model_label(),
         })
 
     # ── POST — enqueue asynchrone, retour immédiat (anti-latence 3G) ──────────

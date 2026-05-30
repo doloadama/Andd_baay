@@ -207,7 +207,7 @@
             <i class="fas fa-seedling" aria-hidden="true"></i>
             Andd Baay
         </a>
-        <p class="jb-brand__sub">Jëf Baay — Assistant vocal agricole en Wolof · propulsé par Gemini</p>
+        <p class="jb-brand__sub">Jëf Baay — Assistant vocal agricole en Wolof · IA agricole</p>
     </div>
 
     {% if not ai_configured %}
@@ -215,9 +215,9 @@
     <div class="jb-warning" role="alert">
         <i class="fas fa-exclamation-triangle"></i>
         <div>
-            <strong>Clé API Gemini manquante.</strong>
-            L'assistant ne peut pas répondre tant que la clé n'est pas configurée.
-            Ajoutez <code>GEMINI_API_KEY=...</code> dans votre <code>.env</code>.
+            <strong>Configuration IA incomplète.</strong>
+            L'assistant ne peut pas répondre tant que le backend vocal sélectionné n'est pas configuré.
+            Vérifiez les variables <code>VOCAL_STT_BACKEND</code>, <code>VOCAL_LLM_BACKEND</code> et la clé du fournisseur choisi.
         </div>
     </div>
     {% endif %}

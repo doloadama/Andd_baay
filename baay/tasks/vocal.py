@@ -24,6 +24,7 @@ from baay.services.gemini_vocal import (
     process_vocal_wolof,
 )
 from baay.services.whisper_local import WhisperLocalError
+from baay.services.vocal_config import effective_stt_backend, vocal_llm_backend
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +33,11 @@ _RESULT_TTL = 3600  # 1h — duree de vie du resultat de tache dans le cache
 
 def _transcribe_and_respond(audio_bytes: bytes, mime: str) -> dict:
     """
-    Renvoie {transcript, response} selon le backend STT configuré :
-      - "whisper_local" : Faster-Whisper local (transcription) -> Gemini (reponse texte)
+    Renvoie {transcript, response} selon le backend STT effectif :
+      - "whisper_local" : Faster-Whisper local (transcription) -> LLM texte configuré
       - "gemini" (defaut): Gemini audio natif (transcription + reponse en 1 appel)
     """
-    backend = getattr(settings, "VOCAL_STT_BACKEND", "gemini")
+    backend = effective_stt_backend()
     if backend != "whisper_local":
         # Gemini audio natif : transcription + réponse en un seul appel.
         return process_vocal_wolof(audio_bytes, mime_type=mime)
@@ -56,7 +57,7 @@ def _transcribe_and_respond(audio_bytes: bytes, mime: str) -> dict:
 
     # 2) Question ouverte -> LLM (Ollama local ou Gemini cloud).
     try:
-        llm_backend = getattr(settings, "VOCAL_LLM_BACKEND", "gemini")
+        llm_backend = vocal_llm_backend()
         if llm_backend == "ollama":
             from baay.services.ollama_responder import generate_response as ollama_respond
             response = ollama_respond(transcript)

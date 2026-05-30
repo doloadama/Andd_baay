@@ -145,6 +145,23 @@ class VocalViewsTest(TestCase):
         resp = self.client.get("/assistant-vocal/")
         self.assertEqual(resp.status_code, 200)
 
+    @override_settings(VOCAL_STT_BACKEND="gemini", VOCAL_LLM_BACKEND="deepseek",
+                       WHISPER_STT_URL="http://stt:9000", DEEPSEEK_API_KEY="sk-test",
+                       DEEPSEEK_MODEL="deepseek-chat")
+    def test_get_page_accepte_configuration_deepseek_hybride(self):
+        resp = self.client.get("/assistant-vocal/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "deepseek-chat")
+        self.assertNotContains(resp, "Configuration IA incomplète")
+
+    @override_settings(VOCAL_STT_BACKEND="gemini", VOCAL_LLM_BACKEND="deepseek",
+                       WHISPER_STT_URL="", DEEPSEEK_API_KEY="sk-test",
+                       GEMINI_API_KEYS=[], GEMINI_API_KEY="")
+    def test_get_page_signale_configuration_deepseek_incomplete(self):
+        resp = self.client.get("/assistant-vocal/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Configuration IA incomplète")
+
     def test_post_sans_audio_renvoie_400(self):
         resp = self.client.post("/assistant-vocal/")
         self.assertEqual(resp.status_code, 400)
@@ -414,3 +431,25 @@ class DeepSeekBackendTaskTest(TestCase):
             data = cache.get(self.key)
         self.assertEqual(data["status"], "done")
         self.assertEqual(data["result"]["response"], FALLBACK_WO)
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="gemini", VOCAL_LLM_BACKEND="deepseek",
+                   VOCAL_FAQ_FIRST=False, VOCAL_OFFLINE_FALLBACK=True)
+class DeepSeekEffectiveBackendTaskTest(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.key = "vocal_task:ds_effective"
+
+    def test_deepseek_force_la_transcription_locale(self):
+        from baay.tasks.vocal import process_vocal_task
+        with patch("baay.tasks.vocal.process_vocal_wolof") as mk_gemini, \
+             patch("baay.services.whisper_local.transcribe_audio", return_value="question"), \
+             patch("baay.services.deepseek_responder.generate_response", return_value="réponse deepseek") as mk_ds:
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["response"], "réponse deepseek")
+        mk_gemini.assert_not_called()
+        mk_ds.assert_called_once_with("question")
