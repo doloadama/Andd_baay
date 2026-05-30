@@ -51,3 +51,6 @@
 {"file":"vocal-llm/Modelfile","action":"Write","timestamp":"2026-05-30T13:23:47Z","important":false}
 {"file":"vocal-llm/README.md","action":"Write","timestamp":"2026-05-30T13:24:10Z","important":false}
 {"file":"vocal-stt/models/.gitignore","action":"Write","timestamp":"2026-05-30T13:55:51Z","important":false}
+{"file":"baay/services/deepseek_responder.py","action":"Write","timestamp":"2026-05-30T15:43:05Z","important":false}
+{"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-30T15:43:17Z","important":false}
+{"file":"baay/tasks/vocal.py","action":"Edit","timestamp":"2026-05-30T15:43:33Z","important":false}
