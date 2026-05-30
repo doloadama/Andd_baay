@@ -279,3 +279,65 @@ class HybridFaqTaskTest(TestCase):
             data = cache.get(self.key)
         self.assertEqual(data["status"], "done")
         self.assertEqual(data["result"]["response"], FALLBACK_WO)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Client Ollama + backend LLM local
+# ══════════════════════════════════════════════════════════════════════════════
+
+class OllamaClientTest(TestCase):
+
+    @override_settings(OLLAMA_URL="", OLLAMA_MODEL="")
+    def test_non_configure_leve_OllamaNotConfigured(self):
+        from baay.services.ollama_responder import generate_response, OllamaNotConfigured
+        with self.assertRaises(OllamaNotConfigured):
+            generate_response("test")
+
+    @override_settings(OLLAMA_URL="http://ollama:11434", OLLAMA_MODEL="finellama-wolof")
+    def test_succes_retourne_reponse(self):
+        from baay.services import ollama_responder
+        resp = MagicMock()
+        resp.json.return_value = {"message": {"content": "Dugub day ji ci nawet"}}
+        resp.raise_for_status.return_value = None
+        with patch.object(ollama_responder.requests, "post", return_value=resp):
+            result = ollama_responder.generate_response("kañ laa ji dugub")
+        self.assertEqual(result, "Dugub day ji ci nawet")
+
+    @override_settings(OLLAMA_URL="http://ollama:11434", OLLAMA_MODEL="finellama-wolof")
+    def test_service_down_leve_OllamaError(self):
+        from baay.services import ollama_responder
+        import requests as _rq
+        with patch.object(ollama_responder.requests, "post", side_effect=_rq.ConnectionError("refused")):
+            with self.assertRaises(ollama_responder.OllamaError):
+                ollama_responder.generate_response("test")
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_LLM_BACKEND="ollama",
+                   VOCAL_FAQ_FIRST=False, VOCAL_OFFLINE_FALLBACK=True)
+class OllamaBackendTaskTest(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.key = "vocal_task:oll"
+
+    def test_ollama_repond(self):
+        from baay.tasks.vocal import process_vocal_task
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="question"), \
+             patch("baay.services.ollama_responder.generate_response", return_value="réponse locale"):
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["response"], "réponse locale")
+
+    def test_ollama_indispo_fallback_wolof(self):
+        from baay.tasks.vocal import process_vocal_task
+        from baay.services.ollama_responder import OllamaError
+        from baay.services.wolof_faq import FALLBACK_WO
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="question"), \
+             patch("baay.services.ollama_responder.generate_response",
+                   side_effect=OllamaError("down")):
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["response"], FALLBACK_WO)

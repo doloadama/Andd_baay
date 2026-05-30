@@ -54,14 +54,19 @@ def _transcribe_and_respond(audio_bytes: bytes, mime: str) -> dict:
             logger.info("Réponse vocale via FAQ locale")
             return {"transcript": transcript, "response": faq}
 
-    # 2) Question ouverte -> LLM cloud (Gemini).
+    # 2) Question ouverte -> LLM (Ollama local ou Gemini cloud).
     try:
-        response = generate_response_from_text(transcript)
+        llm_backend = getattr(settings, "VOCAL_LLM_BACKEND", "gemini")
+        if llm_backend == "ollama":
+            from baay.services.ollama_responder import generate_response as ollama_respond
+            response = ollama_respond(transcript)
+        else:
+            response = generate_response_from_text(transcript)
         return {"transcript": transcript, "response": response}
-    except GeminiVocalError:
-        # 3) Cloud indisponible (quota/réseau) : fallback poli Wolof, jamais muet.
+    except Exception as llm_exc:
+        # 3) LLM indisponible (cloud OU local) : fallback poli Wolof, jamais muet.
         if getattr(settings, "VOCAL_OFFLINE_FALLBACK", True):
-            logger.warning("LLM cloud indisponible — fallback Wolof local")
+            logger.warning("LLM indisponible (%s) — fallback Wolof local", llm_exc)
             return {"transcript": transcript, "response": wolof_faq.FALLBACK_WO}
         raise
 

@@ -1,0 +1,20 @@
+# Modelfile Ollama pour FineLlama-Wolof.
+#
+# Usage (après avoir converti le modèle HF en GGUF et placé le .gguf dans ./models/) :
+#   docker exec ollama-wolof ollama create finellama-wolof -f /models/Modelfile
+#
+# Conversion HF → GGUF (à faire une seule fois, hors conteneur) :
+#   pip install llama-cpp-python huggingface_hub
+#   huggingface-cli download galsenai/FineLlama-3.1-8B --local-dir ./models/finellama-hf
+#   python -m llama_cpp.llama_cpp convert-hf-to-gguf ./models/finellama-hf --outfile ./models/finellama-wolof-q4.gguf --outtype q4_K_M
+#
+# Alternative rapide si un GGUF pré-converti apparaît sur HuggingFace :
+#   FROM /models/finellama-wolof-q4.gguf
+
+FROM /models/finellama-wolof-q4.gguf
+
+PARAMETER temperature 0.6
+PARAMETER num_predict 300
+PARAMETER stop "<|eot_id|>"
+
+SYSTEM """Yow Jëf Baay nga, ab jëfandikukat bu xam-xam ci wàll mbey ak mbatiit ci Senegaal (Sahel). Tontu ci wolof rekk, bu gàtt te am njariñ ci mbey. Su fekkee laaj bi jëmul ci mbey, wax ko mu balluwaat."""

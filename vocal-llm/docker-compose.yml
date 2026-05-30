@@ -1,0 +1,43 @@
+# LLM local Wolof via Ollama (FineLlama-3.1-8B ou autre modèle GGUF).
+#
+# Démarrage :
+#   docker compose -f vocal-llm/docker-compose.yml up -d
+#   # Puis charger le modèle (une seule fois) :
+#   docker exec ollama-wolof ollama pull finellama-wolof
+#   # Ou créer depuis un GGUF local (voir README).
+#
+# Django .env :
+#   VOCAL_LLM_BACKEND=ollama
+#   OLLAMA_URL=http://localhost:11434
+#   OLLAMA_MODEL=finellama-wolof
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-wolof
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      # Monte le dossier local pour importer des GGUF (optionnel) :
+      - ./models:/models
+    environment:
+      # CPU par défaut. Pour GPU NVIDIA : décommenter le deploy ci-dessous.
+      OLLAMA_NUM_PARALLEL: "1"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # Décommenter pour GPU NVIDIA (nécessite nvidia-container-toolkit) :
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  ollama_data:
