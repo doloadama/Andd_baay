@@ -160,3 +160,64 @@ class VocalViewsTest(TestCase):
         resp = self.client.get("/assistant-vocal/result/abc/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["status"], "pending")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Client STT local (whisper_local) + backend hybride de la tâche
+# ══════════════════════════════════════════════════════════════════════════════
+
+class WhisperLocalClientTest(TestCase):
+
+    @override_settings(WHISPER_STT_URL="")
+    def test_url_absente_leve_NotConfigured(self):
+        from baay.services.whisper_local import transcribe_audio, WhisperLocalNotConfigured
+        with self.assertRaises(WhisperLocalNotConfigured):
+            transcribe_audio(b"audio", "audio/webm")
+
+    @override_settings(WHISPER_STT_URL="http://stt:9000")
+    def test_succes_retourne_transcript(self):
+        from baay.services import whisper_local
+        resp = MagicMock(); resp.json.return_value = {"transcript": "Naka nga def", "duration_ms": 42}
+        resp.raise_for_status.return_value = None
+        with patch.object(whisper_local.requests, "post", return_value=resp):
+            txt = whisper_local.transcribe_audio(b"audio", "audio/wav")
+        self.assertEqual(txt, "Naka nga def")
+
+    @override_settings(WHISPER_STT_URL="http://stt:9000")
+    def test_service_injoignable_leve_WhisperLocalError(self):
+        from baay.services import whisper_local
+        import requests as _rq
+        with patch.object(whisper_local.requests, "post", side_effect=_rq.ConnectionError("refused")):
+            with self.assertRaises(whisper_local.WhisperLocalError):
+                whisper_local.transcribe_audio(b"audio", "audio/wav")
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="whisper_local")
+class HybridBackendTaskTest(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.key = "vocal_task:hyb"
+
+    def test_backend_whisper_local_transcrit_puis_repond(self):
+        from baay.tasks.vocal import process_vocal_task
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="Kañ laa ji dugub") as mk_stt, \
+             patch("baay.tasks.vocal.generate_response_from_text", return_value="Su naka tey...") as mk_llm:
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["transcript"], "Kañ laa ji dugub")
+        self.assertEqual(data["result"]["response"], "Su naka tey...")
+        mk_stt.assert_called_once()
+        mk_llm.assert_called_once_with("Kañ laa ji dugub")
+
+    def test_backend_whisper_local_indisponible(self):
+        from baay.tasks.vocal import process_vocal_task
+        from baay.services.whisper_local import WhisperLocalError
+        with patch("baay.services.whisper_local.transcribe_audio",
+                   side_effect=WhisperLocalError("down")):
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "error")
+        self.assertEqual(data["code"], "stt_unavailable")
