@@ -54,3 +54,4 @@
 {"file":"baay/services/deepseek_responder.py","action":"Write","timestamp":"2026-05-30T15:43:05Z","important":false}
 {"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-30T15:43:17Z","important":false}
 {"file":"baay/tasks/vocal.py","action":"Edit","timestamp":"2026-05-30T15:43:33Z","important":false}
+{"file":"vocal-stt/requirements.txt","action":"Edit","timestamp":"2026-05-30T17:24:19Z","important":false}
