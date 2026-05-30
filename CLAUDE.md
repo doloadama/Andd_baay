@@ -53,7 +53,21 @@ python manage.py test baay
 
 ## Déploiement
 
-- `railway.toml` / `render.yaml` — configs cloud
+- `railway.toml` / `render.yaml` — configs cloud (prod déploie depuis `main`)
 - `dockerfile` + `docker-compose.yml` — local/prod Docker
 - `Procfile` — Heroku/Railway process types
 - Vercel (`vercel.json`) pour assets statiques
+
+## Pièges d'environnement (lire avant d'agir)
+
+- **OS** : Windows. Python **3.14** (système) + venv `env/`. Console = cp1252 → garder les sorties CLI en ASCII (éviter ✓ ✗ … qui crashent).
+- **Pas de GPU**, 16 Go RAM, Docker Desktop **installé mais souvent non lancé**.
+- **Remote git nommé `Andd-Baay`** (pas `origin`). Branche par défaut : `main`.
+- **`gh` CLI non authentifié** → créer les PR via le lien navigateur `https://github.com/doloadama/Andd_baay/pull/new/<branche>`, pas via `gh pr create`.
+- **Tests** : la base Postgres de test exige `python manage.py test <app> --keepdb --noinput` (sinon prompt interactif → EOF).
+- `git reset --hard` sur branche protégée est **bloqué** → rester en forward-only (commits/restaurations ciblées).
+- Ne pas committer : `.env`, clés service account (`*-sa.json`), modèles convertis (`vocal-stt/models/*`, 248 Mo).
+
+## État du projet & décisions
+
+Voir **`docs/project-state.md`** — assistant vocal Wolof (architecture hybride, backends, blocage quota Gemini/Vertex), migration CSS `--ab-*`, branches actives. À lire pour reprendre sans re-explorer.
