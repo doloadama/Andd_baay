@@ -58,6 +58,10 @@ GEMINI_VERTEX_LOCATION = (os.getenv("GEMINI_VERTEX_LOCATION", "us-central1") or 
 VOCAL_STT_BACKEND = (os.getenv("VOCAL_STT_BACKEND", "gemini") or "gemini").strip().lower()
 WHISPER_STT_URL = os.getenv("WHISPER_STT_URL", "").strip()          # ex: http://localhost:9000
 WHISPER_STT_TIMEOUT = int(os.getenv("WHISPER_STT_TIMEOUT", "60"))
+# NLU locale (mode hybride) : tenter la FAQ Wolof avant le LLM cloud, et répondre
+# poliment hors-ligne si le cloud est indisponible.
+VOCAL_FAQ_FIRST = os.getenv("VOCAL_FAQ_FIRST", "true").lower() in ("true", "1", "yes")
+VOCAL_OFFLINE_FALLBACK = os.getenv("VOCAL_OFFLINE_FALLBACK", "true").lower() in ("true", "1", "yes")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 

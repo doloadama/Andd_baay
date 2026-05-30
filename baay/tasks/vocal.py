@@ -37,12 +37,33 @@ def _transcribe_and_respond(audio_bytes: bytes, mime: str) -> dict:
       - "gemini" (defaut): Gemini audio natif (transcription + reponse en 1 appel)
     """
     backend = getattr(settings, "VOCAL_STT_BACKEND", "gemini")
-    if backend == "whisper_local":
-        from baay.services.whisper_local import transcribe_audio
-        transcript = transcribe_audio(audio_bytes, mime_type=mime)
+    if backend != "whisper_local":
+        # Gemini audio natif : transcription + réponse en un seul appel.
+        return process_vocal_wolof(audio_bytes, mime_type=mime)
+
+    # ── Mode hybride : STT local -> (FAQ locale | Gemini | fallback) ──────────
+    from baay.services.whisper_local import transcribe_audio
+    from baay.services import wolof_faq
+
+    transcript = transcribe_audio(audio_bytes, mime_type=mime)
+
+    # 1) FAQ locale d'abord (hors-ligne, instantané, zéro coût) sur le bornè.
+    if getattr(settings, "VOCAL_FAQ_FIRST", True):
+        faq = wolof_faq.match_response(transcript)
+        if faq:
+            logger.info("Réponse vocale via FAQ locale")
+            return {"transcript": transcript, "response": faq}
+
+    # 2) Question ouverte -> LLM cloud (Gemini).
+    try:
         response = generate_response_from_text(transcript)
         return {"transcript": transcript, "response": response}
-    return process_vocal_wolof(audio_bytes, mime_type=mime)
+    except GeminiVocalError:
+        # 3) Cloud indisponible (quota/réseau) : fallback poli Wolof, jamais muet.
+        if getattr(settings, "VOCAL_OFFLINE_FALLBACK", True):
+            logger.warning("LLM cloud indisponible — fallback Wolof local")
+            return {"transcript": transcript, "response": wolof_faq.FALLBACK_WO}
+        raise
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=8)

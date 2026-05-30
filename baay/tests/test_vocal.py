@@ -193,7 +193,7 @@ class WhisperLocalClientTest(TestCase):
 
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
-                   VOCAL_STT_BACKEND="whisper_local")
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_FAQ_FIRST=False)
 class HybridBackendTaskTest(TestCase):
 
     def setUp(self):
@@ -221,3 +221,61 @@ class HybridBackendTaskTest(TestCase):
             data = cache.get(self.key)
         self.assertEqual(data["status"], "error")
         self.assertEqual(data["code"], "stt_unavailable")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FAQ Wolof locale + chemins hybrides (FAQ-first / repli cloud / fallback)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class WolofFaqTest(TestCase):
+
+    def test_intention_reconnue_renvoie_reponse(self):
+        from baay.services.wolof_faq import match_response
+        self.assertIsNotNone(match_response("naka nga def"))          # salutation
+        self.assertIsNotNone(match_response("kañ laa wara ji dugub")) # semis_mil (2 hits)
+
+    def test_aucune_intention_renvoie_none(self):
+        from baay.services.wolof_faq import match_response
+        self.assertIsNone(match_response("xyzzy qwerty zzz"))
+        self.assertIsNone(match_response(""))
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_FAQ_FIRST=True,
+                   VOCAL_OFFLINE_FALLBACK=True)
+class HybridFaqTaskTest(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.key = "vocal_task:faq"
+
+    def test_faq_repond_sans_appeler_le_cloud(self):
+        from baay.tasks.vocal import process_vocal_task
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="naka nga def"), \
+             patch("baay.tasks.vocal.generate_response_from_text") as mk_llm:
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertTrue(data["result"]["response"])
+        mk_llm.assert_not_called()  # FAQ a court-circuité le cloud
+
+    def test_question_ouverte_passe_au_cloud(self):
+        from baay.tasks.vocal import process_vocal_task
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="xyzzy question ouverte"), \
+             patch("baay.tasks.vocal.generate_response_from_text", return_value="réponse LLM") as mk_llm:
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["result"]["response"], "réponse LLM")
+        mk_llm.assert_called_once()
+
+    def test_cloud_indispo_retombe_sur_fallback_wolof(self):
+        from baay.tasks.vocal import process_vocal_task
+        from baay.services.gemini_vocal import GeminiVocalRateLimited
+        from baay.services.wolof_faq import FALLBACK_WO
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="xyzzy question ouverte"), \
+             patch("baay.tasks.vocal.generate_response_from_text",
+                   side_effect=GeminiVocalRateLimited("quota")):
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["response"], FALLBACK_WO)
