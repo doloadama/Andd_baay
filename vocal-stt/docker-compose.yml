@@ -1,0 +1,25 @@
+# Démarrage du microservice STT Wolof.
+#   docker compose -f vocal-stt/docker-compose.yml up -d --build
+# Puis dans le .env de Django : WHISPER_STT_URL=http://localhost:9000
+services:
+  wolof-stt:
+    build:
+      context: .
+      args:
+        # Modèle Whisper-Wolof à convertir au build (override possible).
+        WHISPER_HF_MODEL: M9and2M/whisper-small-wolof
+        QUANTIZATION: int8
+    image: andd-baay/wolof-stt:latest
+    container_name: wolof-stt
+    ports:
+      - "9000:9000"
+    environment:
+      WHISPER_COMPUTE: int8
+      WHISPER_BEAM: "1"
+      # WHISPER_LANGUAGE: wo   # à n'activer que si le modèle/tokenizer le supporte
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

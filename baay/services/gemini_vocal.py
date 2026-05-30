@@ -46,6 +46,16 @@ bu ñu ñaan ko mu balluwaat.
 Tontu CI JSON rekk, ci xemmeem bii:
 {"transcript": "<li mu wax ci wolof>", "response": "<sa tontu ci wolof>"}"""
 
+# Prompt texte (mode hybride) : la transcription vient déjà d'un ASR local (Whisper).
+_PROMPT_TEXT = """\
+Yow, Jëf Baay nga — ab jëfandikukat bu xam-xam ci wàll mbey ci Senegaal (Sahel). \
+Ab beykat laaj na la (transcription bu ASR), ci wolof :
+
+"{question}"
+
+Tontu ci wolof rekk, bu gàtt te am njariñ. Tontu CI JSON rekk :
+{{"response": "<sa tontu ci wolof>"}}"""
+
 
 class GeminiVocalError(Exception):
     """Erreur du pipeline vocal Gemini."""
@@ -96,30 +106,39 @@ def _is_rate_error(exc: Exception) -> bool:
     return any(k in err for k in ("429", "resource_exhausted", "quota", "rate"))
 
 
-def _run(client: "genai.Client", model: str, audio_bytes: bytes, mime: str) -> dict:
-    """Un appel Gemini : audio -> {transcript, response}. Lève GeminiVocalRateLimited sur 429."""
+def _client_candidates():
+    """Yield les clients Gemini à essayer. Vertex = 1 client ; clé API = rotation sur 429."""
+    if _vertex_enabled():
+        try:
+            yield genai.Client(
+                vertexai=True,
+                project=getattr(settings, "GOOGLE_CLOUD_PROJECT"),
+                location=getattr(settings, "GEMINI_VERTEX_LOCATION", "us-central1"),
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise GeminiVocalError(f"Init client Vertex échouée : {exc}") from exc
+        return
+    rotator = _build_rotator()
+    for _ in range(len(rotator.keys)):
+        yield genai.Client(api_key=rotator.current_key)
+        rotator.rotate()  # n'avance qu'au tour suivant (= sur erreur de quota)
+
+
+def _generate_json(client: "genai.Client", model: str, parts: list) -> dict:
+    """Un appel Gemini renvoyant du JSON. Lève GeminiVocalRateLimited sur 429."""
     t0 = time.monotonic()
     try:
         response = client.models.generate_content(
             model=model,
-            contents=[
-                types.Content(
-                    role="user",
-                    parts=[
-                        types.Part.from_text(text=_PROMPT),
-                        types.Part.from_bytes(data=audio_bytes, mime_type=mime),
-                    ],
-                )
-            ],
+            contents=[types.Content(role="user", parts=parts)],
             config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.5,
+                response_mime_type="application/json", temperature=0.5,
             ),
         )
     except Exception as exc:  # noqa: BLE001
         if _is_rate_error(exc):
             raise GeminiVocalRateLimited("Quota/limite Gemini atteint.") from exc
-        logger.exception("Erreur Gemini vocal")
+        logger.exception("Erreur Gemini")
         raise GeminiVocalError(f"Erreur API Gemini : {exc}") from exc
 
     duree_ms = int((time.monotonic() - t0) * 1000)
@@ -127,61 +146,52 @@ def _run(client: "genai.Client", model: str, audio_bytes: bytes, mime: str) -> d
         data = json.loads((response.text or "").strip())
     except json.JSONDecodeError as exc:
         raise GeminiVocalError("Le modèle n'a pas renvoyé du JSON valide.") from exc
-    transcript = (data.get("transcript") or "").strip()
-    reply = (data.get("response") or "").strip()
-    if not reply:
-        raise GeminiVocalError("Réponse IA vide (champ 'response' manquant).")
     _log_api(model, duree_ms)
-    logger.info("Gemini vocal OK (%d ms, %s) — transcript: %s",
-                duree_ms, "vertex" if _vertex_enabled() else "api-key", transcript[:80])
-    return {"transcript": transcript, "response": reply}
+    return data
+
+
+def _call_with_candidates(model: str, parts: list) -> dict:
+    """Essaie les clients (rotation sur quota) jusqu'au premier succès."""
+    last: Optional[Exception] = None
+    for client in _client_candidates():
+        try:
+            return _generate_json(client, model, parts)
+        except GeminiVocalRateLimited as exc:
+            last = exc
+            continue
+    raise GeminiVocalRateLimited("Quota/limite Gemini atteint sur toutes les clés.") from last
 
 
 def process_vocal_wolof(audio_bytes: bytes, mime_type: str = "audio/webm") -> dict:
     """
-    Transcrit l'audio Wolof et génère la réponse agricole en un seul appel Gemini.
-
-    Deux modes (sélection auto) :
-      - Vertex AI (GEMINI_USE_VERTEX=true + GOOGLE_CLOUD_PROJECT) : région forcée
-        (us-central1 par défaut), auth ADC/service account — contourne le quota UE.
-      - Clé API (sinon) : rotation des clés GEMINI_API_KEYS sur 429.
-
-    Returns:
-        {"transcript": "<wolof>", "response": "<wolof>"}
-    Raises:
-        GeminiVocalNotConfigured : ni Vertex ni clé configurés.
-        GeminiVocalRateLimited   : quota/limite atteint.
-        GeminiVocalError         : échec d'appel ou réponse invalide.
+    Audio Wolof -> {transcript, response} en un seul appel Gemini (audio natif).
+    Vertex (région US) si configuré, sinon clé API avec rotation sur 429.
     """
     model = getattr(settings, "GEMINI_VOCAL_MODEL", "gemini-2.0-flash")
     mime = mime_type if mime_type in _GEMINI_AUDIO_MIME else "audio/webm"
+    parts = [
+        types.Part.from_text(text=_PROMPT),
+        types.Part.from_bytes(data=audio_bytes, mime_type=mime),
+    ]
+    data = _call_with_candidates(model, parts)
+    transcript = (data.get("transcript") or "").strip()
+    reply = (data.get("response") or "").strip()
+    if not reply:
+        raise GeminiVocalError("Réponse IA vide (champ 'response' manquant).")
+    return {"transcript": transcript, "response": reply}
 
-    # ── Mode Vertex AI (région US) ──────────────────────────────────────────
-    if _vertex_enabled():
-        try:
-            client = genai.Client(
-                vertexai=True,
-                project=getattr(settings, "GOOGLE_CLOUD_PROJECT"),
-                location=getattr(settings, "GEMINI_VERTEX_LOCATION", "us-central1"),
-            )
-        except Exception as exc:  # noqa: BLE001
-            raise GeminiVocalError(f"Init client Vertex échouée : {exc}") from exc
-        return _run(client, model, audio_bytes, mime)
 
-    # ── Mode clé API (avec rotation sur 429) ────────────────────────────────
-    rotator = _build_rotator()
-    initial_key = rotator.current_key
-    last_error: Optional[Exception] = None
-    for _ in range(len(rotator.keys)):
-        try:
-            client = genai.Client(api_key=rotator.current_key)
-            return _run(client, model, audio_bytes, mime)
-        except GeminiVocalRateLimited as exc:
-            last_error = exc
-            rotator.rotate()
-            if rotator.current_key == initial_key:
-                raise GeminiVocalRateLimited(
-                    "Quota/limite Gemini atteint sur toutes les clés."
-                ) from exc
-            continue
-    raise GeminiVocalError("Traitement impossible après rotation des clés.") from last_error
+def generate_response_from_text(transcript: str) -> str:
+    """
+    Mode hybride : la transcription vient d'un ASR local (Whisper) ; Gemini ne fait
+    que générer la réponse agricole Wolof à partir du texte. Retourne la réponse.
+    """
+    if not (transcript or "").strip():
+        raise GeminiVocalError("Transcription vide — rien à traiter.")
+    model = getattr(settings, "GEMINI_VOCAL_MODEL", "gemini-2.0-flash")
+    parts = [types.Part.from_text(text=_PROMPT_TEXT.format(question=transcript.strip()))]
+    data = _call_with_candidates(model, parts)
+    reply = (data.get("response") or "").strip()
+    if not reply:
+        raise GeminiVocalError("Réponse IA vide (champ 'response' manquant).")
+    return reply

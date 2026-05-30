@@ -52,6 +52,24 @@ GEMINI_VOCAL_MODEL = (os.getenv("GEMINI_VOCAL_MODEL", "gemini-2.0-flash") or "ge
 GEMINI_USE_VERTEX = os.getenv("GEMINI_USE_VERTEX", "false").lower() in ("true", "1", "yes")
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "").strip()
 GEMINI_VERTEX_LOCATION = (os.getenv("GEMINI_VERTEX_LOCATION", "us-central1") or "us-central1").strip()
+
+# Backend STT du vocal : "gemini" (audio natif, 1 appel) ou "whisper_local"
+# (transcription via microservice Faster-Whisper Wolof, puis réponse Gemini sur le texte).
+VOCAL_STT_BACKEND = (os.getenv("VOCAL_STT_BACKEND", "gemini") or "gemini").strip().lower()
+WHISPER_STT_URL = os.getenv("WHISPER_STT_URL", "").strip()          # ex: http://localhost:9000
+WHISPER_STT_TIMEOUT = int(os.getenv("WHISPER_STT_TIMEOUT", "60"))
+# NLU locale (mode hybride) : tenter la FAQ Wolof avant le LLM cloud, et répondre
+# poliment hors-ligne si le cloud est indisponible.
+VOCAL_FAQ_FIRST = os.getenv("VOCAL_FAQ_FIRST", "true").lower() in ("true", "1", "yes")
+VOCAL_OFFLINE_FALLBACK = os.getenv("VOCAL_OFFLINE_FALLBACK", "true").lower() in ("true", "1", "yes")
+
+# Backend LLM du vocal (questions ouvertes, après FAQ) :
+#   "gemini"  : Gemini Cloud (défaut)
+#   "ollama"  : LLM local via Ollama (FineLlama-Wolof ou autre)
+VOCAL_LLM_BACKEND = (os.getenv("VOCAL_LLM_BACKEND", "gemini") or "gemini").strip().lower()
+OLLAMA_URL = os.getenv("OLLAMA_URL", "").strip()                    # ex: http://localhost:11434
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "").strip()                # ex: finellama-wolof
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 
