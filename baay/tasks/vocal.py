@@ -60,6 +60,9 @@ def _transcribe_and_respond(audio_bytes: bytes, mime: str) -> dict:
         if llm_backend == "ollama":
             from baay.services.ollama_responder import generate_response as ollama_respond
             response = ollama_respond(transcript)
+        elif llm_backend == "deepseek":
+            from baay.services.deepseek_responder import generate_response as deepseek_respond
+            response = deepseek_respond(transcript)
         else:
             response = generate_response_from_text(transcript)
         return {"transcript": transcript, "response": response}

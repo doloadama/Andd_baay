@@ -70,6 +70,12 @@ VOCAL_LLM_BACKEND = (os.getenv("VOCAL_LLM_BACKEND", "gemini") or "gemini").strip
 OLLAMA_URL = os.getenv("OLLAMA_URL", "").strip()                    # ex: http://localhost:11434
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "").strip()                # ex: finellama-wolof
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))
+
+# Backend LLM "deepseek" : API compatible OpenAI (DeepSeek direct ou OpenRouter → modèles deepseek/qwen).
+DEEPSEEK_API_URL = (os.getenv("DEEPSEEK_API_URL", "") or "https://api.deepseek.com").strip()
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "").strip()
+DEEPSEEK_MODEL = (os.getenv("DEEPSEEK_MODEL", "") or "deepseek-chat").strip()
+DEEPSEEK_TIMEOUT = int(os.getenv("DEEPSEEK_TIMEOUT", "60"))
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "").strip()
 WEATHER_CACHE_TTL_MINUTES = int(os.getenv("WEATHER_CACHE_TTL_MINUTES", "30"))
 

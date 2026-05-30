@@ -341,3 +341,76 @@ class OllamaBackendTaskTest(TestCase):
             data = cache.get(self.key)
         self.assertEqual(data["status"], "done")
         self.assertEqual(data["result"]["response"], FALLBACK_WO)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Client DeepSeek/OpenAI-compatible + backend LLM "deepseek"
+# ══════════════════════════════════════════════════════════════════════════════
+
+class DeepSeekClientTest(TestCase):
+
+    @override_settings(DEEPSEEK_API_KEY="")
+    def test_non_configure_leve_NotConfigured(self):
+        from baay.services.deepseek_responder import generate_response, DeepSeekNotConfigured
+        with self.assertRaises(DeepSeekNotConfigured):
+            generate_response("test")
+
+    @override_settings(DEEPSEEK_API_KEY="sk-test", DEEPSEEK_API_URL="https://api.deepseek.com",
+                       DEEPSEEK_MODEL="deepseek-chat")
+    def test_succes_retourne_reponse(self):
+        from baay.services import deepseek_responder
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.ok = True
+        resp.json.return_value = {"choices": [{"message": {"content": "Dugub day ji ci nawet"}}]}
+        with patch.object(deepseek_responder.requests, "post", return_value=resp):
+            out = deepseek_responder.generate_response("kañ laa ji dugub")
+        self.assertEqual(out, "Dugub day ji ci nawet")
+
+    @override_settings(DEEPSEEK_API_KEY="sk-test")
+    def test_429_leve_RateLimited(self):
+        from baay.services import deepseek_responder
+        resp = MagicMock()
+        resp.status_code = 429
+        resp.ok = False
+        with patch.object(deepseek_responder.requests, "post", return_value=resp):
+            with self.assertRaises(deepseek_responder.DeepSeekRateLimited):
+                deepseek_responder.generate_response("test")
+
+    @override_settings(DEEPSEEK_API_KEY="sk-test")
+    def test_service_down_leve_DeepSeekError(self):
+        from baay.services import deepseek_responder
+        import requests as _rq
+        with patch.object(deepseek_responder.requests, "post", side_effect=_rq.ConnectionError("refused")):
+            with self.assertRaises(deepseek_responder.DeepSeekError):
+                deepseek_responder.generate_response("test")
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_LLM_BACKEND="deepseek",
+                   VOCAL_FAQ_FIRST=False, VOCAL_OFFLINE_FALLBACK=True)
+class DeepSeekBackendTaskTest(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.key = "vocal_task:ds"
+
+    def test_deepseek_repond(self):
+        from baay.tasks.vocal import process_vocal_task
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="question"), \
+             patch("baay.services.deepseek_responder.generate_response", return_value="réponse deepseek"):
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["response"], "réponse deepseek")
+
+    def test_deepseek_indispo_fallback_wolof(self):
+        from baay.tasks.vocal import process_vocal_task
+        from baay.services.deepseek_responder import DeepSeekError
+        from baay.services.wolof_faq import FALLBACK_WO
+        with patch("baay.services.whisper_local.transcribe_audio", return_value="question"), \
+             patch("baay.services.deepseek_responder.generate_response", side_effect=DeepSeekError("down")):
+            process_vocal_task.apply(args=[b"a".hex(), "audio/webm", self.key])
+            data = cache.get(self.key)
+        self.assertEqual(data["status"], "done")
+        self.assertEqual(data["result"]["response"], FALLBACK_WO)
