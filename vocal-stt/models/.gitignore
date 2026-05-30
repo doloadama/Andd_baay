@@ -1,0 +1,4 @@
+# Modèles convertis (250+ Mo) — générés localement, pas versionnés.
+# Régénérer via : python -m ctranslate2.converters.transformers --model M9and2M/whisper-small-wolof --output_dir vocal-stt/models/whisper-wolof-ct2 --quantization int8
+*
+!.gitignore

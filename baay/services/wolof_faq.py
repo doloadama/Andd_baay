@@ -75,6 +75,59 @@ INTENTS: list[Intent] = [
         response_wo="Jëfandikoo engrais bu jaar yoon (NPK walla compost) ci jamono ju baax. "
                     "Topptoo li ñu bind ci pakk bi, bul ko épp.",
     ),
+    Intent(
+        name="recolte",
+        keywords=("rax", "récolte", "moosal", "aar", "jot", "cëru", "rendement"),
+        response_wo="Bu sa mbay gattee, raxal ko bu baax. Jëfandikoo cëru yu set ngir aar ko. "
+                    "Seetal ci app bi mbir rendement mi ngir xam bu baax.",
+    ),
+    Intent(
+        name="stockage_conservation",
+        keywords=("denc", "stock", "conserver", "magasin", "grenier", "nit", "wërante"),
+        response_wo="Dencal sa mbay ci béréb bu tang te mu woor. Jëfandikoo sac yu set, "
+                    "bul denc mbay mu toj ak mbay mu set. Xoolal ndax am na nit walla jongante.",
+    ),
+    Intent(
+        name="financement_credit",
+        keywords=("xaalis", "crédit", "bol", "prêt", "financer", "banque", "cncas"),
+        response_wo="Mën ngay jënd ci CNCAS walla caisse mu jëm ci beykat. "
+                    "Jàppale yi ñu bari ci GIE ak kooperatiif. Laaj ci sa mbootaay.",
+    ),
+    Intent(
+        name="sol_terre",
+        keywords=("suuf", "sol", "terre", "lëndëm", "analyse", "doxalin"),
+        response_wo="Suuf si war na ñu ko xam bala ñuy ji. Jëfandikoo compost walla "
+                    "angare ngir yëkkati doole suuf si. Soppiku sa ji ñaari at ak ñaari at.",
+    ),
+    Intent(
+        name="elevage",
+        keywords=("mala", "nag", "bëy", "élevage", "ganaar", "samm", "béetaay"),
+        response_wo="Samm sa mala yi bu baax, jox leen ndox ak lekk lu dul fees. "
+                    "Su leen fekkee am na tawat, wooyal doktoor béetaay bi.",
+    ),
+    Intent(
+        name="cooperative_gie",
+        keywords=("kooperatiif", "GIE", "mbootaay", "coopérative", "groupement"),
+        response_wo="Duggal sa mbay ci mbootaay walla GIE ngir jënd engrais bu yomb "
+                    "ak njëg bu baax. Xoolal ci app bi wàllu 'Kooperatiif'.",
+    ),
+    Intent(
+        name="arachide",
+        keywords=("gerte", "arachide", "guerté", "cacahuète"),
+        response_wo="Gerte day ji ci nawet bi. Topptoo suuf su baax te mu lëndëm. "
+                    "Raxal ko bu baax bala ngay denc walla jaay.",
+    ),
+    Intent(
+        name="riz_culture",
+        keywords=("ceeb", "riz", "maalo", "rizière"),
+        response_wo="Ceeb war na ndox lu bari. Topptoo tooyal bi ak engrais ak garab "
+                    "ngir aar ko ci tawat. Seetal njëg ceeb ci marse yi.",
+    ),
+    Intent(
+        name="merci_aurevoir",
+        keywords=("jërëjëf", "merci", "maa ngi dem", "mangi dem", "baal"),
+        response_wo="Jërëjëf ! Su la soxla dara, dellu fii. Yàlla na sa mbay baax.",
+    ),
 ]
 
 # Réponse par défaut quand aucune intention ne matche et qu'on ne veut pas (ou peut pas)
