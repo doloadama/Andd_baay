@@ -485,6 +485,7 @@ def login_view(request):
     return render(request, 'auth/login.html', {'form': form})
 
 # Vue pour la déconnexion
+@require_POST
 def logout_view(request):
     logout(request)
     messages.success(request, "Vous avez été déconnecté avec succès.")
@@ -2388,7 +2389,7 @@ def api_projet_creer(request):
         })
     except Exception as e:
         logger.error(f"Error in api_projet_creer: {type(e).__name__}: {e}", exc_info=True)
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': "Une erreur est survenue lors de la création du projet."}, status=500)
 
 
 @login_required
