@@ -934,6 +934,8 @@ def estimer_rendement_ia(projet_produit):
         # Calendrier cultural
         'mois_semis': (projet_produit.date_semis.month if projet_produit.date_semis else None),
         'saison': getattr(produit, 'saison', None),
+        # Traçabilité / groupe de validation croisée (pré-campagne, non utilisé comme feature)
+        'localite_id': (localite.id if localite else None),
         # Agronomie
         'type_engrais': getattr(projet, 'type_engrais', None),
         'superficie': float(projet_produit.superficie_allouee or 1.0),
