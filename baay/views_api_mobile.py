@@ -2,10 +2,12 @@
 # ── Vues REST pour l'application mobile Andd Baayi ─────────────────────────
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -38,6 +40,7 @@ from .serializers_mobile import (
     TacheStatutSerializer,
 )
 from .core_services import update_prediction_for_projet_produit
+from .permissions import peut_voir_ferme, peut_voir_projet, peut_voir_tache
 
 
 # ── helpers ────────────────────────────────────────────────────────────────
@@ -58,6 +61,24 @@ def _projet_du_user(projet_id, request) -> Projet:
     return get_object_or_404(
         Projet, id=projet_id, utilisateur=_profile(request)
     )
+
+
+def _commentable_object(ct_model: str, object_id, request):
+    """Retourne l'objet commentable seulement si l'utilisateur peut le voir."""
+    profile = _profile(request)
+    if ct_model == "ferme":
+        obj = get_object_or_404(Ferme, id=object_id)
+        if peut_voir_ferme(profile, obj):
+            return obj
+    elif ct_model == "projet":
+        obj = get_object_or_404(Projet.objects.select_related("ferme"), id=object_id)
+        if peut_voir_projet(profile, obj):
+            return obj
+    elif ct_model == "tache":
+        obj = get_object_or_404(Tache.objects.select_related("ferme"), id=object_id)
+        if peut_voir_tache(profile, obj):
+            return obj
+    raise Http404("Objet introuvable.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -516,6 +537,14 @@ class TacheListCreateView(generics.ListCreateAPIView):
         return qs
 
     def perform_create(self, serializer):
+        ferme = serializer.validated_data["ferme"]
+        if ferme.proprietaire_id != _profile(self.request).id:
+            raise PermissionDenied("Vous ne pouvez pas créer une tâche dans cette ferme.")
+
+        projet = serializer.validated_data.get("projet")
+        if projet and projet.ferme_id != ferme.id:
+            raise ValidationError({"projet": "Le projet sélectionné n'appartient pas à cette ferme."})
+
         serializer.save(assigne_par=_profile(self.request))
 
 
@@ -567,6 +596,8 @@ def commentaires_api(request, ct_label: str, object_id):
         ct = ContentType.objects.get(app_label="baay", model=ct_model)
     except ContentType.DoesNotExist:
         return Response({"detail": "Type de contenu introuvable."}, status=status.HTTP_404_NOT_FOUND)
+
+    _commentable_object(ct_model, object_id, request)
 
     if request.method == "GET":
         commentaires = Commentaire.objects.filter(

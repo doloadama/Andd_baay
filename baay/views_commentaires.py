@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
 from baay.models import Commentaire, Ferme, Profile, Tache
+from baay.permissions import peut_voir_ferme, peut_voir_tache
 
 
 def _get_profile(user):
@@ -25,14 +26,13 @@ def ajouter_commentaire(request, ct_id, object_id):
 
     if model_class == Ferme:
         obj = get_object_or_404(Ferme, pk=object_id)
-        # Must be a member or owner
         profile = _get_profile(request.user)
-        if not obj.membres.filter(pk=profile.pk).exists() and obj.owner != profile:
+        if not peut_voir_ferme(profile, obj):
             return HttpResponse("Accès refusé", status=403)
     elif model_class == Tache:
-        obj = get_object_or_404(Tache, pk=object_id)
+        obj = get_object_or_404(Tache.objects.select_related("ferme"), pk=object_id)
         profile = _get_profile(request.user)
-        if obj.ferme.owner != profile and not obj.ferme.membres.filter(pk=profile.pk).exists():
+        if not peut_voir_tache(profile, obj):
             return HttpResponse("Accès refusé", status=403)
     else:
         return HttpResponse("Type non supporté", status=400)

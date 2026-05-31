@@ -4,10 +4,11 @@ import uuid
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
+from django.test import Client, TestCase
 from rest_framework.test import APIClient
 
-from baay.models import Ferme, Localite, Pays, Profile, Projet, Tache
+from baay.models import Commentaire, Ferme, Localite, Pays, Profile, Projet, Tache
 
 
 def _make_user(username="testuser", password="pass1234"):
@@ -96,6 +97,26 @@ class TacheAPITest(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Tache.objects.count(), 1)
 
+    def test_create_tache_rejects_other_users_farm(self):
+        other_user, other_profile = _make_user("other_owner")
+        other_ferme = Ferme.objects.create(nom="Ferme Victime", proprietaire=other_profile)
+
+        response = self.client.post(
+            "/api/v1/taches/",
+            {
+                "titre": "Tâche injectée",
+                "description": "Ne doit pas être créée",
+                "statut": "a_faire",
+                "priorite": "normale",
+                "ferme": str(other_ferme.id),
+                "assigne_a": str(self.profile.id),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Tache.objects.filter(ferme=other_ferme).exists())
+
     def test_update_tache_statut(self):
         user2, profile2 = _make_user("worker2")
         tache = Tache.objects.create(
@@ -154,6 +175,28 @@ class CommentaireAPITest(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIn("texte", response.data)
 
+    def test_commentaires_ferme_reject_other_users_farm(self):
+        other_user, other_profile = _make_user("autre_ferme")
+        other_ferme = Ferme.objects.create(nom="Ferme privée", proprietaire=other_profile)
+        ct = ContentType.objects.get_for_model(Ferme)
+        Commentaire.objects.create(
+            content_type=ct,
+            object_id=other_ferme.id,
+            auteur=other_profile,
+            texte="Commentaire privé",
+        )
+
+        get_response = self.client.get(f"/api/v1/commentaires/ferme/{other_ferme.id}/")
+        post_response = self.client.post(
+            f"/api/v1/commentaires/ferme/{other_ferme.id}/",
+            {"texte": "Intrusion"},
+            format="json",
+        )
+
+        self.assertEqual(get_response.status_code, 404)
+        self.assertEqual(post_response.status_code, 404)
+        self.assertEqual(Commentaire.objects.filter(object_id=other_ferme.id).count(), 1)
+
     def test_create_commentaire_tache(self):
         user2, profile2 = _make_user("worker_c")
         tache = Tache.objects.create(
@@ -181,6 +224,43 @@ class CommentaireAPITest(TestCase):
         anon = APIClient()
         response = anon.get(f"/api/v1/commentaires/ferme/{self.ferme.id}/")
         self.assertEqual(response.status_code, 401)
+
+
+class CommentaireWebTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user, self.profile = _make_user("web_commenteur")
+        self.client.login(username="web_commenteur", password="pass1234")
+        self.ferme = Ferme.objects.create(nom="Ferme Web", proprietaire=self.profile)
+
+    def test_create_commentaire_ferme_web(self):
+        ct = ContentType.objects.get_for_model(Ferme)
+
+        response = self.client.post(
+            f"/commentaires/{ct.pk}/{self.ferme.id}/",
+            {"texte": "Commentaire ferme"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Commentaire.objects.filter(object_id=self.ferme.id).count(), 1)
+
+    def test_create_commentaire_tache_web(self):
+        ct = ContentType.objects.get_for_model(Tache)
+        tache = Tache.objects.create(
+            titre="Tâche web",
+            ferme=self.ferme,
+            assigne_a=self.profile,
+            assigne_par=self.profile,
+        )
+
+        response = self.client.post(
+            f"/commentaires/{ct.pk}/{tache.id}/",
+            {"texte": "Commentaire tâche"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Commentaire.objects.filter(object_id=tache.id).count(), 1)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
