@@ -54,7 +54,6 @@
     <link rel="stylesheet" href="{% static 'css/mobile-agri-pages.css' %}">
     <link rel="stylesheet" href="{% static 'css/language-switcher.css' %}">
     <link rel="stylesheet" href="{% static 'css/navbar-responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/vui-copilot.css' %}">
     {% include 'includes/tailwind_htmx_alpine_head.html' %}
 
     {# Base inline CSS extrait — chargé après mobile-agri-pages.css pour préserver l'ordre de cascade. Voir perf-audit.md action #1. #}
@@ -750,6 +749,43 @@
             }, delay || 0);
         }
 
+        // Snapshot de l'écran pour le remplissage vocal (slot-filling) : champs visibles + focus.
+        function captureVoiceContext() {
+            var fields = [];
+            document.querySelectorAll('form input:not([type=hidden]), form select, form textarea')
+                .forEach(function (el) {
+                    if (el.offsetParent === null) return; // ignore invisibles
+                    var lab = (el.labels && el.labels[0] && el.labels[0].innerText) || el.name || el.id || '';
+                    fields.push({
+                        id: el.id, name: el.name,
+                        type: (el.type || el.tagName).toLowerCase(),
+                        label: lab.trim().slice(0, 60),
+                        filled: !!(el.value && String(el.value).trim()),
+                    });
+                });
+            return {
+                url: window.location.pathname,
+                focused_id: (document.activeElement && document.activeElement.id) || null,
+                fields: fields,
+            };
+        }
+
+        // Remplit un champ ciblé par la commande vocale, puis focalise le suivant vide.
+        function vocalFillField(fieldId, value) {
+            var el = document.getElementById(fieldId);
+            if (!el) return;
+            el.value = value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            var all = Array.prototype.slice.call(
+                document.querySelectorAll('form input:not([type=hidden]), form select, form textarea')
+            ).filter(function (e) { return e.offsetParent !== null; });
+            var idx = all.findIndex(function (e) { return e.id === fieldId; });
+            for (var i = idx + 1; i < all.length; i++) {
+                if (!(all[i].value && String(all[i].value).trim())) { all[i].focus(); break; }
+            }
+        }
+
         async function sendCommand(text) {
             showModal('processing', 'Analyse en cours...', text);
             try {
@@ -760,6 +796,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     body: 'text=' + encodeURIComponent(text)
+                         + '&context=' + encodeURIComponent(JSON.stringify(captureVoiceContext()))
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
@@ -783,6 +820,12 @@
                         const logoutLinks = document.querySelectorAll('.logout-link');
                         if (logoutLinks.length) logoutLinks[0].click();
                     }
+                } else if (data.action === 'fill_field') {
+                    vocalFillField(data.field_id, data.value);
+                    modalText.textContent = data.message || "C'est noté.";
+                    modalSub.textContent = '';
+                    speak(data.message || "C'est noté.");
+                    hideModal(1800);
                 } else {
                     modalText.textContent = data.message || 'Terminé';
                     modalSub.textContent = '';
@@ -1113,18 +1156,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
-
-    {% if user.is_authenticated %}
-    {# ── Copilote vocal contextuel (VUI) ── #}
-    <div class="ab-vui" aria-live="polite">
-        <p id="ab-vui-transcript" class="ab-vui__transcript" role="status"></p>
-        <button id="ab-vui-mic" type="button" class="ab-vui__mic" data-state="idle"
-                aria-label="Activer l'assistant vocal">
-            <i class="fas fa-microphone" aria-hidden="true"></i>
-        </button>
-    </div>
-    <script defer src="{% static 'js/vui-copilot.js' %}"></script>
     {% endif %}
 </body>
 
