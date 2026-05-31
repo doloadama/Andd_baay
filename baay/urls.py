@@ -1,6 +1,9 @@
 from django.urls import include, path
 
+from baay.views_vui import VocalCommandView
+
 urlpatterns = [
+    path("vocal/command/", VocalCommandView.as_view(), name="vocal_command"),
     path("", include("baay.urls_finance")),
     path("", include("baay.urls_core")),
     path("", include("baay.urls_auth")),

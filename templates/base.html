@@ -54,6 +54,7 @@
     <link rel="stylesheet" href="{% static 'css/mobile-agri-pages.css' %}">
     <link rel="stylesheet" href="{% static 'css/language-switcher.css' %}">
     <link rel="stylesheet" href="{% static 'css/navbar-responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vui-copilot.css' %}">
     {% include 'includes/tailwind_htmx_alpine_head.html' %}
 
     {# Base inline CSS extrait — chargé après mobile-agri-pages.css pour préserver l'ordre de cascade. Voir perf-audit.md action #1. #}
@@ -1112,6 +1113,18 @@
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    {# ── Copilote vocal contextuel (VUI) ── #}
+    <div class="ab-vui" aria-live="polite">
+        <p id="ab-vui-transcript" class="ab-vui__transcript" role="status"></p>
+        <button id="ab-vui-mic" type="button" class="ab-vui__mic" data-state="idle"
+                aria-label="Activer l'assistant vocal">
+            <i class="fas fa-microphone" aria-hidden="true"></i>
+        </button>
+    </div>
+    <script defer src="{% static 'js/vui-copilot.js' %}"></script>
     {% endif %}
 </body>
 

@@ -1,0 +1,93 @@
+/* Copilote vocal — widget micro flottant.
+   Scopé sous .ab-vui. Tokens --ab-* (avec fallbacks). Aucune nouvelle custom property.
+   Conforme aux SKILL frontend-design / daisyui-components : tokens, a11y, dark-mode, perf. */
+
+.ab-vui {
+  position: fixed;
+  right: var(--ab-space-4, 1rem);
+  bottom: var(--ab-space-4, 1rem);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--ab-space-2, 0.5rem);
+  pointer-events: none; /* seul le bouton est cliquable */
+}
+
+.ab-vui__transcript {
+  pointer-events: none;
+  max-width: 16rem;
+  margin: 0;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--ab-color-text, #2c2c2a);
+  background: var(--ab-color-surface, #ffffff);
+  border: 1px solid var(--ab-color-border, rgba(8, 80, 65, 0.12));
+  border-radius: var(--ab-radius-md, 0.75rem);
+  box-shadow: var(--ab-shadow-md, 0 4px 16px rgba(8, 80, 65, 0.12));
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ab-vui__transcript:not(:empty) { opacity: 1; transform: translateY(0); }
+
+.ab-vui__mic {
+  pointer-events: auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem;
+  color: #ffffff;
+  background: var(--ab-color-primary, #1d9e75);
+  box-shadow: var(--ab-shadow-lg, 0 12px 32px rgba(8, 80, 65, 0.25));
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.ab-vui__mic:hover { transform: scale(1.06); }
+.ab-vui__mic:focus-visible {
+  outline: 3px solid var(--ab-color-accent, #ef9f27);
+  outline-offset: 2px;
+}
+
+/* États pilotés par data-state (JS) */
+.ab-vui__mic[data-state="listening"] {
+  background: var(--ab-color-danger, #ef4444);
+  animation: ab-vui-pulse 1.2s ease-in-out infinite;
+}
+.ab-vui__mic[data-state="loading"] { opacity: 0.75; cursor: progress; }
+.ab-vui__mic[data-state="error"] { background: var(--ab-color-danger, #ef4444); }
+.ab-vui__mic[data-state="unsupported"] { opacity: 0.4; cursor: not-allowed; }
+
+@keyframes ab-vui-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  70%  { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Feedback champ rempli par la voix */
+.ab-vui-filled {
+  box-shadow: 0 0 0 2px var(--ab-color-primary, #1d9e75) inset;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Dark mode (parité) */
+[data-bs-theme="dark"] .ab-vui__transcript,
+html.dark-mode .ab-vui__transcript {
+  color: var(--ab-color-text, #e8f5f0);
+  background: var(--ab-color-surface, #121c19);
+  border-color: var(--ab-color-border, rgba(255, 255, 255, 0.12));
+}
+
+/* Accessibilité : pas d'animation si l'utilisateur la refuse */
+@media (prefers-reduced-motion: reduce) {
+  .ab-vui__mic, .ab-vui__transcript { animation: none; transition: none; }
+}
+
+/* Touch : le focus tient lieu de hover */
+@media (hover: none) {
+  .ab-vui__mic:active { transform: scale(0.96); }
+}
