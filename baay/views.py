@@ -4102,9 +4102,17 @@ def api_voice_command(request):
         profile = request.user.profile
     except Profile.DoesNotExist:
         profile = Profile.objects.create(user=request.user)
-    text = request.POST.get('text', '').strip().lower()
+    raw_text = request.POST.get('text', '').strip()
+    text = raw_text.lower()
     if not text:
         return JsonResponse({'action': 'speak', 'message': "Je n'ai pas compris. Pouvez-vous répéter ?"})
+
+    # Contexte écran (optionnel) : envoyé par la modale pour le remplissage vocal.
+    import json as _json
+    try:
+        screen_ctx = _json.loads(request.POST.get('context') or '{}')
+    except (ValueError, TypeError):
+        screen_ctx = {}
 
     # --- Intent matching (rules-based MVP) ---
     def redirect_action(url_name, msg, kwargs=None):
@@ -4176,8 +4184,51 @@ def api_voice_command(request):
         if q:
             return redirect_action('recherche', f"Recherche de {q}.", kwargs={'q': q})
 
+    # 11. Slot-filling : dictée vocale dans un champ de formulaire.
+    # Si aucune commande connue ne matche ET qu'on est sur un formulaire avec un
+    # champ cible (focalisé ou premier vide), on traite la parole comme sa valeur.
+    target = _voice_fill_target(screen_ctx)
+    if target:
+        return JsonResponse({
+            'action': 'fill_field',
+            'field_id': target['id'],
+            'value': raw_text,
+            'message': target.get('next_say') or "C'est noté.",
+        })
+
     # Fallback
     return speak_action("Je n'ai pas compris votre demande. Essayez : ouvre la messagerie, va au dashboard, ou liste mes projets.")
+
+
+# Types de champs « dictables » à la voix (saisie texte libre).
+_VOICE_FILLABLE_TYPES = {'text', 'textarea', 'search', 'tel', 'email', 'number', 'url', 'date'}
+
+
+def _voice_fill_target(screen_ctx: dict) -> dict | None:
+    """
+    Détermine le champ à remplir à partir du contexte écran :
+    le champ focalisé s'il est dictable, sinon le premier champ visible vide.
+    Retourne {'id', 'next_say'} ou None si aucun formulaire exploitable.
+    """
+    fields = [f for f in (screen_ctx.get('fields') or []) if f.get('id')]
+    if not fields:
+        return None
+
+    def dictable(f):
+        return (f.get('type') or 'text') in _VOICE_FILLABLE_TYPES
+
+    focused_id = screen_ctx.get('focused_id')
+    chosen = next((f for f in fields if f['id'] == focused_id and dictable(f)), None)
+    if chosen is None:
+        chosen = next((f for f in fields if dictable(f) and not f.get('filled')), None)
+    if chosen is None:
+        return None
+
+    # Question pour le prochain champ vide (guidage slot-filling).
+    idx = fields.index(chosen)
+    nxt = next((f for f in fields[idx + 1:] if dictable(f) and not f.get('filled')), None)
+    next_say = f"Quel est {nxt['label']} ?" if nxt and nxt.get('label') else "C'est noté."
+    return {'id': chosen['id'], 'next_say': next_say}
 
 
 @login_required

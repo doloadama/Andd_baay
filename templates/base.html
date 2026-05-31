@@ -749,6 +749,43 @@
             }, delay || 0);
         }
 
+        // Snapshot de l'écran pour le remplissage vocal (slot-filling) : champs visibles + focus.
+        function captureVoiceContext() {
+            var fields = [];
+            document.querySelectorAll('form input:not([type=hidden]), form select, form textarea')
+                .forEach(function (el) {
+                    if (el.offsetParent === null) return; // ignore invisibles
+                    var lab = (el.labels && el.labels[0] && el.labels[0].innerText) || el.name || el.id || '';
+                    fields.push({
+                        id: el.id, name: el.name,
+                        type: (el.type || el.tagName).toLowerCase(),
+                        label: lab.trim().slice(0, 60),
+                        filled: !!(el.value && String(el.value).trim()),
+                    });
+                });
+            return {
+                url: window.location.pathname,
+                focused_id: (document.activeElement && document.activeElement.id) || null,
+                fields: fields,
+            };
+        }
+
+        // Remplit un champ ciblé par la commande vocale, puis focalise le suivant vide.
+        function vocalFillField(fieldId, value) {
+            var el = document.getElementById(fieldId);
+            if (!el) return;
+            el.value = value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            var all = Array.prototype.slice.call(
+                document.querySelectorAll('form input:not([type=hidden]), form select, form textarea')
+            ).filter(function (e) { return e.offsetParent !== null; });
+            var idx = all.findIndex(function (e) { return e.id === fieldId; });
+            for (var i = idx + 1; i < all.length; i++) {
+                if (!(all[i].value && String(all[i].value).trim())) { all[i].focus(); break; }
+            }
+        }
+
         async function sendCommand(text) {
             showModal('processing', 'Analyse en cours...', text);
             try {
@@ -759,6 +796,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     body: 'text=' + encodeURIComponent(text)
+                         + '&context=' + encodeURIComponent(JSON.stringify(captureVoiceContext()))
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
@@ -782,6 +820,12 @@
                         const logoutLinks = document.querySelectorAll('.logout-link');
                         if (logoutLinks.length) logoutLinks[0].click();
                     }
+                } else if (data.action === 'fill_field') {
+                    vocalFillField(data.field_id, data.value);
+                    modalText.textContent = data.message || "C'est noté.";
+                    modalSub.textContent = '';
+                    speak(data.message || "C'est noté.");
+                    hideModal(1800);
                 } else {
                     modalText.textContent = data.message || 'Terminé';
                     modalSub.textContent = '';
@@ -985,11 +1029,13 @@
            aria-label="Nouveau projet">
             <div class="mobile-nav-fab-bg"><i class="fas fa-plus" aria-hidden="true"></i></div>
         </a>
+        {% if vocal_wolof_audio_enabled %}
         <a href="{% url 'assistant_vocal' %}"
            class="mobile-nav-item {% if rm and 'assistant_vocal' in rm %}active{% endif %}">
             <div class="mobile-nav-icon"><i class="fas fa-microphone" aria-hidden="true"></i></div>
             <span class="mobile-nav-label">Vocal</span>
         </a>
+        {% endif %}
         <button type="button"
                 class="mobile-nav-item mobile-nav-menu"
                 aria-label="Ouvrir le menu"
@@ -1086,6 +1132,7 @@
                         </a>
                     </div>
                     {% endif %}
+                    {% if vocal_wolof_audio_enabled %}
                     <div class="mobile-drawer-section">
                         <h6 class="mobile-drawer-section-title">Assistant</h6>
                         <a href="{% url 'assistant_vocal' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'assistant_vocal' %}active{% endif %}">
@@ -1093,6 +1140,7 @@
                             <span>Assistant vocal Wolof</span>
                         </a>
                     </div>
+                    {% endif %}
                 </nav>
             </div>
 

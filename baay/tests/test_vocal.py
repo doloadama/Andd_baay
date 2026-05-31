@@ -98,7 +98,8 @@ class GeminiVocalVertexTest(TestCase):
 # Tâche Celery process_vocal_task (exécution eager)
 # ══════════════════════════════════════════════════════════════════════════════
 
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False)
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="gemini")
 class ProcessVocalTaskTest(TestCase):
 
     def setUp(self):
@@ -139,6 +140,7 @@ class ProcessVocalTaskTest(TestCase):
 # Vues
 # ══════════════════════════════════════════════════════════════════════════════
 
+@override_settings(VOCAL_WOLOF_AUDIO_ENABLED=True)
 class VocalViewsTest(TestCase):
 
     def test_get_page_rend_200(self):
@@ -193,7 +195,8 @@ class WhisperLocalClientTest(TestCase):
 
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
-                   VOCAL_STT_BACKEND="whisper_local", VOCAL_FAQ_FIRST=False)
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_LLM_BACKEND="gemini",
+                   VOCAL_FAQ_FIRST=False)
 class HybridBackendTaskTest(TestCase):
 
     def setUp(self):
@@ -241,8 +244,8 @@ class WolofFaqTest(TestCase):
 
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
-                   VOCAL_STT_BACKEND="whisper_local", VOCAL_FAQ_FIRST=True,
-                   VOCAL_OFFLINE_FALLBACK=True)
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_LLM_BACKEND="gemini",
+                   VOCAL_FAQ_FIRST=True, VOCAL_OFFLINE_FALLBACK=True)
 class HybridFaqTaskTest(TestCase):
 
     def setUp(self):
@@ -414,3 +417,18 @@ class DeepSeekBackendTaskTest(TestCase):
             data = cache.get(self.key)
         self.assertEqual(data["status"], "done")
         self.assertEqual(data["result"]["response"], FALLBACK_WO)
+
+
+class VocalWolofGateTest(TestCase):
+    """Garde du flag VOCAL_WOLOF_AUDIO_ENABLED (mode gratuit : Q&A Wolof masquée)."""
+
+    @override_settings(VOCAL_WOLOF_AUDIO_ENABLED=False)
+    def test_get_redirige_si_desactive(self):
+        resp = self.client.get("/assistant-vocal/")
+        self.assertEqual(resp.status_code, 302)
+
+    @override_settings(VOCAL_WOLOF_AUDIO_ENABLED=False)
+    def test_post_503_si_desactive(self):
+        resp = self.client.post("/assistant-vocal/")
+        self.assertEqual(resp.status_code, 503)
+        self.assertEqual(resp.json()["error"], "disabled")

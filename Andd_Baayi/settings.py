@@ -55,18 +55,22 @@ GEMINI_VERTEX_LOCATION = (os.getenv("GEMINI_VERTEX_LOCATION", "us-central1") or 
 
 # Backend STT du vocal : "gemini" (audio natif, 1 appel) ou "whisper_local"
 # (transcription via microservice Faster-Whisper Wolof, puis réponse Gemini sur le texte).
-VOCAL_STT_BACKEND = (os.getenv("VOCAL_STT_BACKEND", "gemini") or "gemini").strip().lower()
+VOCAL_STT_BACKEND = (os.getenv("VOCAL_STT_BACKEND", "whisper_local") or "whisper_local").strip().lower()
 WHISPER_STT_URL = os.getenv("WHISPER_STT_URL", "").strip()          # ex: http://localhost:9000
 WHISPER_STT_TIMEOUT = int(os.getenv("WHISPER_STT_TIMEOUT", "60"))
 # NLU locale (mode hybride) : tenter la FAQ Wolof avant le LLM cloud, et répondre
 # poliment hors-ligne si le cloud est indisponible.
+# Q&A vocale Wolof (mémo audio → réponse) : exige un STT serveur (conteneur Whisper).
+# Désactivée par défaut (mode 100% gratuit) ; passer à true une fois le STT déployé.
+# Le copilote de commandes (Web Speech navigateur) reste actif indépendamment.
+VOCAL_WOLOF_AUDIO_ENABLED = os.getenv("VOCAL_WOLOF_AUDIO_ENABLED", "false").lower() in ("true", "1", "yes")
 VOCAL_FAQ_FIRST = os.getenv("VOCAL_FAQ_FIRST", "true").lower() in ("true", "1", "yes")
 VOCAL_OFFLINE_FALLBACK = os.getenv("VOCAL_OFFLINE_FALLBACK", "true").lower() in ("true", "1", "yes")
 
 # Backend LLM du vocal (questions ouvertes, après FAQ) :
 #   "gemini"  : Gemini Cloud (défaut)
 #   "ollama"  : LLM local via Ollama (FineLlama-Wolof ou autre)
-VOCAL_LLM_BACKEND = (os.getenv("VOCAL_LLM_BACKEND", "gemini") or "gemini").strip().lower()
+VOCAL_LLM_BACKEND = (os.getenv("VOCAL_LLM_BACKEND", "deepseek") or "deepseek").strip().lower()
 OLLAMA_URL = os.getenv("OLLAMA_URL", "").strip()                    # ex: http://localhost:11434
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "").strip()                # ex: finellama-wolof
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))
@@ -389,6 +393,7 @@ TEMPLATES = [
                 'baay.context_processors.cooperative_nav',
                 'baay.context_processors.auth_backgrounds',
                 'baay.context_processors.cloudinary_config',
+                'baay.context_processors.vocal_flags',
             ],
         },
     },

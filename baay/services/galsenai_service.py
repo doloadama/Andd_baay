@@ -228,3 +228,50 @@ def synthesize_wolof(text: str) -> bytes | None:
     except GalsenAIError as exc:
         logger.warning("GalsenAI TTS indisponible : %s", exc)
         return None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 4. Traduction — pont NLLB Wolof ↔ Français
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _translate(text: str, *, direction: str) -> str:
+    """
+    Traduit via galsenai/wolof-To-French-Translator (NLLB, bidirectionnel).
+
+    Args:
+        text      : texte source.
+        direction : "wo2fr" (wolof→français) ou "fr2wo" (français→wolof).
+
+    Returns:
+        Texte traduit. Lève GalsenAIError en cas d'échec (l'appelant décide du repli).
+    """
+    text = (text or "").strip()
+    if not text:
+        return ""
+    model = getattr(settings, "GALSENAI_TRAD_MODEL", "galsenai/wolof-To-French-Translator")
+    url = f"{HF_BASE}/{model}"
+    # NLLB attend des codes de langue ; le modèle galsenai expose src/tgt via parameters.
+    src, tgt = ("wol_Latn", "fra_Latn") if direction == "wo2fr" else ("fra_Latn", "wol_Latn")
+    payload = {"inputs": text, "parameters": {"src_lang": src, "tgt_lang": tgt}}
+    logger.info("GalsenAI TRAD %s → %s (%d chars)", direction, model, len(text))
+
+    resp = _post_with_retry(url, json_body=payload)
+    data = resp.json()
+    # Format HF translation : [{"translation_text": "..."}]
+    if isinstance(data, list) and data and "translation_text" in data[0]:
+        return data[0]["translation_text"].strip()
+    if isinstance(data, dict) and "translation_text" in data:
+        return data["translation_text"].strip()
+    if isinstance(data, list) and data and "generated_text" in data[0]:
+        return data[0]["generated_text"].strip()
+    raise GalsenAIError(f"Réponse traduction inattendue : {str(data)[:200]}")
+
+
+def wolof_to_french(text: str) -> str:
+    """Wolof → Français (pont NLLB). Lève GalsenAIError si l'API échoue."""
+    return _translate(text, direction="wo2fr")
+
+
+def french_to_wolof(text: str) -> str:
+    """Français → Wolof (pont NLLB). Lève GalsenAIError si l'API échoue."""
+    return _translate(text, direction="fr2wo")

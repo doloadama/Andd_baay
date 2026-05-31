@@ -55,3 +55,13 @@
 {"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-30T15:43:17Z","important":false}
 {"file":"baay/tasks/vocal.py","action":"Edit","timestamp":"2026-05-30T15:43:33Z","important":false}
 {"file":"vocal-stt/requirements.txt","action":"Edit","timestamp":"2026-05-30T17:24:19Z","important":false}
+{"file":"baay/services/vui_orchestrator.py","action":"Write","timestamp":"2026-05-31T09:37:17Z","important":false}
+{"file":"baay/views_vui.py","action":"Write","timestamp":"2026-05-31T09:37:39Z","important":false}
+{"file":"baay/static/js/vui-copilot.js","action":"Write","timestamp":"2026-05-31T09:38:10Z","important":false}
+{"file":"baay/static/css/vui-copilot.css","action":"Write","timestamp":"2026-05-31T09:38:46Z","important":false}
+{"file":"baay/urls.py","action":"Edit","timestamp":"2026-05-31T09:39:13Z","important":false}
+{"file":"templates/base.html","action":"Edit","timestamp":"2026-05-31T09:39:28Z","important":false}
+{"file":"baay/tests/test_vui.py","action":"Write","timestamp":"2026-05-31T09:52:05Z","important":false}
+{"file":"baay/views.py","action":"Edit","timestamp":"2026-05-31T10:10:08Z","important":false}
+{"file":"baay/tests/test_voice_command.py","action":"Write","timestamp":"2026-05-31T10:12:37Z","important":false}
+{"file":"Andd_Baayi/settings.py","action":"Edit","timestamp":"2026-05-31T12:01:29Z","important":false}

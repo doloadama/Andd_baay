@@ -162,6 +162,39 @@ def _call_with_candidates(model: str, parts: list) -> dict:
     raise GeminiVocalRateLimited("Quota/limite Gemini atteint sur toutes les clés.") from last
 
 
+def generate_text(user_text: str, system_text: str = "") -> str:
+    """
+    Appel Gemini générique texte->texte (sans JSON), utilisé par le pont de
+    traduction (LLM agronomique en français). Réutilise la sélection de client
+    Vertex/clé-API et la rotation sur 429.
+    """
+    if not (user_text or "").strip():
+        raise GeminiVocalError("Requête vide.")
+    model = getattr(settings, "GEMINI_VOCAL_MODEL", "gemini-2.0-flash")
+    prompt = f"{system_text.strip()}\n\n{user_text.strip()}" if system_text else user_text.strip()
+    parts = [types.Part.from_text(text=prompt)]
+    last: Optional[Exception] = None
+    for client in _client_candidates():
+        try:
+            t0 = time.monotonic()
+            resp = client.models.generate_content(
+                model=model,
+                contents=[types.Content(role="user", parts=parts)],
+                config=types.GenerateContentConfig(temperature=0.5),
+            )
+            text = (resp.text or "").strip()
+            if not text:
+                raise GeminiVocalError("Réponse Gemini vide.")
+            _log_api(model, int((time.monotonic() - t0) * 1000))
+            return text
+        except Exception as exc:  # noqa: BLE001
+            if _is_rate_error(exc):
+                last = exc
+                continue
+            raise GeminiVocalError(f"Erreur API Gemini : {exc}") from exc
+    raise GeminiVocalRateLimited("Quota/limite Gemini atteint sur toutes les clés.") from last
+
+
 def process_vocal_wolof(audio_bytes: bytes, mime_type: str = "audio/webm") -> dict:
     """
     Audio Wolof -> {transcript, response} en un seul appel Gemini (audio natif).
