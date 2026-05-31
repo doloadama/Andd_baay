@@ -55,7 +55,7 @@ GEMINI_VERTEX_LOCATION = (os.getenv("GEMINI_VERTEX_LOCATION", "us-central1") or 
 
 # Backend STT du vocal : "gemini" (audio natif, 1 appel) ou "whisper_local"
 # (transcription via microservice Faster-Whisper Wolof, puis réponse Gemini sur le texte).
-VOCAL_STT_BACKEND = (os.getenv("VOCAL_STT_BACKEND", "gemini") or "gemini").strip().lower()
+VOCAL_STT_BACKEND = (os.getenv("VOCAL_STT_BACKEND", "whisper_local") or "whisper_local").strip().lower()
 WHISPER_STT_URL = os.getenv("WHISPER_STT_URL", "").strip()          # ex: http://localhost:9000
 WHISPER_STT_TIMEOUT = int(os.getenv("WHISPER_STT_TIMEOUT", "60"))
 # NLU locale (mode hybride) : tenter la FAQ Wolof avant le LLM cloud, et répondre
@@ -66,7 +66,7 @@ VOCAL_OFFLINE_FALLBACK = os.getenv("VOCAL_OFFLINE_FALLBACK", "true").lower() in 
 # Backend LLM du vocal (questions ouvertes, après FAQ) :
 #   "gemini"  : Gemini Cloud (défaut)
 #   "ollama"  : LLM local via Ollama (FineLlama-Wolof ou autre)
-VOCAL_LLM_BACKEND = (os.getenv("VOCAL_LLM_BACKEND", "gemini") or "gemini").strip().lower()
+VOCAL_LLM_BACKEND = (os.getenv("VOCAL_LLM_BACKEND", "deepseek") or "deepseek").strip().lower()
 OLLAMA_URL = os.getenv("OLLAMA_URL", "").strip()                    # ex: http://localhost:11434
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "").strip()                # ex: finellama-wolof
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))
