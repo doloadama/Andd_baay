@@ -101,3 +101,59 @@ class BackwardCompatTest(TestCase):
         for k in ("answer_text", "pipeline", "transcript_normalized", "system_directive_preview"):
             self.assertIn(k, p)
         self.assertTrue(p["answer_text"])
+
+
+@override_settings(VOCAL_STT_BACKEND="simulated", VOCAL_LLM_BACKEND="simulated",
+                   VOCAL_TTS_BACKEND="simulated", VOCAL_TRANSLATION_BRIDGE=False)
+class ProcessVocalInputTest(TestCase):
+    """Boucle vocale complète : fichier audio -> dict standardisé."""
+
+    def setUp(self):
+        import tempfile, os
+        fd, self.path = tempfile.mkstemp(suffix=".wav")
+        os.write(fd, b"RIFF....WAVEfake-audio-bytes")
+        os.close(fd)
+
+    def tearDown(self):
+        import os
+        if os.path.exists(self.path):
+            os.remove(self.path)
+
+    def test_chemin_complet_ok(self):
+        with patch("baay.voice_assistant_service.stt_stage", return_value="kañ laa wara ji dugub"), \
+             patch("baay.voice_assistant_service.respond_stage") as mk_resp:
+            mk_resp.return_value = v.VocalResult(answer_text="Tontu wolof", locale="wo")
+            out = v.process_vocal_input(self.path, user=None, locale_hint="wo")
+        self.assertEqual(out["status"], "ok")
+        self.assertEqual(out["transcription"], "kañ laa wara ji dugub")
+        self.assertEqual(out["reply_text"], "Tontu wolof")
+        self.assertFalse(out["incident_logged"])
+        self.assertIn("reply_audio_url", out)
+
+    def test_audio_inaudible(self):
+        with patch("baay.voice_assistant_service.stt_stage", return_value=""):
+            out = v.process_vocal_input(self.path, user=None)
+        self.assertEqual(out["status"], "inaudible")
+        self.assertEqual(out["reply_text"], v.GRACEFUL_WOLOF_ERROR)
+
+    def test_fichier_introuvable(self):
+        out = v.process_vocal_input("/chemin/inexistant.wav", user=None)
+        self.assertEqual(out["status"], "error")
+        self.assertEqual(out["reply_text"], v.GRACEFUL_WOLOF_ERROR)
+
+    def test_incident_logged(self):
+        with patch("baay.voice_assistant_service.stt_stage", return_value="invasion criquets urgent"), \
+             patch("baay.voice_assistant_service.respond_stage") as mk_resp:
+            mk_resp.return_value = v.VocalResult(
+                answer_text="Incident enregistré", locale="wo",
+                incident={"incident_detecte": True, "incident_id": "x"})
+            out = v.process_vocal_input(self.path, user=None, parcelle_id=None)
+        self.assertEqual(out["status"], "ok")
+        self.assertTrue(out["incident_logged"])
+
+    def test_llm_echoue_reponse_gracieuse(self):
+        with patch("baay.voice_assistant_service.stt_stage", return_value="question ouverte"), \
+             patch("baay.voice_assistant_service.respond_stage", side_effect=RuntimeError("boom")):
+            out = v.process_vocal_input(self.path, user=None)
+        self.assertEqual(out["status"], "ok")
+        self.assertEqual(out["reply_text"], v.GRACEFUL_WOLOF_ERROR)

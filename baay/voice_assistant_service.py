@@ -30,9 +30,12 @@ Le contrat de `run_vocal_query_pipeline` (texte → payload) est préservé pour
 
 from __future__ import annotations
 
+import base64
 import logging
+import os
 import re
 import unicodedata
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Literal, Optional
 
@@ -57,6 +60,9 @@ AGRIC_HINTS_SNIPPETS = (
     "Engrais : privilégier l'apport local (compost, fumier bien décomposé) avant la montée des prix des intrants.",
     "Pulaar / Wolof : utiliser un ton direct, respect des aînés dans les formulations conseillées.",
 )
+
+# Réponse de repli gracieuse en Wolof (audio inaudible / panne backend) — jamais muet.
+GRACEFUL_WOLOF_ERROR = "Baal ma, dégguma bu baax sa baat. Mën nga ko waxaat?"  # « Pardon, je n'ai pas bien compris. Peux-tu répéter ? »
 
 # ============================================================================
 # DÉTECTION D'INCIDENTS AGRICOLES (déterministe, hands-free) — INCHANGÉE
@@ -560,6 +566,158 @@ def process_vocal_audio(
             result.audio_b64 = base64.b64encode(audio).decode()
             result.tts_available = True
     return result
+
+
+# ============================================================================
+# BOUCLE VOCALE COMPLÈTE — process_vocal_input (audio → texte + audio)
+# ============================================================================
+
+_MIME_BY_EXT = {
+    ".webm": "audio/webm", ".ogg": "audio/ogg", ".oga": "audio/ogg",
+    ".wav": "audio/wav", ".mp3": "audio/mpeg", ".m4a": "audio/mp4",
+    ".mp4": "audio/mp4", ".flac": "audio/flac", ".aac": "audio/aac",
+}
+
+
+def _resolve_context(user: Any, parcelle_id: str | None) -> tuple[str | None, str | None]:
+    """
+    Résout (ferme_id, profile_id) depuis l'utilisateur courant et une parcelle (Projet).
+
+    - `user` peut être un User Django ou un Profile.
+    - `parcelle_id` désigne un Projet ; sa ferme sert au rattachement de l'incident.
+    Best-effort : toute erreur retourne (None, None) sur la partie concernée
+    (l'incident ne sera alors pas persisté, mais le pipeline continue).
+    """
+    profile_id: str | None = None
+    ferme_id: str | None = None
+    try:
+        from baay.models import Profile, Projet  # noqa: F401
+        if user is not None:
+            profile = user if hasattr(user, "user_id") or user.__class__.__name__ == "Profile" else getattr(user, "profile", None)
+            if profile is not None:
+                profile_id = str(profile.pk)
+        if parcelle_id:
+            projet = Projet.objects.select_related("ferme").filter(pk=parcelle_id).first()
+            if projet is not None and projet.ferme_id:
+                ferme_id = str(projet.ferme_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Résolution contexte vocal échouée (%s) — incident non rattaché.", exc)
+    return ferme_id, profile_id
+
+
+def _save_reply_audio(audio_bytes: bytes) -> str | None:
+    """Écrit la synthèse en .wav sous MEDIA_ROOT/voice_replies/ et retourne l'URL publique."""
+    try:
+        media_root = getattr(settings, "MEDIA_ROOT", "")
+        media_url = getattr(settings, "MEDIA_URL", "/media/")
+        rel_dir = "voice_replies"
+        out_dir = os.path.join(media_root, rel_dir)
+        os.makedirs(out_dir, exist_ok=True)
+        fname = f"{uuid.uuid4().hex}.wav"
+        with open(os.path.join(out_dir, fname), "wb") as fh:
+            fh.write(audio_bytes)
+        return f"{media_url.rstrip('/')}/{rel_dir}/{fname}"
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Écriture audio de réponse échouée (%s).", exc)
+        return None
+
+
+def process_vocal_input(
+    audio_path: str,
+    user: Any = None,
+    *,
+    parcelle_id: str | None = None,
+    locale_hint: str = "wo",
+    with_tts: bool = True,
+) -> dict[str, Any]:
+    """
+    Boucle vocale de bout en bout : mémo audio Wolof → réponse texte + audio.
+
+    Pensée pour être appelée telle quelle OU emballée dans une tâche Celery
+    (chaque étape — STT, incident/LLM, TTS — est isolée et tolérante aux pannes).
+
+    Args:
+        audio_path : chemin local du mémo vocal (PWA / Flutter).
+        user       : utilisateur courant (User ou Profile) — pour rattacher l'incident.
+        parcelle_id: Projet concerné (optionnel) — fournit la ferme de rattachement.
+        locale_hint: langue de l'utilisateur (def "wo").
+        with_tts   : générer le fichier audio de réponse.
+
+    Returns:
+        {
+          "status": "ok" | "inaudible" | "error",
+          "transcription": str,
+          "reply_text": str,
+          "reply_audio_url": str | None,
+          "incident_logged": bool,
+        }
+    """
+    out: dict[str, Any] = {
+        "status": "error", "transcription": "", "reply_text": "",
+        "reply_audio_url": None, "incident_logged": False,
+    }
+
+    # ── Étape 1 : STT ────────────────────────────────────────────────────────
+    try:
+        with open(audio_path, "rb") as fh:
+            audio_bytes = fh.read()
+        if not audio_bytes:
+            raise ValueError("fichier audio vide")
+        mime = _MIME_BY_EXT.get(os.path.splitext(audio_path)[1].lower(), "audio/webm")
+        transcript = (stt_stage(audio_bytes, mime_type=mime, locale_hint=locale_hint) or "").strip()
+    except FileNotFoundError:
+        logger.error("process_vocal_input: fichier introuvable %s", audio_path)
+        out["reply_text"] = GRACEFUL_WOLOF_ERROR
+        return out
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("process_vocal_input: échec STT")
+        out["reply_text"] = GRACEFUL_WOLOF_ERROR
+        out["status"] = "error"
+        return out
+
+    # Audio inaudible / transcription vide → repli gracieux Wolof (+ TTS éventuel).
+    placeholder = getattr(settings, "VOCAL_SIMULATED_TRANSCRIPT", "(transcription simulée)")
+    if not transcript or transcript == placeholder:
+        out.update(status="inaudible", transcription=transcript, reply_text=GRACEFUL_WOLOF_ERROR)
+        if with_tts:
+            try:
+                audio = tts_stage(GRACEFUL_WOLOF_ERROR, locale_hint=locale_hint)
+                if audio:
+                    out["reply_audio_url"] = _save_reply_audio(audio)
+            except Exception:  # noqa: BLE001
+                logger.warning("TTS repli inaudible indisponible.")
+        return out
+
+    out["transcription"] = transcript
+
+    # ── Étapes 2 & 3 : incident-first (déterministe) puis LLM ────────────────
+    try:
+        ferme_id, profile_id = _resolve_context(user, parcelle_id)
+        result = respond_stage(
+            transcript_text=transcript, locale_hint=locale_hint,
+            ferme_id=ferme_id, profile_id=profile_id,
+        )
+        reply_text = result.answer_text
+        incident_logged = bool(result.incident and result.incident.get("incident_detecte"))
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("process_vocal_input: échec génération réponse")
+        reply_text = GRACEFUL_WOLOF_ERROR
+        incident_logged = False
+
+    out["reply_text"] = reply_text
+    out["incident_logged"] = incident_logged
+    out["status"] = "ok"
+
+    # ── Étape 4 : TTS → fichier .wav ─────────────────────────────────────────
+    if with_tts:
+        try:
+            audio = tts_stage(reply_text, locale_hint=locale_hint)
+            if audio:
+                out["reply_audio_url"] = _save_reply_audio(audio)
+        except Exception:  # noqa: BLE001
+            logger.warning("process_vocal_input: TTS indisponible, réponse texte seule.")
+
+    return out
 
 
 # ============================================================================
