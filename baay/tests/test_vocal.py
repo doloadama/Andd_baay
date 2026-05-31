@@ -98,7 +98,8 @@ class GeminiVocalVertexTest(TestCase):
 # Tâche Celery process_vocal_task (exécution eager)
 # ══════════════════════════════════════════════════════════════════════════════
 
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False)
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
+                   VOCAL_STT_BACKEND="gemini")
 class ProcessVocalTaskTest(TestCase):
 
     def setUp(self):
@@ -193,7 +194,8 @@ class WhisperLocalClientTest(TestCase):
 
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
-                   VOCAL_STT_BACKEND="whisper_local", VOCAL_FAQ_FIRST=False)
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_LLM_BACKEND="gemini",
+                   VOCAL_FAQ_FIRST=False)
 class HybridBackendTaskTest(TestCase):
 
     def setUp(self):
@@ -241,8 +243,8 @@ class WolofFaqTest(TestCase):
 
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=False,
-                   VOCAL_STT_BACKEND="whisper_local", VOCAL_FAQ_FIRST=True,
-                   VOCAL_OFFLINE_FALLBACK=True)
+                   VOCAL_STT_BACKEND="whisper_local", VOCAL_LLM_BACKEND="gemini",
+                   VOCAL_FAQ_FIRST=True, VOCAL_OFFLINE_FALLBACK=True)
 class HybridFaqTaskTest(TestCase):
 
     def setUp(self):

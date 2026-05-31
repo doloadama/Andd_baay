@@ -35,9 +35,12 @@ _SYSTEM_PROMPT = (
 )
 
 
-def generate_response(transcript: str) -> str:
+def generate_response(transcript: str, system: str | None = None) -> str:
     """
-    Envoie le transcript Wolof au LLM local Ollama et retourne la réponse agricole.
+    Envoie le transcript au LLM local Ollama et retourne la réponse.
+
+    `system` permet de surcharger le prompt système (ex. prompt français pour le
+    pont de traduction). Par défaut : prompt Jëf Baay Wolof.
 
     Settings utilisés :
       OLLAMA_URL       : base URL (ex: http://localhost:11434)
@@ -62,7 +65,7 @@ def generate_response(transcript: str) -> str:
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": (system or _SYSTEM_PROMPT)},
             {"role": "user", "content": transcript.strip()},
         ],
         "stream": False,
