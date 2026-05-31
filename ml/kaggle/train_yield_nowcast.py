@@ -47,12 +47,13 @@ YEAR_COL     = "Year"
 QUALITY_COL  = "Quality"
 MIN_QUALITY  = None        # ex: 1 → ne garder que les labels de bonne qualité (None = tout)
 
-# Indices (0-based) des canaux Rouge et PIR DANS UN PAS DE TEMPS, + nb de bandes/pas.
-# À renseigner depuis Bandnames.txt (cf. README). Si None → pas de NDVI, on garde
-# uniquement les stats par canal (le modèle marche quand même).
-N_BANDS_PER_STEP = None    # ex: 12 (Sentinel-2) → 360/12 = 30 pas de temps
-RED_IDX_IN_STEP  = None    # ex: 3
-NIR_IDX_IN_STEP  = None    # ex: 7
+# Structure Bandnames.txt (Zindi CGIAR) : 360 = 12 pas de temps × 30 bandes.
+# Par pas : 16 Sentinel-2 (B1,B2,B3,B4,B5,B6,B7,B8,B8A,B9,B10,B11,B12,QA10,QA20,QA60)
+#           + 14 TerraClimate (aet,def,pdsi,pet,pr,ro,soil,srad,swe,tmmn,tmmx,vap,vpd,vs).
+# NDVI = (B8 - B4)/(B8 + B4)  → B4=position 3, B8=position 7 dans le pas.
+N_BANDS_PER_STEP = 30
+RED_IDX_IN_STEP  = 3        # B4
+NIR_IDX_IN_STEP  = 7        # B8
 
 MIN_R2       = 0.30
 OUTPUT_PKL   = "/kaggle/working/yield_nowcast.pkl"
@@ -90,18 +91,21 @@ def _features_from_cube(cube: np.ndarray) -> np.ndarray:
     if N_BANDS_PER_STEP and RED_IDX_IN_STEP is not None and NIR_IDX_IN_STEP is not None:
         nb = N_BANDS_PER_STEP
         steps = c.shape[0] // nb
-        ndvi_series = []
+        ndvi_series = np.zeros(steps, dtype=np.float32)
         for t in range(steps):
             red = mean[t * nb + RED_IDX_IN_STEP]
             nir = mean[t * nb + NIR_IDX_IN_STEP]
-            denom = (nir + red)
-            ndvi_series.append((nir - red) / denom if denom not in (0, np.nan) and denom != 0 else 0.0)
-        ndvi = np.nan_to_num(np.array(ndvi_series, dtype=np.float32))
-        # Stats temporelles du NDVI = signal agronomique fort (vigueur, AUC)
+            denom = nir + red
+            ndvi_series[t] = (nir - red) / denom if denom != 0 else 0.0
+        ndvi = np.nan_to_num(ndvi_series)
+        # Série mensuelle (courbe de verdure) — le modèle voit la phénologie.
+        feats.append(ndvi)
+        # + stats temporelles agronomiques fortes.
         feats.append(np.array([
-            np.nanmean(ndvi), np.nanmax(ndvi), np.nanmin(ndvi),
-            np.nanstd(ndvi), float(np.nansum(ndvi)),  # AUC ≈ biomasse cumulée
-            float(np.argmax(ndvi)),                   # date du pic de verdure
+            ndvi.mean(), ndvi.max(), ndvi.min(), ndvi.std(),
+            float(ndvi.sum()),        # AUC ≈ biomasse cumulée
+            float(ndvi.argmax()),     # mois du pic de verdure
+            float(ndvi.max() - ndvi.min()),   # amplitude saisonnière
         ], dtype=np.float32))
 
     return np.nan_to_num(np.concatenate(feats))

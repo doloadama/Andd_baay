@@ -33,10 +33,18 @@ Pas de colonne géographique dans le train (Field_ID = unique par échantillon).
 → Split **GroupKFold par ANNÉE** (`Year`) = anti-fuite **temporelle** (on n'évalue
 pas sur une année vue à l'entraînement). Le filtre `Quality` écarte les labels GPS douteux.
 
-## Ce qu'il me faut pour affiner
-👉 **Colle le contenu de `Bandnames.txt`** (les 360 noms, ou au moins la structure :
-nb de bandes par date + position du Rouge et du PIR). Avec ça je fige les indices
-NDVI et j'ajoute les features agronomiques (AUC de verdure, date du pic).
+## Bandes (résolu) — CONFIG figé
+`Bandnames.txt` = **12 pas de temps × 30 bandes** : 16 Sentinel-2 (B1–B12, B8A,
+QA10/20/60) + 14 TerraClimate (`pr`, `aet`, `pet`, `soil`, `pdsi`, `tmmn/tmmx`,
+`vpd`…). Le **climat est déjà dans le cube** → pas de météo externe à ajouter.
+NDVI = B8/B4 → CONFIG : `N_BANDS_PER_STEP=30, RED_IDX_IN_STEP=3, NIR_IDX_IN_STEP=7`.
+
+Features produites par parcelle (**739**) : moyenne + écart-type spatial des 360
+canaux, + **NDVI mensuel (12)** + stats NDVI (moyenne, max, min, σ, AUC, mois du
+pic, amplitude). Vérifié sur cube synthétique (NDVI correct, sans NaN).
+
+Seuls les **chemins** restent à ajuster selon le sous-dossier exact du dataset
+attaché (`TRAIN_CSV`, `IMG_DIR`, `BANDNAMES`).
 
 ## Intégration app (étape suivante)
 Le `.pkl` n'est **pas** branché à l'app pour l'instant : c'est un modèle
