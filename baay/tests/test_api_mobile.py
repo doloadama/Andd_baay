@@ -231,7 +231,7 @@ class CommentaireWebTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user, self.profile = _make_user("web_commenteur")
-        self.client.login(username="web_commenteur", password="pass1234")
+        self.client.force_login(self.user, backend="django.contrib.auth.backends.ModelBackend")
         self.ferme = Ferme.objects.create(nom="Ferme Web", proprietaire=self.profile)
 
     def test_create_commentaire_ferme_web(self):
