@@ -61,3 +61,17 @@ def cloudinary_config(request):
         'CLOUDINARY_CLOUD_NAME': getattr(settings, 'CLOUDINARY_CLOUD_NAME', ''),
         'CLOUDINARY_UPLOAD_PRESET': getattr(settings, 'CLOUDINARY_UPLOAD_PRESET', ''),
     }
+
+
+def vocal_flags(request):
+    """
+    Expose les drapeaux de l'assistant vocal aux templates.
+
+    `vocal_wolof_audio_enabled` masque la page Q&A vocale Wolof (qui exige un
+    STT serveur payant) tant qu'elle n'est pas déployée. Le copilote de commandes
+    (Web Speech navigateur, gratuit) reste toujours actif.
+    """
+    from django.conf import settings
+    return {
+        'vocal_wolof_audio_enabled': getattr(settings, 'VOCAL_WOLOF_AUDIO_ENABLED', False),
+    }

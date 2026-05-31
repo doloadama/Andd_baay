@@ -44,6 +44,16 @@ def _check_rate(ip: str) -> bool:
 
 @require_http_methods(["GET", "POST"])
 def assistant_vocal(request):
+    # Q&A vocale Wolof désactivée (mode gratuit : pas de STT serveur déployé).
+    if not getattr(settings, "VOCAL_WOLOF_AUDIO_ENABLED", False):
+        from django.shortcuts import redirect
+        from django.contrib import messages
+        if request.method == "GET":
+            messages.info(request, "L'assistant vocal Wolof arrive bientôt.")
+            return redirect("dashboard")
+        return JsonResponse({"error": "disabled",
+                             "message": "Assistant vocal Wolof temporairement indisponible."}, status=503)
+
     if request.method == "GET":
         ai_configured = bool(
             getattr(settings, "GEMINI_API_KEYS", None)

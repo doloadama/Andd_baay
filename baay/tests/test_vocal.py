@@ -140,6 +140,7 @@ class ProcessVocalTaskTest(TestCase):
 # Vues
 # ══════════════════════════════════════════════════════════════════════════════
 
+@override_settings(VOCAL_WOLOF_AUDIO_ENABLED=True)
 class VocalViewsTest(TestCase):
 
     def test_get_page_rend_200(self):
@@ -416,3 +417,18 @@ class DeepSeekBackendTaskTest(TestCase):
             data = cache.get(self.key)
         self.assertEqual(data["status"], "done")
         self.assertEqual(data["result"]["response"], FALLBACK_WO)
+
+
+class VocalWolofGateTest(TestCase):
+    """Garde du flag VOCAL_WOLOF_AUDIO_ENABLED (mode gratuit : Q&A Wolof masquée)."""
+
+    @override_settings(VOCAL_WOLOF_AUDIO_ENABLED=False)
+    def test_get_redirige_si_desactive(self):
+        resp = self.client.get("/assistant-vocal/")
+        self.assertEqual(resp.status_code, 302)
+
+    @override_settings(VOCAL_WOLOF_AUDIO_ENABLED=False)
+    def test_post_503_si_desactive(self):
+        resp = self.client.post("/assistant-vocal/")
+        self.assertEqual(resp.status_code, 503)
+        self.assertEqual(resp.json()["error"], "disabled")

@@ -1029,11 +1029,13 @@
            aria-label="Nouveau projet">
             <div class="mobile-nav-fab-bg"><i class="fas fa-plus" aria-hidden="true"></i></div>
         </a>
+        {% if vocal_wolof_audio_enabled %}
         <a href="{% url 'assistant_vocal' %}"
            class="mobile-nav-item {% if rm and 'assistant_vocal' in rm %}active{% endif %}">
             <div class="mobile-nav-icon"><i class="fas fa-microphone" aria-hidden="true"></i></div>
             <span class="mobile-nav-label">Vocal</span>
         </a>
+        {% endif %}
         <button type="button"
                 class="mobile-nav-item mobile-nav-menu"
                 aria-label="Ouvrir le menu"
@@ -1130,6 +1132,7 @@
                         </a>
                     </div>
                     {% endif %}
+                    {% if vocal_wolof_audio_enabled %}
                     <div class="mobile-drawer-section">
                         <h6 class="mobile-drawer-section-title">Assistant</h6>
                         <a href="{% url 'assistant_vocal' %}" class="mobile-drawer-link {% if request.resolver_match and request.resolver_match.url_name == 'assistant_vocal' %}active{% endif %}">
@@ -1137,6 +1140,7 @@
                             <span>Assistant vocal Wolof</span>
                         </a>
                     </div>
+                    {% endif %}
                 </nav>
             </div>
 

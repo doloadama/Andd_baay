@@ -60,6 +60,10 @@ WHISPER_STT_URL = os.getenv("WHISPER_STT_URL", "").strip()          # ex: http:/
 WHISPER_STT_TIMEOUT = int(os.getenv("WHISPER_STT_TIMEOUT", "60"))
 # NLU locale (mode hybride) : tenter la FAQ Wolof avant le LLM cloud, et répondre
 # poliment hors-ligne si le cloud est indisponible.
+# Q&A vocale Wolof (mémo audio → réponse) : exige un STT serveur (conteneur Whisper).
+# Désactivée par défaut (mode 100% gratuit) ; passer à true une fois le STT déployé.
+# Le copilote de commandes (Web Speech navigateur) reste actif indépendamment.
+VOCAL_WOLOF_AUDIO_ENABLED = os.getenv("VOCAL_WOLOF_AUDIO_ENABLED", "false").lower() in ("true", "1", "yes")
 VOCAL_FAQ_FIRST = os.getenv("VOCAL_FAQ_FIRST", "true").lower() in ("true", "1", "yes")
 VOCAL_OFFLINE_FALLBACK = os.getenv("VOCAL_OFFLINE_FALLBACK", "true").lower() in ("true", "1", "yes")
 
@@ -389,6 +393,7 @@ TEMPLATES = [
                 'baay.context_processors.cooperative_nav',
                 'baay.context_processors.auth_backgrounds',
                 'baay.context_processors.cloudinary_config',
+                'baay.context_processors.vocal_flags',
             ],
         },
     },
