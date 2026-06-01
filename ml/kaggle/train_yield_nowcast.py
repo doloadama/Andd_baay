@@ -76,8 +76,13 @@ RED_IDX: list[int] = []
 NIR_IDX: list[int] = []
 # Bandes climat TerraClimate appariees par NOM : {nom: [indices par pas de temps]}.
 CLIM_IDX: dict[str, list[int]] = {}
-# Variables climat ciblees (precip, temp max/min, humidite sol).
-CLIM_TARGETS = ("pr", "tmmx", "tmmn", "soil")
+# Variables climat ciblees : pilotes inter-annuels du rendement sahelien.
+# pr=pluie, pet=evapotranspiration pot., def=deficit hydrique, pdsi=indice
+# secheresse, soil=humidite sol, aet=ET reelle, tmmx/tmmn=temperatures.
+CLIM_TARGETS = ("pr", "pet", "def", "pdsi", "soil", "aet", "tmmx", "tmmn")
+# Offsets S2 (reflectance) dans chaque pas de 30 bandes : 0..15. Le 0 = nodata
+# UNIQUEMENT pour ces bandes ; pour le climat, 0 est une vraie valeur.
+S2_OFFSETS = tuple(range(16))
 
 
 def _load_array(field_id) -> np.ndarray | None:
@@ -159,9 +164,14 @@ def _features_from_cube(cube: np.ndarray) -> np.ndarray:
       - NDVI temporel borne [-1,1], apparie par nom de bande
     """
     c = cube.astype(np.float32)
-    # 1) Masquage nodata / valeurs aberrantes -> NaN (ignore par nanmean).
-    for v in NODATA_VALUES:
-        c[c == v] = np.nan
+    # 1) Masquage nodata : -9999 partout ; 0 SEULEMENT sur les bandes S2
+    #    (offsets 0..15 de chaque pas) — pour le climat, 0 est une vraie valeur.
+    c[c == -9999.0] = np.nan
+    nb = N_BANDS_PER_STEP
+    s2_channels = [t * nb + o for t in range(c.shape[0] // nb) for o in S2_OFFSETS]
+    sub = c[s2_channels]
+    sub[sub == 0.0] = np.nan
+    c[s2_channels] = sub
     # 2) Fenetre centrale (la culture, pas le decor).
     win = _center(c)                                  # (360, 81) en 9x9
     with np.errstate(all="ignore"):
@@ -226,7 +236,9 @@ def _autodetect_paths():
         if npys:
             IMG_DIR = os.path.dirname(npys[0])
     if not os.path.exists(BANDNAMES):
-        hits = glob.glob("/kaggle/input/**/Bandnames.txt", recursive=True)
+        # Recherche INSENSIBLE A LA CASSE (le fichier reel est 'bandnames.txt').
+        hits = [p for p in glob.glob("/kaggle/input/**/*.txt", recursive=True)
+                if os.path.basename(p).lower() == "bandnames.txt"]
         if hits:
             BANDNAMES = hits[0]
     print(f"Chemins → TRAIN_CSV={TRAIN_CSV}\n          IMG_DIR={IMG_DIR}")
