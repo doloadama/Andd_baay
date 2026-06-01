@@ -111,7 +111,27 @@ def _features_from_cube(cube: np.ndarray) -> np.ndarray:
     return np.nan_to_num(np.concatenate(feats))
 
 
+def _autodetect_paths():
+    """Trouve automatiquement Train.csv / dossier .npy / Bandnames.txt sous /kaggle/input."""
+    import glob
+    global TRAIN_CSV, IMG_DIR, BANDNAMES
+    if not os.path.exists(TRAIN_CSV):
+        hits = glob.glob("/kaggle/input/**/Train.csv", recursive=True)
+        if hits:
+            TRAIN_CSV = hits[0]
+    if not os.path.isdir(IMG_DIR) or not glob.glob(os.path.join(IMG_DIR, "*.npy")):
+        npys = glob.glob("/kaggle/input/**/*.npy", recursive=True)
+        if npys:
+            IMG_DIR = os.path.dirname(npys[0])
+    if not os.path.exists(BANDNAMES):
+        hits = glob.glob("/kaggle/input/**/Bandnames.txt", recursive=True)
+        if hits:
+            BANDNAMES = hits[0]
+    print(f"Chemins → TRAIN_CSV={TRAIN_CSV}\n          IMG_DIR={IMG_DIR}")
+
+
 def construire_dataset():
+    _autodetect_paths()
     df = pd.read_csv(TRAIN_CSV)
     print(f"Train.csv : {df.shape[0]} lignes — colonnes {list(df.columns)}")
     if MIN_QUALITY is not None and QUALITY_COL in df.columns:
