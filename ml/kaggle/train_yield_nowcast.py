@@ -52,13 +52,22 @@ MIN_QUALITY  = None        # ex: 1 → ne garder que les labels de bonne qualit�
 #           + 14 TerraClimate (aet,def,pdsi,pet,pr,ro,soil,srad,swe,tmmn,tmmx,vap,vpd,vs).
 # NDVI = (B8 - B4)/(B8 + B4)  → B4=position 3, B8=position 7 dans le pas.
 N_BANDS_PER_STEP = 30
-RED_IDX_IN_STEP  = 3        # B4
-NIR_IDX_IN_STEP  = 7        # B8
+RED_IDX_IN_STEP  = 3        # B4 (repli si Bandnames illisible)
+NIR_IDX_IN_STEP  = 7        # B8 (repli)
 
 MIN_R2       = 0.30
 OUTPUT_PKL   = "/kaggle/working/yield_nowcast.pkl"
 RANDOM_STATE = 42
 ARR_SHAPE    = (360, 41, 41)
+
+# Fenetre centrale (anti pixel-mixte) : sous-carre au centre du patch 41x41.
+CENTER_HALF  = 7            # 7 -> fenetre 15x15 centree
+# Valeurs aberrantes / nodata a masquer (reflectance plausible apres correction).
+NODATA_VALUES = (-9999.0, 0.0)
+
+# Indices red/NIR resolus depuis Bandnames.txt (rempli par decode_bands()).
+RED_IDX: list[int] = []
+NIR_IDX: list[int] = []
 
 
 def _load_array(field_id) -> np.ndarray | None:
@@ -74,38 +83,85 @@ def _load_array(field_id) -> np.ndarray | None:
     return None
 
 
+def decode_bands():
+    """
+    Lit Bandnames.txt et resout RED_IDX / NIR_IDX par NOM (robuste a l'ordre
+    bande-major OU temps-major). On apparie les indices red(B4) et NIR(B8) pas
+    a pas : pour chaque pas de temps t, on a un index red et un index NIR.
+    Repli positionnel (30/pas) si les noms sont illisibles.
+    """
+    global RED_IDX, NIR_IDX
+    try:
+        names = [l.strip() for l in open(BANDNAMES) if l.strip()]
+    except Exception:
+        names = []
+
+    def _is(tok, name):
+        u = name.upper()
+        return tok in u
+
+    red_pos, nir_pos = [], []
+    if len(names) == ARR_SHAPE[0]:
+        for i, n in enumerate(names):
+            u = n.upper()
+            # NIR = B8 mais PAS B8A ; RED = B4.
+            if ("B08" in u or (("B8" in u) and ("B8A" not in u))):
+                nir_pos.append(i)
+            elif "B04" in u or "B4" in u:
+                red_pos.append(i)
+
+    if red_pos and nir_pos and len(red_pos) == len(nir_pos):
+        RED_IDX, NIR_IDX = red_pos, nir_pos
+        print(f"Bandes NDVI resolues par NOM : {len(RED_IDX)} pas "
+              f"(red ex={RED_IDX[:3]} nir ex={NIR_IDX[:3]})")
+    else:
+        nb, steps = N_BANDS_PER_STEP, ARR_SHAPE[0] // N_BANDS_PER_STEP
+        RED_IDX = [t * nb + RED_IDX_IN_STEP for t in range(steps)]
+        NIR_IDX = [t * nb + NIR_IDX_IN_STEP for t in range(steps)]
+        print(f"Bandes NDVI : repli POSITIONNEL ({steps} pas, 30/pas) "
+              f"— noms non exploitables ({len(names)} lignes).")
+
+
+def _center(flat_cube: np.ndarray) -> np.ndarray:
+    """Retourne le sous-cube central 15x15 aplati en (360, k) pour anti pixel-mixte."""
+    h = ARR_SHAPE[1] // 2
+    s = slice(h - CENTER_HALF, h + CENTER_HALF + 1)
+    return flat_cube[:, s, s].reshape(flat_cube.shape[0], -1)
+
+
 def _features_from_cube(cube: np.ndarray) -> np.ndarray:
     """
-    (360,41,41) → vecteur de features.
-      - par canal : moyenne + écart-type spatial (sur le patch 41×41)
-      - + NDVI temporel (moyenne/max/somme) si bandes Rouge/PIR fournies
-    NaN (nuages/masques) ignorés via nanmean/nanstd.
+    (360,41,41) -> vecteur de features (anti-nuages / anti pixel-mixte).
+      - nodata (-9999, 0) -> NaN avant toute statistique
+      - stats spatiales sur la FENETRE CENTRALE 15x15 (pas tout le patch)
+      - NDVI temporel borne [-1,1], apparie par nom de bande
     """
     c = cube.astype(np.float32)
-    flat = c.reshape(c.shape[0], -1)                 # (360, 1681)
+    # 1) Masquage nodata / valeurs aberrantes -> NaN (ignore par nanmean).
+    for v in NODATA_VALUES:
+        c[c == v] = np.nan
+    # 2) Fenetre centrale (la culture, pas le decor).
+    win = _center(c)                                  # (360, 225)
     with np.errstate(all="ignore"):
-        mean = np.nanmean(flat, axis=1)              # (360,)
-        std = np.nanstd(flat, axis=1)                # (360,)
+        mean = np.nanmean(win, axis=1)                # (360,)
+        std = np.nanstd(win, axis=1)
+    mean = np.nan_to_num(mean)
+    std = np.nan_to_num(std)
     feats = [mean, std]
 
-    if N_BANDS_PER_STEP and RED_IDX_IN_STEP is not None and NIR_IDX_IN_STEP is not None:
-        nb = N_BANDS_PER_STEP
-        steps = c.shape[0] // nb
-        ndvi_series = np.zeros(steps, dtype=np.float32)
-        for t in range(steps):
-            red = mean[t * nb + RED_IDX_IN_STEP]
-            nir = mean[t * nb + NIR_IDX_IN_STEP]
-            denom = nir + red
-            ndvi_series[t] = (nir - red) / denom if denom != 0 else 0.0
-        ndvi = np.nan_to_num(ndvi_series)
-        # Série mensuelle (courbe de verdure) — le modèle voit la phénologie.
+    # 3) NDVI mensuel apparie par nom, borne [-1,1].
+    if RED_IDX and NIR_IDX:
+        red = mean[RED_IDX]
+        nir = mean[NIR_IDX]
+        denom = nir + red
+        ndvi = np.where(denom != 0, (nir - red) / denom, 0.0)
+        ndvi = np.clip(np.nan_to_num(ndvi), -1.0, 1.0).astype(np.float32)
         feats.append(ndvi)
-        # + stats temporelles agronomiques fortes.
         feats.append(np.array([
             ndvi.mean(), ndvi.max(), ndvi.min(), ndvi.std(),
-            float(ndvi.sum()),        # AUC ≈ biomasse cumulée
-            float(ndvi.argmax()),     # mois du pic de verdure
-            float(ndvi.max() - ndvi.min()),   # amplitude saisonnière
+            float(ndvi.sum()),                 # AUC ~ biomasse cumulee
+            float(ndvi.argmax()),              # mois du pic de verdure
+            float(ndvi.max() - ndvi.min()),    # amplitude saisonniere
         ], dtype=np.float32))
 
     return np.nan_to_num(np.concatenate(feats))
@@ -132,6 +188,7 @@ def _autodetect_paths():
 
 def construire_dataset():
     _autodetect_paths()
+    decode_bands()
     df = pd.read_csv(TRAIN_CSV)
     print(f"Train.csv : {df.shape[0]} lignes — colonnes {list(df.columns)}")
     if MIN_QUALITY is not None and QUALITY_COL in df.columns:
@@ -157,21 +214,37 @@ def construire_dataset():
     return np.vstack(X), np.array(y, dtype=float), np.array(years)
 
 
+def _cv_scores(model, X, y, splits):
+    y_pred = cross_val_predict(model, X, y, cv=splits)
+    return (r2_score(y, y_pred),
+            float(np.sqrt(mean_squared_error(y, y_pred))),
+            mean_absolute_error(y, y_pred))
+
+
 def evaluer(model, X, y, years):
+    """
+    Double validation :
+      - GroupKFold par ANNEE  = generalisation a une campagne INEDITE (= usage reel nowcast).
+      - KFold aleatoire        = le signal existe-t-il (intra-annee) ?
+    Si random >> groupe : features OK mais extrapolation inter-annee difficile.
+    Si les deux ~0       : pas de signal exploitable (decodage / donnees).
+    """
+    r2_base = r2_score(y, np.full_like(y, y.mean()))
+
+    kf = KFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    r2_rand, rmse_rand, mae_rand = _cv_scores(model, X, y, list(kf.split(X)))
+    print(f"\n[KFold aleatoire]   R2={r2_rand:.3f}  RMSE={rmse_rand:.2f}  MAE={mae_rand:.2f}")
+
     n_annees = len(set(years.tolist()))
     if n_annees >= 2:
-        cv = GroupKFold(n_splits=min(5, n_annees))
-        splits = list(cv.split(X, y, years))
-        print(f"Validation : GroupKFold par ANNÉE ({n_annees} années) — anti-fuite temporelle.")
+        gkf = GroupKFold(n_splits=min(5, n_annees))
+        r2, rmse, mae = _cv_scores(model, X, y, list(gkf.split(X, y, years)))
+        print(f"[GroupKFold/annee]  R2={r2:.3f}  RMSE={rmse:.2f}  MAE={mae:.2f}  "
+              f"({n_annees} annees) <- metrique de reference")
     else:
-        cv = KFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
-        splits = list(cv.split(X))
-        print("⚠️  Une seule année → KFold aléatoire (pas d'axe anti-fuite disponible).")
-    y_pred = cross_val_predict(model, X, y, cv=splits)
-    r2 = r2_score(y, y_pred)
-    rmse = float(np.sqrt(mean_squared_error(y, y_pred)))
-    mae = mean_absolute_error(y, y_pred)
-    r2_base = r2_score(y, np.full_like(y, y.mean()))
+        print("Une seule annee -> pas de GroupKFold ; on retient le KFold aleatoire.")
+        r2, rmse, mae = r2_rand, rmse_rand, mae_rand
+
     return r2, rmse, mae, r2_base
 
 
