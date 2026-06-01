@@ -61,13 +61,23 @@ RANDOM_STATE = 42
 ARR_SHAPE    = (360, 41, 41)
 
 # Fenetre centrale (anti pixel-mixte) : sous-carre au centre du patch 41x41.
-CENTER_HALF  = 7            # 7 -> fenetre 15x15 centree
+# 4 -> 9x9 (~0.8 ha) : parcelles paysannes sahéliennes < 2 ha.
+CENTER_HALF  = 4
 # Valeurs aberrantes / nodata a masquer (reflectance plausible apres correction).
 NODATA_VALUES = (-9999.0, 0.0)
 
-# Indices red/NIR resolus depuis Bandnames.txt (rempli par decode_bands()).
+# Mode compact : ~30 features agronomiques (NDVI + climat) au lieu de 739.
+# Combat le fleau de la dimensionnalite (739 features / 2977 obs => sur-apprentissage
+# sous GroupKFold par annee). Passez a False pour comparer avec le set complet.
+COMPACT_FEATURES = True
+
+# Indices resolus depuis Bandnames.txt (remplis par decode_bands()).
 RED_IDX: list[int] = []
 NIR_IDX: list[int] = []
+# Bandes climat TerraClimate appariees par NOM : {nom: [indices par pas de temps]}.
+CLIM_IDX: dict[str, list[int]] = {}
+# Variables climat ciblees (precip, temp max/min, humidite sol).
+CLIM_TARGETS = ("pr", "tmmx", "tmmn", "soil")
 
 
 def _load_array(field_id) -> np.ndarray | None:
@@ -90,25 +100,29 @@ def decode_bands():
     a pas : pour chaque pas de temps t, on a un index red et un index NIR.
     Repli positionnel (30/pas) si les noms sont illisibles.
     """
-    global RED_IDX, NIR_IDX
+    global RED_IDX, NIR_IDX, CLIM_IDX
+    import re
     try:
         names = [l.strip() for l in open(BANDNAMES) if l.strip()]
     except Exception:
         names = []
 
-    def _is(tok, name):
-        u = name.upper()
-        return tok in u
-
     red_pos, nir_pos = [], []
+    clim: dict[str, list[int]] = {k: [] for k in CLIM_TARGETS}
     if len(names) == ARR_SHAPE[0]:
         for i, n in enumerate(names):
             u = n.upper()
-            # NIR = B8 mais PAS B8A ; RED = B4.
-            if ("B08" in u or (("B8" in u) and ("B8A" not in u))):
+            toks = [t for t in re.split(r"[^A-Za-z0-9]+", n.lower()) if t]
+            # NIR = B8 (pas B8A) ; RED = B4.
+            if "B08" in u or (("B8" in u) and ("B8A" not in u)):
                 nir_pos.append(i)
             elif "B04" in u or "B4" in u:
                 red_pos.append(i)
+            # Climat TerraClimate : appariement par token exact.
+            for tgt in CLIM_TARGETS:
+                aliases = {"pr": ("pr", "ppt", "prcp", "precip")}.get(tgt, (tgt,))
+                if any(a in toks for a in aliases):
+                    clim[tgt].append(i)
 
     if red_pos and nir_pos and len(red_pos) == len(nir_pos):
         RED_IDX, NIR_IDX = red_pos, nir_pos
@@ -120,6 +134,14 @@ def decode_bands():
         NIR_IDX = [t * nb + NIR_IDX_IN_STEP for t in range(steps)]
         print(f"Bandes NDVI : repli POSITIONNEL ({steps} pas, 30/pas) "
               f"— noms non exploitables ({len(names)} lignes).")
+
+    CLIM_IDX = {k: v for k, v in clim.items() if v}
+    if CLIM_IDX:
+        print("Bandes climat resolues par NOM : "
+              + ", ".join(f"{k}({len(v)})" for k, v in CLIM_IDX.items()))
+    else:
+        print("Bandes climat : aucune resolue (noms non exploitables) "
+              "-> features climat ignorees.")
 
 
 def _center(flat_cube: np.ndarray) -> np.ndarray:
@@ -141,29 +163,53 @@ def _features_from_cube(cube: np.ndarray) -> np.ndarray:
     for v in NODATA_VALUES:
         c[c == v] = np.nan
     # 2) Fenetre centrale (la culture, pas le decor).
-    win = _center(c)                                  # (360, 225)
+    win = _center(c)                                  # (360, 81) en 9x9
     with np.errstate(all="ignore"):
         mean = np.nanmean(win, axis=1)                # (360,)
         std = np.nanstd(win, axis=1)
     mean = np.nan_to_num(mean)
     std = np.nan_to_num(std)
-    feats = [mean, std]
 
     # 3) NDVI mensuel apparie par nom, borne [-1,1].
+    ndvi = np.zeros(0, dtype=np.float32)
     if RED_IDX and NIR_IDX:
-        red = mean[RED_IDX]
-        nir = mean[NIR_IDX]
+        red, nir = mean[RED_IDX], mean[NIR_IDX]
         denom = nir + red
         ndvi = np.where(denom != 0, (nir - red) / denom, 0.0)
         ndvi = np.clip(np.nan_to_num(ndvi), -1.0, 1.0).astype(np.float32)
+
+    if COMPACT_FEATURES:
+        # ~30 features agronomiques : NDVI (serie + stats) + agregats climat.
+        feats = []
+        if ndvi.size:
+            feats.append(ndvi)                          # courbe de verdure
+            feats.append(np.array([
+                ndvi.mean(), ndvi.max(), ndvi.min(), ndvi.std(),
+                float(ndvi.sum()), float(ndvi.argmax()),
+                float(ndvi.max() - ndvi.min()),
+            ], dtype=np.float32))
+        for name in CLIM_TARGETS:
+            idx = CLIM_IDX.get(name)
+            if not idx:
+                continue
+            serie = mean[idx]
+            feats.append(np.array([
+                float(np.nansum(serie)), float(np.nanmean(serie)),
+                float(np.nanmax(serie)), float(np.nanargmax(serie)),
+            ], dtype=np.float32))
+        if not feats:                                   # garde-fou : jamais vide
+            feats = [mean]
+        return np.nan_to_num(np.concatenate(feats))
+
+    # Mode complet (739) : moyennes + ecarts-types de tous les canaux + NDVI.
+    feats = [mean, std]
+    if ndvi.size:
         feats.append(ndvi)
         feats.append(np.array([
             ndvi.mean(), ndvi.max(), ndvi.min(), ndvi.std(),
-            float(ndvi.sum()),                 # AUC ~ biomasse cumulee
-            float(ndvi.argmax()),              # mois du pic de verdure
-            float(ndvi.max() - ndvi.min()),    # amplitude saisonniere
+            float(ndvi.sum()), float(ndvi.argmax()),
+            float(ndvi.max() - ndvi.min()),
         ], dtype=np.float32))
-
     return np.nan_to_num(np.concatenate(feats))
 
 
@@ -191,6 +237,10 @@ def construire_dataset():
     decode_bands()
     df = pd.read_csv(TRAIN_CSV)
     print(f"Train.csv : {df.shape[0]} lignes — colonnes {list(df.columns)}")
+    if QUALITY_COL in df.columns:
+        vc = df[QUALITY_COL].value_counts().sort_index()
+        print(f"Distribution {QUALITY_COL} : {dict(vc)}  "
+              f"(MIN_QUALITY={MIN_QUALITY} — regler selon la doc du dataset)")
     if MIN_QUALITY is not None and QUALITY_COL in df.columns:
         avant = len(df)
         df = df[df[QUALITY_COL] >= MIN_QUALITY]
