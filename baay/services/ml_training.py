@@ -66,6 +66,7 @@ def entrainer_culture(
     declencheur: str = "manuel",
     output_dir: str | None = None,
     forcer_remplacement: bool = False,
+    inclure_synthetique: bool = False,
 ) -> dict | None:
     """
     Entraîne ou ré-entraîne un modèle XGBoost pour ``culture_nom``.
@@ -112,6 +113,9 @@ def entrainer_culture(
     culture_slug = _slug(culture_nom)
 
     # ── Chargement du dataset pour cette culture ──────────────────────────────
+    # GARDE-FOU INTEGRITE : on exclut par defaut les observations SYNTHETIQUES
+    # (donnees generees par seed). Les inclure ferait reapprendre le generateur
+    # au modele -> R2 artificiellement parfait, predictions factices en prod.
     qs = (
         PrevisionFeatures.objects.filter(
             rendement_reel__isnull=False,
@@ -122,6 +126,14 @@ def entrainer_culture(
             "prevision__projet_produit__projet",
         )
     )
+    if not inclure_synthetique:
+        n_synth = qs.filter(synthetique=True).count()
+        qs = qs.filter(synthetique=False)
+        if n_synth:
+            logger.info(
+                "[%s] %d observations synthetiques (seed) EXCLUES de l'entrainement.",
+                culture_nom, n_synth,
+            )
 
     rows = []
     for feat in qs.iterator(chunk_size=500):
@@ -309,8 +321,9 @@ def cultures_a_reentrainer(min_new_obs: int = MIN_NEW_OBS_AUTO) -> list[str]:
     from baay.models import MLModeleInfo, PrevisionFeatures
     from baay.services.ml_service import _slug
 
+    # Exclut le synthetique (seed) : seul le vrai terrain declenche un reentrainement.
     cultures = list(
-        PrevisionFeatures.objects.filter(rendement_reel__isnull=False)
+        PrevisionFeatures.objects.filter(rendement_reel__isnull=False, synthetique=False)
         .values_list("prevision__projet_produit__produit__nom", flat=True)
         .distinct()
     )
@@ -324,6 +337,7 @@ def cultures_a_reentrainer(min_new_obs: int = MIN_NEW_OBS_AUTO) -> list[str]:
 
         qs = PrevisionFeatures.objects.filter(
             rendement_reel__isnull=False,
+            synthetique=False,
             prevision__projet_produit__produit__nom__iexact=culture_nom,
         )
         if last_date is not None:
