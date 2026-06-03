@@ -47,42 +47,46 @@ YEAR_COL     = "Year"
 QUALITY_COL  = "Quality"
 MIN_QUALITY  = None        # ex: 1 → ne garder que les labels de bonne qualité (None = tout)
 
-# Structure Bandnames.txt (Zindi CGIAR) : 360 = 12 pas de temps × 30 bandes.
-# Par pas : 16 Sentinel-2 (B1,B2,B3,B4,B5,B6,B7,B8,B8A,B9,B10,B11,B12,QA10,QA20,QA60)
-#           + 14 TerraClimate (aet,def,pdsi,pet,pr,ro,soil,srad,swe,tmmn,tmmx,vap,vpd,vs).
-# NDVI = (B8 - B4)/(B8 + B4)  → B4=position 3, B8=position 7 dans le pas.
+# Structure Bandnames.txt (Zindi CGIAR) — CONFIRMEE : 360 = 12 pas x 30 bandes,
+# ordre TEMPS-MAJOR. Offsets dans chaque pas de 30 bandes :
 N_BANDS_PER_STEP = 30
-RED_IDX_IN_STEP  = 3        # B4 (repli si Bandnames illisible)
-NIR_IDX_IN_STEP  = 7        # B8 (repli)
+ARR_SHAPE        = (360, 41, 41)
+N_STEPS          = ARR_SHAPE[0] // N_BANDS_PER_STEP   # 12
+
+BAND_OFFSET = {
+    # Sentinel-2 (reflectance, 0..15)
+    "B1": 0, "B2": 1, "B3": 2, "B4": 3, "B5": 4, "B6": 5, "B7": 6, "B8": 7,
+    "B8A": 8, "B9": 9, "B10": 10, "B11": 11, "B12": 12,
+    "QA10": 13, "QA20": 14, "QA60": 15,
+    # TerraClimate (16..29)
+    "aet": 16, "def": 17, "pdsi": 18, "pet": 19, "pr": 20, "ro": 21, "soil": 22,
+    "srad": 23, "swe": 24, "tmmn": 25, "tmmx": 26, "vap": 27, "vpd": 28, "vs": 29,
+}
+S2_OFFSETS = tuple(range(16))     # bandes optiques (0 = nodata) ; climat: 0 reel
+QA60_OFFSET = 15                  # masque nuages Sentinel-2
+
+# Variables climat retenues : pilotes inter-annuels du rendement sahelien.
+CLIM_TARGETS = ("pr", "pet", "def", "pdsi", "soil", "aet", "tmmx", "tmmn")
 
 MIN_R2       = 0.30
 OUTPUT_PKL   = "/kaggle/working/yield_nowcast.pkl"
 RANDOM_STATE = 42
-ARR_SHAPE    = (360, 41, 41)
 
-# Fenetre centrale (anti pixel-mixte) : sous-carre au centre du patch 41x41.
-# 4 -> 9x9 (~0.8 ha) : parcelles paysannes sahéliennes < 2 ha.
+# Fenetre centrale (anti pixel-mixte) : 4 -> 9x9 (~0.8 ha), parcelles < 2 ha.
 CENTER_HALF  = 4
-# Valeurs aberrantes / nodata a masquer (reflectance plausible apres correction).
-NODATA_VALUES = (-9999.0, 0.0)
-
-# Mode compact : ~30 features agronomiques (NDVI + climat) au lieu de 739.
-# Combat le fleau de la dimensionnalite (739 features / 2977 obs => sur-apprentissage
-# sous GroupKFold par annee). Passez a False pour comparer avec le set complet.
+# Mode compact : features agronomiques (indices vegetation + climat) vs set complet.
 COMPACT_FEATURES = True
+# Masquage des pixels nuageux via QA60 avant moyenne (anti-bruit optique).
+USE_QA60_MASK = True
 
-# Indices resolus depuis Bandnames.txt (remplis par decode_bands()).
-RED_IDX: list[int] = []
-NIR_IDX: list[int] = []
-# Bandes climat TerraClimate appariees par NOM : {nom: [indices par pas de temps]}.
-CLIM_IDX: dict[str, list[int]] = {}
-# Variables climat ciblees : pilotes inter-annuels du rendement sahelien.
-# pr=pluie, pet=evapotranspiration pot., def=deficit hydrique, pdsi=indice
-# secheresse, soil=humidite sol, aet=ET reelle, tmmx/tmmn=temperatures.
-CLIM_TARGETS = ("pr", "pet", "def", "pdsi", "soil", "aet", "tmmx", "tmmn")
-# Offsets S2 (reflectance) dans chaque pas de 30 bandes : 0..15. Le 0 = nodata
-# UNIQUEMENT pour ces bandes ; pour le climat, 0 est une vraie valeur.
-S2_OFFSETS = tuple(range(16))
+# Indices de vegetation = (A-B)/(A+B) sur bandes nommees. red-edge B5 = NDRE
+# (azote/biomasse), B3 vert = GCVI/NDWI. Tous insensibles a l'echelle.
+VEG_INDICES = {
+    "NDVI": ("B8", "B4"),   # verdure / vigueur
+    "NDRE": ("B8", "B5"),   # red-edge : azote, biomasse (souvent + predictif)
+    "GNDVI": ("B8", "B3"),  # chlorophylle (vert)
+    "NDWI": ("B3", "B8"),   # eau / stress hydrique
+}
 
 
 def _load_array(field_id) -> np.ndarray | None:
@@ -98,128 +102,114 @@ def _load_array(field_id) -> np.ndarray | None:
     return None
 
 
+def _channels(band: str) -> list[int]:
+    """Indices des 12 pas de temps pour une bande nommee (carte d'offsets figee)."""
+    off = BAND_OFFSET[band]
+    return [t * N_BANDS_PER_STEP + off for t in range(N_STEPS)]
+
+
 def decode_bands():
     """
-    Lit Bandnames.txt et resout RED_IDX / NIR_IDX par NOM (robuste a l'ordre
-    bande-major OU temps-major). On apparie les indices red(B4) et NIR(B8) pas
-    a pas : pour chaque pas de temps t, on a un index red et un index NIR.
-    Repli positionnel (30/pas) si les noms sont illisibles.
+    Verifie que Bandnames.txt correspond a la structure figee (temps-major,
+    30 bandes/pas). Si le fichier est lisible, on controle les 30 premiers noms ;
+    sinon on fait confiance a la carte d'offsets (structure deja confirmee).
     """
-    global RED_IDX, NIR_IDX, CLIM_IDX
-    import re
     try:
         names = [l.strip() for l in open(BANDNAMES) if l.strip()]
     except Exception:
         names = []
 
-    red_pos, nir_pos = [], []
-    clim: dict[str, list[int]] = {k: [] for k in CLIM_TARGETS}
     if len(names) == ARR_SHAPE[0]:
-        for i, n in enumerate(names):
-            u = n.upper()
-            toks = [t for t in re.split(r"[^A-Za-z0-9]+", n.lower()) if t]
-            # NIR = B8 (pas B8A) ; RED = B4.
-            if "B08" in u or (("B8" in u) and ("B8A" not in u)):
-                nir_pos.append(i)
-            elif "B04" in u or "B4" in u:
-                red_pos.append(i)
-            # Climat TerraClimate : appariement par token exact.
-            for tgt in CLIM_TARGETS:
-                aliases = {"pr": ("pr", "ppt", "prcp", "precip")}.get(tgt, (tgt,))
-                if any(a in toks for a in aliases):
-                    clim[tgt].append(i)
-
-    if red_pos and nir_pos and len(red_pos) == len(nir_pos):
-        RED_IDX, NIR_IDX = red_pos, nir_pos
-        print(f"Bandes NDVI resolues par NOM : {len(RED_IDX)} pas "
-              f"(red ex={RED_IDX[:3]} nir ex={NIR_IDX[:3]})")
+        # Controle : le nom du pas 0 doit finir par la bande attendue a l'offset.
+        ok = all(names[off].upper().endswith(b.upper())
+                 for b, off in BAND_OFFSET.items())
+        if ok:
+            print("Bandnames.txt verifie : structure temps-major confirmee (30/pas).")
+        else:
+            print("ATTENTION : Bandnames.txt ne colle pas a la carte d'offsets ! "
+                  f"pas0[3]={names[3]!r} attendu *B4. Verifier l'ordre.")
     else:
-        nb, steps = N_BANDS_PER_STEP, ARR_SHAPE[0] // N_BANDS_PER_STEP
-        RED_IDX = [t * nb + RED_IDX_IN_STEP for t in range(steps)]
-        NIR_IDX = [t * nb + NIR_IDX_IN_STEP for t in range(steps)]
-        print(f"Bandes NDVI : repli POSITIONNEL ({steps} pas, 30/pas) "
-              f"— noms non exploitables ({len(names)} lignes).")
-
-    CLIM_IDX = {k: v for k, v in clim.items() if v}
-    if CLIM_IDX:
-        print("Bandes climat resolues par NOM : "
-              + ", ".join(f"{k}({len(v)})" for k, v in CLIM_IDX.items()))
-    else:
-        print("Bandes climat : aucune resolue (noms non exploitables) "
-              "-> features climat ignorees.")
+        print(f"Bandnames.txt illisible ({len(names)} lignes) "
+              "-> carte d'offsets figee utilisee (structure confirmee).")
+    print("Indices vegetation actifs :", ", ".join(VEG_INDICES))
+    print("Variables climat actives  :", ", ".join(CLIM_TARGETS))
 
 
 def _center(flat_cube: np.ndarray) -> np.ndarray:
-    """Retourne le sous-cube central 15x15 aplati en (360, k) pour anti pixel-mixte."""
+    """Sous-cube central 9x9 aplati en (360, k) — anti pixel-mixte."""
     h = ARR_SHAPE[1] // 2
     s = slice(h - CENTER_HALF, h + CENTER_HALF + 1)
     return flat_cube[:, s, s].reshape(flat_cube.shape[0], -1)
 
 
+def _index_series(mean: np.ndarray, a_band: str, b_band: str) -> np.ndarray:
+    """Indice normalise (A-B)/(A+B) par pas de temps, borne [-1,1]."""
+    a = mean[_channels(a_band)]
+    b = mean[_channels(b_band)]
+    denom = a + b
+    s = np.where(denom != 0, (a - b) / denom, 0.0)
+    return np.clip(np.nan_to_num(s), -1.0, 1.0).astype(np.float32)
+
+
+def _serie_stats(s: np.ndarray) -> np.ndarray:
+    """Stats agronomiques d'une serie temporelle (phenologie)."""
+    return np.array([
+        s.mean(), s.max(), s.min(), s.std(),
+        float(s.sum()),                 # AUC ~ cumul saisonnier
+        float(np.argmax(s)),            # mois du pic
+        float(s.max() - s.min()),       # amplitude
+    ], dtype=np.float32)
+
+
 def _features_from_cube(cube: np.ndarray) -> np.ndarray:
     """
-    (360,41,41) -> vecteur de features (anti-nuages / anti pixel-mixte).
-      - nodata (-9999, 0) -> NaN avant toute statistique
-      - stats spatiales sur la FENETRE CENTRALE 15x15 (pas tout le patch)
-      - NDVI temporel borne [-1,1], apparie par nom de bande
+    (360,41,41) -> features (anti-nuages QA60 + anti pixel-mixte + multi-indices).
     """
     c = cube.astype(np.float32)
-    # 1) Masquage nodata : -9999 partout ; 0 SEULEMENT sur les bandes S2
-    #    (offsets 0..15 de chaque pas) — pour le climat, 0 est une vraie valeur.
-    c[c == -9999.0] = np.nan
     nb = N_BANDS_PER_STEP
-    s2_channels = [t * nb + o for t in range(c.shape[0] // nb) for o in S2_OFFSETS]
+
+    # 1) nodata : -9999 partout ; 0 seulement sur les bandes S2 (climat: 0 reel).
+    c[c == -9999.0] = np.nan
+    s2_channels = [t * nb + o for t in range(N_STEPS) for o in S2_OFFSETS]
     sub = c[s2_channels]
     sub[sub == 0.0] = np.nan
     c[s2_channels] = sub
-    # 2) Fenetre centrale (la culture, pas le decor).
-    win = _center(c)                                  # (360, 81) en 9x9
+
+    # 2) Masquage nuages via QA60 : par pas, on annule les pixels S2 nuageux.
+    if USE_QA60_MASK:
+        for t in range(N_STEPS):
+            qa = c[t * nb + QA60_OFFSET]                 # (41,41)
+            cloudy = np.nan_to_num(qa) > 0               # QA60 != 0 => nuage/cirrus
+            if cloudy.any():
+                for o in S2_OFFSETS:
+                    ch = c[t * nb + o]
+                    ch[cloudy] = np.nan
+                    c[t * nb + o] = ch
+
+    # 3) Fenetre centrale + moyenne robuste (NaN ignores).
+    win = _center(c)
     with np.errstate(all="ignore"):
-        mean = np.nanmean(win, axis=1)                # (360,)
-        std = np.nanstd(win, axis=1)
-    mean = np.nan_to_num(mean)
-    std = np.nan_to_num(std)
+        mean = np.nan_to_num(np.nanmean(win, axis=1))    # (360,)
+        std = np.nan_to_num(np.nanstd(win, axis=1))
 
-    # 3) NDVI mensuel apparie par nom, borne [-1,1].
-    ndvi = np.zeros(0, dtype=np.float32)
-    if RED_IDX and NIR_IDX:
-        red, nir = mean[RED_IDX], mean[NIR_IDX]
-        denom = nir + red
-        ndvi = np.where(denom != 0, (nir - red) / denom, 0.0)
-        ndvi = np.clip(np.nan_to_num(ndvi), -1.0, 1.0).astype(np.float32)
-
-    if COMPACT_FEATURES:
-        # ~30 features agronomiques : NDVI (serie + stats) + agregats climat.
-        feats = []
-        if ndvi.size:
-            feats.append(ndvi)                          # courbe de verdure
-            feats.append(np.array([
-                ndvi.mean(), ndvi.max(), ndvi.min(), ndvi.std(),
-                float(ndvi.sum()), float(ndvi.argmax()),
-                float(ndvi.max() - ndvi.min()),
-            ], dtype=np.float32))
-        for name in CLIM_TARGETS:
-            idx = CLIM_IDX.get(name)
-            if not idx:
-                continue
-            serie = mean[idx]
-            feats.append(np.array([
-                float(np.nansum(serie)), float(np.nanmean(serie)),
-                float(np.nanmax(serie)), float(np.nanargmax(serie)),
-            ], dtype=np.float32))
-        if not feats:                                   # garde-fou : jamais vide
-            feats = [mean]
-        return np.nan_to_num(np.concatenate(feats))
-
-    # Mode complet (739) : moyennes + ecarts-types de tous les canaux + NDVI.
-    feats = [mean, std]
-    if ndvi.size:
-        feats.append(ndvi)
+    feats = []
+    # 4) Multi-indices de vegetation : serie + stats phenologiques.
+    for name, (a, b) in VEG_INDICES.items():
+        s = _index_series(mean, a, b)
+        if name == "NDVI":
+            feats.append(s)                              # serie complete pour NDVI
+        feats.append(_serie_stats(s))
+    # 5) Climat (pilotes inter-annuels) : agregats par variable.
+    for name in CLIM_TARGETS:
+        serie = mean[_channels(name)]
         feats.append(np.array([
-            ndvi.mean(), ndvi.max(), ndvi.min(), ndvi.std(),
-            float(ndvi.sum()), float(ndvi.argmax()),
-            float(ndvi.max() - ndvi.min()),
+            float(np.nansum(serie)), float(np.nanmean(serie)),
+            float(np.nanmax(serie)), float(np.nanargmax(serie)),
         ], dtype=np.float32))
+
+    if not COMPACT_FEATURES:
+        feats = [mean, std] + feats                      # + tous les canaux bruts
+
     return np.nan_to_num(np.concatenate(feats))
 
 
@@ -371,8 +361,11 @@ def main():
         "n_features": int(X.shape[1]),
         "config": {
             "N_BANDS_PER_STEP": N_BANDS_PER_STEP,
-            "RED_IDX_IN_STEP": RED_IDX_IN_STEP,
-            "NIR_IDX_IN_STEP": NIR_IDX_IN_STEP,
+            "band_offset": BAND_OFFSET,
+            "veg_indices": VEG_INDICES,
+            "clim_targets": CLIM_TARGETS,
+            "center_half": CENTER_HALF,
+            "use_qa60_mask": USE_QA60_MASK,
             "arr_shape": ARR_SHAPE,
         },
         "meta": {
