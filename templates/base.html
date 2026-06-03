@@ -684,7 +684,11 @@
         let isListening = false;
 
         function getCsrfToken() {
-            let cookieValue = null;
+            const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (tokenInput && tokenInput.value) {
+                return tokenInput.value;
+            }
+            let cookieValue = '';
             if (document.cookie && document.cookie !== '') {
                 const cookies = document.cookie.split(';');
                 for (let i = 0; i < cookies.length; i++) {
@@ -789,14 +793,20 @@
         async function sendCommand(text) {
             showModal('processing', 'Analyse en cours...', text);
             try {
+                const csrfToken = getCsrfToken();
+                const body = new URLSearchParams();
+                body.set('text', text);
+                body.set('context', JSON.stringify(captureVoiceContext()));
+                if (csrfToken) {
+                    body.set('csrfmiddlewaretoken', csrfToken);
+                }
                 const res = await fetch('{% url "api_voice_command" %}', {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': getCsrfToken(),
+                        'X-CSRFToken': csrfToken,
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: 'text=' + encodeURIComponent(text)
-                         + '&context=' + encodeURIComponent(JSON.stringify(captureVoiceContext()))
+                    body: body.toString()
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();

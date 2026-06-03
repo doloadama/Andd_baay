@@ -2,9 +2,11 @@
 # Copilote vocal (système existant api_voice_command) + extension slot-filling.
 import json
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.middleware.csrf import _get_new_csrf_string, _mask_cipher_secret
+from django.test import Client, TestCase, override_settings
 
 
 @override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60})
@@ -28,9 +30,32 @@ class VoiceCommandTest(TestCase):
         self.assertEqual(data["action"], "redirect")
         self.assertEqual(data["redirect"], "/dashboard/")
 
+    @override_settings(CSRF_COOKIE_HTTPONLY=True)
+    def test_navigation_accepte_token_csrf_dans_le_corps(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user)
+        csrf_secret = _get_new_csrf_string()
+        csrf_client.cookies[settings.CSRF_COOKIE_NAME] = csrf_secret
+
+        response = csrf_client.post(self.url, {
+            "text": "va au tableau de bord",
+            "csrfmiddlewaretoken": _mask_cipher_secret(csrf_secret),
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["redirect"], "/dashboard/")
+
     def test_fallback_sans_contexte(self):
         data = self._cmd("xyzzy blabla").json()
         self.assertEqual(data["action"], "speak")
+
+    def test_recherche_vocale_ne_declenche_pas_500(self):
+        response = self._cmd("cherche tomate")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["action"], "speak")
+        self.assertIn("recherche vocale de tomate", data["message"])
 
     # ── Slot-filling (nouveau) ──────────────────────────────────────────────
     def test_fill_premier_champ_vide(self):
