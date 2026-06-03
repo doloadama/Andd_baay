@@ -258,7 +258,7 @@ def construire_dataset():
         df = df[df[QUALITY_COL] >= MIN_QUALITY]
         print(f"Filtre qualité ≥ {MIN_QUALITY} : {avant} → {len(df)} lignes")
 
-    X, y, years, ok = [], [], [], 0
+    X, y, years, quals, ok = [], [], [], [], 0
     for _, row in df.iterrows():
         cube = _load_array(row[ID_COL])
         if cube is None:
@@ -267,13 +267,15 @@ def construire_dataset():
             X.append(_features_from_cube(cube))
             y.append(float(row[TARGET_COL]))
             years.append(row.get(YEAR_COL, 0))
+            quals.append(row.get(QUALITY_COL, 0))
             ok += 1
         except Exception:
             continue
     print(f"Cubes chargés et vectorisés : {ok}/{len(df)}")
     if ok == 0:
         raise RuntimeError("Aucun cube chargé — vérifie IMG_DIR / noms de fichiers.")
-    return np.vstack(X), np.array(y, dtype=float), np.array(years)
+    return (np.vstack(X), np.array(y, dtype=float),
+            np.array(years), np.array(quals))
 
 
 def _cv_scores(model, X, y, splits):
@@ -310,16 +312,52 @@ def evaluer(model, X, y, years):
     return r2, rmse, mae, r2_base
 
 
-def main():
-    X, y, years = construire_dataset()
-    print(f"\nMatrice features : {X.shape}  | cible moy={y.mean():.1f} σ={y.std():.1f}")
-
-    model = XGBRegressor(
+def _new_model():
+    return XGBRegressor(
         n_estimators=500, max_depth=5, learning_rate=0.03,
         subsample=0.8, colsample_bytree=0.7,
         random_state=RANDOM_STATE, verbosity=0, n_jobs=-1,
     )
+
+
+def ablation_qualite(X, y, years, quals):
+    """Le bruit des labels plafonne-t-il le R² ? Compare des sous-ensembles Quality.
+    Eval = KFold aleatoire (rapide) ; GroupKFold/annee si >=2 annees dans le sous-ensemble."""
+    niveaux = sorted(set(int(q) for q in quals if q))
+    if not niveaux:
+        return
+    print("\n──────────── ABLATION QUALITÉ (le bruit des labels plafonne-t-il ?) ────────────")
+    sous_ensembles = []
+    for q in niveaux:                       # qualite exacte
+        sous_ensembles.append((f"Quality=={q}", quals == q))
+    for q in niveaux[:-1]:                   # cumulatif <= q
+        sous_ensembles.append((f"Quality<={q}", quals <= q))
+    sous_ensembles.append(("TOUT", np.ones(len(y), dtype=bool)))
+
+    kf = KFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    for label, mask in sous_ensembles:
+        n = int(mask.sum())
+        if n < 100:
+            print(f"  {label:<14} n={n:<5} (trop peu — ignore)")
+            continue
+        Xs, ys, ys_years = X[mask], y[mask], years[mask]
+        r2_rand, _, _ = _cv_scores(_new_model(), Xs, ys, list(kf.split(Xs)))
+        line = f"  {label:<14} n={n:<5} KFold R²={r2_rand:+.3f}"
+        n_an = len(set(ys_years.tolist()))
+        if n_an >= 2:
+            gkf = GroupKFold(n_splits=min(5, n_an))
+            r2_grp, _, _ = _cv_scores(_new_model(), Xs, ys, list(gkf.split(Xs, ys, ys_years)))
+            line += f"  |  GroupKFold/annee R²={r2_grp:+.3f}"
+        print(line)
+
+
+def main():
+    X, y, years, quals = construire_dataset()
+    print(f"\nMatrice features : {X.shape}  | cible moy={y.mean():.1f} σ={y.std():.1f}")
+
+    model = _new_model()
     r2, rmse, mae, r2_base = evaluer(model, X, y, years)
+    ablation_qualite(X, y, years, quals)
     print("\n──────────── MÉTRIQUES HONNÊTES (CV) ────────────")
     print(f"  R²    : {r2:.3f}   (baseline 'moyenne' = {r2_base:.3f})")
     print(f"  RMSE  : {rmse:.1f}")
