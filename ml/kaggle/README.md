@@ -46,8 +46,34 @@ pic, amplitude). Vérifié sur cube synthétique (NDVI correct, sans NaN).
 Seuls les **chemins** restent à ajuster selon le sous-dossier exact du dataset
 attaché (`TRAIN_CSV`, `IMG_DIR`, `BANDNAMES`).
 
-## Intégration app (étape suivante)
-Le `.pkl` n'est **pas** branché à l'app pour l'instant : c'est un modèle
-satellite (features cube), pas le modèle pré-campagne par culture. Le brancher
-suppose de reconstruire le même vecteur de features à l'inférence (NDVI/bandes
-depuis `ndvi_service`) — à faire ensemble une fois le modèle validé sur Kaggle.
+## Verdict final (campagne d'optimisation complète)
+
+Structure confirmée : `0_S2_B1 … 0_CLIM_vs, 1_S2_B1 …` = **12 pas × 30 bandes**,
+temps-major. NDVI = B8/B4 (offsets 7/3). Décodage **correct dès le départ**.
+
+| Version | features | KFold aléatoire | GroupKFold/année (réf.) |
+|---|---|---|---|
+| NDVI seul | 19 | 0.097 | −0.085 |
+| + climat TerraClimate | 51 | 0.182 | −0.023 |
+| + QA60 + red-edge + interpolation + régul. | 72 | **0.212** | **+0.046** |
+| baseline « moyenne » (mêmes splits CV) | — | — | −0.047 |
+
+Filtre qualité : `Quality<=2` → GroupKFold 0.060 ; `Quality==3` (44 %) = bruit.
+
+**Conclusion : signal réel mais trop faible.** R²≈0.05 inter-année = un rendement
+chiffré aurait ±53 % d'erreur (RMSE 1.7 t/ha pour moy 3.2). **Non déployable comme
+chiffre.** Prédire le rendement absolu d'une parcelle paysanne (<2 ha, sous la
+résolution Sentinel-2) sur 4 ans est intrinsèquement trop dur ici.
+
+**Tous les leviers honnêtes épuisés** : décodage ✓, centre 9×9 ✓, climat ✓,
+nuages QA60 ✓, red-edge NDRE ✓, interpolation ✓, régularisation ✓, filtre qualité ✓,
+baseline CV honnête ✓.
+
+## Ce qu'on en fait
+- **Pas de prédiction chiffrée** depuis le satellite.
+- Piste retenue : NDVI/NDRE comme **indicateur RELATIF** (« cette parcelle verdit
+  X % sous la médiane locale ») — label-free, robuste, déployable via `ndvi_service`.
+- Le rendement chiffré viendra du **modèle pré-campagne par culture** une fois de
+  **vraies** observations terrain accumulées (cf. `docs/project-state.md`).
+- Si un jour un dataset plus dense apparaît (plus d'années, parcelles plus grandes),
+  ce script reste prêt — réattacher les données suffit.
