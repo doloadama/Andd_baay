@@ -71,8 +71,15 @@ legacy (`--danger-`, `--success-`…) restent à remapper (Phase 3, non bloquant
   confiance base 50 « système à règles non validé »). Les seuils `MIN_TRAIN_OBS=30`
   / `MIN_R2=0.30` prendront le relais quand du **vrai `rendement_reel`** s'accumulera.
 
-**Vrai déblocage = instrumenter la capture de rendement réel terrain** (pesées /
-déclarations à la clôture des projets). C'est la seule voie vers un modèle légitime.
+**Capture du rendement réel — OPÉRATIONNELLE** (`modifier_projet`/`save_rendement`) :
+à la clôture, si aucune prévision n'existe, le vecteur de features est généré avant
+`pp.save()` → le signal `valider_label_ml_a_cloture` capture `(features, rendement_reel)`
+marqué `synthetique=False`. ⚠️ Bug corrigé au passage : `localite_id` (UUID) non
+sérialisable JSON cassait **toute** sauvegarde de `PrevisionFeatures` (label perdu) —
+voir `core_services` (`str(localite.id)`). Tests : `tests/test_cloture_capture_ml.py`.
+
+**Reste à faire** : accumuler ≥30 vraies obs/culture (usage terrain) pour que le
+modèle pré-campagne devienne légitime. Le pipeline est prêt à les recevoir.
 
 ## Branches actives (toutes poussées sauf indication)
 
