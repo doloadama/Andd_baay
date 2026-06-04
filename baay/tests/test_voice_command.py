@@ -8,7 +8,8 @@ from django.core.cache import cache
 from django.test import TestCase, override_settings
 
 
-@override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60})
+@override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60},
+                   SECURE_SSL_REDIRECT=False)
 class VoiceCommandTest(TestCase):
 
     def setUp(self):
@@ -67,7 +68,8 @@ class VoiceCommandTest(TestCase):
 
 
 @override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60},
-                   VOCAL_LLM_BACKEND="deepseek", VOCAL_TRANSLATION_BRIDGE=True)
+                   VOCAL_LLM_BACKEND="deepseek", VOCAL_TRANSLATION_BRIDGE=True,
+                   SECURE_SSL_REDIRECT=False)
 class VocalQueryApiTest(TestCase):
 
     def setUp(self):
