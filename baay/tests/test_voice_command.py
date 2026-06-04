@@ -1,6 +1,7 @@
 # baay/tests/test_voice_command.py
 # Copilote vocal (système existant api_voice_command) + extension slot-filling.
 import json
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -63,3 +64,39 @@ class VoiceCommandTest(TestCase):
         ctx = {"fields": [{"id": "id_actif", "type": "checkbox", "label": "Actif", "filled": False}]}
         data = self._cmd("zzz inconnu", context=ctx).json()
         self.assertEqual(data["action"], "speak")
+
+
+@override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60},
+                   VOCAL_LLM_BACKEND="deepseek", VOCAL_TRANSLATION_BRIDGE=True)
+class VocalQueryApiTest(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user("query-voice", password="pass1234")
+        self.client.force_login(self.user)
+        self.url = "/api/vocal-query/"
+
+    def test_api_vocal_query_reste_local_par_defaut(self):
+        payload = {"text": "kañ laa wara ji dugub", "locale_hint": "wo"}
+
+        with patch("baay.services.deepseek_responder.generate_response") as mk_llm, \
+             patch("baay.services.galsenai_service.wolof_to_french") as mk_to_fr, \
+             patch("baay.services.galsenai_service.french_to_wolof") as mk_to_wo:
+            response = self.client.post(
+                self.url,
+                data=json.dumps(payload),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["answer_text"])
+        mk_llm.assert_not_called()
+        mk_to_fr.assert_not_called()
+        mk_to_wo.assert_not_called()
+        self.assertTrue(any(
+            s.get("step") == "llm"
+            and s.get("backend") == "simulated"
+            and s.get("status") == "external_disabled"
+            for s in data["pipeline"]
+        ))
