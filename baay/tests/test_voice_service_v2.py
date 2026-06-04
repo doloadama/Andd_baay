@@ -102,6 +102,24 @@ class BackwardCompatTest(TestCase):
             self.assertIn(k, p)
         self.assertTrue(p["answer_text"])
 
+    @override_settings(VOCAL_LLM_BACKEND="deepseek", VOCAL_TRANSLATION_BRIDGE=True)
+    def test_run_vocal_query_pipeline_reste_local_par_defaut(self):
+        with patch("baay.services.deepseek_responder.generate_response") as mk_llm, \
+             patch("baay.services.galsenai_service.wolof_to_french") as mk_to_fr, \
+             patch("baay.services.galsenai_service.french_to_wolof") as mk_to_wo:
+            p = v.run_vocal_query_pipeline(transcript_text="kañ laa wara ji dugub", locale_hint="wo")
+
+        mk_llm.assert_not_called()
+        mk_to_fr.assert_not_called()
+        mk_to_wo.assert_not_called()
+        self.assertTrue(p["answer_text"])
+        self.assertTrue(any(
+            s.get("step") == "llm"
+            and s.get("backend") == "simulated"
+            and s.get("status") == "external_disabled"
+            for s in p["pipeline"]
+        ))
+
 
 @override_settings(VOCAL_STT_BACKEND="simulated", VOCAL_LLM_BACKEND="simulated",
                    VOCAL_TTS_BACKEND="simulated", VOCAL_TRANSLATION_BRIDGE=False)

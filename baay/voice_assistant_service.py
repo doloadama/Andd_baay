@@ -355,9 +355,9 @@ def transcribe(audio_bytes: bytes, *, mime_type: str = "audio/webm", locale_hint
 # PONT DE TRADUCTION (NLLB Wolof ↔ Français)
 # ============================================================================
 
-def _to_french(text: str, locale_hint: str) -> tuple[str, bool]:
+def _to_french(text: str, locale_hint: str, *, allow_external_backends: bool = True) -> tuple[str, bool]:
     """Traduit vers le français si locale=wo et pont actif. Retourne (texte_fr, traduit?)."""
-    if locale_hint[:2].lower() == "wo" and _translation_bridge_enabled():
+    if allow_external_backends and locale_hint[:2].lower() == "wo" and _translation_bridge_enabled():
         try:
             from baay.services.galsenai_service import wolof_to_french
             return wolof_to_french(text), True
@@ -366,9 +366,9 @@ def _to_french(text: str, locale_hint: str) -> tuple[str, bool]:
     return text, False
 
 
-def _to_wolof(text: str, *, did_translate: bool) -> str:
+def _to_wolof(text: str, *, did_translate: bool, allow_external_backends: bool = True) -> str:
     """Re-traduit la réponse FR→Wo si on avait traduit à l'aller."""
-    if did_translate:
+    if allow_external_backends and did_translate:
         try:
             from baay.services.galsenai_service import french_to_wolof
             return french_to_wolof(text)
@@ -467,6 +467,7 @@ def respond_stage(
     gps_lat: float | None = None,
     gps_lon: float | None = None,
     audio_url: str | None = None,
+    allow_external_backends: bool = True,
 ) -> VocalResult:
     """
     [Celery étape 2] Transcription → réponse.
@@ -494,8 +495,11 @@ def respond_stage(
                 f"({incident_result['gravite_display']}). Votre signalement est transmis "
                 f"au responsable de la ferme ; un suivi sera fait rapidement."
             )
-            ack = _to_wolof(ack_fr, did_translate=(locale_hint[:2].lower() == "wo"
-                                                   and _translation_bridge_enabled()))
+            ack = _to_wolof(
+                ack_fr,
+                did_translate=(locale_hint[:2].lower() == "wo" and _translation_bridge_enabled()),
+                allow_external_backends=allow_external_backends,
+            )
             pipeline += [
                 {"step": "incident_detection", "status": "detected",
                  "type": incident_type, "gravite": gravite, "confidence": round(confidence, 2)},
@@ -509,14 +513,37 @@ def respond_stage(
                 disclaimer="Incident transmis aux responsables de la ferme.",
             )
 
+    # ── Voie compatibilité locale : pas d'appel externe implicite ────────────
+    if not allow_external_backends:
+        answer = _draft_answer(transcript_text, _rag_simulated_snippets(transcript_text), locale_hint)
+        pipeline += [
+            {"step": "translate_in", "wo2fr": False, "status": "skipped_external_disabled"},
+            {"step": "llm", "backend": "simulated", "status": "external_disabled"},
+            {"step": "translate_out", "fr2wo": False, "status": "skipped_external_disabled"},
+        ]
+        result = VocalResult(
+            answer_text=answer, locale=locale_hint, pipeline=pipeline,
+            transcript=transcript_text,
+            disclaimer="Conseil indicatif ; vérifier les conditions locales avant action.",
+        )
+        if incident_type and not (ferme_id and profile_id):
+            result.incident = {
+                "incident_detecte": False, "type": incident_type, "gravite": gravite,
+                "reason": "Contexte ferme/utilisateur manquant — non enregistré.",
+            }
+            pipeline.append({"step": "incident_detection", "status": "detected_not_saved", "type": incident_type})
+        return result
+
     # ── Voie normale : pont de traduction + LLM ──────────────────────────────
-    question_fr, did_translate = _to_french(transcript_text, locale_hint)
+    question_fr, did_translate = _to_french(
+        transcript_text, locale_hint, allow_external_backends=allow_external_backends,
+    )
     pipeline.append({"step": "translate_in", "wo2fr": did_translate})
 
     answer_fr = _llm_answer_fr(question_fr)
     pipeline.append({"step": "llm", "backend": _llm_backend()})
 
-    answer = _to_wolof(answer_fr, did_translate=did_translate)
+    answer = _to_wolof(answer_fr, did_translate=did_translate, allow_external_backends=allow_external_backends)
     pipeline.append({"step": "translate_out", "fr2wo": did_translate})
 
     result = VocalResult(
@@ -733,19 +760,22 @@ def run_vocal_query_pipeline(
     profile_id: str | None = None,
     gps_lat: float | None = None,
     gps_lon: float | None = None,
+    allow_external_backends: bool = False,
 ) -> dict[str, Any]:
     """
     Pipeline texte → payload JSON (contrat préservé pour la vue existante).
-    Délègue à `respond_stage` (incident-first + pont + LLM modulaire).
+    Par défaut, garde le comportement historique local/simulé de l'endpoint
+    `/api/vocal-query/`; les backends externes doivent être demandés explicitement.
     """
     result = respond_stage(
         transcript_text=transcript_text, locale_hint=locale_hint,
         ferme_id=ferme_id, profile_id=profile_id, gps_lat=gps_lat, gps_lon=gps_lon,
+        allow_external_backends=allow_external_backends,
     )
     payload = result.to_dict()
     payload["transcript_normalized"] = _normalize_text(transcript_text)
     payload["system_directive_preview"] = SYSTEM_DIRECTIVE_SAHEL[:120] + "…"
     logger.info("vocal_query_pipeline locale=%s incident=%s llm=%s",
                 locale_hint, bool(result.incident and result.incident.get("incident_detecte")),
-                _llm_backend())
+                _llm_backend() if allow_external_backends else "simulated")
     return payload
