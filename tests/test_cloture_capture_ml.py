@@ -52,6 +52,17 @@ def test_cloture_sans_features_les_regenere(client_logged, projet, projet_produi
 
 
 @pytest.mark.django_db
+def test_detail_projet_actif_montre_cta_recolter(client_logged, projet, projet_produit):
+    """Découvrabilité : un projet actif affiche le CTA « Terminer & récolter »
+    qui mène au formulaire de saisie (?finish=1). Sans lui, la capture est morte."""
+    resp = client_logged.get(reverse("detail_projet", args=[projet.id]))
+    assert resp.status_code == 200
+    html = resp.content.decode()
+    assert "?finish=1" in html
+    assert "récolter" in html.lower() or "recolter" in html.lower()
+
+
+@pytest.mark.django_db
 def test_cloture_sans_rendement_ne_cree_pas_de_label(client_logged, projet, projet_produit):
     """Clôturer sans saisir de rendement ne doit pas fabriquer de faux label."""
     pp = projet_produit

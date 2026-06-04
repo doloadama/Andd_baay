@@ -532,6 +532,12 @@
                 <i class="fas fa-arrow-left"></i> Retour aux projets
             </a>
             <div class="d-flex gap-2">
+                {% if projet.statut != 'fini' and projet.statut != 'cloture' %}
+                <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="at-back-btn"
+                   style="background:#16a34a;color:#fff;border-color:#16a34a;font-weight:600;">
+                    <i class="fas fa-check-circle"></i> Terminer &amp; récolter
+                </a>
+                {% endif %}
                 <a href="{% url 'modifier_projet' projet.id %}" class="at-back-btn">
                     <i class="fas fa-edit"></i> Modifier
                 </a>
