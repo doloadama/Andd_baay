@@ -808,14 +808,33 @@ def modifier_projet(request, projet_id):
             plant_details_form = PlantDetailsForm(projet=projet)
             rendement_form = RendementFinalForm(request.POST, projet=projet)
             if rendement_form.is_valid():
+                from baay.models import PrevisionFeatures
                 for pp in projet.projet_produits.all():
                     rendement_key = f"rendement_{pp.id}"
                     date_key = f"date_recolte_{pp.id}"
+                    rendement_saisi = rendement_form.cleaned_data.get(rendement_key)
                     if rendement_key in rendement_form.cleaned_data:
-                        pp.rendement_final = rendement_form.cleaned_data[rendement_key]
+                        pp.rendement_final = rendement_saisi
                     if date_key in rendement_form.cleaned_data:
                         pp.date_recolte_effective = rendement_form.cleaned_data[date_key]
-                    pp.save()
+                    # ── Capture ML du rendement réel ──────────────────────────
+                    # Pour qu'un rendement saisi devienne un label d'entraînement,
+                    # il faut qu'un vecteur de features existe (le signal
+                    # valider_label_ml_a_cloture remplit rendement_reel dessus).
+                    # Si aucune prévision n'a été générée pendant la saison, on la
+                    # crée maintenant : les features PRÉ-CAMPAGNE (sol, pluie, culture,
+                    # mois de semis) sont invariantes, donc capturables a posteriori
+                    # sans fuite. L'observation est RÉELLE (synthetique=False par défaut).
+                    if rendement_saisi is not None and not PrevisionFeatures.objects.filter(
+                        prevision__projet_produit=pp
+                    ).exists():
+                        try:
+                            update_prediction_for_projet_produit(pp)
+                        except Exception as exc:
+                            logger.warning(
+                                "Capture features ML impossible pour %s : %s", pp, exc
+                            )
+                    pp.save()   # déclenche le signal valider_label_ml_a_cloture
                 if projet.statut != "fini":
                     projet.statut = "fini"
                     projet.save(update_fields=["statut"])
