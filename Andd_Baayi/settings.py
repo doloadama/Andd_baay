@@ -227,6 +227,7 @@ INSTALLED_APPS = [
     'corsheaders',             # Pour django-cors-headers
     'rest_framework_simplejwt',
     'django.contrib.sites',
+    'django.contrib.sitemaps',  # SEO : sitemap.xml dynamique
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -370,8 +371,8 @@ if _prod_like:
     _xfo = os.getenv("X_FRAME_OPTIONS", "DENY").upper()
     X_FRAME_OPTIONS = _xfo if _xfo in ("DENY", "SAMEORIGIN") else "DENY"
 
-    # HSTS: start small, raise progressively via env.
-    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "86400"))
+    # HSTS: 1 an par défaut (recommandation SEO/sécurité). Ajustable via env.
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "False").lower() in ("1", "true", "yes")
     SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "False").lower() in ("1", "true", "yes")
 

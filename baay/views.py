@@ -250,6 +250,25 @@ def confidentialite_view(request):
     return render(request, 'legal/confidentialite.html')
 
 
+def robots_txt(request):
+    """robots.txt servi dynamiquement (SEO). Autorise l'indexation publique,
+    écarte les espaces applicatifs/admin, et déclare le sitemap absolu."""
+    from django.http import HttpResponse
+
+    sitemap_url = request.build_absolute_uri("/sitemap.xml")
+    lignes = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /accounts/",
+        "Disallow: /api/",
+        "Disallow: /dashboard/",
+        "",
+        f"Sitemap: {sitemap_url}",
+    ]
+    return HttpResponse("\n".join(lignes) + "\n", content_type="text/plain; charset=utf-8")
+
+
 @login_required
 def onboarding_wizard_view(request):
     """Assistant première connexion : ferme (1) → projet (2) → diagnostic BaayVision (3)."""

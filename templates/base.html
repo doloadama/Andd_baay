@@ -21,6 +21,42 @@
     <meta property="og:type" content="website" />
     {% endblock %}
 
+    {# ── SEO : canonical + Open Graph/Twitter communs + données structurées ── #}
+    {% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" />
+    {% endblock %}
+
+    <meta property="og:site_name" content="Andd Baay" />
+    <meta property="og:locale" content="fr_SN" />
+    <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" />
+    {% block og_image %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'icons/icon-512x512.png' %}" />
+    {% endblock %}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'icons/icon-512x512.png' %}" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Andd Baay",
+          "url": "{{ request.scheme }}://{{ request.get_host }}/",
+          "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'icons/icon-512x512.png' %}",
+          "description": "Plateforme de gestion agricole et de prédiction de rendement pour les exploitations du Sénégal et du Sahel.",
+          "areaServed": "SN"
+        },
+        {
+          "@type": "WebSite",
+          "name": "Andd Baay",
+          "url": "{{ request.scheme }}://{{ request.get_host }}/",
+          "inLanguage": "fr"
+        }
+      ]
+    }
+    </script>
+
     {% block meta_tags %}{% endblock %}
     <meta name="theme-color" content="#1D9E75" />
 
