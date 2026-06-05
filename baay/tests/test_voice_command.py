@@ -1,13 +1,15 @@
 # baay/tests/test_voice_command.py
 # Copilote vocal (système existant api_voice_command) + extension slot-filling.
 import json
+import re
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 
 
-@override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60})
+@override_settings(VOICE_RATE_LIMIT={"max_requests": 1000, "window_seconds": 60},
+                   SECURE_SSL_REDIRECT=False)
 class VoiceCommandTest(TestCase):
 
     def setUp(self):
@@ -31,6 +33,33 @@ class VoiceCommandTest(TestCase):
     def test_fallback_sans_contexte(self):
         data = self._cmd("xyzzy blabla").json()
         self.assertEqual(data["action"], "speak")
+
+    def test_recherche_vocale_ne_crashe_pas_sans_route_globale(self):
+        resp = self._cmd("cherche mil")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["action"], "speak")
+        self.assertIn("recherche vocale globale", data["message"].lower())
+
+    def test_commande_accepte_token_csrf_rendu_dans_la_page(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user)
+
+        page = csrf_client.get("/")
+        token_match = re.search(
+            r'name="csrfmiddlewaretoken" value="([^"]+)"',
+            page.content.decode(),
+        )
+        self.assertIsNotNone(token_match)
+
+        resp = csrf_client.post(
+            self.url,
+            {"text": "va au tableau de bord"},
+            HTTP_X_CSRFTOKEN=token_match.group(1),
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["action"], "redirect")
 
     # ── Slot-filling (nouveau) ──────────────────────────────────────────────
     def test_fill_premier_champ_vide(self):

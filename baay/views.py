@@ -4182,7 +4182,9 @@ def api_voice_command(request):
             q = q.replace(k, '')
         q = q.strip()
         if q:
-            return redirect_action('recherche', f"Recherche de {q}.", kwargs={'q': q})
+            return speak_action(
+                f"Recherche de {q} demandée. La recherche vocale globale n'est pas encore disponible."
+            )
 
     # 11. Slot-filling : dictée vocale dans un champ de formulaire.
     # Si aucune commande connue ne matche ET qu'on est sur un formulaire avec un

@@ -684,6 +684,9 @@
         let isListening = false;
 
         function getCsrfToken() {
+            const fromInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (fromInput && fromInput.value) return fromInput.value;
+
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
                 const cookies = document.cookie.split(';');
