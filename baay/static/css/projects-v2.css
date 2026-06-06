@@ -68,7 +68,7 @@
 }
 
 .filter-chip-dot--fini {
-    background: var(--accent, #1d9e75);
+    background: var(--accent, var(--ab-color-primary));
 }
 
 .filter-chip.is-active[data-filter="en_cours"] {
@@ -84,8 +84,8 @@
 }
 
 .filter-chip.is-active[data-filter="fini"] {
-    background: rgba(29, 158, 117, 0.14);
-    border-color: rgba(29, 158, 117, 0.3);
+    background: rgba(var(--ab-color-primary-rgb), 0.14);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.3);
     color: var(--ab-accent-dark);
 }
 
@@ -140,8 +140,8 @@
 
 .project-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(29, 158, 117, 0.3);
-    box-shadow: 0 20px 40px rgba(29, 158, 117, 0.1), 0 8px 16px rgba(15, 23, 42, 0.06);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.3);
+    box-shadow: 0 20px 40px rgba(var(--ab-color-primary-rgb), 0.1), 0 8px 16px rgba(15, 23, 42, 0.06);
 }
 
 .project-card-status-badge {
@@ -173,8 +173,8 @@
 }
 
 .project-card-status-badge--fini {
-    background: rgba(29, 158, 117, 0.14);
-    border: 1px solid rgba(29, 158, 117, 0.24);
+    background: rgba(var(--ab-color-primary-rgb), 0.14);
+    border: 1px solid rgba(var(--ab-color-primary-rgb), 0.24);
     color: var(--ab-accent-dark);
 }
 
@@ -244,7 +244,7 @@
 }
 
 .progress-bar--en_pause {
-    background: linear-gradient(90deg, #f59e0b, #d97706);
+    background: linear-gradient(90deg, #f59e0b, var(--ab-color-warning));
 }
 
 .progress-bar--fini {
@@ -283,14 +283,14 @@
 }
 
 .project-list-item:hover {
-    background: rgba(29, 158, 117, 0.04);
-    border-color: rgba(29, 158, 117, 0.2);
+    background: rgba(var(--ab-color-primary-rgb), 0.04);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.2);
     transform: translateX(4px);
 }
 
 .project-list-item.is-selected {
-    background: rgba(29, 158, 117, 0.06);
-    border-color: rgba(29, 158, 117, 0.3);
+    background: rgba(var(--ab-color-primary-rgb), 0.06);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.3);
 }
 
 .project-list-item__main {
@@ -378,7 +378,7 @@
     background: var(--accent);
     color: #fff;
     font-size: 1.1rem;
-    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--ab-color-primary-rgb), 0.3);
 }
 
 .empty-state-title {

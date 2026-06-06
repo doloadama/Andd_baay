@@ -3,9 +3,9 @@
    ============================================================ */
 
 .inv-widget {
-    --ab-inv-brand: var(--ab-brand-primary, #1d9e75);
-    --ab-inv-deep: var(--ab-brand-deep, #085041);
-    --ab-inv-warn: #d97706;
+    --ab-inv-brand: var(--ab-brand-primary, var(--ab-color-primary));
+    --ab-inv-deep: var(--ab-brand-deep, var(--ab-color-primary-deep));
+    --ab-inv-warn: var(--ab-color-warning);
     --ab-inv-warn-bg: rgba(217, 119, 6, 0.12);
     --ab-inv-surface: var(--ab-card-bg-solid, #fff);
     --ab-inv-border: var(--ab-border-color, rgba(8, 80, 65, 0.1));
@@ -24,7 +24,7 @@
     border-bottom: 1px solid var(--ab-inv-border);
     background: linear-gradient(
         135deg,
-        rgba(29, 158, 117, 0.08) 0%,
+        rgba(var(--ab-color-primary-rgb), 0.08) 0%,
         rgba(239, 159, 39, 0.05) 100%
     );
 }
@@ -115,13 +115,13 @@
 
 .inv-stat:hover {
     color: inherit;
-    border-color: rgba(29, 158, 117, 0.35);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.35);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(8, 80, 65, 0.08);
 }
 
 .inv-stat:focus-visible {
-    outline: 3px solid rgba(29, 158, 117, 0.4);
+    outline: 3px solid rgba(var(--ab-color-primary-rgb), 0.4);
     outline-offset: 2px;
 }
 
@@ -279,8 +279,8 @@
 }
 
 .inv-action:hover {
-    background: rgba(29, 158, 117, 0.08);
-    border-color: rgba(29, 158, 117, 0.3);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.3);
     color: var(--ab-inv-deep);
 }
 
@@ -293,7 +293,7 @@
 .dark-mode .inv-widget__head {
     background: linear-gradient(
         135deg,
-        rgba(29, 158, 117, 0.15) 0%,
+        rgba(var(--ab-color-primary-rgb), 0.15) 0%,
         rgba(239, 159, 39, 0.08) 100%
     );
     border-bottom-color: rgba(255, 255, 255, 0.06);
@@ -323,7 +323,7 @@
 /* Buttons — dark mode */
 .dark-mode .inv-widget__manage {
     color: #fff;
-    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--ab-color-primary-rgb), 0.3);
 }
 
 .dark-mode .inv-action {
@@ -333,6 +333,6 @@
 
 .dark-mode .inv-action:hover {
     color: var(--ab-brand-light, #5dcaa5);
-    background: rgba(29, 158, 117, 0.14);
-    border-color: rgba(29, 158, 117, 0.4);
+    background: rgba(var(--ab-color-primary-rgb), 0.14);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.4);
 }

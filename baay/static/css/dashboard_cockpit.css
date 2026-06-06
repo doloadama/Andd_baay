@@ -23,12 +23,12 @@ main .container-modern:has(.dashboard-page) {
 }
 
 :root {
-    --ab-color-primary: #1D9E75;
-    --ab-color-primary-bg: rgba(29, 158, 117, 0.16);
-    --ab-color-depense: #b91c1c;
+    --ab-color-primary: var(--ab-color-primary);
+    --ab-color-primary-bg: rgba(var(--ab-color-primary-rgb), 0.16);
+    --ab-color-depense: var(--ab-color-depense);
     --ab-color-depense-bg: rgba(185, 28, 28, 0.15);
-    --ab-color-accent: #EF9F27;
-    --ab-color-terre: #78350f;
+    --ab-color-accent: var(--ab-color-accent);
+    --ab-color-terre: var(--ab-color-terre);
     --ab-color-text: #0f172a;
     --ab-color-background: #f8fafc;
 }
@@ -43,7 +43,7 @@ main .container-modern:has(.dashboard-page) {
     border: 1px solid rgba(8, 80, 65, 0.12);
     background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(244, 251, 248, 0.92)),
-        radial-gradient(circle at 0% 0%, rgba(29, 158, 117, 0.12), transparent 36%);
+        radial-gradient(circle at 0% 0%, rgba(var(--ab-color-primary-rgb), 0.12), transparent 36%);
     box-shadow: 0 12px 30px rgba(8, 80, 65, 0.08);
 }
 
@@ -467,17 +467,17 @@ body.dark-mode .cockpit-grid > .tile-kpi {
 
 .cockpit-grid > .tile-kpi .dash-stat-icon.green,
 .cockpit-grid > .tile-kpi .dash-stat-icon.teal {
-    background: linear-gradient(135deg, #1D9E75, #085041);
+    background: linear-gradient(135deg, var(--ab-color-primary), var(--ab-color-primary-deep));
 }
 
 .cockpit-grid > .tile-kpi .dash-stat-icon.orange {
-    background: linear-gradient(135deg, #EF9F27, #c2410c);
+    background: linear-gradient(135deg, var(--ab-color-accent), #c2410c);
 }
 
 .cockpit-grid > .tile-kpi .dash-stat-icon.blue,
 .cockpit-grid > .tile-kpi .dash-stat-icon.purple,
 .cockpit-grid > .tile-kpi .dash-stat-icon.accent {
-    background: linear-gradient(135deg, #5DCAA5, #1D9E75);
+    background: linear-gradient(135deg, #5DCAA5, var(--ab-color-primary));
 }
 
 .cockpit-grid > .tile-kpi .dash-stat-value {
@@ -570,7 +570,7 @@ body.dark-mode .cockpit-chart-loading {
     border-radius: 20px;
     border: 2px solid rgba(15, 23, 42, 0.1);
     background:
-        radial-gradient(circle at 12% 0%, rgba(29, 158, 117, 0.14), transparent 34%),
+        radial-gradient(circle at 12% 0%, rgba(var(--ab-color-primary-rgb), 0.14), transparent 34%),
         linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.09);
     cursor: default;
@@ -1244,8 +1244,8 @@ body.dark-mode .cockpit-project-gauge {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--ab-brand-primary);
-    background: rgba(29, 158, 117, 0.12);
-    border: 1px solid rgba(29, 158, 117, 0.25);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
+    border: 1px solid rgba(var(--ab-color-primary-rgb), 0.25);
     border-radius: 20px;
     padding: 2px 8px;
 }
@@ -1526,8 +1526,8 @@ body.dark-mode .bento-kpi-unit {
     border-radius: var(--ab-radius-input);
     transition: background 0.15s;
 }
-.bento-msg-item:hover { background: rgba(29, 158, 117, 0.06); }
-.bento-msg-item--unread { background: rgba(29, 158, 117, 0.08); }
+.bento-msg-item:hover { background: rgba(var(--ab-color-primary-rgb), 0.06); }
+.bento-msg-item--unread { background: rgba(var(--ab-color-primary-rgb), 0.08); }
 
 .bento-msg-avatar {
     width: 34px;
@@ -1587,7 +1587,7 @@ body.dark-mode .bento-kpi-unit {
 .bento-alert--danger {
     background: rgba(239, 68, 68, 0.08);
     border-left: 3px solid #ef4444;
-    color: #b91c1c;
+    color: var(--ab-color-depense);
 }
 .bento-alert--warn {
     background: rgba(239, 159, 39, 0.1);
@@ -1647,7 +1647,7 @@ body.dark-mode .empty-state {
 }
 
 body.dark-mode .empty-state-icon {
-    background: linear-gradient(135deg, rgba(93, 202, 165, 0.25), rgba(29, 158, 117, 0.15));
+    background: linear-gradient(135deg, rgba(93, 202, 165, 0.25), rgba(var(--ab-color-primary-rgb), 0.15));
     color: #5dcaa5;
 }
 

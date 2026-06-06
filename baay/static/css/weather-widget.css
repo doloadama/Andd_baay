@@ -577,7 +577,7 @@ body.dark-mode .pd-meteo--fog-day {
 }
 
 .at-card--weather-host > .at-card-title i {
-    color: var(--ab-at-brand, #1d9e75);
+    color: var(--ab-at-brand, var(--ab-color-primary));
 }
 
 /* Cockpit topbar : le widget remplit la capsule existante */

@@ -59,8 +59,8 @@
   --bs-btn-bg: var(--ab-color-danger);
   --bs-btn-border-color: var(--ab-color-danger);
   --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: #b91c1c;
-  --bs-btn-hover-border-color: #b91c1c;
+  --bs-btn-hover-bg: var(--ab-color-depense);
+  --bs-btn-hover-border-color: var(--ab-color-depense);
   --bs-btn-active-bg: #991b1b;
   --bs-btn-active-border-color: #991b1b;
   --bs-btn-disabled-bg: var(--ab-color-danger);

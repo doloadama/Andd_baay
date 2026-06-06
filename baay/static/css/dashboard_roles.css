@@ -102,7 +102,7 @@
 .prio-haute { background:#fed7aa; color:#9a3412; }
 .prio-urgente { background:#fee2e2; color:#991b1b; }
 .echeance { font-size:.78rem; color:var(--ab-text-muted); margin-top:.3rem; }
-.echeance.retard { color:#dc2626; font-weight:600; }
+.echeance.retard { color:var(--ab-color-danger); font-weight:600; }
 .empty--card { text-align:center; color:var(--ab-text-muted); padding:2rem; background:var(--ab-card-bg); border:1px dashed var(--ab-border-color); border-radius:14px; }
 .empty--card i { font-size:2rem; color:var(--accent); margin-bottom:.5rem; }
 

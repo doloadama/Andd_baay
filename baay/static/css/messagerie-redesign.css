@@ -7,7 +7,7 @@
     --ab-at-whatsapp-green: #25d366;
     --ab-at-whatsapp-teal: #075e54;
     --ab-at-whatsapp-light: #dcf8c6;
-    --ab-at-safran: #EF9F27;
+    --ab-at-safran: var(--ab-color-accent);
 }
 
 /* Shell & Columns */
@@ -81,11 +81,11 @@
 }
 
 .conv-item:hover {
-    background: rgba(29, 158, 117, 0.05) !important;
+    background: rgba(var(--ab-color-primary-rgb), 0.05) !important;
 }
 
 .conv-item.unread {
-    background: rgba(29, 158, 117, 0.08) !important;
+    background: rgba(var(--ab-color-primary-rgb), 0.08) !important;
 }
 
 /* Chat Area Styling (WhatsApp Vibes + Afro-Tech Patterns) */
@@ -118,7 +118,7 @@
     background: var(--ab-brand-primary) !important;
     color: white !important;
     border: none !important;
-    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(var(--ab-color-primary-rgb), 0.2) !important;
     border-radius: 12px 0 12px 12px !important;
     position: relative;
 }

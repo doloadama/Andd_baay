@@ -326,7 +326,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #16a34a;
+    color: var(--ab-color-success);
     margin: 0 0 0.35rem;
 }
 
@@ -338,7 +338,7 @@ html.dark-mode .semis-yield-hero__label {
     font-family: var(--ab-font-display);
     font-size: 2.25rem;
     font-weight: 800;
-    color: #16a34a;
+    color: var(--ab-color-success);
     margin: 0;
 }
 
