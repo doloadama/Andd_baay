@@ -15,6 +15,7 @@
   --ab-color-accent: #EF9F27;
   --ab-color-warning: #d97706;
   --ab-color-danger: #dc2626;
+  --ab-color-danger-rgb: 220, 38, 38;
   --ab-color-depense: #b91c1c;
   --ab-color-depense-bg: rgba(185, 28, 28, 0.15);
   --ab-color-terre: #78350f;
@@ -51,6 +52,12 @@
   --ab-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --ab-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --ab-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --ab-shadow-primary-sm: 0 4px 15px rgba(29, 158, 117, 0.25);
+  --ab-shadow-primary-md: 0 10px 25px rgba(29, 158, 117, 0.4);
+  --ab-shadow-primary-glow: 0 10px 30px rgba(29, 158, 117, 0.12);
+  --ab-shadow-accent-sm: 0 4px 15px rgba(239, 159, 39, 0.25);
+  --ab-shadow-accent-md: 0 10px 25px rgba(239, 159, 39, 0.4);
+  --ab-shadow-danger-md: 0 4px 15px rgba(var(--ab-color-danger-rgb), 0.25);
 
   /* Typography */
   --ab-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -60,6 +67,25 @@
   --ab-font-size-xl: 1.25rem;
   --ab-font-size-2xl: 1.5rem;
   --ab-font-size-3xl: 1.875rem;
+  /* Police d'affichage (titres) — utilisée par les landings/headers. */
+  --ab-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  /* Graisses */
+  --ab-font-weight-normal: 400;
+  --ab-font-weight-medium: 500;
+  --ab-font-weight-semibold: 600;
+  --ab-font-weight-bold: 700;
+  --ab-font-weight-extrabold: 800;
+  /* Interlignes */
+  --ab-leading-tight: 1.15;
+  --ab-leading-snug: 1.3;
+  --ab-leading-normal: 1.6;
+
+  /* Motion (durées + courbes) */
+  --ab-duration-fast: 150ms;
+  --ab-duration-base: 250ms;
+  --ab-duration-slow: 400ms;
+  --ab-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ab-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Dark mode token overrides */

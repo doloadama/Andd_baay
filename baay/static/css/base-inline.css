@@ -208,18 +208,18 @@
         .btn-baay-primary {
             background: linear-gradient(135deg, var(--ab-brand-primary), var(--ab-brand-deep));
             color: #ffffff !important;
-            box-shadow: 0 4px 15px rgba(29, 158, 117, 0.35);
+            box-shadow: var(--ab-shadow-primary-sm);
         }
 
         .btn-baay-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(29, 158, 117, 0.45);
+            box-shadow: var(--ab-shadow-primary-md);
         }
 
         .btn-baay-secondary {
             background: linear-gradient(135deg, var(--ab-safran-ocre), #c2410c);
             color: var(--ab-brand-night) !important;
-            box-shadow: 0 4px 15px rgba(226, 114, 91, 0.25);
+            box-shadow: var(--ab-shadow-danger-md);
         }
 
         .btn-baay-secondary:hover {

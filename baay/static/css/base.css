@@ -40,7 +40,7 @@
     --ab-card-bg-solid: #ffffff;
     --ab-text-main: #2C2C2A;
     --ab-text-secondary: #454542;
-    --ab-text-muted: #5c5c57;
+    --ab-text-muted: #4a4a46;
     --ab-text-inverse: #ffffff;
     --ab-border-glass: rgba(8, 80, 65, 0.1);
     --glass-bg: rgba(255, 255, 255, 0.88);
@@ -265,21 +265,21 @@ button, input, select, textarea { font-family: inherit; }
 .btn-baay-primary {
     background: linear-gradient(135deg, var(--ab-brand-primary), var(--ab-brand-deep));
     color: #ffffff !important;
-    box-shadow: 0 4px 15px rgba(29, 158, 117, 0.25);
+    box-shadow: var(--ab-shadow-primary-sm);
 }
 .btn-baay-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(29, 158, 117, 0.4);
+    box-shadow: var(--ab-shadow-primary-md);
 }
 
 .btn-baay-secondary {
     background: linear-gradient(135deg, var(--ab-brand-accent), #d98a1c);
     color: var(--ab-brand-night) !important;
-    box-shadow: 0 4px 15px rgba(239, 159, 39, 0.25);
+    box-shadow: var(--ab-shadow-accent-sm);
 }
 .btn-baay-secondary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(239, 159, 39, 0.4);
+    box-shadow: var(--ab-shadow-accent-md);
 }
 
 .btn-baay-outline {
@@ -298,7 +298,7 @@ button, input, select, textarea { font-family: inherit; }
     color: var(--ab-text-muted) !important;
 }
 .btn-baay-ghost:hover {
-    background: rgba(8, 80, 65, 0.1);
+    background: rgba(8, 80, 65, 0.15);
     color: var(--ab-text-main) !important;
 }
 
