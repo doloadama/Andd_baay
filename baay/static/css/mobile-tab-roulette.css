@@ -51,7 +51,7 @@
         border-radius: 50%;
         border: 1px solid rgba(8, 80, 65, 0.12);
         background: rgba(255, 255, 255, 0.75);
-        color: var(--ab-brand-deep, #085041);
+        color: var(--ab-brand-deep, var(--ab-color-primary-deep));
         cursor: pointer;
         flex-shrink: 0;
         box-shadow: 0 4px 12px rgba(8, 80, 65, 0.08);
@@ -67,7 +67,7 @@
     }
 
     .tab-roulette__btn:focus-visible {
-        outline: 2px solid var(--ab-brand-primary, #1d9e75);
+        outline: 2px solid var(--ab-brand-primary, var(--ab-color-primary));
         outline-offset: 2px;
     }
 
@@ -157,16 +157,16 @@
         opacity: 1;
         transform: scale(1.02);
         filter: none;
-        background: linear-gradient(135deg, var(--ab-brand-primary, #1d9e75) 0%, var(--ab-brand-deep, #085041) 100%) !important;
+        background: linear-gradient(135deg, var(--ab-brand-primary, var(--ab-color-primary)) 0%, var(--ab-brand-deep, var(--ab-color-primary-deep)) 100%) !important;
         color: #ffffff !important;
         border-color: transparent !important;
-        box-shadow: 0 6px 16px rgba(29, 158, 117, 0.3) !important;
+        box-shadow: 0 6px 16px rgba(var(--ab-color-primary-rgb), 0.3) !important;
     }
 
     .dark-mode .tab-roulette__track .at-tab-btn.active,
     .dark-mode .tab-roulette__track .fh-tab-btn.active {
-        background: linear-gradient(135deg, var(--ab-brand-primary, #1d9e75) 0%, var(--ab-brand-light, #5dcca5) 100%) !important;
-        color: #04342c !important;
+        background: linear-gradient(135deg, var(--ab-brand-primary, var(--ab-color-primary)) 0%, var(--ab-brand-light, #5dcca5) 100%) !important;
+        color: var(--ab-color-primary-night) !important;
         box-shadow: 0 6px 16px rgba(93, 204, 165, 0.25) !important;
     }
 
@@ -195,8 +195,8 @@
     .tab-roulette__dot.is-active {
         width: 16px;
         border-radius: 99px;
-        background: var(--ab-brand-primary, #1d9e75);
-        box-shadow: 0 0 8px rgba(29, 158, 117, 0.4);
+        background: var(--ab-brand-primary, var(--ab-color-primary));
+        box-shadow: 0 0 8px rgba(var(--ab-color-primary-rgb), 0.4);
     }
 
     .dark-mode .tab-roulette__dot.is-active {

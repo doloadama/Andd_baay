@@ -19,13 +19,13 @@
         border-radius: calc(var(--ab-radius-card) + 6px);
         border: 1px solid rgba(93, 202, 165, 0.45);
         background:
-            radial-gradient(circle at top left, rgba(29, 158, 117, 0.22), transparent 36%),
+            radial-gradient(circle at top left, rgba(var(--ab-color-primary-rgb), 0.22), transparent 36%),
             radial-gradient(circle at bottom right, rgba(239, 159, 39, 0.14), transparent 42%),
-            linear-gradient(135deg, rgba(8, 80, 65, 0.96), rgba(29, 158, 117, 0.82) 52%, rgba(8, 80, 65, 0.94));
+            linear-gradient(135deg, rgba(8, 80, 65, 0.96), rgba(var(--ab-color-primary-rgb), 0.82) 52%, rgba(8, 80, 65, 0.94));
         box-shadow:
             0 24px 60px rgba(8, 80, 65, 0.2),
             inset 0 1px 0 rgba(255, 255, 255, 0.18),
-            inset 0 0 0 1px rgba(29, 158, 117, 0.1);
+            inset 0 0 0 1px rgba(var(--ab-color-primary-rgb), 0.1);
         overflow: hidden;
     }
 
@@ -91,8 +91,8 @@
     }
 
     .spotlight-actions .btn-baay-outline:hover {
-        border-color: rgba(29, 158, 117, 0.4);
-        background: rgba(29, 158, 117, 0.12);
+        border-color: rgba(var(--ab-color-primary-rgb), 0.4);
+        background: rgba(var(--ab-color-primary-rgb), 0.12);
         color: #f8fafc !important;
     }
 
@@ -173,7 +173,7 @@
     .bento-tile:hover {
         transform: translateY(-8px) scale(1.01);
         border-color: var(--ab-neon-green) !important;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 0 20px rgba(29, 158, 117, 0.08);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 0 20px rgba(var(--ab-color-primary-rgb), 0.08);
     }
 
     .bento-tile.dragging {
@@ -227,7 +227,7 @@
         font-weight: 700;
         border-radius: 14px;
         padding: 10px 24px;
-        box-shadow: 0 4px 15px rgba(29, 158, 117, 0.25);
+        box-shadow: 0 4px 15px rgba(var(--ab-color-primary-rgb), 0.25);
         transition: all 0.3s ease;
     }
 
@@ -257,7 +257,7 @@
     /* Grid Area Assignments */
     .tile-chart { grid-column: span 2; grid-row: span 2; min-height: 400px; }
     .tile-chart-pie { grid-column: span 2; grid-row: span 2; min-height: 400px; }
-    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(145deg, rgba(29, 158, 117, 0.08), rgba(239, 159, 39, 0.06) 52%, var(--ab-bg-secondary)); text-align: center; justify-content: center; align-items: center; border: 1px solid var(--ab-border-glass); }
+    .tile-action { grid-column: span 1; grid-row: span 1; background: linear-gradient(145deg, rgba(var(--ab-color-primary-rgb), 0.08), rgba(239, 159, 39, 0.06) 52%, var(--ab-bg-secondary)); text-align: center; justify-content: center; align-items: center; border: 1px solid var(--ab-border-glass); }
     .tile-kpi { grid-column: span 1; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
     .tile-projects { grid-column: span 2; grid-row: span 2; max-height: 600px; overflow: hidden; }
     .tile-filters { grid-column: span 4; grid-row: span 1; }
@@ -265,7 +265,7 @@
     /* KPI Specifics with Animation */
     .kpi-bento-icon {
         width: 64px; height: 64px;
-        background: rgba(29, 158, 117, 0.1);
+        background: rgba(var(--ab-color-primary-rgb), 0.1);
         color: var(--accent);
         border-radius: 20px;
         display: flex; align-items: center; justify-content: center;
@@ -417,7 +417,7 @@
     .filter-select:focus, .filter-input:focus {
         outline: none;
         border-color: var(--accent);
-        box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.15);
+        box-shadow: 0 0 0 4px rgba(var(--ab-color-primary-rgb), 0.15);
         background: var(--ab-bg-main);
     }
     
@@ -445,12 +445,12 @@
         display: flex;
         align-items: center;
         gap: var(--ab-space-2);
-        box-shadow: 0 2px 8px rgba(29, 158, 117, 0.18);
+        box-shadow: 0 2px 8px rgba(var(--ab-color-primary-rgb), 0.18);
     }
     
     .filter-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(29, 158, 117, 0.3);
+        box-shadow: 0 6px 16px rgba(var(--ab-color-primary-rgb), 0.3);
     }
     
     .filter-btn.secondary {
@@ -474,8 +474,8 @@
     }
     
     .filter-btn.outline:hover {
-        background: rgba(29, 158, 117, 0.1);
-        box-shadow: 0 4px 12px rgba(29, 158, 117, 0.15);
+        background: rgba(var(--ab-color-primary-rgb), 0.1);
+        box-shadow: 0 4px 12px rgba(var(--ab-color-primary-rgb), 0.15);
     }
     
     /* Active Filters Chips */
@@ -493,8 +493,8 @@
         align-items: center;
         gap: 8px;
         padding: 8px 14px;
-        background: rgba(29, 158, 117, 0.15);
-        border: 1px solid rgba(29, 158, 117, 0.3);
+        background: rgba(var(--ab-color-primary-rgb), 0.15);
+        border: 1px solid rgba(var(--ab-color-primary-rgb), 0.3);
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
@@ -535,7 +535,7 @@
     }
 
     .filter-chip-remove:hover {
-        background: rgba(29, 158, 117, 0.3);
+        background: rgba(var(--ab-color-primary-rgb), 0.3);
         transform: scale(1.1);
     }
     
@@ -621,7 +621,7 @@
     .project-item:hover {
         background: var(--ab-bg-secondary);
         border-color: var(--ab-tech-green);
-        box-shadow: 0 20px 34px rgba(29, 158, 117, 0.08);
+        box-shadow: 0 20px 34px rgba(var(--ab-color-primary-rgb), 0.08);
     }
     
     .project-item:hover::after {
@@ -630,7 +630,7 @@
     
     .project-item.selected {
         border-color: var(--accent);
-        background: rgba(29, 158, 117, 0.05);
+        background: rgba(var(--ab-color-primary-rgb), 0.05);
     }
     
     .project-item.selected::after {
@@ -685,7 +685,7 @@
     }
     
     .status-badge.en_cours { 
-        background: rgba(29, 158, 117, 0.1); 
+        background: rgba(var(--ab-color-primary-rgb), 0.1); 
         color: var(--ab-tech-green); 
         border: 1px solid var(--ab-tech-green);
     }
@@ -1217,7 +1217,7 @@
     .quick-add-form select:focus {
         outline: none;
         border-color: var(--accent);
-        box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.15);
+        box-shadow: 0 0 0 4px rgba(var(--ab-color-primary-rgb), 0.15);
     }
 
     /* Bulk Actions Bar */
@@ -1420,7 +1420,7 @@
 .farm-card:hover {
     transform: translateY(-3px);
     border-color: var(--accent) !important;
-    box-shadow: 0 8px 24px rgba(29, 158, 117, 0.1);
+    box-shadow: 0 8px 24px rgba(var(--ab-color-primary-rgb), 0.1);
 }
 
 .farm-badge {
@@ -1437,7 +1437,7 @@
 .status-chart-container { height: 220px; }
 .empty-state-padded { padding: 40px 20px; }
 .action-delay { animation-delay: 0.4s; }
-.quick-action-icon-wrapper { width: 80px; height: 80px; background: rgba(29, 158, 117, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
+.quick-action-icon-wrapper { width: 80px; height: 80px; background: rgba(var(--ab-color-primary-rgb), 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
 .text-accent { color: var(--accent); }
 .quick-action-title { color: var(--ab-text-main); font-family: var(--ab-font-display); font-weight: 700; margin-bottom: 12px; }
 .quick-action-desc { color: var(--ab-text-muted); font-size: 0.9rem; margin-bottom: 24px; }

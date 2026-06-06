@@ -85,7 +85,7 @@
     <!-- Navigation rapide vers les pages spécialisées -->
     <section class="dashboard-quick-links animate__animated animate__fadeInUp" style="margin: 1.5rem 0;">
         <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ab-text-main, #0f172a);">
-            <i class="fas fa-compass" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
+            <i class="fas fa-compass" style="color: var(--accent, var(--ab-color-primary)); margin-right: 0.5rem;"></i>
             Navigation rapide
         </h2>
         <div class="row g-3">
@@ -93,7 +93,7 @@
                 <a href="{% url 'performance' %}" class="text-decoration-none">
                     <div class="quick-link-card" style="background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05)); border: 1px solid rgba(29, 158, 117, 0.2); border-radius: 12px; padding: 1.25rem; transition: all 0.2s ease; height: 100%;">
                         <div class="d-flex align-items-center gap-3">
-                            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent, #1D9E75), #5DCAA5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent, var(--ab-color-primary)), #5DCAA5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
                                 <i class="fas fa-chart-line"></i>
                             </div>
                             <div>
@@ -142,14 +142,14 @@
     <!-- Stats Grid simplifié -->
     <section class="dashboard-summary" style="margin: 2rem 0;">
         <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ab-text-main, #0f172a);">
-            <i class="fas fa-th-large" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
+            <i class="fas fa-th-large" style="color: var(--accent, var(--ab-color-primary)); margin-right: 0.5rem;"></i>
             Vue d'ensemble
         </h2>
         <div class="row g-3">
             {% if selected_ferme %}
             <div class="col-6 col-md-3">
                 <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ projets.count }}</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent, var(--ab-color-primary));">{{ projets.count }}</div>
                     <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Projets</div>
                 </div>
             </div>
@@ -174,7 +174,7 @@
             {% else %}
             <div class="col-6 col-md-3">
                 <div class="summary-card" style="background: var(--ab-bg-card, #fff); border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); text-align: center;">
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent, #1D9E75);">{{ nombre_fermes }}</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent, var(--ab-color-primary));">{{ nombre_fermes }}</div>
                     <div style="font-size: 0.875rem; color: var(--ab-text-muted, #64748b);">Fermes</div>
                 </div>
             </div>
@@ -203,7 +203,7 @@
     <!-- Actions rapides -->
     <section class="dashboard-actions" style="margin: 2rem 0;">
         <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ab-text-main, #0f172a);">
-            <i class="fas fa-bolt" style="color: var(--accent, #1D9E75); margin-right: 0.5rem;"></i>
+            <i class="fas fa-bolt" style="color: var(--accent, var(--ab-color-primary)); margin-right: 0.5rem;"></i>
             Actions rapides
         </h2>
         <div class="d-flex flex-wrap gap-2">

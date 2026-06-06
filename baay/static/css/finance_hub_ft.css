@@ -11,14 +11,14 @@ body:has(.finance-ft-root) .voice-mic-btn {
 
 .finance-ft-root {
     color-scheme: light;
-    --ab-green-900: #04342c;
-    --ab-green-800: #085041;
+    --ab-green-900: var(--ab-color-primary-night);
+    --ab-green-800: var(--ab-color-primary-deep);
     --ab-green-700: #0f6e56;
-    --ab-green-500: #1d9e75;
+    --ab-green-500: var(--ab-color-primary);
     --ab-green-300: #5dcaa5;
     --ab-green-100: #9fe1cb;
     --ab-green-50: #e1f5ee;
-    --amber-400: #ef9f27;
+    --amber-400: var(--ab-color-accent);
     --amber-50: #faeeda;
 
     /* High-contrast Saharan palette for critical indicators */
@@ -91,7 +91,7 @@ html.dark-mode .finance-ft-root {
     width: 180px;
     height: 180px;
     border-radius: 50%;
-    background: rgba(29, 158, 117, 0.12);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
     pointer-events: none;
 }
 
@@ -376,7 +376,7 @@ html.dark-mode .finance-ft-hero .finance-ft-metric__ico--amber {
 .finance-ft-root textarea.fh-field:focus {
     outline: none;
     border-color: var(--ab-green-500);
-    box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.2);
+    box-shadow: 0 0 0 2px rgba(var(--ab-color-primary-rgb), 0.2);
 }
 
 /* Listes natives (catégorie, périmètre…) : fond/texte cohérents avec le thème */
@@ -819,7 +819,7 @@ html.dark-mode .finance-ft-pagination a {
     padding: 28px;
     border-right: 1px solid var(--ab-color-border);
     background:
-        radial-gradient(circle at top left, rgba(29, 158, 117, 0.13), transparent 34%),
+        radial-gradient(circle at top left, rgba(var(--ab-color-primary-rgb), 0.13), transparent 34%),
         var(--ab-color-surface-alt);
 }
 
@@ -827,7 +827,7 @@ html.dark-mode .finance-ft-pagination a {
     width: 52px;
     height: 52px;
     border-radius: 16px;
-    background: rgba(29, 158, 117, 0.14);
+    background: rgba(var(--ab-color-primary-rgb), 0.14);
     color: var(--ab-green-500);
     display: flex;
     align-items: center;
@@ -954,7 +954,7 @@ html.dark-mode .finance-ft-pagination a {
 }
 
 .projet-form-ft-root .progress-step.completed .step-circle {
-    background: rgba(29, 158, 117, 0.2);
+    background: rgba(var(--ab-color-primary-rgb), 0.2);
     border-color: var(--ab-green-500);
     color: var(--ab-green-500);
 }
@@ -993,7 +993,7 @@ html.dark-mode .finance-ft-pagination a {
 }
 
 .projet-form-ft-root .projet-input-shell.success {
-    box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.35);
+    box-shadow: 0 0 0 2px rgba(var(--ab-color-primary-rgb), 0.35);
 }
 
 .projet-form-ft-root .projet-info-tip {
@@ -1010,7 +1010,7 @@ html.dark-mode .finance-ft-pagination a {
     width: 40px;
     height: 40px;
     border-radius: var(--ab-radius-sm);
-    background: rgba(29, 158, 117, 0.15);
+    background: rgba(var(--ab-color-primary-rgb), 0.15);
     color: var(--ab-green-500);
     display: flex;
     align-items: center;
@@ -1040,7 +1040,7 @@ html.dark-mode .finance-ft-pagination a {
 }
 
 .projet-form-ft-root .product-checkbox-item:hover {
-    border-color: rgba(29, 158, 117, 0.55) !important;
+    border-color: rgba(var(--ab-color-primary-rgb), 0.55) !important;
     transform: translateY(-1px);
 }
 
@@ -1061,7 +1061,7 @@ html.dark-mode .finance-ft-pagination a {
 .projet-form-ft-root .form-section-title i {
     width: 32px;
     height: 32px;
-    background: rgba(29, 158, 117, 0.12);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
     border-radius: var(--ab-radius-input);
     display: flex;
     align-items: center;
@@ -1097,7 +1097,7 @@ html.dark-mode .finance-ft-pagination a {
     width: 56px;
     height: 56px;
     border-radius: 14px;
-    background: rgba(29, 158, 117, 0.15);
+    background: rgba(var(--ab-color-primary-rgb), 0.15);
     color: var(--ab-green-500);
     display: flex;
     align-items: center;

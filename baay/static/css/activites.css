@@ -26,7 +26,7 @@
 }
 
 .section-title i {
-    color: var(--accent, #1D9E75);
+    color: var(--accent, var(--ab-color-primary));
 }
 
 .section-title .badge {
@@ -49,7 +49,7 @@
     padding: 1rem 1.25rem;
     background: var(--ab-bg-subtle, #f8fafc);
     border-radius: 12px;
-    border-left: 4px solid var(--accent, #1D9E75);
+    border-left: 4px solid var(--accent, var(--ab-color-primary));
     transition: all 0.2s ease;
 }
 
@@ -67,7 +67,7 @@
 }
 
 .activite-item--urgent {
-    border-left-color: #dc2626;
+    border-left-color: var(--ab-color-danger);
     background: rgba(220, 38, 38, 0.05);
 }
 
@@ -79,7 +79,7 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent, #1D9E75), #5DCAA5);
+    background: linear-gradient(135deg, var(--accent, var(--ab-color-primary)), #5DCAA5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -88,7 +88,7 @@
 }
 
 .activite-item--urgent .activite-icon {
-    background: linear-gradient(135deg, #dc2626, #ef4444);
+    background: linear-gradient(135deg, var(--ab-color-danger), #ef4444);
 }
 
 .activite-content {
@@ -112,8 +112,8 @@
 }
 
 .projet-badge {
-    background: rgba(29, 158, 117, 0.1);
-    color: var(--accent, #1D9E75);
+    background: rgba(var(--ab-color-primary-rgb), 0.1);
+    color: var(--accent, var(--ab-color-primary));
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.75rem;
@@ -128,7 +128,7 @@
 }
 
 .echeance-badge.text-danger {
-    color: #dc2626;
+    color: var(--ab-color-danger);
     font-weight: 500;
 }
 
@@ -236,7 +236,7 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent, #1D9E75), #5DCAA5);
+    background: linear-gradient(135deg, var(--accent, var(--ab-color-primary)), #5DCAA5);
     display: flex;
     align-items: center;
     justify-content: center;

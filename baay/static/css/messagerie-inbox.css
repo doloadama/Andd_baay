@@ -8,10 +8,10 @@
 }
 
 .msg-shell-container {
-    --ab-color-primary: #1d9e75;
-    --ab-color-primary-deep: #085041;
-    --ab-color-primary-night: #04342c;
-    --ab-color-accent: #ef9f27;
+    --ab-color-primary: var(--ab-color-primary);
+    --ab-color-primary-deep: var(--ab-color-primary-deep);
+    --ab-color-primary-night: var(--ab-color-primary-night);
+    --ab-color-accent: var(--ab-color-accent);
     --ab-color-surface: var(--ab-card-bg-solid, #fff);
     --ab-color-background: var(--ab-bg-secondary, #f0f4f3);
     --ab-color-border: var(--ab-border-color, rgba(8, 80, 65, 0.1));
@@ -124,7 +124,7 @@
     background: var(--ab-color-primary);
     color: #fff;
     text-decoration: none;
-    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
+    box-shadow: 0 4px 14px rgba(var(--ab-color-primary-rgb), 0.35);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     flex-shrink: 0;
     font-size: 1.1rem;
@@ -133,7 +133,7 @@
 .msg-sidebar-new:hover {
     color: #fff;
     transform: scale(1.06);
-    box-shadow: 0 6px 18px rgba(29, 158, 117, 0.45);
+    box-shadow: 0 6px 18px rgba(var(--ab-color-primary-rgb), 0.45);
 }
 
 /* —— Inbox list partial —— */
@@ -173,8 +173,8 @@
 .msg-search-input:focus {
     outline: none;
     background: var(--ab-color-surface);
-    border-color: rgba(29, 158, 117, 0.45);
-    box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.45);
+    box-shadow: 0 0 0 3px rgba(var(--ab-color-primary-rgb), 0.12);
 }
 
 .dark-mode .msg-search-input {
@@ -212,13 +212,13 @@
 }
 
 .msg-filter-chip:hover {
-    border-color: rgba(29, 158, 117, 0.35);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.35);
     color: var(--ab-color-primary-deep);
 }
 
 .msg-filter-chip.active {
-    background: rgba(29, 158, 117, 0.12);
-    border-color: rgba(29, 158, 117, 0.4);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.4);
     color: var(--ab-color-primary-deep);
 }
 
@@ -243,15 +243,15 @@
 }
 
 #conversationList .conv-item:hover {
-    background: rgba(29, 158, 117, 0.06);
+    background: rgba(var(--ab-color-primary-rgb), 0.06);
 }
 
 #conversationList .conv-item.unread {
-    background: rgba(29, 158, 117, 0.08);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
 }
 
 #conversationList .conv-item.active {
-    background: rgba(29, 158, 117, 0.1);
+    background: rgba(var(--ab-color-primary-rgb), 0.1);
     box-shadow: inset 4px 0 0 var(--ab-color-primary);
 }
 
@@ -317,9 +317,9 @@
     font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
 }
 
-.avatar-pill.g1 { background: linear-gradient(135deg, #1d9e75, #085041); }
+.avatar-pill.g1 { background: linear-gradient(135deg, var(--ab-color-primary), var(--ab-color-primary-deep)); }
 .avatar-pill.g2 { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
-.avatar-pill.g3 { background: linear-gradient(135deg, #ef9f27, #b45309); }
+.avatar-pill.g3 { background: linear-gradient(135deg, var(--ab-color-accent), #b45309); }
 .avatar-pill.g4 { background: linear-gradient(135deg, #8b5cf6, #5b21b6); }
 .avatar-pill.g5 { background: linear-gradient(135deg, #ec4899, #9d174d); }
 .avatar-pill.g6 { background: linear-gradient(135deg, #64748b, #334155); }
@@ -346,7 +346,7 @@
     height: 56px;
     margin: 0 auto 1rem;
     border-radius: 16px;
-    background: rgba(29, 158, 117, 0.1);
+    background: rgba(var(--ab-color-primary-rgb), 0.1);
     color: var(--ab-color-primary);
     display: flex;
     align-items: center;
@@ -412,7 +412,7 @@
 }
 
 .msg-hero-bento__item:hover {
-    border-color: rgba(29, 158, 117, 0.35);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.35);
     transform: translateY(-2px);
 }
 
@@ -530,13 +530,13 @@ body.msg-sheet-open {
 
 .dark-mode .msg-sidebar-header {
     background: var(--ab-card-bg-solid, #121c19);
-    border-bottom-color: rgba(29, 158, 117, 0.12);
+    border-bottom-color: rgba(var(--ab-color-primary-rgb), 0.12);
 }
 
 .dark-mode .msg-sidebar-title {
-    color: var(--ab-color-primary, #1d9e75);
+    color: var(--ab-color-primary, var(--ab-color-primary));
 }
 
 .dark-mode #conversationList .conv-item.unread {
-    background: rgba(29, 158, 117, 0.09);
+    background: rgba(var(--ab-color-primary-rgb), 0.09);
 }

@@ -7,13 +7,13 @@
 
 .msg-conv-partial,
 .mobile-chat-card {
-    --ab-color-primary: var(--ab-brand-primary, #1d9e75);
-    --ab-color-primary-deep: var(--ab-brand-deep, #085041);
-    --ab-color-primary-mid: #16856a;
-    --ab-color-primary-soft: rgba(29, 158, 117, 0.10);
-    --ab-color-primary-glow: rgba(29, 158, 117, 0.28);
+    --ab-color-primary: var(--ab-brand-primary, var(--ab-color-primary));
+    --ab-color-primary-deep: var(--ab-brand-deep, var(--ab-color-primary-deep));
+    --ab-color-primary-mid: var(--ab-color-primary-mid);
+    --ab-color-primary-soft: rgba(var(--ab-color-primary-rgb), 0.10);
+    --ab-color-primary-glow: rgba(var(--ab-color-primary-rgb), 0.28);
     --ab-color-primary-rgb: 29, 158, 117;
-    --ab-color-accent: #ef9f27;
+    --ab-color-accent: var(--ab-color-accent);
 }
 
 /* ---------- Card shell ---------- */
@@ -53,7 +53,7 @@
     flex-wrap: wrap;
     gap: 8px;
     padding: 12px 16px;
-    background: linear-gradient(135deg, var(--ab-color-primary-night, #04342c) 0%, var(--ab-color-primary-deep, #085041) 100%);
+    background: linear-gradient(135deg, var(--ab-color-primary-night, var(--ab-color-primary-night)) 0%, var(--ab-color-primary-deep, var(--ab-color-primary-deep)) 100%);
     border-bottom: none;
     flex-shrink: 0;
 }
@@ -97,7 +97,7 @@
     height: 12px;
     border-radius: 50%;
     background: #4ade80;
-    border: 2.5px solid var(--ab-color-primary-night, #04342c);
+    border: 2.5px solid var(--ab-color-primary-night, var(--ab-color-primary-night));
     box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35);
 }
 .chat-header-meta { overflow: hidden; }
@@ -247,7 +247,7 @@
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.10);
 }
 .msg-bubble-own {
-    background: var(--ab-color-primary, #1d9e75);
+    background: var(--ab-color-primary, var(--ab-color-primary));
     color: #fff;
     border-bottom-right-radius: 6px;
     box-shadow: 0 2px 8px rgba(var(--ab-color-primary-rgb), 0.22);
@@ -261,7 +261,7 @@
     right: -7px;
     width: 0;
     height: 0;
-    border-top: 10px solid var(--ab-color-primary, #1d9e75);
+    border-top: 10px solid var(--ab-color-primary, var(--ab-color-primary));
     border-right: 7px solid transparent;
 }
 
@@ -714,7 +714,7 @@
 /* ---------- Dark mode ---------- */
 .dark-mode .msg-conv-partial,
 .dark-mode .mobile-chat-card {
-    --ab-color-primary-soft: rgba(29, 158, 117, 0.14);
+    --ab-color-primary-soft: rgba(var(--ab-color-primary-rgb), 0.14);
 }
 
 .dark-mode .msg-conv-header {

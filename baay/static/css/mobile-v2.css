@@ -24,13 +24,13 @@
 
 :root {
   /* Brand Palette */
-  --ab-night:       #04342C;
-  --ab-forest:      #085041;
-  --ab-primary:     #1D9E75;
+  --ab-night:       var(--ab-color-primary-night);
+  --ab-forest:      var(--ab-color-primary-deep);
+  --ab-primary:     var(--ab-color-primary);
   --ab-light:       #5DCAA5;
   --ab-pale:        #9FE1CB;
   --ab-bg:          #E1F5EE;
-  --ab-safran:      #EF9F27;
+  --ab-safran:      var(--ab-color-accent);
   --ab-danger:      #EF4444;
   --ab-white:       #FFFFFF;
 
@@ -41,7 +41,7 @@
   --ab-nav-glass-light:    rgba(255, 255, 255, 0.88);
   --ab-nav-glass-dark:     rgba(6, 28, 22, 0.92);
   --ab-nav-border-light:   rgba(8, 80, 65, 0.1);
-  --ab-nav-border-dark:    rgba(29, 158, 117, 0.15);
+  --ab-nav-border-dark:    rgba(var(--ab-color-primary-rgb), 0.15);
 
   /* Spacing */
   --ab-space-xs:   6px;
@@ -73,7 +73,7 @@
 /* Dark mode token overrides */
 .dark-mode {
   --ab-nav-glass-light:  rgba(6, 28, 22, 0.94);
-  --ab-nav-border-light: rgba(29, 158, 117, 0.14);
+  --ab-nav-border-light: rgba(var(--ab-color-primary-rgb), 0.14);
 }
 
 
@@ -141,7 +141,7 @@
   .dark-mode .mobile-bottom-nav {
     background: var(--ab-nav-glass-dark);
     border-top-color: var(--ab-nav-border-dark);
-    box-shadow: 0 -1px 0 rgba(29, 158, 117, 0.12), 0 -8px 24px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 -1px 0 rgba(var(--ab-color-primary-rgb), 0.12), 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
 
   /* ── Nav Item ── */
@@ -180,7 +180,7 @@
   /* Touch feedback */
   .mobile-nav-item:active {
     transform: scale(0.92);
-    background: rgba(29, 158, 117, 0.08);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
   }
 
   /* ── Icon — pill chip ── */
@@ -194,7 +194,7 @@
   }
 
   .mobile-nav-item.active .mobile-nav-icon {
-    background: rgba(29, 158, 117, 0.14);
+    background: rgba(var(--ab-color-primary-rgb), 0.14);
   }
 
   .dark-mode .mobile-nav-item.active .mobile-nav-icon {
@@ -233,13 +233,13 @@
     justify-content: center;
     color: #fff;
     font-size: 1.4rem;
-    box-shadow: 0 6px 20px rgba(29, 158, 117, 0.42), 0 2px 6px rgba(29, 158, 117, 0.25);
+    box-shadow: 0 6px 20px rgba(var(--ab-color-primary-rgb), 0.42), 0 2px 6px rgba(var(--ab-color-primary-rgb), 0.25);
     transition: transform var(--ab-trans-base), box-shadow var(--ab-trans-base);
   }
 
   .mobile-nav-fab:active .mobile-nav-fab-bg {
     transform: scale(0.92);
-    box-shadow: 0 2px 8px rgba(29, 158, 117, 0.3);
+    box-shadow: 0 2px 8px rgba(var(--ab-color-primary-rgb), 0.3);
   }
 
   /* ── Messagerie badge ── */
@@ -391,7 +391,7 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: rgba(29, 158, 117, 0.15);
+    background: rgba(var(--ab-color-primary-rgb), 0.15);
     pointer-events: none;
   }
 
@@ -445,7 +445,7 @@
   .mobile-drawer-user-section {
     padding: 14px 16px;
     background: var(--ab-night);
-    border-bottom: 1px solid rgba(29, 158, 117, 0.15);
+    border-bottom: 1px solid rgba(var(--ab-color-primary-rgb), 0.15);
   }
 
   .mobile-drawer-user {
@@ -466,7 +466,7 @@
     font-weight: 700;
     font-size: 1.1rem;
     flex-shrink: 0;
-    border: 2px solid rgba(29, 158, 117, 0.4);
+    border: 2px solid rgba(var(--ab-color-primary-rgb), 0.4);
   }
 
   .mobile-drawer-user-info {
@@ -514,9 +514,9 @@
   }
 
   .mobile-drawer-role-pill--simple {
-    background: rgba(29, 158, 117, 0.2);
+    background: rgba(var(--ab-color-primary-rgb), 0.2);
     color: var(--ab-pale);
-    border: 1px solid rgba(29, 158, 117, 0.3);
+    border: 1px solid rgba(var(--ab-color-primary-rgb), 0.3);
   }
 
   /* ── Body ── */
@@ -577,12 +577,12 @@
   }
 
   .mobile-drawer-link:active {
-    background: rgba(29, 158, 117, 0.08);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
     transform: translateX(3px);
   }
 
   .mobile-drawer-link.active {
-    background: rgba(29, 158, 117, 0.1);
+    background: rgba(var(--ab-color-primary-rgb), 0.1);
     color: var(--ab-primary);
     font-weight: 600;
     border-left-color: var(--ab-primary);
@@ -594,7 +594,7 @@
   }
 
   .dark-mode .mobile-drawer-link.active {
-    background: rgba(29, 158, 117, 0.15);
+    background: rgba(var(--ab-color-primary-rgb), 0.15);
     color: var(--ab-light);
     border-left-color: var(--ab-light);
   }
@@ -618,7 +618,7 @@
   }
 
   .dark-mode .mobile-drawer-footer {
-    border-top-color: rgba(29, 158, 117, 0.12);
+    border-top-color: rgba(var(--ab-color-primary-rgb), 0.12);
   }
 
   .mobile-drawer-action-btn {
@@ -640,13 +640,13 @@
   }
 
   .dark-mode .mobile-drawer-action-btn {
-    background: rgba(29, 158, 117, 0.08);
-    border-color: rgba(29, 158, 117, 0.15);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.15);
     color: var(--ab-pale);
   }
 
   .mobile-drawer-action-btn:active {
-    background: rgba(29, 158, 117, 0.14);
+    background: rgba(var(--ab-color-primary-rgb), 0.14);
   }
 
   .mobile-drawer-action-btn.text-danger {
@@ -976,7 +976,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    box-shadow: 0 8px 24px rgba(29, 158, 117, 0.4);
+    box-shadow: 0 8px 24px rgba(var(--ab-color-primary-rgb), 0.4);
     z-index: 1035;
     text-decoration: none;
     transition: transform var(--ab-trans-fast), box-shadow var(--ab-trans-fast);
@@ -986,7 +986,7 @@
   .msg-fab:focus {
     transform: scale(1.05);
     color: #fff;
-    box-shadow: 0 12px 32px rgba(29, 158, 117, 0.48);
+    box-shadow: 0 12px 32px rgba(var(--ab-color-primary-rgb), 0.48);
   }
 
   .msg-fab:active {
@@ -1265,14 +1265,14 @@
 
 .bottom-sheet-link:hover,
 .bottom-sheet-link:focus {
-  border-color: rgba(29, 158, 117, 0.35);
+  border-color: rgba(var(--ab-color-primary-rgb), 0.35);
   background: var(--ab-accent-subtle);
   color: var(--ab-accent-dark);
 }
 
 .bottom-sheet-link.is-active {
-  border-color: rgba(29, 158, 117, 0.45);
-  background: rgba(29, 158, 117, 0.12);
+  border-color: rgba(var(--ab-color-primary-rgb), 0.45);
+  background: rgba(var(--ab-color-primary-rgb), 0.12);
   color: var(--ab-primary);
   box-shadow: inset 4px 0 0 var(--ab-primary);
 }

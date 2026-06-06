@@ -256,7 +256,7 @@
   {# ── Alertes actives ── #}
   {% if alertes %}
   <div class="alertes-section">
-    <h2><i class="fas fa-exclamation-triangle me-1" style="color:#d97706;"></i>Variations importantes cette semaine</h2>
+    <h2><i class="fas fa-exclamation-triangle me-1" style="color:var(--ab-color-warning);"></i>Variations importantes cette semaine</h2>
     <div class="alertes-scroll">
       {% for alerte in alertes %}
       <button class="alerte-chip {{ alerte.niveau }}"
@@ -308,7 +308,7 @@
   {# ── Graphique ── #}
   <div class="graphique-section">
     <h3 id="graphique-titre">
-      <i class="fas fa-chart-area me-1" style="color:#1D9E75;"></i>
+      <i class="fas fa-chart-area me-1" style="color:var(--ab-color-primary);"></i>
       Évolution du prix — <span id="graphique-produit-nom">Sélectionnez un produit</span>
     </h3>
     <div id="prix-chart-container">

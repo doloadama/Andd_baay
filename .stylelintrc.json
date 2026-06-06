@@ -2,7 +2,18 @@
   "rules": {
     "custom-property-pattern": ["^(ab|tw|bs|fa)-", {
       "message": "Custom properties must use --ab-* (vendor --tw-/--bs-/--fa- tolérés)"
-    }]
+    }],
+    "declaration-property-value-disallowed-list": [
+      {
+        "/.*/": [
+          "/#1d9e75/i", "/#157a5a/i", "/#085041/i", "/#04342c/i", "/#16856a/i",
+          "/#ef9f27/i", "/#16a34a/i", "/#dc2626/i", "/#b91c1c/i", "/#d97706/i"
+        ]
+      },
+      {
+        "message": "Couleur marque/sémantique en dur : utilisez les tokens --ab-color-* (cf. tokens.css)"
+      }
+    ]
   },
   "ignoreFiles": [
     "baay/static/vendor/**",
