@@ -18,4 +18,5 @@ urlpatterns = [
     path("", include("baay.urls_invitations")),
     path("", include("baay.urls_actualites")),
     path("", include("baay.urls_marche")),
+    path("", include("baay.urls_calendrier")),
 ]

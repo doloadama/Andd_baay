@@ -49,7 +49,27 @@ class ActualitesSitemap(Sitemap):
         return reverse("actualites_categorie", args=[item])
 
 
+class CalendrierSitemap(Sitemap):
+    """Calendrier cultural : page pilier + une fiche par culture (evergreen)."""
+
+    protocol = "https"
+    changefreq = "monthly"
+
+    def items(self) -> list[str]:
+        from baay.calendrier_cultural import liste_cultures
+        return ["__pillar__"] + [c["slug"] for c in liste_cultures()]
+
+    def location(self, item: str) -> str:
+        if item == "__pillar__":
+            return reverse("calendrier")
+        return reverse("calendrier_detail", args=[item])
+
+    def priority(self, item: str) -> float:
+        return 0.8 if item == "__pillar__" else 0.7
+
+
 sitemaps = {
     "static": StaticViewSitemap,
     "actualites": ActualitesSitemap,
+    "calendrier": CalendrierSitemap,
 }

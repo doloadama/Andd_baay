@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ seo_title }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{{ seo_description }}" />
+{% endblock %}
+
+{% block meta_tags %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ page_h1|escapejs }}",
+  "description": "{{ seo_description|escapejs }}",
+  "inLanguage": "fr",
+  "about": "{{ culture.nom|escapejs }}",
+  "publisher": {"@type": "Organization", "name": "Andd Baay", "url": "{{ request.scheme }}://{{ request.get_host }}/"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Quand semer {{ culture.det|escapejs }} au Sénégal ?",
+     "acceptedAnswer": {"@type": "Answer", "text": "On sème {{ culture.det|escapejs }} en {{ semis_label|escapejs }}, en saison {{ culture.saison|escapejs }}."}},
+    {"@type": "Question", "name": "Quel est le cycle {{ culture.det_de|escapejs }} ?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Le cycle {{ culture.det_de|escapejs }} dure environ {{ culture.cycle_jours }} jours, de la levée à la récolte ({{ culture.periode_recolte|escapejs }})."}},
+    {"@type": "Question", "name": "De combien d'eau {{ culture.det|escapejs }} a-t-il besoin ?",
+     "acceptedAnswer": {"@type": "Answer", "text": "{{ culture.det|capfirst|escapejs }} nécessite environ {{ culture.besoin_eau_mm }} mm d'eau sur l'ensemble du cycle."}}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.cald { max-width: 880px; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+.cald__crumb { font-size: .85rem; margin-bottom: 1rem; }
+.cald__crumb a { color: #1D9E75; text-decoration: none; }
+.cald h1 { font-weight: 800; line-height: 1.15; margin-bottom: .4rem; }
+.cald__fam { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #1D9E75; font-weight: 700; }
+.cald__intro { color: #5b6b64; max-width: 70ch; margin: .5rem 0 1.5rem; }
+.cald__frise { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin: 1rem 0 1.75rem; }
+.cald__mois { text-align: center; padding: .5rem 0; border-radius: 8px; font-size: .8rem; font-weight: 700;
+  background: #f1f5f3; color: #9aa6a1; }
+.cald__mois--semis { background: #1D9E75; color: #fff; }
+.cald__legend { font-size: .8rem; color: #5b6b64; margin-top: -1.25rem; margin-bottom: 1.5rem; }
+.cald__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.cald__fact { border: 1px solid rgba(8,80,65,.12); border-radius: 14px; padding: 1rem; background: #fff; }
+.cald__fact span { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #5b6b64; font-weight: 700; }
+.cald__fact b { font-size: 1.25rem; color: #085041; }
+.cald__conseils { margin: 1.5rem 0; }
+.cald__conseils h2 { font-size: 1.2rem; font-weight: 800; color: #085041; margin-bottom: .75rem; }
+.cald__conseils li { margin-bottom: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="cald">
+  <nav class="cald__crumb" aria-label="Fil d'Ariane">
+    <a href="{% url 'calendrier' %}">← Calendrier cultural</a>
+  </nav>
+
+  <div class="cald__fam">{{ culture.famille }} · {{ culture.saison }}</div>
+  <h1>{{ page_h1 }}</h1>
+  <p class="cald__intro">{{ culture.intro }}</p>
+
+  <h2 style="font-size:1.1rem;font-weight:800;color:#085041;">Fenêtre de semis</h2>
+  <div class="cald__frise" role="img" aria-label="Fenêtre de semis sur l'année">
+    {% for m in frise %}
+    <div class="cald__mois {% if m.semis %}cald__mois--semis{% endif %}">{{ m.label }}</div>
+    {% endfor %}
+  </div>
+  <p class="cald__legend">Mois de semis recommandés : <b>{{ semis_label }}</b> (saison {{ culture.saison|lower }}).</p>
+
+  <div class="cald__facts">
+    <div class="cald__fact"><span>Cycle</span><b>{{ culture.cycle_jours }} j</b></div>
+    <div class="cald__fact"><span>Besoin en eau</span><b>{{ culture.besoin_eau_mm }} mm</b></div>
+    <div class="cald__fact"><span>Récolte</span><b>{{ culture.periode_recolte }}</b></div>
+    <div class="cald__fact"><span>Rendement</span><b>{{ culture.rendement_min }}–{{ culture.rendement_max }} kg/ha</b></div>
+    <div class="cald__fact"><span>Sols adaptés</span><b style="font-size:1rem;">{{ culture.sols_adaptes|join:", " }}</b></div>
+  </div>
+
+  <section class="cald__conseils">
+    <h2>Conseils pour réussir la culture {{ culture.det_de }}</h2>
+    <ul>
+      {% for conseil in culture.conseils %}
+      <li>{{ conseil }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <p><a href="{% url 'calendrier' %}" style="color:#1D9E75;text-decoration:none;font-weight:600;">← Voir toutes les cultures du calendrier</a></p>
+</article>
+{% endblock %}

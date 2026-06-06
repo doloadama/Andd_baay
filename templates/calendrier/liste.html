@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ seo_title }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{{ seo_description }}" />
+{% endblock %}
+
+{% block meta_tags %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ seo_title|escapejs }}",
+  "description": "{{ seo_description|escapejs }}",
+  "inLanguage": "fr",
+  "isPartOf": {"@type": "WebSite", "name": "Andd Baay", "url": "{{ request.scheme }}://{{ request.get_host }}/"},
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for c in cultures %}{"@type": "ListItem", "position": {{ forloop.counter }}, "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'calendrier_detail' slug=c.slug %}", "name": "{{ c.nom|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.cal-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.cal-hero h1 { font-weight: 800; margin-bottom: .5rem; }
+.cal-hero p { color: var(--ab-text-muted, #5b6b64); max-width: 70ch; }
+.cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.cal-card { display: block; text-decoration: none; color: inherit; border: 1px solid rgba(8,80,65,.12);
+  border-radius: 16px; padding: 1.1rem 1.2rem; background: #fff; transition: .15s; }
+.cal-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(8,80,65,.10); border-color: #1D9E75; }
+.cal-card__nom { font-size: 1.15rem; font-weight: 800; color: #085041; margin-bottom: .15rem; }
+.cal-card__fam { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: #1D9E75; font-weight: 700; }
+.cal-card__row { font-size: .85rem; color: #5b6b64; margin-top: .55rem; display: flex; justify-content: space-between; }
+.cal-card__row b { color: #0d1b16; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cal-page">
+  <div class="cal-hero">
+    <h1>{{ page_h1 }}</h1>
+    <p>{{ intro_text }}</p>
+  </div>
+
+  <div class="cal-grid">
+    {% for c in cultures %}
+    <a class="cal-card" href="{% url 'calendrier_detail' slug=c.slug %}">
+      <div class="cal-card__fam">{{ c.famille }} · {{ c.saison }}</div>
+      <div class="cal-card__nom">{{ c.nom }}</div>
+      <div class="cal-card__row"><span>Cycle</span><b>{{ c.cycle_jours }} j</b></div>
+      <div class="cal-card__row"><span>Récolte</span><b>{{ c.periode_recolte }}</b></div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
