@@ -30,6 +30,26 @@ class StaticViewSitemap(Sitemap):
         return 1.0 if item == "home" else 0.3
 
 
+class ActualitesSitemap(Sitemap):
+    """Hub d'actualités public + pages-hub par catégorie (contenu frais)."""
+
+    protocol = "https"
+    changefreq = "daily"
+    priority = 0.6
+
+    # Catégories indexables (cf. ArticleActualite.CATEGORIE_CHOICES). "autre" exclu.
+    _CATEGORIES = ["meteo", "conseil", "marche", "politique"]
+
+    def items(self) -> list[str]:
+        return ["__all__", *self._CATEGORIES]
+
+    def location(self, item: str) -> str:
+        if item == "__all__":
+            return reverse("actualites")
+        return reverse("actualites_categorie", args=[item])
+
+
 sitemaps = {
     "static": StaticViewSitemap,
+    "actualites": ActualitesSitemap,
 }

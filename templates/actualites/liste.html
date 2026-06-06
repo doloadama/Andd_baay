@@ -2,10 +2,29 @@
 {% load static %}
 {% load actualites_tags %}
 
-{% block title %}Actualités Agro-Météo — Andd Baay{% endblock %}
+{% block title %}{{ seo_title|default:"Actualités Agro-Météo — Andd Baay" }}{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Dernières actualités de l'ANACIM, du Ministère de l'Agriculture et des partenaires agro au Sénégal." />
+<meta name="description" content="{{ seo_description|default:'Actualités agro-météo du Sénégal : météo, conseils, marchés, politique agricole.' }}" />
+{% endblock %}
+
+{% block meta_tags %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ seo_title|escapejs }}",
+  "description": "{{ seo_description|escapejs }}",
+  "inLanguage": "fr",
+  "isPartOf": {"@type": "WebSite", "name": "Andd Baay", "url": "{{ request.scheme }}://{{ request.get_host }}/"},
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for article in page_obj %}{"@type": "ListItem", "position": {{ forloop.counter }}, "url": "{{ article.url_originale|escapejs }}", "name": "{{ article.titre|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+    ]
+  }
+}
+</script>
 {% endblock %}
 
 {% block extra_css %}
@@ -216,8 +235,8 @@
 
   {# ── Hero ── #}
   <div class="actu-hero">
-    <h1><i class="fas fa-newspaper me-2"></i>Actualités Agro-Météo</h1>
-    <p>Informations officielles de l'ANACIM, du Ministère de l'Agriculture et des partenaires agro au Sénégal.</p>
+    <h1><i class="fas fa-newspaper me-2"></i>{{ page_h1|default:"Actualités Agro-Météo" }}</h1>
+    <p>{{ intro_text|default:"Informations officielles de l'ANACIM, du Ministère de l'Agriculture et des partenaires agro au Sénégal." }}</p>
   </div>
 
   {# ── Bandeau alertes prix (chargé en HTMX, masqué si 0 alertes) ── #}
