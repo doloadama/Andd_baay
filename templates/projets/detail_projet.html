@@ -601,7 +601,7 @@
                     @click="rouletteSelect('accompagnement')">
                 <i class="fas fa-stethoscope" aria-hidden="true"></i> Accompagnement
                 {% if nb_conseils_urgents and nb_conseils_urgents > 0 %}
-                <span style="background:#DC2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;">{{ nb_conseils_urgents }}</span>
+                <span style="background:var(--ab-color-danger);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;">{{ nb_conseils_urgents }}</span>
                 {% endif %}
             </button>
             <button type="button" class="at-tab-btn" data-tab-id="management" role="tab"
@@ -958,7 +958,7 @@
     <div x-show="activeTab === 'accompagnement'" x-transition>
 
         {# ── En-tête ── #}
-        <div class="at-card" style="background: linear-gradient(135deg, #04342C, #1D9E75); color: white; border: none; margin-bottom: 24px;">
+        <div class="at-card" style="background: linear-gradient(135deg, var(--ab-color-primary-night), var(--ab-color-primary)); color: white; border: none; margin-bottom: 24px;">
             <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                 <div style="width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">
                     🌿
@@ -987,11 +987,11 @@
                         <div style="width:52px;height:52px;border-radius:14px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #BBF7D0;">🌱</div>
                         {% endif %}
                         <div>
-                            <h3 style="margin:0 0 3px;font-size:17px;font-weight:800;color:#04342C;">{{ item.pp.produit.nom }}</h3>
+                            <h3 style="margin:0 0 3px;font-size:17px;font-weight:800;color:var(--ab-color-primary-night);">{{ item.pp.produit.nom }}</h3>
                             <p style="margin:0;font-size:12px;color:#6B7280;">
                                 {% if item.pp.superficie_allouee %}{{ item.pp.superficie_allouee|floatformat:2 }} ha{% endif %}
                                 {% if item.pp.date_semis %} · Semis : {{ item.pp.date_semis|date:"d/m/Y" }}{% endif %}
-                                {% if item.stade_label %} · <strong style="color:#1D9E75;">{{ item.stade_label }}</strong>{% endif %}
+                                {% if item.stade_label %} · <strong style="color:var(--ab-color-primary);">{{ item.stade_label }}</strong>{% endif %}
                             </p>
                         </div>
                     </div>
@@ -1004,12 +1004,12 @@
                 {% if item.conseils %}
                 <div style="margin-bottom:16px;">
                     <h4 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
-                        <i class="fas fa-lightbulb" style="color:#1D9E75;"></i> Conseils agronomiques ({{ item.conseils|length }})
+                        <i class="fas fa-lightbulb" style="color:var(--ab-color-primary);"></i> Conseils agronomiques ({{ item.conseils|length }})
                     </h4>
                     <div style="display:flex;flex-direction:column;gap:8px;">
                         {% for conseil in item.conseils %}
                         <div style="border-radius:10px;padding:11px 14px;border-left:4px solid
-                            {% if conseil.priorite == 'critique' %}#DC2626{% elif conseil.priorite == 'haute' %}#F5A623{% elif conseil.priorite == 'normale' %}#1D9E75{% else %}#3B82F6{% endif %};
+                            {% if conseil.priorite == 'critique' %}var(--ab-color-danger){% elif conseil.priorite == 'haute' %}#F5A623{% elif conseil.priorite == 'normale' %}var(--ab-color-primary){% else %}#3B82F6{% endif %};
                             background:
                             {% if conseil.priorite == 'critique' %}#FEF2F2{% elif conseil.priorite == 'haute' %}#FFFBEB{% elif conseil.priorite == 'normale' %}#F0FDF4{% else %}#EFF6FF{% endif %};">
                             <div style="display:flex;align-items:flex-start;gap:8px;">
@@ -1023,7 +1023,7 @@
                         {% endfor %}
                     </div>
                     <div style="margin-top:10px;">
-                        <a href="{% url 'detail_semis' item.pp.id %}" style="font-size:12px;color:#1D9E75;font-weight:600;text-decoration:none;">
+                        <a href="{% url 'detail_semis' item.pp.id %}" style="font-size:12px;color:var(--ab-color-primary);font-weight:600;text-decoration:none;">
                             Voir tous les conseils détaillés →
                         </a>
                     </div>

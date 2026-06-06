@@ -359,7 +359,7 @@
     </p>
     {% if request.user.is_staff %}
     <button onclick="fetch('/actualites/rafraichir/').then(r=>r.json()).then(d=>alert(d.ok?'Collecte lancée !':'Erreur: '+d.error))"
-            style="margin-top:1.5rem;padding:.6rem 1.5rem;background:var(--ab-color-primary,#1D9E75);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+            style="margin-top:1.5rem;padding:.6rem 1.5rem;background:var(--ab-color-primary,var(--ab-color-primary));color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
       <i class="fas fa-sync-alt me-1"></i>Lancer la collecte maintenant
     </button>
     {% endif %}
