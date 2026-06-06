@@ -68,8 +68,37 @@ class CalendrierSitemap(Sitemap):
         return 0.8 if item == "__pillar__" else 0.7
 
 
+class PrixMarcheSitemap(Sitemap):
+    """Prix marché publics — DYNAMIQUE : seuls les produits avec données récentes.
+    Table vide ⇒ aucune URL (zéro thin-content)."""
+
+    protocol = "https"
+    changefreq = "daily"
+
+    def items(self) -> list[str]:
+        from datetime import date, timedelta
+        from baay.models import PrixMarche
+        from baay.views_marche import PRODUITS_PUBLICS, RECENT_JOURS, _q_produit
+
+        cutoff = date.today() - timedelta(days=RECENT_JOURS)
+        slugs = [
+            p["slug"] for p in PRODUITS_PUBLICS
+            if PrixMarche.objects.filter(_q_produit(p["termes"]), date_relevee__gte=cutoff).exists()
+        ]
+        return (["__pillar__", *slugs]) if slugs else []
+
+    def location(self, item: str) -> str:
+        if item == "__pillar__":
+            return reverse("prix_public")
+        return reverse("prix_public_detail", args=[item])
+
+    def priority(self, item: str) -> float:
+        return 0.7 if item == "__pillar__" else 0.6
+
+
 sitemaps = {
     "static": StaticViewSitemap,
     "actualites": ActualitesSitemap,
     "calendrier": CalendrierSitemap,
+    "prix": PrixMarcheSitemap,
 }

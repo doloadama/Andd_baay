@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ seo_title }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{{ seo_description }}" />
+{% endblock %}
+
+{% block meta_tags %}
+{% if vide %}
+<meta name="robots" content="noindex,follow" />
+{% else %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ seo_title|escapejs }}",
+  "description": "{{ seo_description|escapejs }}",
+  "inLanguage": "fr",
+  "isPartOf": {"@type": "WebSite", "name": "Andd Baay", "url": "{{ request.scheme }}://{{ request.get_host }}/"},
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for p in produits %}{"@type": "ListItem", "position": {{ forloop.counter }}, "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'prix_public_detail' slug=p.slug %}", "name": "{{ p.label|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+    ]
+  }
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.prix-page { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.prix-page h1 { font-weight: 800; margin-bottom: .4rem; }
+.prix-page__intro { color: #5b6b64; max-width: 70ch; }
+.prix-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.prix-card { display: block; text-decoration: none; color: inherit; border: 1px solid rgba(8,80,65,.12);
+  border-radius: 16px; padding: 1.1rem 1.2rem; background: #fff; transition: .15s; }
+.prix-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(8,80,65,.10); border-color: #1D9E75; }
+.prix-card__nom { font-size: 1.1rem; font-weight: 800; color: #085041; }
+.prix-card__val { font-size: 1.5rem; font-weight: 800; color: #1D9E75; margin-top: .3rem; }
+.prix-card__val small { font-size: .8rem; color: #5b6b64; font-weight: 600; }
+.prix-card__date { font-size: .75rem; color: #8a958f; margin-top: .3rem; }
+.prix-empty { margin-top: 2rem; padding: 1.5rem; border: 1px dashed rgba(8,80,65,.25); border-radius: 16px;
+  background: #f8faf9; color: #5b6b64; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="prix-page">
+  <h1>{{ page_h1 }}</h1>
+  <p class="prix-page__intro">{{ intro_text }}</p>
+
+  {% if vide %}
+  <div class="prix-empty">
+    <strong>Données bientôt disponibles.</strong><br>
+    Les relevés de prix des marchés sont en cours de collecte. Revenez prochainement
+    pour consulter les prix des principales cultures du Sénégal.
+  </div>
+  {% else %}
+  <div class="prix-grid">
+    {% for p in produits %}
+    <a class="prix-card" href="{% url 'prix_public_detail' slug=p.slug %}">
+      <div class="prix-card__nom">{{ p.label }}</div>
+      <div class="prix-card__val">{{ p.prix_moyen|floatformat:0|intcomma }} <small>FCFA (moy.)</small></div>
+      <div class="prix-card__date">Relevé le {{ p.date|date:"d M Y" }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

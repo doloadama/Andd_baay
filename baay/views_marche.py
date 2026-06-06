@@ -16,7 +16,7 @@ from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Max, Min, Q
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.timezone import now
 from django.views.decorators.http import require_GET, require_POST
@@ -211,6 +211,113 @@ def _calcul_synthese_produits(
         })
 
     return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PAGES PUBLIQUES SEO — prix du marché (data-driven : jamais de page vide)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Fenêtre « données récentes » : au-delà, on considère qu'il n'y a pas de prix.
+RECENT_JOURS = 90
+
+# Produits exposés publiquement : slug propre (URL), libellé, article français
+# correct (« du mil », « de l'oignon ») et termes de matching sur produit_nom (libre).
+PRODUITS_PUBLICS = [
+    {"slug": "mil",      "label": "Mil",      "det_de": "du mil",        "termes": ["mil"]},
+    {"slug": "sorgho",   "label": "Sorgho",   "det_de": "du sorgho",     "termes": ["sorgho"]},
+    {"slug": "mais",     "label": "Maïs",     "det_de": "du maïs",       "termes": ["maïs", "mais"]},
+    {"slug": "riz",      "label": "Riz",      "det_de": "du riz",        "termes": ["riz"]},
+    {"slug": "arachide", "label": "Arachide", "det_de": "de l'arachide", "termes": ["arachide"]},
+    {"slug": "niebe",    "label": "Niébé",    "det_de": "du niébé",      "termes": ["niébé", "niebe"]},
+    {"slug": "oignon",   "label": "Oignon",   "det_de": "de l'oignon",   "termes": ["oignon"]},
+    {"slug": "tomate",   "label": "Tomate",   "det_de": "de la tomate",  "termes": ["tomate"]},
+]
+_PRODUITS_PUBLICS_BY_SLUG = {p["slug"]: p for p in PRODUITS_PUBLICS}
+
+
+def _q_produit(termes: list[str]) -> Q:
+    """Filtre OR sur produit_nom (le champ est du texte libre normalisé)."""
+    q = Q()
+    for t in termes:
+        q |= Q(produit_nom__icontains=t)
+    return q
+
+
+@require_GET
+def prix_public_liste(request):
+    """Page pilier publique : produits AYANT des données récentes uniquement."""
+    cutoff = date.today() - timedelta(days=RECENT_JOURS)
+    produits = []
+    for p in PRODUITS_PUBLICS:
+        agg = (
+            PrixMarche.objects
+            .filter(_q_produit(p["termes"]), date_relevee__gte=cutoff)
+            .aggregate(moy=Avg("prix_unitaire"), n=Count("id"), dmax=Max("date_relevee"))
+        )
+        if agg["n"]:
+            produits.append({
+                "slug": p["slug"], "label": p["label"],
+                "prix_moyen": round(float(agg["moy"]), 0) if agg["moy"] else None,
+                "date": agg["dmax"], "nb": agg["n"],
+            })
+    return render(request, "marche/public_liste.html", {
+        "produits": produits,
+        "vide": not produits,            # → le template pose noindex (anti thin-content)
+        "seo_title": "Prix des produits agricoles au Sénégal | Andd Baay",
+        "seo_description": (
+            "Prix du marché des produits agricoles au Sénégal (mil, riz, arachide, "
+            "oignon, tomate…) : moyennes par marché, sources FAO/OMA, mises à jour régulières."
+        ),
+        "page_h1": "Prix des produits agricoles au Sénégal",
+        "intro_text": (
+            "Suivez les prix observés sur les marchés sénégalais, agrégés depuis des "
+            "sources officielles (FAO FPMA, OMA Sénégal)."
+        ),
+    })
+
+
+@require_GET
+def prix_public_detail(request, slug):
+    """Fiche prix par produit. 404 si slug inconnu OU pas de données récentes."""
+    p = _PRODUITS_PUBLICS_BY_SLUG.get(slug)
+    if p is None:
+        raise Http404("Produit inconnu.")
+
+    cutoff = date.today() - timedelta(days=RECENT_JOURS)
+    base_qs = PrixMarche.objects.filter(_q_produit(p["termes"]), date_relevee__gte=cutoff)
+    agg = base_qs.aggregate(
+        moy=Avg("prix_unitaire"), pmin=Min("prix_unitaire"),
+        pmax=Max("prix_unitaire"), n=Count("id"), dmax=Max("date_relevee"),
+    )
+    if not agg["n"]:
+        raise Http404("Pas de données de prix récentes pour ce produit.")
+
+    # Dernier relevé par marché (le plus récent par marché).
+    par_marche: dict[str, dict] = {}
+    for r in base_qs.order_by("marche_nom", "-date_relevee").values(
+        "marche_nom", "region", "prix_unitaire", "unite", "date_relevee", "source"
+    ):
+        par_marche.setdefault(r["marche_nom"], r)
+    lignes = sorted(par_marche.values(), key=lambda r: r["marche_nom"])
+    unite = lignes[0]["unite"] if lignes else "FCFA/kg"
+    det_de = p["det_de"]
+
+    return render(request, "marche/public_detail.html", {
+        "produit": p,
+        "lignes": lignes,
+        "prix_moyen": round(float(agg["moy"]), 0) if agg["moy"] else None,
+        "prix_min": round(float(agg["pmin"]), 0) if agg["pmin"] else None,
+        "prix_max": round(float(agg["pmax"]), 0) if agg["pmax"] else None,
+        "unite": unite,
+        "date_maj": agg["dmax"],
+        "nb": agg["n"],
+        "seo_title": f"Prix {det_de} au Sénégal — marchés & tendances | Andd Baay",
+        "seo_description": (
+            f"Prix {det_de} sur les marchés du Sénégal : moyenne, minimum et maximum "
+            f"par marché. Données FAO/OMA, dernière mise à jour {agg['dmax']:%d/%m/%Y}."
+        ),
+        "page_h1": f"Prix {det_de} au Sénégal",
+    })
 
 
 # ─────────────────────────────────────────────────────────────────────────────

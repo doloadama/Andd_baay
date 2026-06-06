@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ seo_title }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{{ seo_description }}" />
+{% endblock %}
+
+{% block meta_tags %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ produit.label|escapejs }} (prix marché Sénégal)",
+  "category": "Produit agricole",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "XOF",
+    "lowPrice": {{ prix_min|default:0 }},
+    "highPrice": {{ prix_max|default:0 }},
+    "offerCount": {{ lignes|length }},
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.pxd { max-width: 880px; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+.pxd__crumb { font-size: .85rem; margin-bottom: 1rem; }
+.pxd__crumb a { color: #1D9E75; text-decoration: none; }
+.pxd h1 { font-weight: 800; line-height: 1.15; margin-bottom: .25rem; }
+.pxd__maj { font-size: .85rem; color: #5b6b64; margin-bottom: 1.25rem; }
+.pxd__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1.25rem 0; }
+.pxd__stat { border: 1px solid rgba(8,80,65,.12); border-radius: 14px; padding: 1rem; background: #fff; text-align: center; }
+.pxd__stat span { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: #5b6b64; font-weight: 700; }
+.pxd__stat b { font-size: 1.4rem; color: #085041; }
+.pxd table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: .9rem; }
+.pxd th, .pxd td { text-align: left; padding: .6rem .5rem; border-bottom: 1px solid rgba(8,80,65,.08); }
+.pxd th { color: #5b6b64; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+.pxd td.num { text-align: right; font-weight: 700; color: #085041; }
+.pxd__src { font-size: .8rem; color: #8a958f; margin-top: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="pxd">
+  <nav class="pxd__crumb" aria-label="Fil d'Ariane">
+    <a href="{% url 'prix_public' %}">← Prix des produits agricoles</a>
+  </nav>
+
+  <h1>{{ page_h1 }}</h1>
+  <p class="pxd__maj">Dernière mise à jour : <b>{{ date_maj|date:"d M Y" }}</b> ·
+     {{ nb }} relevé{{ nb|pluralize }} · unité : {{ unite }}</p>
+
+  <div class="pxd__stats">
+    <div class="pxd__stat"><span>Prix moyen</span><b>{{ prix_moyen|floatformat:0|intcomma }}</b></div>
+    <div class="pxd__stat"><span>Minimum</span><b>{{ prix_min|floatformat:0|intcomma }}</b></div>
+    <div class="pxd__stat"><span>Maximum</span><b>{{ prix_max|floatformat:0|intcomma }}</b></div>
+  </div>
+
+  <h2 style="font-size:1.1rem;font-weight:800;color:#085041;">Prix par marché</h2>
+  <table>
+    <thead>
+      <tr><th>Marché</th><th>Région</th><th>Date</th><th class="num">Prix ({{ unite }})</th></tr>
+    </thead>
+    <tbody>
+      {% for l in lignes %}
+      <tr>
+        <td>{{ l.marche_nom }}</td>
+        <td>{{ l.region|default:"—" }}</td>
+        <td>{{ l.date_relevee|date:"d M Y" }}</td>
+        <td class="num">{{ l.prix_unitaire|floatformat:0|intcomma }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="pxd__src">Sources : FAO FPMA et OMA Sénégal. Les prix sont indicatifs et
+     varient selon la qualité, la saison et le marché.</p>
+
+  <p style="margin-top:1.25rem;">
+    <a href="{% url 'prix_public' %}" style="color:#1D9E75;text-decoration:none;font-weight:600;">← Voir tous les prix agricoles</a>
+  </p>
+</article>
+{% endblock %}
