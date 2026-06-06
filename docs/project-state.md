@@ -40,6 +40,39 @@ Migration faite sur `main` : tokens canoniques `--ab-*`. Stylelint
 seuls fichiers modifiés). Vendor `--tw-/--bs-/--fa-` tolérés. ~330 tokens sémantiques
 legacy (`--danger-`, `--success-`…) restent à remapper (Phase 3, non bloquant).
 
+## SEO — package indexabilité + contenu (branche `feat/seo-quickwins`)
+
+Contexte : avant, **rien d'indexable** (tout derrière login) → Google n'avait rien à classer.
+Audit complet fait (on-page + technique, ancré sur les templates réels).
+
+**Livré (5 commits, branche poussée, PR à ouvrir) :**
+1. **Fondation** : `robots.txt` (vue `baay/views.py:robots_txt`), `sitemap.xml`
+   (`django.contrib.sitemaps` + `baay/sitemaps.py`), `<link canonical>` (`request.path`,
+   donc dédupe `?source/?page`), JSON-LD Organization/WebSite + OG/Twitter dans `base.html`,
+   HSTS 1 an.
+2. **Pilier #1 Actualités** publiques `/actualites/` + hubs `/actualites/<categorie>/`
+   (`views_actualites.py` dé-authentifié ; anti-duplicate : `resume` only, lien `url_originale`).
+3. **Pilier #2 Calendrier cultural** `/calendrier-cultural/` + `/<slug>/`
+   (dataset curé `baay/calendrier_cultural.py`, 8 cultures ; frise de semis ; FAQPage JSON-LD).
+   ⚠️ statique car `ProduitAgricole` a des champs agronomiques NULL sur les cultures clés.
+4. **Pilier #3 Prix du marché** `/prix-marche/` + `/<slug>/` **data-driven**
+   (`views_marche.py` : `prix_public_liste/detail` ; **zéro page vide** — 404/noindex si pas de
+   données ; `Product`+`AggregateOffer` JSON-LD ; sitemap dynamique). `PrixMarche` vide en local.
+5. **Carte sociale** `og:image` 1200×630 (`baay/static/images/og-card.png`, généré par
+   `scripts/generate_og_card.py`).
+
+Sitemaps enregistrés dans `baay/sitemaps.py` : `static`, `actualites`, `calendrier`, `prix`.
+Liens publics ajoutés au footer de `base.html` (Actualités, Calendrier, Prix). Tests :
+`tests/test_seo.py`, `test_actualites_public.py`, `test_calendrier.py`, `test_prix_public.py`.
+
+**⚠️ À FAIRE EN PROD après merge** (sinon sitemap avec mauvais host) :
+```python
+from django.contrib.sites.models import Site
+Site.objects.update_or_create(id=1, defaults={
+    "domain": "andd-baay-production.up.railway.app", "name": "Andd Baay"})
+```
+Puis soumettre `/sitemap.xml` à Google Search Console.
+
 ## Branches actives (toutes poussées sauf indication)
 
 | Branche | Objet | Statut |
@@ -48,3 +81,5 @@ legacy (`--danger-`, `--success-`…) restent à remapper (Phase 3, non bloquant
 | `feat/vocal-stt-local` | assistant vocal hybride complet (29 tests) | PR à ouvrir |
 | `feat/landing-deploy` | nouvelle landing `home.html` (`.ab-land`) | PR à ouvrir |
 | `refactor/vocal-async-css-namespace` | async vocal + migration CSS | mergé dans main |
+| `feat/ml-hardening` | anti-fuite ML + nowcast Kaggle (verdict) + garde-fou anti-synthétique + capture rendement réel | PR à ouvrir |
+| `feat/seo-quickwins` | package SEO complet (fondation + 3 piliers contenu + og:image) | PR à ouvrir |
