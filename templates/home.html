@@ -2,15 +2,15 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Andd Baay — L'intelligence agricole du Sahel{% endblock %}
+{% block title %}Andd Baay · L'intelligence agricole du Sahel{% endblock %}
 
 {% block meta_description %}
 <meta name="description"
-    content="Andd Baay : prédiction de rendement par IA, assistant vocal en Wolof, prix du marché en temps réel et gestion collaborative — pensé pour les exploitations sahéliennes, même hors connexion." />
+    content="Andd Baay : prédiction de rendement par IA, assistant vocal en Wolof, prix du marché en temps réel et gestion collaborative : pensé pour les exploitations sahéliennes, même hors connexion." />
 {% endblock %}
 
 {% block og_tags %}
-<meta property="og:title" content="Andd Baay — L'intelligence agricole du Sahel" />
+<meta property="og:title" content="Andd Baay · L'intelligence agricole du Sahel" />
 <meta property="og:description"
     content="Prédiction IA, assistant vocal Wolof, prix du marché et gestion collaborative. Conçu pour le terrain, fonctionne hors-ligne." />
 <meta property="og:type" content="website" />
@@ -59,18 +59,19 @@
     color: #fff; box-shadow: 0 10px 30px -8px rgba(29,158,117,.6);
 }
 .ab-btn--primary:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -10px rgba(29,158,117,.7); color:#fff; }
-.ab-btn--ghost { background: rgba(255,255,255,.7); color: var(--g-deep); border-color: var(--g-line); backdrop-filter: blur(6px); }
+.ab-btn--ghost { background: #fff; color: var(--g-deep); border-color: var(--g-line); }
 .ab-btn--ghost:hover { transform: translateY(-3px); border-color: var(--g-primary); color: var(--g-primary); }
 .ab-btn--glow { background: var(--g-accent); color: #3a2400; box-shadow: 0 10px 30px -8px rgba(239,159,39,.65); }
 .ab-btn--glow:hover { transform: translateY(-3px); color:#3a2400; }
+/* Anneau de focus clavier accessible (visible sur fond clair ET foncé) */
+.ab-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--g-primary); }
 
 /* === Eyebrow badge === */
 .ab-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 7px 15px 7px 11px; border-radius: 999px;
-    background: rgba(255,255,255,.65); border: 1px solid var(--g-line);
+    background: var(--g-mist); border: 1px solid var(--g-line);
     color: var(--g-deep); font-size: .8rem; font-weight: 600;
-    backdrop-filter: blur(8px);
 }
 .ab-eyebrow .ab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--g-primary); box-shadow: 0 0 0 0 rgba(29,158,117,.6); animation: ab-pulse 2s infinite; }
 @keyframes ab-pulse { 0%{box-shadow:0 0 0 0 rgba(29,158,117,.55);} 70%{box-shadow:0 0 0 10px rgba(29,158,117,0);} 100%{box-shadow:0 0 0 0 rgba(29,158,117,0);} }
@@ -78,7 +79,7 @@
 /* ============================ HERO ============================ */
 .ab-hero { position: relative; padding: 84px 0 72px; isolation: isolate; }
 .ab-hero__bg { position: absolute; inset: -10% -10% 0; z-index: -2; overflow: hidden; }
-.ab-blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; animation: ab-float 18s ease-in-out infinite; }
+.ab-blob { position: absolute; border-radius: 50%; filter: blur(44px); opacity: .5; animation: ab-float 18s ease-in-out infinite; }
 .ab-blob.b1 { width: 520px; height: 520px; top: -120px; left: -80px; background: radial-gradient(circle, #9FE1CB, transparent 70%); }
 .ab-blob.b2 { width: 460px; height: 460px; top: 40px; right: -120px; background: radial-gradient(circle, rgba(239,159,39,.45), transparent 70%); animation-delay: -6s; }
 .ab-blob.b3 { width: 380px; height: 380px; bottom: -160px; left: 35%; background: radial-gradient(circle, #5DCAA5, transparent 70%); animation-delay: -11s; }
@@ -91,7 +92,7 @@
 
 .ab-hero__grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
 .ab-hero h1 { font-size: clamp(2.5rem, 5.4vw, 4.1rem); font-weight: 700; margin: 22px 0 18px; }
-.ab-grad { background: linear-gradient(110deg, var(--g-accent), var(--g-primary) 45%, var(--g-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ab-grad { color: var(--g-primary); } /* emphase couleur unie (pas de texte en dégradé) */
 .ab-hero__lead { font-size: clamp(1.05rem, 1.4vw, 1.18rem); color: var(--g-muted); max-width: 540px; line-height: 1.65; }
 .ab-hero__cta { display: flex; gap: 14px; flex-wrap: wrap; margin: 32px 0 26px; }
 .ab-hero__meta { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; color: var(--g-muted); font-size: .9rem; }
@@ -189,9 +190,9 @@
 .ab-tile.sm  { grid-column: span 2; }
 .ab-tile.wide{ grid-column: span 4; }
 .ico-ai { background: linear-gradient(135deg, var(--g-primary), var(--g-deep)); }
-.ico-off { background: linear-gradient(135deg, #3b82f6, #1e3a8a); }
+.ico-off { background: linear-gradient(135deg, var(--g-light), var(--g-deep)); }
 .ico-voice { background: linear-gradient(135deg, var(--g-accent), #c2410c); }
-.ico-market { background: linear-gradient(135deg, #8b5cf6, #5b21b6); }
+.ico-market { background: linear-gradient(135deg, var(--g-accent), #b45309); }
 .ico-team { background: linear-gradient(135deg, #14b8a6, #0f766e); }
 .ico-leaf { background: linear-gradient(135deg, #65a30d, #3f6212); }
 .ab-tile.big .ab-mini { margin-top:18px; display:flex; align-items:flex-end; gap:7px; height:64px; }
@@ -246,6 +247,7 @@
     .ab-bento { grid-template-columns: 1fr; }
     .ab-tile.big, .ab-tile.mid, .ab-tile.sm, .ab-tile.wide { grid-column: span 1; }
     .ab-trust__sep, .ab-hero__meta .ab-sep { display:none; }
+    .ab-chip { display:none; } /* décoratif : évite le débordement en viewport étroit */
 }
 @media (prefers-reduced-motion: reduce) {
     .ab-land *, .ab-land *::before, .ab-land *::after { animation: none !important; }
@@ -270,7 +272,7 @@
         <h1 class="ab-up d2">Cultivez plus,<br>devinez <span class="ab-grad">moins.</span></h1>
         <p class="ab-hero__lead ab-up d3">
           Prédiction de rendement par IA, assistant vocal en <b>Wolof</b>, prix du marché en temps réel
-          et gestion collaborative de votre exploitation. Pensé pour le terrain — et il
+          et gestion collaborative de votre exploitation. Pensé pour le terrain, et il
           <b>fonctionne même hors connexion</b>.
         </p>
 
@@ -311,7 +313,7 @@
       <div class="ab-preview ab-up d4">
         <div class="ab-card">
           <div class="ab-card__top">
-            <span class="ab-card__title"><i class="fas fa-seedling"></i> Mil — Parcelle Nord</span>
+            <span class="ab-card__title"><i class="fas fa-seedling"></i> Mil · Parcelle Nord</span>
             <span class="ab-live">EN DIRECT</span>
           </div>
 
@@ -344,7 +346,7 @@
 
           <div class="ab-voice">
             <i class="fas fa-microphone-lines"></i>
-            <span>« Kañ laa wara ji suuf si&nbsp;? » — Jëf Baay répond…</span>
+            <span><span lang="wo">« Kañ laa wara ji suuf si&nbsp;? »</span>, Jëf Baay répond…</span>
             <span class="ab-wave" aria-hidden="true"><i style="height:10px"></i><i style="height:16px"></i><i style="height:8px"></i><i style="height:18px"></i><i style="height:11px"></i></span>
           </div>
         </div>
@@ -381,7 +383,6 @@
   <section class="ab-section">
     <div class="ab-wrap">
       <div class="ab-head">
-        <span class="ab-eyebrow"><i class="fas fa-layer-group"></i> Tout-en-un</span>
         <h2>Une seule appli, du semis à la vente</h2>
         <p>Chaque fonctionnalité est pensée pour un agriculteur sur le terrain, avec un téléphone modeste et un réseau capricieux.</p>
       </div>
@@ -390,7 +391,7 @@
         <article class="ab-tile big">
           <div class="ab-tile__ico ico-ai"><i class="fas fa-brain"></i></div>
           <h3>Prédiction de rendement par IA</h3>
-          <p>Notre modèle apprend de chaque saison et de votre parcelle pour estimer votre récolte — et s'affine avec le temps.</p>
+          <p>Notre modèle apprend de chaque saison et de votre parcelle pour estimer votre récolte, et s'affine avec le temps.</p>
           <div class="ab-mini" aria-hidden="true">
             <span style="height:40%;animation-delay:.1s"></span><span style="height:55%;animation-delay:.2s"></span>
             <span style="height:48%;animation-delay:.3s"></span><span style="height:70%;animation-delay:.4s"></span>
@@ -401,7 +402,7 @@
 
         <article class="ab-tile mid">
           <div class="ab-tile__ico ico-voice"><i class="fas fa-microphone-lines"></i></div>
-          <h3>Jëf Baay — vocal Wolof</h3>
+          <h3>Jëf Baay · vocal Wolof</h3>
           <p>Posez vos questions agricoles à voix haute, en Wolof. Aucune lecture requise.</p>
           <span class="ab-tag">Sans inscription <i class="fas fa-arrow-right"></i></span>
         </article>
@@ -442,7 +443,7 @@
           <div>
             <span class="ab-eyebrow" style="background:rgba(255,255,255,.1);color:#eafff6;border-color:rgba(255,255,255,.15)"><i class="fas fa-microphone"></i> Jëf Baay</span>
             <h2 style="margin-top:18px">L'assistant qui parle votre langue</h2>
-            <p>40 à 60&nbsp;% des agriculteurs du Sahel ne lisent pas couramment. Jëf Baay supprime la barrière&nbsp;: on parle, il répond — en Wolof, à voix haute.</p>
+            <p>40 à 60&nbsp;% des agriculteurs du Sahel ne lisent pas couramment. Jëf Baay supprime la barrière&nbsp;: on parle, il répond en Wolof, à voix haute.</p>
             {% if vocal_wolof_audio_enabled %}
             <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glow"><i class="fas fa-microphone"></i> Essayer maintenant</a>
             {% else %}
@@ -452,11 +453,11 @@
           <div class="ab-spot__bubble">
             <div class="ab-spot__line">
               <div class="ab-spot__av ab-av-user"><i class="fas fa-user"></i></div>
-              <div class="ab-spot__msg">« Kañ laa wara ji dugub&nbsp;? » <br><small style="opacity:.6">(Quand dois-je semer le mil&nbsp;?)</small></div>
+              <div class="ab-spot__msg"><span lang="wo">« Kañ laa wara ji dugub&nbsp;? »</span> <br><small style="opacity:.6">(Quand dois-je semer le mil&nbsp;?)</small></div>
             </div>
             <div class="ab-spot__line">
               <div class="ab-spot__av ab-av-bot"><i class="fas fa-seedling"></i></div>
-              <div class="ab-spot__msg bot">« Su naka tey, ji ci diggante 15 ak 25 juin, bu taw bi agsi… »</div>
+              <div class="ab-spot__msg bot" lang="wo">« Su naka tey, ji ci diggante 15 ak 25 juin, bu taw bi agsi… »</div>
             </div>
             <div class="ab-bigwave" aria-hidden="true">
               <i style="height:14px"></i><i style="height:28px"></i><i style="height:18px"></i><i style="height:38px"></i><i style="height:22px"></i>
@@ -473,14 +474,13 @@
   <section class="ab-section" style="padding-top:0">
     <div class="ab-wrap">
       <div class="ab-head">
-        <span class="ab-eyebrow"><i class="fas fa-route"></i> Démarrage</span>
         <h2>Opérationnel en 3 étapes</h2>
       </div>
       <div class="ab-steps">
         <div class="ab-step">
           <div class="ab-step__n">1</div>
           <h3>Créez votre ferme</h3>
-          <p>Nom, localité, superficie. Quelques champs suffisent pour démarrer — même depuis un téléphone d'entrée de gamme.</p>
+          <p>Nom, localité, superficie. Quelques champs suffisent pour démarrer, même depuis un téléphone d'entrée de gamme.</p>
         </div>
         <div class="ab-step">
           <div class="ab-step__n">2</div>
@@ -500,8 +500,8 @@
   <section class="ab-final">
     <div class="ab-wrap">
       <div class="ab-final__box">
-        <h2>Prêt à transformer votre prochaine saison&nbsp;?</h2>
-        <p>Rejoignez les agriculteurs qui décident avec des données, plus à l'aveugle. Gratuit pour démarrer.</p>
+        <h2>Prêt à réussir votre prochaine saison&nbsp;?</h2>
+        <p>Rejoignez les agriculteurs qui décident avec des données plutôt qu'à l'aveugle. Gratuit pour démarrer.</p>
         <div class="ab-hero__cta">
           {% if request.user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--glow">Aller au tableau de bord <i class="fas fa-arrow-right"></i></a>
