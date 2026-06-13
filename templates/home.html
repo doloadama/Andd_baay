@@ -340,6 +340,21 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
 .ab-final p { position: relative; z-index: 1; color: rgba(255,255,255,.9); font-size: 1.1rem; margin: 16px auto 32px; max-width: 560px; line-height: 1.65; }
 .ab-final .ab-hero__cta { justify-content: center; margin: 0; position: relative; z-index: 1; }
 
+/* ============================ PREUVE TERRAIN ============================ */
+.ab-proof { position: relative; overflow: hidden; isolation: isolate; margin-top: 18px; border-radius: 34px; padding: clamp(44px, 6vw, 72px) clamp(26px, 5vw, 60px); color: #eefaf4; }
+.ab-proof__bg { position: absolute; inset: 0; z-index: -2; }
+.ab-proof__bg img { width: 100%; height: 100%; object-fit: cover; }
+.ab-proof::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(115deg, rgba(4,36,29,.94), rgba(4,36,29,.78) 48%, rgba(4,36,29,.55)); }
+.ab-proof__head { max-width: 560px; margin-bottom: 36px; }
+.ab-proof__head .ab-eyebrow { margin-bottom: 16px; }
+.ab-proof__head h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); color: #fff; }
+.ab-proof__head p { color: #bfe9da; margin-top: 12px; line-height: 1.65; }
+.ab-proof__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.ab-proof__cell { padding: 4px 8px; }
+.ab-proof__cell + .ab-proof__cell { border-left: 1px solid rgba(255,255,255,.18); }
+.ab-proof__big { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; background: linear-gradient(100deg, var(--ab-l-pale), var(--ab-l-accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ab-proof__lab { margin-top: 8px; font-size: .84rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: rgba(238,250,244,.82); }
+
 /* ============================ RESPONSIVE ============================ */
 @media (max-width: 991.98px) {
     .ab-hero__grid { grid-template-columns: 1fr; gap: 44px; }
@@ -360,6 +375,8 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
     .ab-card--feat, .ab-card--wide { grid-column: span 1; }
     .ab-hero__meta .ab-sep { display: none; }
     .ab-chip { display: none; } /* décoratif : évite le débordement en viewport étroit */
+    .ab-proof__grid { grid-template-columns: 1fr; gap: 8px; }
+    .ab-proof__cell + .ab-proof__cell { border-left: none; border-top: 1px solid rgba(255,255,255,.18); padding-top: 16px; margin-top: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .ab-land *, .ab-land *::before, .ab-land *::after { animation: none !important; }
@@ -654,6 +671,33 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
           <div class="ab-step__n">3</div>
           <h3>Pilotez & récoltez</h3>
           <p>Tâches, dépenses, prix du marché, diagnostic photo&nbsp;: tout est centralisé, en ligne comme hors-ligne.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ PREUVE TERRAIN ============================ -->
+  <section class="ab-section" id="preuve">
+    <div class="ab-wrap">
+      <div class="ab-proof ab-rv">
+        <div class="ab-proof__bg" aria-hidden="true">
+          <img src="{% static 'images/hero-farmers.jpg' %}" alt="" loading="lazy" decoding="async" width="1920" height="1280" />
+        </div>
+        <div class="ab-proof__head">
+          <span class="ab-eyebrow ab-eyebrow--invert"><i class="fas fa-seedling"></i> Sur le terrain</span>
+          <h2>Déjà au champ, déjà au travail</h2>
+          <p>Des exploitations qui décident avec des données, dans les conditions réelles du Sahel.</p>
+        </div>
+        <div class="ab-proof__grid">
+          {% if stats.show_trust_metrics %}
+            <div class="ab-proof__cell"><div class="ab-proof__big">{{ stats.nb_users|intcomma }}+</div><div class="ab-proof__lab">Agriculteurs connectés</div></div>
+            <div class="ab-proof__cell"><div class="ab-proof__big">{{ stats.nb_projets|intcomma }}</div><div class="ab-proof__lab">Projets agricoles suivis</div></div>
+            <div class="ab-proof__cell"><div class="ab-proof__big">{{ stats.nb_localites }}</div><div class="ab-proof__lab">Localités couvertes</div></div>
+          {% else %}
+            <div class="ab-proof__cell"><div class="ab-proof__big">IA</div><div class="ab-proof__lab">Prédiction de rendement</div></div>
+            <div class="ab-proof__cell"><div class="ab-proof__big">Wolof</div><div class="ab-proof__lab">Assistant vocal natif</div></div>
+            <div class="ab-proof__cell"><div class="ab-proof__big">2G</div><div class="ab-proof__lab">Fonctionne en zone blanche</div></div>
+          {% endif %}
         </div>
       </div>
     </div>
