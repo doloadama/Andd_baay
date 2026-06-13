@@ -82,10 +82,11 @@ html.dark-mode .ab-land {
 .ab-btn--primary:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -10px rgba(29,158,117,.65); color: #fff; }
 .ab-btn--ghost { background: transparent; color: var(--ab-l-ink); border-color: var(--ab-l-line); }
 .ab-btn--ghost:hover { transform: translateY(-3px); border-color: var(--ab-l-primary); color: var(--ab-l-primary); }
-.ab-btn--glass { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.22); backdrop-filter: blur(6px); }
-.ab-btn--glass:hover { transform: translateY(-3px); background: rgba(255,255,255,.18); color: #fff; }
-.ab-btn--glow { background: var(--ab-l-accent); color: #3a2400; box-shadow: 0 10px 30px -8px rgba(239,159,39,.6); }
-.ab-btn--glow:hover { transform: translateY(-3px); color: #3a2400; box-shadow: 0 16px 38px -10px rgba(239,159,39,.7); }
+.ab-btn--glass { background: rgba(255,255,255,.1); color: #fff !important; border-color: rgba(255,255,255,.22); backdrop-filter: blur(6px); }
+.ab-btn--glass:hover { transform: translateY(-3px); background: rgba(255,255,255,.18); color: #fff !important; }
+/* Boutons or pleins : texte sombre forcé (sinon écrasé par la couleur de lien globale) */
+.ab-btn--gold, .ab-btn--glow { background: var(--ab-l-accent); color: #3a2400 !important; box-shadow: 0 10px 30px -8px rgba(239,159,39,.6); }
+.ab-btn--gold:hover, .ab-btn--glow:hover { transform: translateY(-3px); color: #3a2400 !important; box-shadow: 0 16px 38px -10px rgba(239,159,39,.7); }
 .ab-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ab-l-primary); }
 
 /* === Eyebrow === */
