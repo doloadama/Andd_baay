@@ -14,6 +14,12 @@
 <meta property="og:description"
     content="Prédiction IA, assistant vocal Wolof, prix du marché et gestion collaborative. Conçu pour le terrain, fonctionne hors-ligne." />
 <meta property="og:type" content="website" />
+<meta property="og:image" content="{% static 'images/og-cover.jpg' %}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Andd Baay — Intelligence agricole · Sahel" />
+<meta name="twitter:description"
+    content="Prédiction IA, assistant vocal Wolof, prix du marché et gestion collaborative. Conçu pour le terrain, fonctionne hors-ligne." />
+<meta name="twitter:image" content="{% static 'images/og-cover.jpg' %}" />
 {% endblock %}
 
 {% block extra_css %}
@@ -43,6 +49,7 @@
     color: var(--ab-l-ink);
     overflow-x: clip;
     -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
 }
 html.dark-mode .ab-land {
     --ab-l-ink: #eaf6f0;
@@ -52,7 +59,7 @@ html.dark-mode .ab-land {
     --ab-l-line: rgba(159, 225, 203, 0.16);
 }
 .ab-land *, .ab-land *::before, .ab-land *::after { box-sizing: border-box; }
-.ab-land h1, .ab-land h2, .ab-land h3 {
+.ab-land h1, .ab-land h2, .ab-land h3, .ab-land h4 {
     font-family: 'Space Grotesk', 'Inter', sans-serif;
     letter-spacing: -0.03em; line-height: 1.05; margin: 0;
 }
@@ -380,14 +387,14 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
 
         <div class="ab-hero__cta ab-rv" style="--ab-d:.24s">
           {% if request.user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--primary">
+            <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--gold">
               Reprendre mon tableau de bord <i class="fas fa-arrow-right"></i>
             </a>
             {% if vocal_wolof_audio_enabled %}
             <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glass"><i class="fas fa-microphone"></i> Parler à Jëf Baay</a>
             {% endif %}
           {% else %}
-            <a href="{% url 'register' %}" class="ab-btn ab-btn--primary">
+            <a href="{% url 'register' %}" class="ab-btn ab-btn--gold">
               Démarrer gratuitement <i class="fas fa-arrow-right"></i>
             </a>
             {% if vocal_wolof_audio_enabled %}
