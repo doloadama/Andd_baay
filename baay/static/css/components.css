@@ -1,0 +1,102 @@
+/* Andd Baay — composants UI thématisés (Bootstrap 5.3 mappé sur les tokens --ab-*).
+   ============================================================================
+   Convention projet : utiliser les classes Bootstrap `.btn` + variantes
+   (`.btn-primary`, `.btn-outline-primary`, `.btn-danger`…). Elles héritent ici
+   de la marque via les variables natives `--bs-btn-*` (aucun !important).
+   Les styles bespoke `.ab-btn` (landing), `.at-btn`/`.bento-btn` (détail projet)
+   restent des exceptions assumées (ils n'utilisent pas `.btn` → aucune collision).
+   Chargé APRÈS bootstrap + base.css (cf. base.html) pour pouvoir surcharger. */
+
+/* ── Enveloppe commune des boutons ─────────────────────────────────────── */
+.btn {
+  --bs-btn-border-radius: var(--ab-radius-md);
+  transition:
+    color var(--ab-duration-fast) var(--ab-ease-out),
+    background-color var(--ab-duration-fast) var(--ab-ease-out),
+    border-color var(--ab-duration-fast) var(--ab-ease-out),
+    box-shadow var(--ab-duration-fast) var(--ab-ease-out);
+}
+
+/* Anneau de focus clavier accessible (absent par défaut) */
+.btn:focus-visible {
+  outline: 2px solid var(--ab-color-primary);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* ── Primary → vert marque ─────────────────────────────────────────────── */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--ab-color-primary);
+  --bs-btn-border-color: var(--ab-color-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--ab-color-primary-dark);
+  --bs-btn-hover-border-color: var(--ab-color-primary-dark);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--ab-color-primary-deep);
+  --bs-btn-active-border-color: var(--ab-color-primary-deep);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--ab-color-primary);
+  --bs-btn-disabled-border-color: var(--ab-color-primary);
+  --bs-btn-focus-shadow-rgb: var(--ab-color-primary-rgb);
+}
+
+/* ── Success / Danger / Warning (alignés sur les tokens sémantiques) ───── */
+.btn-success {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--ab-color-success);
+  --bs-btn-border-color: var(--ab-color-success);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #128a3e;
+  --bs-btn-hover-border-color: #128a3e;
+  --bs-btn-active-bg: #0f7536;
+  --bs-btn-active-border-color: #0f7536;
+  --bs-btn-disabled-bg: var(--ab-color-success);
+  --bs-btn-disabled-border-color: var(--ab-color-success);
+}
+.btn-danger {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--ab-color-danger);
+  --bs-btn-border-color: var(--ab-color-danger);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--ab-color-depense);
+  --bs-btn-hover-border-color: var(--ab-color-depense);
+  --bs-btn-active-bg: #991b1b;
+  --bs-btn-active-border-color: #991b1b;
+  --bs-btn-disabled-bg: var(--ab-color-danger);
+  --bs-btn-disabled-border-color: var(--ab-color-danger);
+  --bs-btn-focus-shadow-rgb: var(--ab-color-danger-rgb);
+}
+.btn-warning {
+  --bs-btn-color: #3a2400;
+  --bs-btn-bg: var(--ab-color-warning);
+  --bs-btn-border-color: var(--ab-color-warning);
+  --bs-btn-hover-color: #3a2400;
+  --bs-btn-hover-bg: #b45309;
+  --bs-btn-hover-border-color: #b45309;
+  --bs-btn-active-bg: #92400e;
+  --bs-btn-active-border-color: #92400e;
+}
+
+/* ── Outline primary ───────────────────────────────────────────────────── */
+.btn-outline-primary {
+  --bs-btn-color: var(--ab-color-primary);
+  --bs-btn-border-color: var(--ab-color-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--ab-color-primary);
+  --bs-btn-hover-border-color: var(--ab-color-primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--ab-color-primary);
+  --bs-btn-active-border-color: var(--ab-color-primary);
+  --bs-btn-disabled-color: var(--ab-color-primary);
+  --bs-btn-disabled-border-color: var(--ab-color-primary);
+  --bs-btn-focus-shadow-rgb: var(--ab-color-primary-rgb);
+}
+
+/* ── Bouton-lien ───────────────────────────────────────────────────────── */
+.btn-link {
+  --bs-btn-color: var(--ab-color-primary);
+  --bs-btn-hover-color: var(--ab-color-primary-dark);
+}
+
+/* .btn-secondary : gris Bootstrap conservé (neutre volontaire). */

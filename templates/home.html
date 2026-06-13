@@ -2,15 +2,15 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Andd Baay — Intelligence agricole · Sahel{% endblock %}
+{% block title %}Andd Baay · L'intelligence agricole du Sahel{% endblock %}
 
 {% block meta_description %}
 <meta name="description"
-    content="Andd Baay : prédiction de rendement par IA, assistant vocal en Wolof, prix du marché en temps réel et gestion collaborative — pensé pour les exploitations sahéliennes, même hors connexion." />
+    content="Andd Baay : prédiction de rendement par IA, assistant vocal en Wolof, prix du marché en temps réel et gestion collaborative : pensé pour les exploitations sahéliennes, même hors connexion." />
 {% endblock %}
 
 {% block og_tags %}
-<meta property="og:title" content="Andd Baay — Intelligence agricole · Sahel" />
+<meta property="og:title" content="Andd Baay · L'intelligence agricole du Sahel" />
 <meta property="og:description"
     content="Prédiction IA, assistant vocal Wolof, prix du marché et gestion collaborative. Conçu pour le terrain, fonctionne hors-ligne." />
 <meta property="og:type" content="website" />
@@ -25,187 +25,346 @@
 {% block extra_css %}
 <style>
 /* =====================================================================
-   ANDD BAAY — LANDING « TERROIR »  (scoped under .ab-land)
-   D'après la maquette Stitch : crème chaud · vert profond · or soleil.
-   100% CSS · zéro asset lourd hors la photo héro · 3G-friendly.
+   ANDD BAAY — LANDING 2026  (scoped under .ab-land)
+   Panneaux immersifs · phone mockup CSS · marquee · 100% CSS/SVG
+   Zéro image : compatible 3G. Thème clair/sombre via tokens locaux.
    ===================================================================== */
 .ab-land {
-    --bg: #fff8f4;
-    --surface-low: #fff1e6;
-    --card: #ffffff;
-    --primary: #00694c;
-    --primary-deep: #085041;
-    --gold: #F4A82C;
-    --gold-deep: #d6890f;
-    --ink: #2A2117;
-    --muted: #4a5751;
-    --mint: #F1F9F5;
-    --night: #16241B;
-    --line: rgba(8, 80, 65, 0.12);
-    --r: 18px;
+    /* Palette locale dérivée des tokens canoniques --ab-* */
+    --ab-l-primary: var(--ab-color-primary);      /* #1D9E75 */
+    --ab-l-deep: var(--ab-color-primary-deep);    /* #085041 */
+    --ab-l-night: #04241d;
+    --ab-l-light: #5DCAA5;
+    --ab-l-pale: #9FE1CB;
+    --ab-l-mist: #E1F5EE;
+    --ab-l-accent: var(--ab-color-accent);        /* #EF9F27 */
+    /* Surfaces adaptatives clair/sombre */
+    --ab-l-ink: #0d1b16;
+    --ab-l-muted: #5b6b64;
+    --ab-l-card: #ffffff;
+    --ab-l-card-soft: #f4faf7;
+    --ab-l-line: rgba(8, 80, 65, 0.12);
+    --ab-l-r: 22px;
     font-family: 'Inter', system-ui, sans-serif;
-    color: var(--ink);
-    background: var(--bg);
+    color: var(--ab-l-ink);
     overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     line-height: 1.6;
 }
+html.dark-mode .ab-land {
+    --ab-l-ink: #eaf6f0;
+    --ab-l-muted: #9cb5ab;
+    --ab-l-card: #0a2f26;
+    --ab-l-card-soft: #08271f;
+    --ab-l-line: rgba(159, 225, 203, 0.16);
+}
 .ab-land *, .ab-land *::before, .ab-land *::after { box-sizing: border-box; }
 .ab-land h1, .ab-land h2, .ab-land h3, .ab-land h4 {
     font-family: 'Space Grotesk', 'Inter', sans-serif;
-    letter-spacing: -0.03em; line-height: 1.12; margin: 0; color: var(--ink);
+    letter-spacing: -0.03em; line-height: 1.05; margin: 0;
 }
 .ab-land a { text-decoration: none; }
-.ab-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.ab-land section[id], .ab-land div[id] { scroll-margin-top: 110px; }
+.ab-wrap { max-width: 1180px; margin: 0 auto; }
 
-/* full-bleed helper (breaks out of base.html .container-modern) */
-.ab-bleed { width: 100vw; margin-left: calc(50% - 50vw); }
+/* === Révélation au scroll (no-op sans JS : .ab-js requis) === */
+.ab-js .ab-rv { opacity: 0; transform: translateY(26px); transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); transition-delay: var(--ab-d, 0s); }
+.ab-js .ab-rv.is-in { opacity: 1; transform: none; }
 
-/* === Buttons === */
+/* === Boutons === */
 .ab-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    padding: 14px 26px; border-radius: 14px; font-weight: 600; font-size: .95rem;
-    border: 2px solid transparent; cursor: pointer; white-space: nowrap;
-    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, background .25s, color .25s, border-color .25s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 15px 28px; border-radius: 999px; font-weight: 600; font-size: .97rem;
+    border: 1.5px solid transparent; cursor: pointer; white-space: nowrap;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, background .25s, border-color .25s;
 }
-.ab-btn--gold { background: var(--gold); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px -10px rgba(244,168,44,.6); }
-.ab-btn--gold:hover { transform: translateY(-2px); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 16px 34px -12px rgba(244,168,44,.7); }
-.ab-btn--outline { background: transparent; color: #fff; border-color: rgba(255,255,255,.6); }
-.ab-btn--outline:hover { transform: translateY(-2px); color: #fff; background: rgba(255,255,255,.12); border-color: #fff; }
-.ab-btn--dark { background: transparent; color: var(--primary-deep); border-color: var(--primary-deep); }
-.ab-btn--dark:hover { transform: translateY(-2px); color: var(--primary-deep); background: rgba(8,80,65,.06); }
+.ab-btn--primary { background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); color: #fff; box-shadow: 0 10px 30px -8px rgba(29,158,117,.55); }
+.ab-btn--primary:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -10px rgba(29,158,117,.65); color: #fff; }
+.ab-btn--ghost { background: transparent; color: var(--ab-l-ink); border-color: var(--ab-l-line); }
+.ab-btn--ghost:hover { transform: translateY(-3px); border-color: var(--ab-l-primary); color: var(--ab-l-primary); }
+.ab-btn--glass { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.22); backdrop-filter: blur(6px); }
+.ab-btn--glass:hover { transform: translateY(-3px); background: rgba(255,255,255,.18); color: #fff; }
+.ab-btn--glow { background: var(--ab-l-accent); color: #3a2400; box-shadow: 0 10px 30px -8px rgba(239,159,39,.6); }
+.ab-btn--glow:hover { transform: translateY(-3px); color: #3a2400; box-shadow: 0 16px 38px -10px rgba(239,159,39,.7); }
+.ab-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ab-l-primary); }
 
-/* === Eyebrow badge === */
+/* === Eyebrow === */
 .ab-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 14px; border-radius: 999px; font-size: .76rem; font-weight: 700;
-    letter-spacing: .04em; text-transform: uppercase;
+    padding: 7px 16px 7px 12px; border-radius: 999px;
+    background: var(--ab-l-mist); border: 1px solid var(--ab-l-line);
+    color: var(--ab-l-deep); font-size: .8rem; font-weight: 600;
 }
-.ab-eyebrow i { color: var(--gold); }
+html.dark-mode .ab-land .ab-eyebrow { background: rgba(159,225,203,.1); color: var(--ab-l-pale); }
+.ab-eyebrow--invert { background: rgba(255,255,255,.08); color: #d9f5ea; border-color: rgba(255,255,255,.16); }
+html.dark-mode .ab-land .ab-eyebrow--invert { background: rgba(255,255,255,.08); color: #d9f5ea; }
+.ab-eyebrow .ab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ab-l-primary); animation: ab-pulse 2s infinite; }
+@keyframes ab-pulse { 0%{box-shadow:0 0 0 0 rgba(29,158,117,.55);} 70%{box-shadow:0 0 0 10px rgba(29,158,117,0);} 100%{box-shadow:0 0 0 0 rgba(29,158,117,0);} }
+
+/* === Têtes de section === */
+.ab-section { padding: 90px 0 0; }
+.ab-head { max-width: 720px; margin: 0 0 48px; }
+.ab-head--center { text-align: center; margin-inline: auto; }
+.ab-head .ab-eyebrow { margin-bottom: 18px; }
+.ab-head h2 { font-size: clamp(2rem, 3.8vw, 3.1rem); font-weight: 700; }
+.ab-head p { color: var(--ab-l-muted); font-size: 1.07rem; margin: 14px 0 0; line-height: 1.65; }
 
 /* ============================ HERO ============================ */
-.ab-hero { position: relative; min-height: 86vh; display: flex; align-items: center; padding: 120px 0 90px; isolation: isolate; }
-.ab-hero__bg { position: absolute; inset: 0; z-index: -1; }
-.ab-hero__bg img { width: 100%; height: 100%; object-fit: cover; }
-.ab-hero__bg::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(100deg, rgba(15,28,21,.94) 0%, rgba(15,28,21,.74) 42%, rgba(15,28,21,.20) 100%);
+.ab-hero {
+    position: relative; overflow: hidden; isolation: isolate;
+    border-radius: 36px; padding: clamp(56px, 7vw, 92px) clamp(24px, 5vw, 72px) 0;
+    background: var(--ab-l-night); color: #eefaf4;
 }
-.ab-hero__copy { max-width: 640px; }
-.ab-hero .ab-eyebrow { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); color: #fdf6ee; backdrop-filter: blur(6px); }
-.ab-hero h1 { font-size: clamp(2.5rem, 5.4vw, 4rem); font-weight: 700; color: #fff; margin: 22px 0 18px; }
-.ab-hero h1 .gold { color: var(--gold); }
-.ab-hero__lead { font-size: clamp(1.05rem, 1.4vw, 1.18rem); color: rgba(255,255,255,.9); max-width: 540px; line-height: 1.7; }
+.ab-hero::before { /* aurores */
+    content: ""; position: absolute; inset: -30%; z-index: -2;
+    background:
+        radial-gradient(38% 42% at 18% 24%, rgba(29,158,117,.55), transparent 70%),
+        radial-gradient(30% 36% at 84% 14%, rgba(239,159,39,.32), transparent 70%),
+        radial-gradient(42% 48% at 62% 88%, rgba(93,202,165,.3), transparent 70%);
+    filter: blur(50px); animation: ab-aurora 22s ease-in-out infinite alternate;
+}
+@keyframes ab-aurora { 0%{ transform: rotate(0) scale(1);} 100%{ transform: rotate(8deg) scale(1.12);} }
+.ab-hero::after { /* trame de points */
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background-image: radial-gradient(rgba(255,255,255,.14) 1px, transparent 1.4px);
+    background-size: 26px 26px;
+    mask-image: radial-gradient(75% 70% at 50% 20%, #000, transparent 80%);
+}
+.ab-hero__grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 5vw, 64px); align-items: end; }
+.ab-hero__copy { padding-bottom: clamp(56px, 7vw, 92px); }
+.ab-hero h1 { font-size: clamp(2.6rem, 5.6vw, 4.4rem); font-weight: 700; color: #fff; margin: 24px 0 18px; }
+.ab-hero .ab-grad {
+    background: linear-gradient(100deg, var(--ab-l-pale), var(--ab-l-accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ab-hero__lead { font-size: clamp(1.05rem, 1.4vw, 1.18rem); color: #b9d8cc; max-width: 520px; line-height: 1.7; margin: 0; }
+.ab-hero__lead b { color: #fff; font-weight: 600; }
 .ab-hero__cta { display: flex; gap: 14px; flex-wrap: wrap; margin: 34px 0 30px; }
-.ab-hero__trust { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; color: rgba(255,255,255,.78); font-size: .85rem; font-weight: 600; }
-.ab-hero__trust span { display: inline-flex; align-items: center; gap: 8px; }
-.ab-hero__trust i { color: var(--gold); }
+.ab-hero__meta { display: flex; align-items: center; gap: 12px 22px; flex-wrap: wrap; color: #9fc3b5; font-size: .9rem; }
+.ab-hero__meta b { color: #fff; font-weight: 700; }
+.ab-hero__meta .ab-sep { width: 1px; height: 28px; background: rgba(255,255,255,.16); }
 
-/* fade-up entrance */
-.ab-up { opacity: 0; transform: translateY(20px); animation: ab-rise .8s cubic-bezier(.2,.8,.2,1) forwards; }
-.ab-up.d1{animation-delay:.05s}.ab-up.d2{animation-delay:.15s}.ab-up.d3{animation-delay:.25s}.ab-up.d4{animation-delay:.35s}.ab-up.d5{animation-delay:.45s}
-@keyframes ab-rise { to { opacity:1; transform: translateY(0);} }
-
-/* ============================ SECTION SHELL ============================ */
-.ab-section { padding: 96px 0; }
-.ab-head { text-align: center; max-width: 680px; margin: 0 auto 56px; }
-.ab-head .ab-eyebrow { color: var(--primary); background: rgba(0,105,76,.08); margin-bottom: 16px; }
-.ab-head h2 { font-size: clamp(1.9rem, 3.6vw, 3rem); font-weight: 700; }
-.ab-head p { color: var(--muted); font-size: 1.08rem; margin-top: 14px; line-height: 1.65; }
-
-/* ============================ FONCTIONNALITÉS ============================ */
-.ab-feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-.ab-fcard {
-    background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 30px;
-    box-shadow: 0 1px 2px rgba(8,80,65,.04); transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
+/* === Phone mockup (pur CSS) === */
+.ab-device { position: relative; display: flex; justify-content: center; }
+.ab-phone {
+    position: relative; width: min(320px, 86vw);
+    border-radius: 44px 44px 0 0; padding: 16px 14px 0;
+    background: linear-gradient(180deg, #10362c, #07211a);
+    border: 1px solid rgba(255,255,255,.14); border-bottom: 0;
+    box-shadow: 0 -30px 80px -30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12);
 }
-.ab-fcard:hover { transform: translateY(-4px); box-shadow: 0 24px 50px -28px rgba(8,80,65,.45); }
-.ab-fcard__ico { width: 50px; height: 50px; border-radius: 14px; color: #fff; display: grid; place-items: center; font-size: 1.2rem; margin-bottom: 20px; }
-.ab-fcard h3 { font-size: 1.24rem; margin-bottom: 10px; }
-.ab-fcard p { color: var(--muted); margin: 0; font-size: .96rem; }
-/* icon tints per feature */
-.ico-ai { background: linear-gradient(135deg, #1D9E75, #085041); }
-.ico-market { background: linear-gradient(135deg, #F4A82C, #d6890f); }
-.ico-photo { background: linear-gradient(135deg, #65a30d, #3f6212); }
-.ico-off { background: linear-gradient(135deg, #2f8f78, #0f5043); }
+.ab-phone__notch { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); width: 92px; height: 22px; border-radius: 999px; background: #04140f; z-index: 2; }
+.ab-phone__screen {
+    border-radius: 32px 32px 0 0; background: #f3faf7; color: #0d1b16;
+    padding: 58px 14px 18px; min-height: 460px;
+    display: flex; flex-direction: column; gap: 12px; overflow: hidden;
+}
+.ab-app__bar { display: flex; align-items: center; gap: 9px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: .95rem; }
+.ab-app__bar .ab-logo { width: 26px; height: 26px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); color: #fff; font-size: .75rem; }
+.ab-app__bar i.fa-bell { margin-left: auto; color: #8aa79b; font-size: .9rem; }
+.ab-app__card { background: #fff; border: 1px solid rgba(8,80,65,.1); border-radius: 18px; padding: 14px; }
+.ab-app__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.ab-app__title { font-weight: 700; font-size: .85rem; display: flex; align-items: center; gap: 7px; }
+.ab-app__title i { color: var(--ab-l-primary); }
+.ab-live { font-size: .62rem; font-weight: 700; letter-spacing: .04em; color: var(--ab-l-primary); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.ab-live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ab-l-primary); animation: ab-pulse 1.6s infinite; }
+.ab-gauge { display: flex; align-items: center; gap: 14px; }
+.ab-gauge svg { width: 92px; height: 92px; flex-shrink: 0; }
+.ab-gauge__ring { fill: none; stroke: var(--ab-l-mist); stroke-width: 11; }
+.ab-gauge__val { fill: none; stroke: url(#abgrad); stroke-width: 11; stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 314; transform: rotate(-90deg); transform-origin: 50% 50%; animation: ab-fill 2.2s cubic-bezier(.2,.8,.2,1) .5s forwards; }
+@keyframes ab-fill { to { stroke-dashoffset: 74; } }
+.ab-gauge__num small { display: block; color: #5b6b64; font-size: .68rem; font-weight: 500; }
+.ab-gauge__num span { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--ab-l-deep); }
+.ab-gauge__num .ab-trend { color: var(--ab-l-primary); font-weight: 700; font-size: .68rem; }
+.ab-bars { display: flex; align-items: flex-end; gap: 6px; height: 46px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(8,80,65,.14); }
+.ab-bars span { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(var(--ab-l-light), var(--ab-l-primary)); transform-origin: bottom; animation: ab-grow 1.1s cubic-bezier(.2,.8,.2,1) forwards; opacity: .92; }
+@keyframes ab-grow { from { transform: scaleY(0); } }
+.ab-app__row { display: flex; align-items: center; gap: 10px; font-size: .82rem; font-weight: 600; padding: 7px 2px; }
+.ab-app__row + .ab-app__row { border-top: 1px solid rgba(8,80,65,.08); }
+.ab-app__row i.ab-ri { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-size: .75rem; flex-shrink: 0; }
+.ab-app__row .ab-price { margin-left: auto; font-family: 'Space Grotesk', sans-serif; }
+.ab-app__row .ab-delta { font-size: .68rem; font-weight: 700; color: var(--ab-l-primary); }
+.ab-app__voice {
+    margin-top: auto; display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, var(--ab-l-deep), var(--ab-l-night)); color: #dffaf0;
+    border-radius: 16px; padding: 12px 14px; font-size: .76rem;
+}
+.ab-app__voice i.fa-microphone-lines { font-size: 1rem; color: var(--ab-l-pale); }
+.ab-wave { display: flex; align-items: center; gap: 3px; margin-left: auto; }
+.ab-wave i { display: block; width: 3px; border-radius: 3px; background: var(--ab-l-light); animation: ab-eq 1s ease-in-out infinite; }
+.ab-wave i:nth-child(2){animation-delay:.15s}.ab-wave i:nth-child(3){animation-delay:.3s}.ab-wave i:nth-child(4){animation-delay:.45s}.ab-wave i:nth-child(5){animation-delay:.6s}
+@keyframes ab-eq { 0%,100%{height:7px} 50%{height:18px} }
+/* chips flottants autour du téléphone */
+.ab-chip {
+    position: absolute; z-index: 3; background: #fff; color: #0d1b16; border: 1px solid rgba(8,80,65,.12); border-radius: 14px;
+    padding: 10px 13px; font-size: .78rem; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 16px 36px -16px rgba(0,0,0,.5); animation: ab-hover 6s ease-in-out infinite;
+}
+@keyframes ab-hover { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-12px);} }
+.ab-chip i { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-size: .85rem; flex-shrink: 0; }
+.ab-chip.c1 { top: 6%; right: -4%; animation-delay: -2s; }
+.ab-chip.c1 i { background: var(--ab-l-accent); }
+.ab-chip.c2 { bottom: 16%; left: -8%; animation-delay: -4s; }
+.ab-chip.c2 i { background: var(--ab-l-primary); }
+
+/* ============================ MARQUEE ============================ */
+.ab-marquee {
+    margin-top: 26px; overflow: hidden; border-block: 1px solid var(--ab-l-line);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    display: flex;
+}
+.ab-marquee__track { display: flex; flex-shrink: 0; align-items: center; gap: 0; padding: 16px 0; min-width: 100%; animation: ab-scroll 32s linear infinite; }
+@keyframes ab-scroll { to { transform: translateX(-100%); } }
+.ab-marquee:hover .ab-marquee__track { animation-play-state: paused; }
+.ab-marquee span { display: inline-flex; align-items: center; gap: 10px; padding: 0 26px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: .95rem; color: var(--ab-l-muted); white-space: nowrap; }
+.ab-marquee span i { color: var(--ab-l-primary); font-size: .8rem; }
+
+/* ============================ DÉFIS ============================ */
+.ab-defis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.ab-defi {
+    position: relative; border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r);
+    background: var(--ab-l-card); padding: 28px; overflow: hidden;
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
+}
+.ab-defi:hover { transform: translateY(-5px); border-color: var(--ab-l-pale); box-shadow: 0 26px 50px -26px rgba(8,80,65,.4); }
+.ab-defi__n {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 2.6rem; line-height: 1;
+    background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-pale));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ab-defi h3 { font-size: 1.2rem; margin: 16px 0 8px; }
+.ab-defi p { color: var(--ab-l-muted); font-size: .95rem; line-height: 1.65; margin: 0; }
+.ab-defi__a { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700; color: var(--ab-l-primary); }
+
+/* ============================ SOLUTION ============================ */
+.ab-sol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.ab-card {
+    position: relative; background: var(--ab-l-card); border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r);
+    padding: 28px; overflow: hidden;
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
+}
+.ab-card:hover { transform: translateY(-5px); border-color: var(--ab-l-pale); box-shadow: 0 26px 50px -26px rgba(8,80,65,.4); }
+.ab-card::after { content: ""; position: absolute; inset: 0; background: radial-gradient(420px circle at var(--ab-mx, 30%) var(--ab-my, 0%), rgba(29,158,117,.09), transparent 60%); opacity: 0; transition: opacity .35s; pointer-events: none; }
+.ab-card:hover::after { opacity: 1; }
+.ab-card__ico { width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center; font-size: 1.25rem; color: #fff; margin-bottom: 18px; }
+.ab-card h3 { font-size: 1.18rem; font-weight: 700; margin-bottom: 8px; }
+.ab-card p { color: var(--ab-l-muted); font-size: .95rem; line-height: 1.65; margin: 0; }
+.ab-card .ab-tag { margin-top: 14px; display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 700; color: var(--ab-l-primary); }
+.ab-card--feat { grid-column: span 3; display: grid; grid-template-columns: 1.1fr .9fr; gap: 36px; align-items: center; background: var(--ab-l-card-soft); }
+.ab-card--feat h3 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
+.ab-card--wide { grid-column: span 2; }
+.ab-mini { display: flex; align-items: flex-end; gap: 8px; height: 110px; padding: 14px; border: 1px solid var(--ab-l-line); border-radius: 16px; background: var(--ab-l-card); }
+.ab-mini span { flex: 1; border-radius: 5px 5px 0 0; background: linear-gradient(var(--ab-l-light), var(--ab-l-primary)); transform-origin: bottom; animation: ab-grow 1s cubic-bezier(.2,.8,.2,1) forwards; }
+.ico-ai { background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); }
+.ico-voice { background: linear-gradient(135deg, var(--ab-l-accent), #c2410c); }
+.ico-off { background: linear-gradient(135deg, var(--ab-l-light), var(--ab-l-deep)); }
+.ico-market { background: linear-gradient(135deg, var(--ab-l-accent), #b45309); }
+.ico-leaf { background: linear-gradient(135deg, #65a30d, #3f6212); }
 .ico-team { background: linear-gradient(135deg, #14b8a6, #0f766e); }
-.ico-tasks { background: linear-gradient(135deg, #b45309, #7c2d12); }
 
-/* === Jëf Baay highlight === */
-.ab-spot { background: var(--primary-deep); border-radius: 28px; padding: 48px; margin-top: 24px; color: #eafff6; position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
-.ab-spot::before { content: ""; position: absolute; top: -160px; left: -160px; width: 380px; height: 380px; background: radial-gradient(circle, rgba(244,168,44,.22), transparent 70%); filter: blur(40px); }
-.ab-spot__copy { position: relative; z-index: 1; }
-.ab-spot .ab-eyebrow { background: rgba(244,168,44,.18); color: var(--gold); margin-bottom: 16px; }
-.ab-spot h3 { font-size: clamp(1.7rem, 3vw, 2.4rem); color: #fff; margin-bottom: 14px; }
-.ab-spot p { color: rgba(234,255,246,.82); max-width: 440px; margin: 0 0 26px; line-height: 1.65; }
-.ab-chat { position: relative; z-index: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 22px; padding: 18px; backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 14px; }
-.ab-msg { display: flex; gap: 11px; align-items: flex-end; }
-.ab-msg.user { justify-content: flex-end; }
-.ab-msg__av { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; flex-shrink: 0; font-size: .85rem; }
-.ab-msg.user .ab-msg__av { background: #fff; color: var(--primary); }
-.ab-msg.bot .ab-msg__av { background: var(--gold); color: var(--ink); }
-.ab-bubble { padding: 11px 14px; border-radius: 16px; max-width: 78%; font-size: .9rem; line-height: 1.45; }
-.ab-msg.user .ab-bubble { background: var(--primary); color: #f5fff7; border-bottom-right-radius: 5px; }
-.ab-msg.bot .ab-bubble { background: #fff; color: var(--ink); border-bottom-left-radius: 5px; }
-.ab-bubble small { display: block; margin-top: 4px; font-size: .72rem; opacity: .68; font-style: italic; }
+/* ============================ SPOTLIGHT JËF BAAY ============================ */
+.ab-spot {
+    margin-top: 18px; background: radial-gradient(circle at 72% 18%, #0a3a2e, var(--ab-l-night) 62%);
+    color: #eafff6; border-radius: 34px; padding: clamp(40px, 5vw, 64px) clamp(26px, 5vw, 60px);
+    position: relative; overflow: hidden;
+}
+.ab-spot::before { content: ""; position: absolute; width: 420px; height: 420px; right: -110px; top: -130px; background: radial-gradient(circle, rgba(239,159,39,.26), transparent 70%); filter: blur(40px); }
+.ab-spot__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; position: relative; }
+.ab-spot h2 { font-size: clamp(1.9rem, 3.2vw, 2.7rem); color: #fff; margin-top: 18px; }
+.ab-spot p { color: #bfe9da; font-size: 1.05rem; line-height: 1.7; margin: 16px 0 26px; }
+.ab-spot__bubble { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 22px; padding: 24px; backdrop-filter: blur(8px); }
+.ab-spot__line { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+.ab-spot__av { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: .9rem; }
+.ab-av-user { background: var(--ab-l-primary); color: #fff; }
+.ab-av-bot { background: var(--ab-l-accent); color: #3a2400; }
+.ab-spot__msg { background: rgba(255,255,255,.08); padding: 11px 15px; border-radius: 14px; font-size: .92rem; line-height: 1.5; }
+.ab-spot__msg.bot { background: rgba(159,225,203,.16); }
+.ab-bigwave { display: flex; align-items: center; gap: 5px; height: 46px; margin-top: 8px; }
+.ab-bigwave i { display: block; width: 5px; border-radius: 5px; background: linear-gradient(var(--ab-l-light), var(--ab-l-pale)); animation: ab-eq 1.1s ease-in-out infinite; }
+.ab-bigwave i:nth-child(odd){animation-delay:.2s}.ab-bigwave i:nth-child(3n){animation-delay:.4s}.ab-bigwave i:nth-child(4n){animation-delay:.6s}
 
-/* ============================ AVANTAGES ============================ */
-.ab-adv { background: var(--mint); }
-.ab-adv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px 36px; }
-.ab-adv__ico { width: 44px; height: 44px; border-radius: 12px; background: #fff; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(8,80,65,.05); color: var(--primary); display: grid; place-items: center; font-size: 1.1rem; margin-bottom: 16px; }
-.ab-adv h4 { font-size: 1.2rem; margin-bottom: 8px; }
-.ab-adv p { color: var(--muted); font-size: .96rem; margin: 0; }
+/* ============================ ÉTAPES ============================ */
+.ab-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; position: relative; }
+.ab-steps::before { content: ""; position: absolute; top: 52px; left: 8%; right: 8%; border-top: 2px dashed var(--ab-l-line); }
+.ab-step { position: relative; padding: 30px 26px; background: var(--ab-l-card); border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r); }
+.ab-step__n {
+    width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 18px;
+    background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); color: #fff;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem;
+    box-shadow: 0 10px 24px -10px rgba(29,158,117,.6);
+}
+.ab-step h3 { font-size: 1.15rem; margin-bottom: 8px; }
+.ab-step p { color: var(--ab-l-muted); font-size: .95rem; line-height: 1.65; margin: 0; }
 
-/* ============================ STATS BAND ============================ */
-.ab-stats { background: var(--night); color: #fff; padding: 64px 0; }
-.ab-stats__grid { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
-.ab-stats__cell { padding: 8px 16px; }
-.ab-stats__cell + .ab-stats__cell { border-left: 1px solid rgba(255,255,255,.16); }
-.ab-stats__big { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2.2rem, 4vw, 3rem); font-weight: 700; color: var(--gold); margin-bottom: 8px; }
-.ab-stats__lab { font-size: .82rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.82); }
+/* ============================ PERSONAS (#temoignages) ============================ */
+.ab-pers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.ab-per { position: relative; background: var(--ab-l-card); border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r); padding: 28px; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s; }
+.ab-per:hover { transform: translateY(-5px); border-color: var(--ab-l-pale); box-shadow: 0 26px 50px -26px rgba(8,80,65,.4); }
+.ab-per__av { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 1.25rem; color: #fff; margin-bottom: 18px; }
+.ab-per h3 { font-size: 1.15rem; margin-bottom: 8px; }
+.ab-per blockquote { margin: 0 0 14px; color: var(--ab-l-ink); font-size: .97rem; line-height: 1.6; font-style: italic; }
+.ab-per p { color: var(--ab-l-muted); font-size: .9rem; line-height: 1.6; margin: 0; }
+.ab-per__tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+.ab-per__tags span { font-size: .72rem; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--ab-l-mist); color: var(--ab-l-deep); }
+html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); color: var(--ab-l-pale); }
 
-/* ============================ TÉMOIGNAGES ============================ */
-.ab-tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-.ab-tcard { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(8,80,65,.04); }
-.ab-stars { color: var(--gold); font-size: 1.05rem; letter-spacing: 2px; margin-bottom: 14px; }
-.ab-stars .half { opacity: .45; }
-.ab-tcard p { color: var(--muted); font-style: italic; line-height: 1.6; margin: 0 0 22px; flex-grow: 1; }
-.ab-tcard__who { display: flex; align-items: center; gap: 13px; padding-top: 18px; border-top: 1px solid var(--line); }
-.ab-avatar { width: 46px; height: 46px; border-radius: 999px; display: grid; place-items: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #fff; font-size: .95rem; flex-shrink: 0; }
-.ab-tcard__name { font-weight: 700; font-size: .95rem; color: var(--ink); }
-.ab-tcard__role { font-size: .82rem; color: var(--muted); }
+/* ============================ FAQ ============================ */
+.ab-faq { max-width: 760px; margin: 0 auto; }
+.ab-faq details { border-bottom: 1px solid var(--ab-l-line); }
+.ab-faq summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 16px;
+    padding: 22px 4px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.08rem;
+}
+.ab-faq summary::-webkit-details-marker { display: none; }
+.ab-faq summary i { margin-left: auto; color: var(--ab-l-primary); transition: transform .3s cubic-bezier(.2,.8,.2,1); flex-shrink: 0; }
+.ab-faq details[open] summary i { transform: rotate(45deg); }
+.ab-faq summary:focus-visible { outline: 2px solid var(--ab-l-primary); outline-offset: 4px; border-radius: 8px; }
+.ab-faq .ab-faq__a { padding: 0 36px 22px 4px; color: var(--ab-l-muted); line-height: 1.7; font-size: .97rem; }
+.ab-faq .ab-faq__a a { color: var(--ab-l-primary); font-weight: 600; }
 
-/* ============================ FINAL CTA ============================ */
-.ab-final { padding: 0 0 100px; }
-.ab-final__box { position: relative; overflow: hidden; text-align: center; padding: 68px 32px; border-radius: 30px; background: linear-gradient(135deg, var(--primary), var(--primary-deep) 75%); color: #fff; box-shadow: 0 40px 80px -34px rgba(8,80,65,.6); }
-.ab-final__box::before { content: ""; position: absolute; top: -120px; right: -80px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(244,168,44,.25), transparent 70%); filter: blur(40px); }
-.ab-final h2 { position: relative; font-size: clamp(2rem, 4vw, 2.9rem); color: #fff; }
-.ab-final p { position: relative; color: rgba(255,255,255,.9); font-size: 1.1rem; margin: 16px auto 30px; max-width: 540px; }
-.ab-final .ab-hero__cta { position: relative; justify-content: center; margin: 0; }
+/* ============================ CTA FINAL ============================ */
+.ab-final { padding: 90px 0 40px; }
+.ab-final__box {
+    position: relative; overflow: hidden; text-align: center;
+    padding: clamp(56px, 7vw, 84px) 32px; border-radius: 36px;
+    background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep) 70%);
+    color: #fff; box-shadow: 0 40px 80px -30px rgba(8,80,65,.6);
+}
+.ab-final__box::before { content: ""; position: absolute; inset: 0; background: radial-gradient(640px circle at 18% -20%, rgba(255,255,255,.2), transparent 60%); }
+.ab-final__box::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,.16) 1px, transparent 1.4px);
+    background-size: 26px 26px; mask-image: radial-gradient(70% 90% at 50% 100%, #000, transparent 80%);
+}
+.ab-final h2 { font-size: clamp(2rem, 4vw, 3.1rem); color: #fff; position: relative; z-index: 1; }
+.ab-final p { position: relative; z-index: 1; color: rgba(255,255,255,.9); font-size: 1.1rem; margin: 16px auto 32px; max-width: 560px; line-height: 1.65; }
+.ab-final .ab-hero__cta { justify-content: center; margin: 0; position: relative; z-index: 1; }
 
 /* ============================ RESPONSIVE ============================ */
-@media (max-width: 900px) {
-    .ab-feat-grid { grid-template-columns: repeat(2, 1fr); }
-    .ab-spot { grid-template-columns: 1fr; gap: 30px; padding: 36px 28px; }
-    .ab-adv-grid { grid-template-columns: repeat(2, 1fr); }
-    .ab-tgrid { grid-template-columns: 1fr; }
-    .ab-stats__grid { grid-template-columns: 1fr; gap: 8px; }
-    .ab-stats__cell + .ab-stats__cell { border-left: none; border-top: 1px solid rgba(255,255,255,.16); margin-top: 8px; padding-top: 20px; }
-
-    /* perf : couper les effets coûteux sur mobile (téléphones modestes) */
-    .ab-hero .ab-eyebrow, .ab-chat { backdrop-filter: none; }
+@media (max-width: 991.98px) {
+    .ab-hero__grid { grid-template-columns: 1fr; gap: 44px; }
+    .ab-hero__copy { padding-bottom: 0; }
+    .ab-card--feat { grid-template-columns: 1fr; gap: 22px; }
+    .ab-spot__grid { grid-template-columns: 1fr; gap: 34px; }
+    .ab-defis, .ab-sol, .ab-pers { grid-template-columns: repeat(2, 1fr); }
+    .ab-card--feat { grid-column: span 2; }
+    .ab-card--wide { grid-column: span 2; }
+    .ab-steps { grid-template-columns: 1fr; }
+    .ab-steps::before { display: none; }
 }
-@media (max-width: 560px) {
-    .ab-section, .ab-stats { padding: 60px 0; }
-    .ab-hero { min-height: auto; padding: 110px 0 64px; }
+@media (max-width: 575.98px) {
+    .ab-section { padding: 64px 0 0; }
+    .ab-hero { border-radius: 26px; }
     .ab-hero__cta .ab-btn { flex: 1 1 100%; }
-    .ab-adv-grid { grid-template-columns: 1fr; }
-    .ab-feat-grid { grid-template-columns: 1fr; }
-    .ab-fcard, .ab-final__box { padding: 28px 22px; }
+    .ab-defis, .ab-sol, .ab-pers { grid-template-columns: 1fr; }
+    .ab-card--feat, .ab-card--wide { grid-column: span 1; }
+    .ab-hero__meta .ab-sep { display: none; }
+    .ab-chip { display: none; } /* décoratif : évite le débordement en viewport étroit */
 }
 @media (prefers-reduced-motion: reduce) {
     .ab-land *, .ab-land *::before, .ab-land *::after { animation: none !important; }
-    .ab-up { opacity: 1; transform: none; }
+    .ab-js .ab-rv { opacity: 1; transform: none; transition: none; }
+    .ab-gauge__val { stroke-dashoffset: 74; }
 }
 </style>
 {% endblock %}
@@ -214,252 +373,405 @@
 <div class="ab-land">
 
   <!-- ============================ HERO ============================ -->
-  <section class="ab-hero ab-bleed">
-    <div class="ab-hero__bg" aria-hidden="true">
-      <img src="{% static 'images/hero-farmers.jpg' %}" alt="" loading="eager" fetchpriority="high" />
-    </div>
-    <div class="ab-wrap">
+  <section class="ab-hero" id="accueil">
+    <div class="ab-hero__grid">
+
       <div class="ab-hero__copy">
-        <span class="ab-eyebrow ab-up d1"><i class="fas fa-leaf"></i> Intelligence agricole · Sahel</span>
-        <h1 class="ab-up d2">La saison se gagne <span class="gold">avant</span> les semis.</h1>
-        <p class="ab-hero__lead ab-up d3">
-          Prédiction de rendement par IA, assistant vocal en <b>Wolof</b> et prix du marché en direct
-          pour optimiser chaque étape de votre culture. Et il fonctionne même <b>hors connexion</b>.
+        <span class="ab-eyebrow ab-eyebrow--invert ab-rv"><span class="ab-dot"></span> Andd Baay · l'intelligence agricole du Sahel</span>
+        <h1 class="ab-rv" style="--ab-d:.08s">Faites parler<br>votre <span class="ab-grad">terre.</span></h1>
+        <p class="ab-hero__lead ab-rv" style="--ab-d:.16s">
+          Prédiction de rendement par IA, assistant vocal en <b>Wolof</b>, prix du marché
+          en direct et gestion collaborative de votre exploitation. Pensé pour le terrain&nbsp;:
+          ça <b>fonctionne même sans réseau</b>.
         </p>
 
-        <div class="ab-hero__cta ab-up d4">
+        <div class="ab-hero__cta ab-rv" style="--ab-d:.24s">
           {% if request.user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--gold">
               Reprendre mon tableau de bord <i class="fas fa-arrow-right"></i>
             </a>
             {% if vocal_wolof_audio_enabled %}
-            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--outline"><i class="fas fa-microphone"></i> Parler à Jëf Baay</a>
+            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glass"><i class="fas fa-microphone"></i> Parler à Jëf Baay</a>
             {% endif %}
           {% else %}
             <a href="{% url 'register' %}" class="ab-btn ab-btn--gold">
               Démarrer gratuitement <i class="fas fa-arrow-right"></i>
             </a>
-            <a href="{% url 'login' %}" class="ab-btn ab-btn--outline">J'ai déjà un compte</a>
+            {% if vocal_wolof_audio_enabled %}
+            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glass"><i class="fas fa-microphone"></i> Essayer l'assistant vocal</a>
+            {% endif %}
           {% endif %}
         </div>
 
-        <div class="ab-hero__trust ab-up d5">
-          <span><i class="fas fa-check-circle"></i> Installation en 2 minutes</span>
-          <span><i class="fas fa-wifi"></i> Mode hors-ligne natif</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================ FONCTIONNALITÉS ============================ -->
-  <section class="ab-section" id="fonctionnalites">
-    <div class="ab-wrap">
-      <div class="ab-head">
-        <span class="ab-eyebrow"><i class="fas fa-layer-group"></i> Fonctionnalités</span>
-        <h2>Tout ce qu'il faut pour piloter votre saison</h2>
-        <p>Du semis à la vente&nbsp;: des outils pensés pour la réalité du terrain, accessibles même sans connexion internet.</p>
-      </div>
-
-      <div class="ab-feat-grid">
-        <article class="ab-fcard">
-          <div class="ab-fcard__ico ico-ai"><i class="fas fa-brain"></i></div>
-          <h3>Prédiction de rendement</h3>
-          <p>Anticipez vos récoltes grâce à notre modèle IA qui analyse l'historique météo et les données du sol de votre parcelle — et s'affine à chaque saison.</p>
-        </article>
-        <article class="ab-fcard">
-          <div class="ab-fcard__ico ico-market"><i class="fas fa-chart-line"></i></div>
-          <h3>Prix du marché en direct</h3>
-          <p>Ne vendez plus à perte. Suivez les cours des principaux marchés du pays, actualisés quotidiennement, et soyez alerté quand le prix bouge.</p>
-        </article>
-        <article class="ab-fcard">
-          <div class="ab-fcard__ico ico-photo"><i class="fas fa-camera"></i></div>
-          <h3>Diagnostic photo</h3>
-          <p>Photographiez une feuille malade&nbsp;: l'IA identifie le ravageur ou la maladie et vous conseille un traitement adapté.</p>
-        </article>
-        <article class="ab-fcard">
-          <div class="ab-fcard__ico ico-off"><i class="fas fa-wifi"></i></div>
-          <h3>Hors-ligne natif</h3>
-          <p>Saisissez vos tâches et relevés sans réseau&nbsp;: tout se synchronise automatiquement au retour de la connexion.</p>
-        </article>
-        <article class="ab-fcard">
-          <div class="ab-fcard__ico ico-team"><i class="fas fa-people-group"></i></div>
-          <h3>Gestion collaborative</h3>
-          <p>Propriétaire, manager, technicien, ouvrier&nbsp;: chacun son rôle et ses accès. Idéal pour les coopératives qui pilotent plusieurs exploitations.</p>
-        </article>
-        <article class="ab-fcard">
-          <div class="ab-fcard__ico ico-tasks"><i class="fas fa-wallet"></i></div>
-          <h3>Tâches &amp; dépenses</h3>
-          <p>Planifiez les interventions et suivez les coûts de chaque parcelle, du semis à la récolte, pour connaître votre vraie marge.</p>
-        </article>
-      </div>
-
-      <!-- Jëf Baay highlight -->
-      <div class="ab-spot">
-        <div class="ab-spot__copy">
-          <span class="ab-eyebrow"><i class="fas fa-microphone-lines"></i> Jëf Baay</span>
-          <h3>L'assistant vocal qui parle votre langue</h3>
-          <p>40 à 60&nbsp;% des agriculteurs du Sahel ne lisent pas couramment. Posez vos questions directement en Wolof, à voix haute&nbsp;: Jëf Baay répond avec des conseils agronomiques précis.</p>
-          {% if vocal_wolof_audio_enabled %}
-          <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--gold"><i class="fas fa-microphone"></i> Essayer maintenant</a>
+        <div class="ab-hero__meta ab-rv" style="--ab-d:.32s">
+          {% if stats.show_trust_metrics %}
+            <span><b>{{ stats.nb_users|intcomma }}+</b> agriculteurs</span>
+            <span class="ab-sep"></span>
+            <span><b>{{ stats.nb_projets|intcomma }}</b> projets suivis</span>
+            <span class="ab-sep"></span>
+            <span><b>{{ stats.nb_localites }}</b> localités</span>
           {% else %}
-          <span class="ab-btn ab-btn--gold" style="opacity:.7;cursor:default"><i class="fas fa-microphone"></i> Bientôt disponible</span>
+            <span><i class="fas fa-bolt" style="color:var(--ab-l-accent)"></i> &nbsp;Installation en 2 minutes</span>
+            <span class="ab-sep"></span>
+            <span><i class="fas fa-wifi" style="color:var(--ab-l-pale)"></i> &nbsp;Mode hors-ligne natif</span>
           {% endif %}
         </div>
-        <div class="ab-chat" aria-hidden="true">
-          <div class="ab-msg user">
-            <div class="ab-bubble">Ban engrais laa wara jëfandikoo ci sama toolu mboq&nbsp;?
-              <small>Quel engrais pour mon champ de maïs&nbsp;?</small></div>
-            <div class="ab-msg__av"><i class="fas fa-user"></i></div>
+      </div>
+
+      <!-- Mockup téléphone : l'app vue du terrain -->
+      <div class="ab-device ab-rv" style="--ab-d:.2s">
+        <div class="ab-phone">
+          <span class="ab-phone__notch" aria-hidden="true"></span>
+          <div class="ab-phone__screen" aria-hidden="true">
+            <div class="ab-app__bar">
+              <span class="ab-logo"><i class="fas fa-seedling"></i></span> Andd Baay
+              <i class="fas fa-bell"></i>
+            </div>
+
+            <div class="ab-app__card">
+              <div class="ab-app__top">
+                <span class="ab-app__title"><i class="fas fa-seedling"></i> Mil · Parcelle Nord</span>
+                <span class="ab-live">EN DIRECT</span>
+              </div>
+              <div class="ab-gauge">
+                <svg viewBox="0 0 120 120">
+                  <defs>
+                    <linearGradient id="abgrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#EF9F27"/><stop offset="100%" stop-color="#1D9E75"/>
+                    </linearGradient>
+                  </defs>
+                  <circle class="ab-gauge__ring" cx="60" cy="60" r="50"/>
+                  <circle class="ab-gauge__val" cx="60" cy="60" r="50"/>
+                </svg>
+                <div class="ab-gauge__num">
+                  <small>Rendement prévu</small>
+                  <span>1,82 t/ha</span>
+                  <span class="ab-trend"><i class="fas fa-arrow-trend-up"></i> +23 % vs saison passée</span>
+                </div>
+              </div>
+              <div class="ab-bars">
+                <span style="height:42%;animation-delay:.1s"></span>
+                <span style="height:58%;animation-delay:.2s"></span>
+                <span style="height:50%;animation-delay:.3s"></span>
+                <span style="height:73%;animation-delay:.4s"></span>
+                <span style="height:64%;animation-delay:.5s"></span>
+                <span style="height:88%;animation-delay:.6s"></span>
+                <span style="height:80%;animation-delay:.7s"></span>
+              </div>
+            </div>
+
+            <div class="ab-app__card">
+              <div class="ab-app__row">
+                <i class="ab-ri fas fa-coins" style="background:var(--ab-l-accent)"></i> Oignon
+                <span class="ab-price">425 F/kg <span class="ab-delta"><i class="fas fa-arrow-trend-up"></i></span></span>
+              </div>
+              <div class="ab-app__row">
+                <i class="ab-ri fas fa-wheat-awn" style="background:var(--ab-l-primary)"></i> Mil
+                <span class="ab-price">280 F/kg <span class="ab-delta">stable</span></span>
+              </div>
+            </div>
+
+            <div class="ab-app__voice">
+              <i class="fas fa-microphone-lines"></i>
+              <span><span lang="wo">« Kañ laa wara ji suuf si&nbsp;? »</span></span>
+              <span class="ab-wave"><i style="height:10px"></i><i style="height:16px"></i><i style="height:8px"></i><i style="height:18px"></i><i style="height:11px"></i></span>
+            </div>
           </div>
-          <div class="ab-msg bot">
-            <div class="ab-msg__av"><i class="fas fa-robot"></i></div>
-            <div class="ab-bubble">Ngir sa toolu mboq, NPK 15-15-15 moo gën…
-              <small>Pour votre champ de maïs, le NPK 15-15-15 est recommandé…</small></div>
+        </div>
+        <span class="ab-chip c1" aria-hidden="true"><i class="fas fa-cloud-sun-rain"></i> Pluie dans 3 j</span>
+        <span class="ab-chip c2" aria-hidden="true"><i class="fas fa-rotate"></i> Synchronisé hors-ligne</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================ MARQUEE ============================ -->
+  <div class="ab-marquee" aria-hidden="true">
+    <div class="ab-marquee__track">
+      <span><i class="fas fa-brain"></i> Prédiction IA</span>
+      <span><i class="fas fa-microphone-lines"></i> Vocal Wolof</span>
+      <span><i class="fas fa-wifi"></i> Hors-ligne natif</span>
+      <span><i class="fas fa-coins"></i> Prix du marché</span>
+      <span><i class="fas fa-camera-retro"></i> Diagnostic photo</span>
+      <span><i class="fas fa-people-group"></i> Coopératives</span>
+      <span><i class="fas fa-mobile-screen"></i> Appli installable</span>
+      <span><i class="fas fa-hand-holding-heart"></i> Gratuit pour démarrer</span>
+    </div>
+    <div class="ab-marquee__track">
+      <span><i class="fas fa-brain"></i> Prédiction IA</span>
+      <span><i class="fas fa-microphone-lines"></i> Vocal Wolof</span>
+      <span><i class="fas fa-wifi"></i> Hors-ligne natif</span>
+      <span><i class="fas fa-coins"></i> Prix du marché</span>
+      <span><i class="fas fa-camera-retro"></i> Diagnostic photo</span>
+      <span><i class="fas fa-people-group"></i> Coopératives</span>
+      <span><i class="fas fa-mobile-screen"></i> Appli installable</span>
+      <span><i class="fas fa-hand-holding-heart"></i> Gratuit pour démarrer</span>
+    </div>
+  </div>
+
+  <!-- ============================ DÉFIS ============================ -->
+  <section class="ab-section" id="defis">
+    <div class="ab-wrap">
+      <div class="ab-head ab-rv">
+        <span class="ab-eyebrow"><i class="fas fa-mountain-sun"></i> Le terrain d'abord</span>
+        <h2>Trois réalités du Sahel,<br>trois réponses concrètes</h2>
+        <p>Andd Baay n'est pas une appli agricole générique traduite en français. Chaque choix de conception part d'une contrainte vécue sur le terrain.</p>
+      </div>
+
+      <div class="ab-defis">
+        <article class="ab-defi ab-rv">
+          <span class="ab-defi__n">01</span>
+          <h3>Lire n'est pas un prérequis</h3>
+          <p>40 à 60&nbsp;% des agriculteurs de la région ne lisent pas couramment. L'écrit ne peut pas être la seule porte d'entrée.</p>
+          <span class="ab-defi__a"><i class="fas fa-microphone"></i> On parle à l'appli, en Wolof</span>
+        </article>
+        <article class="ab-defi ab-rv" style="--ab-d:.1s">
+          <span class="ab-defi__n">02</span>
+          <h3>Le réseau ne suit pas</h3>
+          <p>Entre deux parcelles, la connexion va et vient. Une appli qui exige du réseau en permanence est inutilisable au champ.</p>
+          <span class="ab-defi__a"><i class="fas fa-wifi"></i> Hors-ligne natif, sync auto</span>
+        </article>
+        <article class="ab-defi ab-rv" style="--ab-d:.2s">
+          <span class="ab-defi__n">03</span>
+          <h3>Vendre au bon prix</h3>
+          <p>Sans visibilité sur les cours, on vend trop tôt, trop bas. L'information de marché reste l'apanage des intermédiaires.</p>
+          <span class="ab-defi__a"><i class="fas fa-coins"></i> Cours en direct + alertes</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SOLUTION ============================ -->
+  <section class="ab-section" id="solution">
+    <div class="ab-wrap">
+      <div class="ab-head ab-head--center ab-rv">
+        <span class="ab-eyebrow"><i class="fas fa-wand-magic-sparkles"></i> La solution</span>
+        <h2>Une seule appli, du semis à la vente</h2>
+        <p>Chaque fonctionnalité est pensée pour un agriculteur sur le terrain, avec un téléphone modeste et un réseau capricieux.</p>
+      </div>
+
+      <div class="ab-sol">
+        <article class="ab-card ab-card--feat ab-rv">
+          <div>
+            <div class="ab-card__ico ico-ai"><i class="fas fa-brain"></i></div>
+            <h3>Prédiction de rendement par IA</h3>
+            <p>Notre modèle apprend de chaque saison et de votre parcelle pour estimer votre récolte avant le semis, et s'affine avec le temps. Vous décidez avec des données, pas à l'aveugle.</p>
+            <span class="ab-tag">Dès le premier projet <i class="fas fa-arrow-right"></i></span>
+          </div>
+          <div class="ab-mini" aria-hidden="true">
+            <span style="height:40%;animation-delay:.1s"></span><span style="height:55%;animation-delay:.2s"></span>
+            <span style="height:48%;animation-delay:.3s"></span><span style="height:70%;animation-delay:.4s"></span>
+            <span style="height:62%;animation-delay:.5s"></span><span style="height:85%;animation-delay:.6s"></span>
+            <span style="height:78%;animation-delay:.7s"></span><span style="height:94%;animation-delay:.8s"></span>
+          </div>
+        </article>
+
+        <article class="ab-card ab-rv">
+          <div class="ab-card__ico ico-voice"><i class="fas fa-microphone-lines"></i></div>
+          <h3>Jëf Baay · vocal Wolof</h3>
+          <p>Posez vos questions agricoles à voix haute, en Wolof. Aucune lecture requise.</p>
+          <span class="ab-tag">Sans inscription <i class="fas fa-arrow-right"></i></span>
+        </article>
+
+        <article class="ab-card ab-rv" style="--ab-d:.1s">
+          <div class="ab-card__ico ico-off"><i class="fas fa-wifi"></i></div>
+          <h3>Hors-ligne natif</h3>
+          <p>Saisissez vos tâches sans réseau&nbsp;: tout se synchronise au retour de la connexion.</p>
+        </article>
+
+        <article class="ab-card ab-rv" style="--ab-d:.2s">
+          <div class="ab-card__ico ico-market"><i class="fas fa-coins"></i></div>
+          <h3>Prix du marché</h3>
+          <p>Suivez les cours et recevez une alerte quand le prix de votre culture bouge.</p>
+        </article>
+
+        <article class="ab-card ab-rv">
+          <div class="ab-card__ico ico-leaf"><i class="fas fa-camera-retro"></i></div>
+          <h3>Diagnostic photo</h3>
+          <p>Photographiez une feuille malade&nbsp;: l'IA identifie le ravageur et conseille un traitement.</p>
+          <span class="ab-tag">Vision IA <i class="fas fa-arrow-right"></i></span>
+        </article>
+
+        <article class="ab-card ab-card--wide ab-rv" style="--ab-d:.1s">
+          <div class="ab-card__ico ico-team"><i class="fas fa-people-group"></i></div>
+          <h3>Gestion collaborative & coopératives</h3>
+          <p>Propriétaire, manager, technicien, ouvrier&nbsp;: chacun son rôle et ses accès. Idéal pour les coopératives qui pilotent des dizaines d'exploitations depuis un seul tableau de bord.</p>
+        </article>
+      </div>
+
+      <!-- Spotlight Jëf Baay -->
+      <div class="ab-spot ab-rv">
+        <div class="ab-spot__grid">
+          <div>
+            <span class="ab-eyebrow ab-eyebrow--invert"><i class="fas fa-microphone"></i> Jëf Baay</span>
+            <h2>L'assistant qui parle votre langue</h2>
+            <p>40 à 60&nbsp;% des agriculteurs du Sahel ne lisent pas couramment. Jëf Baay supprime la barrière&nbsp;: on parle, il répond en Wolof, à voix haute.</p>
+            {% if vocal_wolof_audio_enabled %}
+            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glow"><i class="fas fa-microphone"></i> Essayer maintenant</a>
+            {% else %}
+            <span class="ab-btn ab-btn--glow" style="opacity:.7;cursor:default"><i class="fas fa-microphone"></i> Bientôt disponible</span>
+            {% endif %}
+          </div>
+          <div class="ab-spot__bubble">
+            <div class="ab-spot__line">
+              <div class="ab-spot__av ab-av-user"><i class="fas fa-user"></i></div>
+              <div class="ab-spot__msg"><span lang="wo">« Kañ laa wara ji dugub&nbsp;? »</span> <br><small style="opacity:.6">(Quand dois-je semer le mil&nbsp;?)</small></div>
+            </div>
+            <div class="ab-spot__line">
+              <div class="ab-spot__av ab-av-bot"><i class="fas fa-seedling"></i></div>
+              <div class="ab-spot__msg bot" lang="wo">« Su naka tey, ji ci diggante 15 ak 25 juin, bu taw bi agsi… »</div>
+            </div>
+            <div class="ab-bigwave" aria-hidden="true">
+              <i style="height:14px"></i><i style="height:28px"></i><i style="height:18px"></i><i style="height:38px"></i><i style="height:22px"></i>
+              <i style="height:32px"></i><i style="height:16px"></i><i style="height:40px"></i><i style="height:24px"></i><i style="height:30px"></i>
+              <i style="height:18px"></i><i style="height:34px"></i><i style="height:14px"></i><i style="height:26px"></i>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============================ AVANTAGES ============================ -->
-  <section class="ab-section ab-adv ab-bleed" id="avantages">
+  <!-- ============================ ÉTAPES ============================ -->
+  <section class="ab-section" id="etapes">
     <div class="ab-wrap">
-      <div class="ab-head">
-        <span class="ab-eyebrow"><i class="fas fa-seedling"></i> Avantages</span>
-        <h2>Pourquoi choisir Andd Baay</h2>
+      <div class="ab-head ab-head--center ab-rv">
+        <span class="ab-eyebrow"><i class="fas fa-route"></i> Comment ça marche</span>
+        <h2>Opérationnel en 3 étapes</h2>
       </div>
-      <div class="ab-adv-grid">
-        <div>
-          <div class="ab-adv__ico"><i class="fas fa-chart-pie"></i></div>
-          <h4>Décidez avec des données</h4>
-          <p>Fini les suppositions&nbsp;: appuyez-vous sur les relevés satellitaires et locaux.</p>
+      <div class="ab-steps">
+        <div class="ab-step ab-rv">
+          <div class="ab-step__n">1</div>
+          <h3>Créez votre ferme</h3>
+          <p>Nom, localité, superficie. Quelques champs suffisent pour démarrer, même depuis un téléphone d'entrée de gamme.</p>
         </div>
-        <div>
-          <div class="ab-adv__ico"><i class="fas fa-map-location-dot"></i></div>
-          <h4>Pensé pour le terrain</h4>
-          <p>Interface allégée, contraste élevé pour l'extérieur, fonctionnement hors-ligne.</p>
+        <div class="ab-step ab-rv" style="--ab-d:.1s">
+          <div class="ab-step__n">2</div>
+          <h3>Lancez un projet</h3>
+          <p>Choisissez votre culture. L'IA estime aussitôt le rendement attendu et le calendrier de la saison.</p>
         </div>
-        <div>
-          <div class="ab-adv__ico"><i class="fas fa-comments"></i></div>
-          <h4>Dans votre langue</h4>
-          <p>Disponible en français et en Wolof, texte et voix, pour une accessibilité totale.</p>
-        </div>
-        <div>
-          <div class="ab-adv__ico"><i class="fas fa-bolt"></i></div>
-          <h4>Gagnez du temps</h4>
-          <p>Alertes météo et rappels d'interventions automatisés tout au long de la saison.</p>
-        </div>
-        <div>
-          <div class="ab-adv__ico"><i class="fas fa-money-bill-wave"></i></div>
-          <h4>Vendez plus malin</h4>
-          <p>Repérez le bon moment pour vendre et connectez-vous aux meilleurs acheteurs.</p>
-        </div>
-        <div>
-          <div class="ab-adv__ico"><i class="fas fa-rocket"></i></div>
-          <h4>Gratuit pour démarrer</h4>
-          <p>Les fonctions essentielles restent gratuites pour les petits exploitants.</p>
+        <div class="ab-step ab-rv" style="--ab-d:.2s">
+          <div class="ab-step__n">3</div>
+          <h3>Pilotez & récoltez</h3>
+          <p>Tâches, dépenses, prix du marché, diagnostic photo&nbsp;: tout est centralisé, en ligne comme hors-ligne.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============================ STATS BAND ============================ -->
-  <section class="ab-stats ab-bleed">
+  <!-- ============================ POUR QUI (#temoignages) ============================ -->
+  <section class="ab-section" id="temoignages">
     <div class="ab-wrap">
-      <div class="ab-stats__grid">
-        {% if stats.show_trust_metrics %}
-          <div class="ab-stats__cell">
-            <div class="ab-stats__big">{{ stats.nb_users|intcomma }}+</div>
-            <div class="ab-stats__lab">Agriculteurs connectés</div>
-          </div>
-          <div class="ab-stats__cell">
-            <div class="ab-stats__big">{{ stats.nb_projets|intcomma }}</div>
-            <div class="ab-stats__lab">Projets agricoles suivis</div>
-          </div>
-          <div class="ab-stats__cell">
-            <div class="ab-stats__big">{{ stats.nb_localites }}</div>
-            <div class="ab-stats__lab">Localités couvertes</div>
-          </div>
+      <div class="ab-head ab-head--center ab-rv">
+        <span class="ab-eyebrow"><i class="fas fa-users"></i> Pour qui&nbsp;?</span>
+        <h2>Pensé pour tout l'écosystème agricole</h2>
+        <p>De la parcelle familiale à la coopérative régionale, chacun y trouve son tableau de bord.</p>
+      </div>
+
+      <div class="ab-pers">
+        <article class="ab-per ab-rv">
+          <div class="ab-per__av ico-ai"><i class="fas fa-user"></i></div>
+          <h3>L'agriculteur indépendant</h3>
+          <blockquote>«&nbsp;Je demande à Jëf Baay quand semer, je note mes dépenses à la voix, et je vends quand le prix est bon.&nbsp;»</blockquote>
+          <p>Pilote sa parcelle depuis son téléphone, même sans réseau, sans avoir besoin de lire.</p>
+          <div class="ab-per__tags"><span>Vocal Wolof</span><span>Hors-ligne</span><span>Prix marché</span></div>
+        </article>
+        <article class="ab-per ab-rv" style="--ab-d:.1s">
+          <div class="ab-per__av ico-team"><i class="fas fa-sitemap"></i></div>
+          <h3>La coopérative</h3>
+          <blockquote>«&nbsp;Quarante exploitations, un seul tableau de bord. Chaque membre a son rôle et ses accès.&nbsp;»</blockquote>
+          <p>Agrège les rendements, répartit les tâches et suit les finances de tous ses membres.</p>
+          <div class="ab-per__tags"><span>Multi-fermes</span><span>Rôles & accès</span><span>Finance</span></div>
+        </article>
+        <article class="ab-per ab-rv" style="--ab-d:.2s">
+          <div class="ab-per__av ico-leaf"><i class="fas fa-user-doctor"></i></div>
+          <h3>Le technicien agricole</h3>
+          <blockquote>«&nbsp;Une photo de la feuille malade et j'ai un pré-diagnostic avant même d'arriver sur place.&nbsp;»</blockquote>
+          <p>Suit plusieurs exploitations à distance, priorise ses visites et trace ses interventions.</p>
+          <div class="ab-per__tags"><span>Diagnostic photo</span><span>Suivi à distance</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ FAQ ============================ -->
+  <section class="ab-section" id="faq">
+    <div class="ab-wrap">
+      <div class="ab-head ab-head--center ab-rv">
+        <span class="ab-eyebrow"><i class="fas fa-circle-question"></i> FAQ</span>
+        <h2>Questions fréquentes</h2>
+      </div>
+
+      <div class="ab-faq ab-rv">
+        <details>
+          <summary>Andd Baay est-il gratuit&nbsp;? <i class="fas fa-plus"></i></summary>
+          <div class="ab-faq__a">Oui. Créer un compte, gérer sa ferme, lancer des projets et consulter les prix du marché est gratuit. Vous démarrez en deux minutes, sans carte bancaire.</div>
+        </details>
+        <details>
+          <summary>Est-ce que ça fonctionne sans connexion&nbsp;? <i class="fas fa-plus"></i></summary>
+          <div class="ab-faq__a">Oui, c'est conçu pour. Vous saisissez vos tâches et vos dépenses hors-ligne&nbsp;; tout se synchronise automatiquement dès que le réseau revient, même en 2G.</div>
+        </details>
+        <details>
+          <summary>Faut-il savoir lire pour l'utiliser&nbsp;? <i class="fas fa-plus"></i></summary>
+          <div class="ab-faq__a">Non. L'assistant vocal Jëf Baay comprend le Wolof parlé et répond à voix haute. Vous pouvez poser vos questions agricoles et piloter l'application sans lire ni écrire.</div>
+        </details>
+        <details>
+          <summary>Puis-je gérer plusieurs fermes ou une coopérative&nbsp;? <i class="fas fa-plus"></i></summary>
+          <div class="ab-faq__a">Oui. Chaque membre reçoit un rôle (propriétaire, manager, technicien, ouvrier) avec des accès adaptés. Une coopérative peut suivre des dizaines d'exploitations depuis un seul tableau de bord.</div>
+        </details>
+        <details>
+          <summary>Mes données sont-elles protégées&nbsp;? <i class="fas fa-plus"></i></summary>
+          <div class="ab-faq__a">Vos données d'exploitation vous appartiennent et ne sont jamais revendues. Consultez notre <a href="{% url 'confidentialite' %}">politique de confidentialité</a> pour le détail.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ CTA FINAL ============================ -->
+  <section class="ab-final">
+    <div class="ab-final__box ab-rv">
+      <h2>La prochaine saison<br>se prépare maintenant.</h2>
+      <p>Rejoignez les agriculteurs qui décident avec des données plutôt qu'à l'aveugle. Gratuit pour démarrer.</p>
+      <div class="ab-hero__cta">
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--glow">Aller au tableau de bord <i class="fas fa-arrow-right"></i></a>
         {% else %}
-          <div class="ab-stats__cell">
-            <div class="ab-stats__big">IA</div>
-            <div class="ab-stats__lab">Prédiction de rendement</div>
-          </div>
-          <div class="ab-stats__cell">
-            <div class="ab-stats__big">Wolof</div>
-            <div class="ab-stats__lab">Assistant vocal natif</div>
-          </div>
-          <div class="ab-stats__cell">
-            <div class="ab-stats__big">2G</div>
-            <div class="ab-stats__lab">Fonctionne en zone blanche</div>
-          </div>
+          <a href="{% url 'register' %}" class="ab-btn ab-btn--glow">Créer mon compte gratuit <i class="fas fa-arrow-right"></i></a>
+          <a href="{% url 'login' %}" class="ab-btn ab-btn--glass">J'ai déjà un compte</a>
         {% endif %}
       </div>
     </div>
   </section>
 
-  <!-- ============================ TÉMOIGNAGES ============================ -->
-  <section class="ab-section" id="temoignages">
-    <div class="ab-wrap">
-      <div class="ab-head">
-        <span class="ab-eyebrow"><i class="fas fa-quote-left"></i> Témoignages</span>
-        <h2>Ils cultivent avec Andd Baay</h2>
-      </div>
-      <div class="ab-tgrid">
-        <article class="ab-tcard">
-          <div class="ab-stars" aria-label="5 sur 5">★★★★★</div>
-          <p>« L'assistant vocal a changé ma façon de travailler. Plus besoin d'attendre le technicien&nbsp;: j'ai les réponses dans ma langue, sur le champ. »</p>
-          <div class="ab-tcard__who">
-            <div class="ab-avatar" style="background:#00694c">AD</div>
-            <div>
-              <div class="ab-tcard__name">Awa Diop</div>
-              <div class="ab-tcard__role">Maraîchère, Niayes</div>
-            </div>
-          </div>
-        </article>
-        <article class="ab-tcard">
-          <div class="ab-stars" aria-label="5 sur 5">★★★★★</div>
-          <p>« Suivre le prix de l'arachide m'a permis de stocker au bon moment et de vendre quand le marché était favorable. Un vrai gain. »</p>
-          <div class="ab-tcard__who">
-            <div class="ab-avatar" style="background:#9b4005">MF</div>
-            <div>
-              <div class="ab-tcard__name">Modou Fall</div>
-              <div class="ab-tcard__role">Producteur d'arachide, Kaolack</div>
-            </div>
-          </div>
-        </article>
-        <article class="ab-tcard">
-          <div class="ab-stars" aria-label="4,5 sur 5">★★★★<span class="half">★</span></div>
-          <p>« Le fait que ça marche sans internet est crucial. Dans mes parcelles le réseau est faible, mais l'application garde toutes mes données. »</p>
-          <div class="ab-tcard__who">
-            <div class="ab-avatar" style="background:#825500">FS</div>
-            <div>
-              <div class="ab-tcard__name">Fatou Sow</div>
-              <div class="ab-tcard__role">Rizicultrice, Saint-Louis</div>
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================ FINAL CTA ============================ -->
-  <section class="ab-final">
-    <div class="ab-wrap">
-      <div class="ab-final__box">
-        <h2>Prêt à transformer votre prochaine saison&nbsp;?</h2>
-        <p>Rejoignez les agriculteurs qui décident avec des données, plus à l'aveugle. Gratuit pour démarrer.</p>
-        <div class="ab-hero__cta">
-          {% if request.user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--gold">Aller au tableau de bord <i class="fas fa-arrow-right"></i></a>
-          {% else %}
-            <a href="{% url 'register' %}" class="ab-btn ab-btn--gold">Créer mon compte gratuit <i class="fas fa-arrow-right"></i></a>
-            <a href="{% url 'login' %}" class="ab-btn ab-btn--outline" style="border-color:rgba(255,255,255,.5)">J'ai déjà un compte</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </section>
-
 </div>
+
+<script>
+(function () {
+  var root = document.querySelector('.ab-land');
+  if (!root) return;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Révélation au scroll (progressive enhancement : sans JS tout reste visible) */
+  if (!reduced && 'IntersectionObserver' in window) {
+    root.classList.add('ab-js');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    root.querySelectorAll('.ab-rv').forEach(function (el) { io.observe(el); });
+  }
+
+  /* Halo qui suit le pointeur sur les cartes */
+  if (!reduced) {
+    root.querySelectorAll('.ab-card').forEach(function (c) {
+      c.addEventListener('pointermove', function (e) {
+        var r = c.getBoundingClientRect();
+        c.style.setProperty('--ab-mx', (e.clientX - r.left) + 'px');
+        c.style.setProperty('--ab-my', (e.clientY - r.top) + 'px');
+      });
+    });
+  }
+})();
+</script>
 {% endblock %}

@@ -26,7 +26,7 @@
 }
 
 .section-title i {
-    color: var(--accent, #1D9E75);
+    color: var(--accent, var(--ab-color-primary));
 }
 
 /* Performance Table */
@@ -74,12 +74,12 @@
 .ferme-card-header {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--ab-border-color, #e2e8f0);
-    background: linear-gradient(135deg, rgba(29, 158, 117, 0.05), rgba(29, 158, 117, 0.02));
+    background: linear-gradient(135deg, rgba(var(--ab-color-primary-rgb), 0.05), rgba(var(--ab-color-primary-rgb), 0.02));
 }
 
 .dark-mode .ferme-card-header {
     border-color: var(--ab-border-color-dark, #334155);
-    background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05));
+    background: linear-gradient(135deg, rgba(var(--ab-color-primary-rgb), 0.1), rgba(var(--ab-color-primary-rgb), 0.05));
 }
 
 .ferme-card-header h5 {
@@ -129,7 +129,7 @@
     display: block;
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--accent, #1D9E75);
+    color: var(--accent, var(--ab-color-primary));
 }
 
 .stat-label {

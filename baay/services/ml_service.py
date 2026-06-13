@@ -76,11 +76,30 @@ _CATEGORICAL_FEATURES = [
     "source_rendement",
 ]
 
-# Ensemble complet dans l'ordre utilisé pour l'entraînement
+# Ensemble complet dans l'ordre utilisé pour l'entraînement (legacy / compat).
 FEATURE_ORDER = _NUMERIC_FEATURES + _CATEGORICAL_FEATURES + [
     "sol_inadapte",      # bool → 0/1
     "deficit_hydrique",  # bool → 0/1
 ]
+
+# ── Features ANTI-FUITE : disponibles AVANT le semis (pré-campagne) ──────────
+# On EXCLUT volontairement de l'entraînement :
+#   - penalite / bonus / variance / confiance : sorties du moteur à RÈGLES
+#     (le modèle apprendrait à reproduire les règles, pas la réalité).
+#   - correcteur_biais : circulaire (calculé à partir des rendements réels).
+#   - source_rendement / n_historique_local / n_historique_regional :
+#     proxys de la moyenne historique → autocorrélation avec la cible.
+#   - etat_vegetatif / progression_cycle / ndvi / pluie_reelle_mm :
+#     observés APRÈS le semis → indisponibles en pré-campagne (fuite de données).
+PRECAMPAGNE_FEATURES = [
+    "pluie_moyenne", "besoin_eau", "superficie", "mois_semis",
+    "sol_type", "type_irrigation", "type_engrais", "saison", "categorie_culture",
+    "sol_inadapte", "deficit_hydrique",
+]
+
+# Garde-fous : ne JAMAIS exposer un modèle sous-entraîné ou non explicatif au producteur.
+MIN_TRAIN_OBS = 30      # XGBoost sous ce seuil = sur-apprentissage garanti
+MIN_R2 = 0.30           # en-dessous, le modèle n'explique rien d'utile
 
 
 def _slug(nom: str) -> str:
@@ -165,6 +184,16 @@ def predire_avec_ml(features: dict, modele_dict: dict) -> dict | None:
         encoders = modele_dict.get("encoders", {})
         feature_order = modele_dict.get("features", FEATURE_ORDER)
         meta = modele_dict.get("meta", {})
+
+        # ── Garde-fou : refuser un modèle sous-entraîné ou non explicatif ──────
+        n_train = int(meta.get("n_train", 0) or 0)
+        r2 = float(meta.get("r2_cv", 0.0) or 0.0)
+        if n_train < MIN_TRAIN_OBS or r2 < MIN_R2:
+            logger.info(
+                "Modele ML ecarte (n=%d<%d ou r2=%.2f<%.2f) — repli sur les regles.",
+                n_train, MIN_TRAIN_OBS, r2, MIN_R2,
+            )
+            return None
 
         vecteur = _encoder_features(features, encoders, feature_order)
         if vecteur is None:

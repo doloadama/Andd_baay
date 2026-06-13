@@ -10,9 +10,9 @@
     gap: 6px;
     padding: 4px 10px;
     border-radius: 20px;
-    background: rgba(29, 158, 117, 0.12);
-    border: 1px solid rgba(29, 158, 117, 0.25);
-    color: var(--ab-color-primary, #1D9E75);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
+    border: 1px solid rgba(var(--ab-color-primary-rgb), 0.25);
+    color: var(--ab-color-primary, var(--ab-color-primary));
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -60,10 +60,10 @@ body.dark-mode .cockpit-qcard {
     border-radius: 4px 4px 0 0;
 }
 
-.cockpit-q-revenue::before { background: linear-gradient(90deg, #1D9E75, #5DCAA5); }
-.cockpit-q-roi::before { background: linear-gradient(90deg, #EF9F27, #fbbf24); }
-.cockpit-q-alert::before { background: linear-gradient(90deg, #dc2626, #f87171); }
-.cockpit-q-completion::before { background: linear-gradient(90deg, #5DCAA5, #1D9E75); }
+.cockpit-q-revenue::before { background: linear-gradient(90deg, var(--ab-color-primary), #5DCAA5); }
+.cockpit-q-roi::before { background: linear-gradient(90deg, var(--ab-color-accent), #fbbf24); }
+.cockpit-q-alert::before { background: linear-gradient(90deg, var(--ab-color-danger), #f87171); }
+.cockpit-q-completion::before { background: linear-gradient(90deg, #5DCAA5, var(--ab-color-primary)); }
 
 /* Icon circle inside KPI cards */
 .cockpit-qcard .cq-icon {
@@ -78,8 +78,8 @@ body.dark-mode .cockpit-qcard {
 }
 
 .cockpit-q-revenue .cq-icon {
-    background: rgba(29, 158, 117, 0.12);
-    color: #1D9E75;
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
+    color: var(--ab-color-primary);
 }
 .cockpit-q-roi .cq-icon {
     background: rgba(239, 159, 39, 0.14);
@@ -87,7 +87,7 @@ body.dark-mode .cockpit-qcard {
 }
 .cockpit-q-alert .cq-icon {
     background: rgba(220, 38, 38, 0.12);
-    color: #dc2626;
+    color: var(--ab-color-danger);
 }
 .cockpit-q-completion .cq-icon {
     background: rgba(93, 202, 165, 0.14);
@@ -110,7 +110,7 @@ body.dark-mode .cockpit-qcard {
 
 .cq-trend--up {
     background: rgba(34, 197, 94, 0.12);
-    color: #16a34a;
+    color: var(--ab-color-success);
 }
 
 .cq-trend--stable {
@@ -120,7 +120,7 @@ body.dark-mode .cockpit-qcard {
 
 .cq-trend--down {
     background: rgba(239, 68, 68, 0.12);
-    color: #dc2626;
+    color: var(--ab-color-danger);
 }
 
 /* KPI value styling */
@@ -174,7 +174,7 @@ body.dark-mode .cockpit-qcard .cq-value {
 [data-tile-id="kpi-membres"]::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
 
 [data-tile-id="kpi-investissement"]::before,
-[data-tile-id="kpi-investissement-ferme"]::before { background: linear-gradient(90deg, #1D9E75, #5DCAA5); }
+[data-tile-id="kpi-investissement-ferme"]::before { background: linear-gradient(90deg, var(--ab-color-primary), #5DCAA5); }
 
 /* Icon circles with category colors */
 .cockpit-grid > .tile-kpi .dash-stat-icon {
@@ -187,7 +187,7 @@ body.dark-mode .cockpit-qcard .cq-value {
 }
 
 .cockpit-grid > .tile-kpi .dash-stat-icon.orange {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, #f59e0b, var(--ab-color-warning));
 }
 
 .cockpit-grid > .tile-kpi .dash-stat-icon.accent,
@@ -259,10 +259,10 @@ body.dark-mode .cockpit-qcard .cq-value {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--accent, #1D9E75);
+    background: var(--accent, var(--ab-color-primary));
     color: #fff;
     font-size: 1.1rem;
-    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--ab-color-primary-rgb), 0.3);
 }
 
 .empty-state-title-v2 {
@@ -292,13 +292,13 @@ body.dark-mode .cockpit-qcard .cq-value {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.3);
+    box-shadow: 0 4px 14px rgba(var(--ab-color-primary-rgb), 0.3);
     transition: all 0.2s ease;
 }
 
 .empty-state-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(29, 158, 117, 0.4);
+    box-shadow: 0 8px 22px rgba(var(--ab-color-primary-rgb), 0.4);
 }
 
 /* ---------- Chart section: financial line full-width ---------- */
@@ -323,12 +323,12 @@ body.dark-mode .cockpit-qcard .cq-value {
 
 /* CTA green shadow */
 .cockpit-topbar__cta {
-    box-shadow: 0 4px 14px rgba(29, 158, 117, 0.35);
+    box-shadow: 0 4px 14px rgba(var(--ab-color-primary-rgb), 0.35);
     transition: all 0.2s ease;
 }
 
 .cockpit-topbar__cta:hover {
-    box-shadow: 0 6px 20px rgba(29, 158, 117, 0.45);
+    box-shadow: 0 6px 20px rgba(var(--ab-color-primary-rgb), 0.45);
     transform: translateY(-1px);
 }
 

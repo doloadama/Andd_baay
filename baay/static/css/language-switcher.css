@@ -13,8 +13,8 @@
     gap: 6px;
     padding: 6px 12px;
     border-radius: 20px;
-    background: rgba(29, 158, 117, 0.08);
-    border: 1px solid rgba(29, 158, 117, 0.2);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
+    border: 1px solid rgba(var(--ab-color-primary-rgb), 0.2);
     color: var(--ab-text-main);
     font-weight: 600;
     font-size: 0.85rem;
@@ -23,8 +23,8 @@
 }
 
 .language-switcher .dropdown-toggle:hover {
-    background: rgba(29, 158, 117, 0.15);
-    border-color: rgba(29, 158, 117, 0.3);
+    background: rgba(var(--ab-color-primary-rgb), 0.15);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.3);
 }
 
 .language-switcher .dropdown-toggle::after {
@@ -47,7 +47,7 @@
 .lang-code {
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--accent, #1D9E75);
+    color: var(--accent, var(--ab-color-primary));
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
@@ -85,12 +85,12 @@
 }
 
 .lang-dropdown-menu .dropdown-item:hover {
-    background: rgba(29, 158, 117, 0.08);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
 }
 
 .lang-dropdown-menu .dropdown-item.active {
-    background: rgba(29, 158, 117, 0.12);
-    color: var(--accent, #1D9E75);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
+    color: var(--accent, var(--ab-color-primary));
     font-weight: 600;
 }
 

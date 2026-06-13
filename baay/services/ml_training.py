@@ -60,12 +60,13 @@ def _get_output_dir(override: str | None = None) -> Path:
 def entrainer_culture(
     culture_nom: str,
     *,
-    min_n: int = 5,
+    min_n: int = 30,
     n_cv: int = 5,
     warm_start: bool = False,
     declencheur: str = "manuel",
     output_dir: str | None = None,
     forcer_remplacement: bool = False,
+    inclure_synthetique: bool = False,
 ) -> dict | None:
     """
     Entraîne ou ré-entraîne un modèle XGBoost pour ``culture_nom``.
@@ -97,7 +98,7 @@ def entrainer_culture(
     try:
         import numpy as np  # noqa: F401
         import pandas as pd
-        from sklearn.model_selection import cross_val_score
+        from sklearn.model_selection import GroupKFold, cross_val_score
         from sklearn.preprocessing import LabelEncoder
         from xgboost import XGBRegressor
     except ImportError as exc:
@@ -105,23 +106,44 @@ def entrainer_culture(
         return None
 
     from baay.models import MLModeleInfo, PrevisionFeatures
-    from baay.services.ml_service import FEATURE_ORDER, _CATEGORICAL_FEATURES, _slug
+    from baay.services.ml_service import (
+        PRECAMPAGNE_FEATURES, MIN_R2, _CATEGORICAL_FEATURES, _slug,
+    )
 
     culture_slug = _slug(culture_nom)
 
     # ── Chargement du dataset pour cette culture ──────────────────────────────
+    # GARDE-FOU INTEGRITE : on exclut par defaut les observations SYNTHETIQUES
+    # (donnees generees par seed). Les inclure ferait reapprendre le generateur
+    # au modele -> R2 artificiellement parfait, predictions factices en prod.
     qs = (
         PrevisionFeatures.objects.filter(
             rendement_reel__isnull=False,
             prevision__projet_produit__produit__nom__iexact=culture_nom,
         )
-        .select_related("prevision__projet_produit__produit")
+        .select_related(
+            "prevision__projet_produit__produit",
+            "prevision__projet_produit__projet",
+        )
     )
+    if not inclure_synthetique:
+        n_synth = qs.filter(synthetique=True).count()
+        qs = qs.filter(synthetique=False)
+        if n_synth:
+            logger.info(
+                "[%s] %d observations synthetiques (seed) EXCLUES de l'entrainement.",
+                culture_nom, n_synth,
+            )
 
     rows = []
     for feat in qs.iterator(chunk_size=500):
         row = {"_rendement_reel": feat.rendement_reel}
         row.update(feat.features or {})
+        # Localité = groupe pour la validation croisée (anti-fuite spatiale).
+        try:
+            row["_localite_id"] = feat.prevision.projet_produit.projet.localite_id
+        except Exception:
+            row["_localite_id"] = row.get("localite_id")
         rows.append(row)
 
     n = len(rows)
@@ -133,9 +155,11 @@ def entrainer_culture(
         return None
 
     df = pd.DataFrame(rows)
-    feature_cols = [f for f in FEATURE_ORDER if f in df.columns]
+    # Features ANTI-FUITE uniquement (pas les sorties du moteur à règles).
+    feature_cols = [f for f in PRECAMPAGNE_FEATURES if f in df.columns]
     X_df = df[feature_cols].copy()
     y = df["_rendement_reel"].astype(float).values
+    groups = df["_localite_id"].values if "_localite_id" in df.columns else None
 
     # Encoder les variables catégorielles
     encoders = {}
@@ -186,17 +210,24 @@ def entrainer_culture(
         verbosity=0,
     )
 
-    # Cross-validation (avant entraînement final)
-    n_folds = min(n_cv, n)
+    # Cross-validation — split PAR LOCALITÉ si possible (évite la fuite spatiale :
+    # une même localité dans train ET test gonflerait artificiellement le R²).
     r2_cv = 0.0
     rmse_cv = 0.0
+    cv_kwargs = {}
+    n_groupes = len(set(g for g in (groups if groups is not None else []) if g is not None))
+    if groups is not None and n_groupes >= 2:
+        cv = GroupKFold(n_splits=min(n_cv, n_groupes))
+        cv_kwargs["groups"] = groups
+    else:
+        cv = min(n_cv, n)   # repli : KFold classique
     try:
         import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            scores_r2 = cross_val_score(model, X, y, cv=n_folds, scoring="r2")
+            scores_r2 = cross_val_score(model, X, y, cv=cv, scoring="r2", **cv_kwargs)
             scores_rmse = cross_val_score(
-                model, X, y, cv=n_folds, scoring="neg_root_mean_squared_error"
+                model, X, y, cv=cv, scoring="neg_root_mean_squared_error", **cv_kwargs
             )
         r2_cv = float(scores_r2.mean())
         rmse_cv = float(-scores_rmse.mean())
@@ -211,12 +242,17 @@ def entrainer_culture(
 
     # ── Décision de remplacement ──────────────────────────────────────────────
     prev_r2 = MLModeleInfo.meilleur_r2(culture_slug)
-    # On accepte une légère dégradation (-0.05) — inévitable avec peu de données
-    improved = (
-        forcer_remplacement
-        or prev_r2 is None
-        or r2_cv >= (prev_r2 - 0.05)
+    # Un modèle n'est mis en production que s'il EXPLIQUE réellement (R² ≥ MIN_R2)
+    # ET n'est pas plus mauvais que le précédent (tolérance -0.05).
+    explicatif = r2_cv >= MIN_R2
+    improved = forcer_remplacement or (
+        explicatif and (prev_r2 is None or r2_cv >= (prev_r2 - 0.05))
     )
+    if not explicatif and not forcer_remplacement:
+        logger.info(
+            "[%s] R²=%.3f < seuil %.2f — modèle NON activé (non explicatif).",
+            culture_nom, r2_cv, MIN_R2,
+        )
 
     # ── Sauvegarde .pkl ───────────────────────────────────────────────────────
     if improved:
@@ -285,8 +321,9 @@ def cultures_a_reentrainer(min_new_obs: int = MIN_NEW_OBS_AUTO) -> list[str]:
     from baay.models import MLModeleInfo, PrevisionFeatures
     from baay.services.ml_service import _slug
 
+    # Exclut le synthetique (seed) : seul le vrai terrain declenche un reentrainement.
     cultures = list(
-        PrevisionFeatures.objects.filter(rendement_reel__isnull=False)
+        PrevisionFeatures.objects.filter(rendement_reel__isnull=False, synthetique=False)
         .values_list("prevision__projet_produit__produit__nom", flat=True)
         .distinct()
     )
@@ -300,6 +337,7 @@ def cultures_a_reentrainer(min_new_obs: int = MIN_NEW_OBS_AUTO) -> list[str]:
 
         qs = PrevisionFeatures.objects.filter(
             rendement_reel__isnull=False,
+            synthetique=False,
             prevision__projet_produit__produit__nom__iexact=culture_nom,
         )
         if last_date is not None:

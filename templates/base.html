@@ -59,6 +59,8 @@
     {# Base inline CSS extrait — chargé après mobile-agri-pages.css pour préserver l'ordre de cascade. Voir perf-audit.md action #1. #}
     <link rel="stylesheet" href="{% static 'css/base-inline.css' %}">
     <link rel="stylesheet" href="{% static 'css/rounded-global.css' %}">
+    {# Composants UI thématisés (boutons Bootstrap → tokens --ab-*). Après Bootstrap+base.css. #}
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
 
     <!-- Extra head block for child templates -->
     {% block extra_head %}{% endblock %}

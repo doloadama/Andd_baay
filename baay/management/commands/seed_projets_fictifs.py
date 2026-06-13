@@ -393,13 +393,24 @@ class Command(BaseCommand):
         except Exception:
             pass
 
-        # ── 6. Rapport final ─────────────────────────────────────────────────
+        # ── 5b. Marquer ces données comme SYNTHÉTIQUES ───────────────────────
+        # Garde-fou d'intégrité : ces observations sont générées, jamais réelles.
+        # Elles ne doivent PAS entrer dans l'entraînement ML (sinon le modèle
+        # réapprend le générateur et affiche un R² artificiellement parfait).
         from baay.models import PrevisionFeatures, PrevisionRecolte
+        n_marquees = PrevisionFeatures.objects.filter(
+            prevision__projet__ferme=ferme,
+        ).update(synthetique=True)
+
+        # ── 6. Rapport final ─────────────────────────────────────────────────
         n_previsions = PrevisionRecolte.objects.filter(projet__ferme=ferme).count()
         n_features = PrevisionFeatures.objects.filter(
             prevision__projet__ferme=ferme,
             rendement_reel__isnull=False,
         ).count()
+        self.stdout.write(self.style.WARNING(
+            f"  {n_marquees} PrevisionFeatures marquées synthetique=True (exclues de l'entraînement ML)."
+        ))
 
         self.stdout.write(self.style.SUCCESS(
             f"\n{'='*55}\n"

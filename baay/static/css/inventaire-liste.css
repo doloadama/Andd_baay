@@ -3,10 +3,10 @@
    ============================================================ */
 
 .invl-page {
-    --ab-invl-brand: var(--ab-brand-primary, #1d9e75);
-    --ab-invl-deep: var(--ab-brand-deep, #085041);
-    --ab-invl-night: var(--ab-brand-night, #04342c);
-    --ab-invl-accent: #ef9f27;
+    --ab-invl-brand: var(--ab-brand-primary, var(--ab-color-primary));
+    --ab-invl-deep: var(--ab-brand-deep, var(--ab-color-primary-deep));
+    --ab-invl-night: var(--ab-brand-night, var(--ab-color-primary-night));
+    --ab-invl-accent: var(--ab-color-accent);
     --ab-invl-surface: var(--ab-card-bg-solid, #fff);
     --ab-invl-border: var(--ab-border-color, rgba(8, 80, 65, 0.1));
     --ab-invl-muted-bg: var(--ab-bg-secondary, #f3f7f6);
@@ -158,16 +158,16 @@
 
 a.invl-kpi:hover {
     color: inherit;
-    border-color: rgba(29, 158, 117, 0.35);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.35);
 }
 
 .invl-kpi.is-active {
     border-color: var(--ab-invl-brand);
-    box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15);
+    box-shadow: 0 0 0 2px rgba(var(--ab-color-primary-rgb), 0.15);
 }
 
 .invl-kpi--warn .invl-kpi__value {
-    color: #d97706;
+    color: var(--ab-color-warning);
 }
 
 .invl-kpi__value {
@@ -245,7 +245,7 @@ a.invl-kpi:hover {
 }
 
 .invl-alert-banner__icon {
-    color: #d97706;
+    color: var(--ab-color-warning);
     font-size: 1.1rem;
     flex-shrink: 0;
     margin-top: 2px;
@@ -301,7 +301,7 @@ a.invl-kpi:hover {
 }
 
 .invl-table tbody tr:hover {
-    background: rgba(29, 158, 117, 0.04);
+    background: rgba(var(--ab-color-primary-rgb), 0.04);
 }
 
 .invl-table tr.is-low {
@@ -357,17 +357,17 @@ a.invl-kpi:hover {
 .invl-adjust__btn--minus:hover {
     border-color: rgba(239, 68, 68, 0.4);
     background: rgba(239, 68, 68, 0.08);
-    color: #dc2626;
+    color: var(--ab-color-danger);
 }
 
 .invl-adjust__btn--plus:hover {
-    border-color: rgba(29, 158, 117, 0.4);
-    background: rgba(29, 158, 117, 0.08);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.4);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
     color: var(--ab-invl-deep);
 }
 
 .invl-type-entree {
-    background: rgba(29, 158, 117, 0.12);
+    background: rgba(var(--ab-color-primary-rgb), 0.12);
     color: var(--ab-invl-deep);
     font-size: 0.68rem;
     font-weight: 700;
@@ -377,14 +377,14 @@ a.invl-kpi:hover {
 
 .invl-type-sortie {
     background: rgba(239, 68, 68, 0.12);
-    color: #b91c1c;
+    color: var(--ab-color-depense);
     font-size: 0.68rem;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 999px;
 }
 
-.invl-qualite--a { background: rgba(29, 158, 117, 0.15); color: var(--ab-invl-deep); }
+.invl-qualite--a { background: rgba(var(--ab-color-primary-rgb), 0.15); color: var(--ab-invl-deep); }
 .invl-qualite--b { background: rgba(14, 165, 233, 0.12); color: #0369a1; }
 .invl-qualite--c { background: rgba(217, 119, 6, 0.12); color: #b45309; }
 .invl-qualite--d,
@@ -424,8 +424,8 @@ a.invl-kpi:hover {
 .invl-form {
     padding: 16px;
     border-radius: 12px;
-    border: 1px dashed rgba(29, 158, 117, 0.35);
-    background: rgba(29, 158, 117, 0.04);
+    border: 1px dashed rgba(var(--ab-color-primary-rgb), 0.35);
+    background: rgba(var(--ab-color-primary-rgb), 0.04);
 }
 
 .invl-form__title {
@@ -466,8 +466,8 @@ a.invl-kpi:hover {
 .invl-field input:focus,
 .invl-field select:focus {
     outline: none;
-    border-color: rgba(29, 158, 117, 0.5);
-    box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(--ab-color-primary-rgb), 0.12);
 }
 
 /* Dark mode */
@@ -485,7 +485,7 @@ a.invl-kpi:hover {
 }
 
 .dark-mode .invl-form {
-    background: rgba(29, 158, 117, 0.08);
+    background: rgba(var(--ab-color-primary-rgb), 0.08);
 }
 
 .dark-mode .invl-table td {
@@ -501,7 +501,7 @@ a.invl-kpi:hover {
 
 .dark-mode .invl-btn--outline:hover {
     color: var(--ab-brand-light, #5dcaa5);
-    border-color: rgba(29, 158, 117, 0.45);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.45);
 }
 
 .dark-mode .invl-btn--brand {
@@ -510,7 +510,7 @@ a.invl-kpi:hover {
 
 .dark-mode .invl-btn--primary {
     background: #fff;
-    color: var(--ab-invl-deep, #085041);
+    color: var(--ab-invl-deep, var(--ab-color-primary-deep));
 }
 
 .dark-mode .invl-tab:hover {
@@ -536,8 +536,8 @@ a.invl-kpi:hover {
 
 .dark-mode .invl-adjust__btn--plus:hover {
     color: var(--ab-brand-light, #5dcaa5);
-    background: rgba(29, 158, 117, 0.15);
-    border-color: rgba(29, 158, 117, 0.4);
+    background: rgba(var(--ab-color-primary-rgb), 0.15);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.4);
 }
 
 .dark-mode .invl-tabs {

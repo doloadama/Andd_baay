@@ -1420,6 +1420,12 @@ class PrevisionFeatures(models.Model):
         blank=True,
         help_text="Erreur relative en % : (mid_predit - reel) / reel * 100.",
     )
+    synthetique = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True si l'observation provient de données générées (seed). "
+                  "EXCLUE de l'entraînement ML pour ne pas réapprendre le générateur.",
+    )
     date_creation = models.DateTimeField(auto_now_add=True)
     date_validation = models.DateTimeField(
         null=True,
