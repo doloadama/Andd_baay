@@ -14,20 +14,23 @@
        ANDD BAAY V3 - UNIFIED MULTI-TAB DASHBOARD (Premium Afro-Tech)
        ============================================================ */
     :root {
-        --ab-at-brand: var(--ab-color-primary);           /* #1D9E75 — alias token canonique */
-        --ab-at-brand-deep: var(--ab-color-primary-deep);  /* #085041 */
-        --ab-at-brand-night: var(--ab-color-primary-night); /* #04342c */
-        --ab-at-accent: var(--ab-color-accent);            /* #EF9F27 */
-        --ab-at-surface: var(--ab-color-surface);          /* #ffffff */
-        --ab-at-bg: #f8faf9;
-        --ab-at-text: #2C2C2A;
-        --ab-at-muted: #5c5c57;
-        --ab-at-border: rgba(8,80,65,0.08);
-        --ab-at-shadow: 0 4px 16px rgba(8,80,65,0.08);
+        /* Palette « Terroir » (mode clair) : creme chaud, vert profond, or soleil */
+        --ab-at-brand: #00694c;            /* vert profond Terroir */
+        --ab-at-brand-deep: #085041;       /* vert tres profond (valeurs KPI) */
+        --ab-at-brand-night: #16241B;      /* vert nuit (titres) */
+        --ab-at-accent: #F4A82C;           /* or soleil */
+        --ab-at-surface: #fffdfb;          /* blanc chaud (cartes) */
+        --ab-at-bg: #fdf3ea;               /* creme (tuiles internes) */
+        --ab-at-text: #2A2117;             /* encre chaude */
+        --ab-at-muted: #6b6155;            /* gris chaud */
+        --ab-at-border: rgba(8,80,65,0.10);
+        --ab-at-shadow: 0 6px 20px rgba(120,72,20,0.08);
         --ab-at-radius: 22px;
         --ab-at-radius-sm: 14px;
-        --ab-at-glass: rgba(255, 255, 255, 0.92);
+        --ab-at-glass: rgba(255, 253, 251, 0.92);
     }
+    /* Fond de page creme chaud sous le tableau de bord */
+    body:has(.at-dashboard) { background: #fff8f4; }
 
     /* Dark mode overrides */
     .dark-mode {
@@ -137,7 +140,7 @@
     .at-bento--cockpit .at-cockpit-map { grid-column: span 12; }
     .at-chart-wrap { height: 280px; position: relative; }
     .at-chart-wrap--compact { height: 220px; }
-    .at-map-canvas { height: 320px; border-radius: 14px; background: #e8eeeb; }
+    .at-map-canvas { height: 320px; border-radius: 14px; background: #efe7da; }
     .dark-mode .at-map-canvas { background: #1a2924; }
 
     .at-card-title {
@@ -167,7 +170,7 @@
         padding: 12px 16px; border-radius: 14px; background: var(--ab-at-bg); margin-bottom: 8px;
         transition: 0.2s; text-decoration: none; color: inherit;
     }
-    .at-project-row:hover { transform: translateX(5px); background: #f0f4f2; }
+    .at-project-row:hover { transform: translateX(5px); background: #f7eee2; }
     .dark-mode .at-project-row:hover { background: rgba(93,202,165,0.08); }
     .at-project-name { font-weight: 700; font-size: 14px; }
     .at-project-meta { font-size: 11px; color: var(--ab-at-muted); }
@@ -183,10 +186,31 @@
         display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: var(--ab-at-radius-sm);
         background: var(--ab-at-bg); margin-bottom: 12px; border-left: 4px solid var(--ab-at-brand);
     }
-    .at-task-item--urgent { border-left-color: #ef4444; }
+    .at-task-item--urgent { border-left-color: #ef4444; background: rgba(239,68,68,0.07); }
+    .at-task-item--urgent .at-task-title { color: #b3261e; }
     .at-task-info { flex: 1; }
     .at-task-title { font-weight: 700; font-size: 14px; }
     .at-task-meta { font-size: 12px; color: var(--ab-at-muted); }
+
+    /* --- HARVEST COUNTDOWN (carte récolte) --- */
+    .at-harvest {
+        background: linear-gradient(135deg, var(--ab-at-brand), var(--ab-at-brand-deep));
+        color: #fff; border-radius: var(--ab-at-radius); padding: 24px;
+        position: relative; overflow: hidden; height: 100%;
+        display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .at-harvest::after {
+        content: ""; position: absolute; top: -36px; right: -36px; width: 130px; height: 130px;
+        background: radial-gradient(circle, rgba(244,168,44,0.40), transparent 70%); pointer-events: none;
+    }
+    .at-harvest i { font-size: 22px; color: var(--ab-at-accent); }
+    .at-harvest__num { font-family: 'Space Grotesk', sans-serif; font-size: 46px; font-weight: 800; line-height: 1; margin-top: 14px; }
+    .at-harvest__unit { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ab-at-accent); font-weight: 700; }
+    .at-harvest__cap { font-size: 14px; margin-top: 8px; opacity: .92; }
+
+    /* --- PROGRESS BAR --- */
+    .at-progress { height: 8px; background: var(--ab-at-bg); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .at-progress__bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ab-at-brand), var(--ab-at-accent)); }
 
     /* --- TABLES --- */
     .at-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
@@ -575,10 +599,10 @@
 
     <!-- ═══════════ TAB: ACTIVITIES (TASKS & FEED) ═══════════ -->
     <div x-show="activeTab === 'activities'" x-transition class="at-bento">
-        <!-- Urgent Tasks -->
+        <!-- Interventions Critiques -->
         <div class="at-card at-card--lg">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="at-card-title m-0"><i class="fas fa-tasks"></i> Interventions Critiques</h3>
+                <h3 class="at-card-title m-0"><i class="fas fa-triangle-exclamation"></i> Interventions Critiques</h3>
                 <span class="badge bg-danger rounded-pill">{{ stats_taches.en_retard }} en retard</span>
             </div>
 
@@ -587,7 +611,7 @@
                 <div class="at-task-item at-task-item--urgent">
                     <div class="at-task-info">
                         <div class="at-task-title">{{ t.titre }}</div>
-                        <div class="at-task-meta">{{ t.projet.nom }} • Échéance : {{ t.date_echeance|date:"d M" }} • Assigné à {{ t.assigne_a.user.username }}</div>
+                        <div class="at-task-meta">{{ t.projet.nom }} • Échéance : {{ t.date_echeance|date:"d M" }} • {{ t.assigne_a.user.username }}</div>
                     </div>
                     <a href="{% url 'tache_detail' t.id %}" class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-chevron-right"></i></a>
                 </div>
@@ -600,25 +624,26 @@
             </div>
         </div>
 
-        <!-- Activity Feed -->
-        <div class="at-card at-card--sm">
-            <h3 class="at-card-title"><i class="fas fa-stream"></i> Flux d'Activité</h3>
-            <div class="at-activity-feed">
-                {% for msg in messages_recents %}
-                <div class="at-feed-item">
-                    <div class="at-feed-icon"><i class="fas fa-comment"></i></div>
-                    <div class="at-feed-info">
-                        <div class="at-feed-content small"><strong>{{ msg.expediteur.user.username }}</strong> a posté dans <em>{{ msg.conversation.sujet|default:"Groupe" }}</em></div>
-                        <div class="at-feed-time xsmall text-muted">{{ msg.date_envoi|naturaltime }}</div>
-                    </div>
+        <!-- Prochaine récolte (compte à rebours) -->
+        <div class="at-card--sm">
+            <div class="at-harvest">
+                <i class="fas fa-seedling"></i>
+                {% if prochaine_recolte %}
+                <div>
+                    <div class="at-harvest__num">{{ jours_avant_recolte }}</div>
+                    <div class="at-harvest__unit">jours</div>
+                    <div class="at-harvest__cap">Avant la récolte{% if prochaine_recolte.produit %} de {{ prochaine_recolte.produit.nom }}{% endif %} · {{ prochaine_recolte.date_recolte_prevue|date:"d M" }}</div>
                 </div>
-                {% empty %}
-                <p class="text-center py-4 at-muted small">Calme plat sur la ferme.</p>
-                {% endfor %}
+                {% else %}
+                <div>
+                    <div class="at-harvest__num">—</div>
+                    <div class="at-harvest__cap">Aucune récolte planifiée</div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Upcoming & Velocity -->
+        <!-- À venir (7 jours) -->
         <div class="at-card at-card--md">
             <h3 class="at-card-title"><i class="fas fa-calendar-check"></i> À venir (7 jours)</h3>
             {% for t in taches_urgentes %}
@@ -633,13 +658,15 @@
             {% endfor %}
         </div>
 
+        <!-- Vélocité de l'équipe -->
         <div class="at-card at-card--md">
             <h3 class="at-card-title"><i class="fas fa-bolt"></i> Vélocité de l'Équipe</h3>
-            <div class="text-center py-4">
-                <div class="display-3 fw-bold text-at-brand">{{ tasks_velocity }}</div>
-                <div class="text-muted fw-bold">Tâches terminées cette semaine</div>
-                <p class="xsmall text-muted mt-2">Continuez ainsi pour atteindre vos objectifs de récolte.</p>
+            <div class="d-flex align-items-end gap-2">
+                <div class="fw-bold text-at-brand" style="font-family:'Space Grotesk',sans-serif;font-size:48px;line-height:1;">{{ tasks_velocity }}</div>
+                <div class="at-task-meta mb-1">tâches terminées<br>cette semaine</div>
             </div>
+            <div class="at-card-title small mt-3" style="margin-bottom:4px;">Progression des projets · {{ completion_rate }}%</div>
+            <div class="at-progress"><div class="at-progress__bar" style="width: {{ completion_rate }}%"></div></div>
 
             {% if alertes_projets %}
             <div class="mt-4">
@@ -651,6 +678,24 @@
                 {% endfor %}
             </div>
             {% endif %}
+        </div>
+
+        <!-- Flux d'Activité (timeline) -->
+        <div class="at-card">
+            <h3 class="at-card-title"><i class="fas fa-comments"></i> Flux d'Activité</h3>
+            <div class="at-activity-feed">
+                {% for msg in messages_recents %}
+                <div class="at-feed-item">
+                    <div class="at-feed-icon"><i class="fas fa-comment-dots"></i></div>
+                    <div class="at-feed-info">
+                        <div class="at-feed-content small"><strong>{{ msg.expediteur.user.username }}</strong> a posté dans <em>{{ msg.conversation.sujet|default:"Groupe" }}</em></div>
+                        <div class="at-feed-time xsmall text-muted">{{ msg.date_envoi|naturaltime }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center py-4 at-muted small">Calme plat sur la ferme.</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
 

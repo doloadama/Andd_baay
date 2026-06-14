@@ -18,11 +18,32 @@ from baay.cloudinary_paths import cloudinary_media_folder
 
 
 class Profile(models.Model):
+    # Type de compte choisi à l'inscription : pilote UNIQUEMENT le parcours
+    # d'onboarding, jamais les permissions (celles-ci viennent des rôles
+    # MembreFerme / MembreCooperative). NULL = pas encore choisi.
+    ACCOUNT_TYPE_FERMIER = 'fermier'
+    ACCOUNT_TYPE_COOPERATIVE = 'cooperative'
+    ACCOUNT_TYPE_TECHNICIEN = 'technicien'
+    ACCOUNT_TYPE_OUVRIER = 'ouvrier'
+    ACCOUNT_TYPE_CHOICES = [
+        (ACCOUNT_TYPE_FERMIER, 'Fermier indépendant'),
+        (ACCOUNT_TYPE_COOPERATIVE, 'Coopérative'),
+        (ACCOUNT_TYPE_TECHNICIEN, 'Technicien agricole'),
+        (ACCOUNT_TYPE_OUVRIER, 'Ouvrier agricole'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     last_login = models.DateTimeField(auto_now=True)
+    account_type = models.CharField(
+        max_length=20,
+        choices=ACCOUNT_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Type de compte choisi à l'inscription ; pilote le parcours d'onboarding.",
+    )
     onboarding_completed = models.BooleanField(
         default=False,
         help_text="True lorsque l'utilisateur a terminé ou ignoré l'assistant de première connexion.",
@@ -36,6 +57,10 @@ class Ferme(models.Model):
     nom = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     proprietaire = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='fermes')
+    cooperative = models.ForeignKey(
+        'Cooperative', on_delete=models.SET_NULL, null=True, blank=True, related_name='fermes',
+        help_text="Coopérative à laquelle la ferme est affiliée (le propriétaire reste propriétaire).",
+    )
     pays = models.ForeignKey('Pays', on_delete=models.SET_NULL, null=True, blank=True)
     region = models.ForeignKey(
         "Region",
@@ -173,6 +198,86 @@ class MembreFerme(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur.user.username} - {self.get_role_display()} de {self.ferme.nom}"
+
+
+class Cooperative(models.Model):
+    """Organisation regroupant plusieurs fermes affiliées. Couche de gestion
+    au-dessus des fermes : les fermes gardent leur propriétaire, la coopérative
+    y accède via les rôles MembreCooperative (cf. permissions.py)."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nom = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    pays = models.ForeignKey('Pays', on_delete=models.SET_NULL, null=True, blank=True)
+    region = models.ForeignKey('Region', on_delete=models.SET_NULL, null=True, blank=True)
+    localite = models.ForeignKey('Localite', on_delete=models.SET_NULL, null=True, blank=True)
+    code_acces = models.CharField(max_length=12, unique=True, blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['nom']
+
+    def __str__(self):
+        return self.nom
+
+    def save(self, *args, **kwargs):
+        if not self.code_acces:
+            self.code_acces = self.generate_unique_code_acces(
+                exclude_pk=self.pk if self.pk else None
+            )
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_unique_code_acces(cls, exclude_pk=None):
+        """Code alphanumérique unique (8 caractères), préfixé C pour les coops."""
+        alphabet = string.ascii_uppercase + string.digits
+        while True:
+            code = "C" + "".join(secrets.choice(alphabet) for _ in range(7))
+            qs = cls.objects.filter(code_acces=code)
+            if exclude_pk:
+                qs = qs.exclude(pk=exclude_pk)
+            if not qs.exists():
+                return code
+
+    def regenerate_code_acces(self):
+        self.code_acces = self.generate_unique_code_acces(exclude_pk=self.pk)
+        self.save(update_fields=["code_acces", "date_modification"])
+
+
+class MembreCooperative(models.Model):
+    ROLE_ADMIN = 'admin'                 # Président / admin : contrôle total de la coop
+    ROLE_GESTIONNAIRE = 'gestionnaire'   # Gère fermes & projets, pas membres/finances
+    ROLE_TECHNICIEN = 'technicien'       # Suivi technique sur toutes les fermes de la coop
+    ROLE_CONSULTANT = 'consultant'       # Lecture seule (finance / performance)
+    ROLE_FERMIER_AFFILIE = 'fermier_affilie'  # Possède sa ferme, agrégée dans la coop
+    ROLE_CHOICES = [
+        (ROLE_ADMIN, 'Admin / Président'),
+        (ROLE_GESTIONNAIRE, 'Gestionnaire'),
+        (ROLE_TECHNICIEN, 'Technicien coop'),
+        (ROLE_CONSULTANT, 'Consultant'),
+        (ROLE_FERMIER_AFFILIE, 'Fermier affilié'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    cooperative = models.ForeignKey(Cooperative, on_delete=models.CASCADE, related_name='membres')
+    utilisateur = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='cooperatives_membre')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_FERMIER_AFFILIE)
+    peut_gerer_membres = models.BooleanField(default=False)
+    statut = models.CharField(
+        max_length=12,
+        choices=[('actif', 'Actif'), ('suspendu', 'Suspendu')],
+        default='actif',
+    )
+    date_adhesion = models.DateTimeField(auto_now_add=True)
+    date_expiration = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('cooperative', 'utilisateur')
+        indexes = [
+            models.Index(fields=["utilisateur", "statut"], name="baay_coopmembre_user_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.utilisateur.user.username} - {self.get_role_display()} de {self.cooperative.nom}"
 
 
 class InvitationFerme(models.Model):
@@ -1419,6 +1524,12 @@ class PrevisionFeatures(models.Model):
         null=True,
         blank=True,
         help_text="Erreur relative en % : (mid_predit - reel) / reel * 100.",
+    )
+    synthetique = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True si l'observation provient de données générées (seed). "
+                  "EXCLUE de l'entraînement ML pour ne pas réapprendre le générateur.",
     )
     date_creation = models.DateTimeField(auto_now_add=True)
     date_validation = models.DateTimeField(

@@ -16,12 +16,18 @@ from baay.models import (
     Projet,
     Tache,
 )
+from baay.permissions import cooperatives_accessibles_qs
 
 
 @login_required
 def dashboard_cooperative(request):
     profile = request.user.profile
-    fermes_qs = Ferme.objects.filter(proprietaire=profile).order_by("nom")
+    # Fermes du périmètre : celles que le profil possède + celles des
+    # coopératives dont il est membre (gestionnaire/technicien/consultant/admin).
+    coop_ids = list(cooperatives_accessibles_qs(profile).values_list("id", flat=True))
+    fermes_qs = Ferme.objects.filter(
+        Q(proprietaire=profile) | Q(cooperative_id__in=coop_ids)
+    ).distinct().order_by("nom")
 
     # Optional filter
     ferme_filter = request.GET.get("ferme", "")
@@ -54,7 +60,7 @@ def dashboard_cooperative(request):
             projet_produit__projet__ferme=OuterRef("pk"),
             statut=AnalyseImageCulture.STATUT_TERMINEE,
         )
-        .order_by("-created_at")
+        .order_by("-date_creation")
         .values("sujet_description", "date_creation")[:1]
     )
     fermes_with_data = fermes_with_data.annotate(
@@ -95,6 +101,7 @@ def dashboard_cooperative(request):
     rows = []
     for ferme in fermes_with_data:
         fid = str(ferme.id)
+        taches = tasks_by_ferme.get(fid, [])
         rows.append({
             "ferme": ferme,
             "prevision_min": ferme.last_prevision_min,
@@ -102,15 +109,26 @@ def dashboard_cooperative(request):
             "prevision_confiance": ferme.last_prevision_confiance,
             "diag_resume": ferme.last_diag_resume,
             "diag_date": ferme.last_diag_date,
-            "taches_critiques": tasks_by_ferme.get(fid, []),
+            "taches_critiques": taches,
             "projets_actifs": projets_count.get(fid, 0),
+            "needs_attention": bool(taches),
         })
+
+    # ── Agrégats pour la bande KPI ──────────────────────────────────────────
+    summary = {
+        "total_fermes": len(rows),
+        "projets_actifs": sum(r["projets_actifs"] for r in rows),
+        "taches_critiques": sum(len(r["taches_critiques"]) for r in rows),
+        "fermes_attention": sum(1 for r in rows if r["needs_attention"]),
+        "fermes_prevision": sum(1 for r in rows if r["prevision_min"] is not None),
+    }
 
     return render(request, "dashboard/cooperative.html", {
         "rows": rows,
         "all_fermes": all_fermes,
         "ferme_filter": ferme_filter,
         "total_fermes": len(fermes),
+        "summary": summary,
     })
 
 

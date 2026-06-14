@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Créer votre coopérative — Andd Baay{% endblock %}
+
+{% block content %}
+<style>
+  body { background: #fff8f4; }
+  .ob-coop { max-width: 600px; margin: 0 auto; padding: 8px 16px 64px; font-family: 'Inter', sans-serif; }
+  .ob-coop__card { background: #fffdfb; border: 1.5px solid rgba(8,80,65,.12); border-radius: 20px; padding: 32px; }
+  .ob-coop__ico { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-size: 1.4rem; color: #2A2117; background: linear-gradient(135deg, #F4A82C, #d6890f); margin-bottom: 18px; }
+  .ob-coop h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #16241B; font-size: 1.6rem; margin: 0 0 8px; letter-spacing: -.02em; }
+  .ob-coop p.lead { color: #6b6155; margin: 0 0 24px; line-height: 1.6; }
+  .ob-coop .fld { margin-bottom: 16px; }
+  .ob-coop label { display: block; font-weight: 600; color: #2A2117; font-size: .9rem; margin-bottom: 6px; }
+  .ob-coop input, .ob-coop textarea, .ob-coop select {
+    width: 100%; border: 1.5px solid rgba(8,80,65,.16); border-radius: 12px; padding: 12px 15px; font-size: 1rem; background: #fdf3ea; font-family: inherit;
+  }
+  .ob-coop input:focus, .ob-coop textarea:focus, .ob-coop select:focus { outline: none; border-color: #00694c; box-shadow: 0 0 0 3px rgba(0,105,76,.12); }
+  .ob-btn { display: inline-flex; align-items: center; gap: 9px; background: #F4A82C; color: #2A2117; font-weight: 700; border: none; padding: 14px 28px; border-radius: 14px; cursor: pointer; transition: .2s; width: 100%; justify-content: center; margin-top: 8px; }
+  .ob-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -12px rgba(244,168,44,.6); }
+  .ob-coop__hint { background: #fdf3ea; border-radius: 12px; padding: 14px 16px; color: #6b6155; font-size: .88rem; margin-top: 20px; display: flex; gap: 10px; }
+  .ob-coop__hint i { color: #00694c; margin-top: 2px; }
+</style>
+
+<div class="ob-coop">
+  <div class="ob-coop__card">
+    <span class="ob-coop__ico"><i class="fas fa-people-group"></i></span>
+    <h1>Créez votre coopérative</h1>
+    <p class="lead">Vous en serez l'administrateur. Vous pourrez ensuite rattacher des fermes et inviter des membres avec leurs rôles.</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} py-2 small">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'creer_cooperative' %}">
+      {% csrf_token %}
+      <div class="fld">
+        <label for="nom">Nom de la coopérative</label>
+        <input type="text" id="nom" name="nom" maxlength="200" placeholder="Ex. Coopérative des Niayes" required>
+      </div>
+      <div class="fld">
+        <label for="localite">Localité <span style="font-weight:400;color:#6b6155;">(facultatif)</span></label>
+        <select id="localite" name="localite">
+          <option value="">— Sélectionner —</option>
+          {% for loc in localites %}
+          <option value="{{ loc.id }}">{{ loc.nom }}{% if loc.region %} · {{ loc.region.nom }}{% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fld">
+        <label for="description">Description <span style="font-weight:400;color:#6b6155;">(facultatif)</span></label>
+        <textarea id="description" name="description" rows="3" placeholder="Objet, zone d'activité…"></textarea>
+      </div>
+      <button type="submit" class="ob-btn">Créer la coopérative <i class="fas fa-arrow-right"></i></button>
+    </form>
+
+    <div class="ob-coop__hint">
+      <i class="fas fa-circle-info"></i>
+      <span>Les fermes affiliées restent la propriété de leurs fermiers ; la coopérative y accède selon les rôles que vous définissez.</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

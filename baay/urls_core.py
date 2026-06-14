@@ -6,6 +6,8 @@ from .views_core import (
     home_view,
     onboarding_complete_view,
     onboarding_wizard_view,
+    choix_profil_view,
+    creer_cooperative_view,
     profil_view,
 )
 from .views import (
@@ -27,6 +29,8 @@ urlpatterns = [
     path("performance/", performance, name="performance"),
     path("activites/", activites, name="activites"),
     path("onboarding/", onboarding_wizard_view, name="onboarding"),
+    path("onboarding/choix-profil/", choix_profil_view, name="choix_profil"),
+    path("onboarding/cooperative/creer/", creer_cooperative_view, name="creer_cooperative"),
     path("onboarding/terminer/", onboarding_complete_view, name="onboarding_complete"),
     path("profil/", profil_view, name="profil"),
 ]
