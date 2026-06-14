@@ -395,6 +395,10 @@ def get_unified_dashboard_context(request, utilisateur, selected_ferme=None, far
         'alertes_projets': alertes_projets,
         'burn_rates': burn_rates[:5],
         'prochaine_recolte': prochaine_recolte,
+        'jours_avant_recolte': (
+            (prochaine_recolte.date_recolte_prevue - today).days
+            if prochaine_recolte else None
+        ),
         'map_markers': map_markers,
         'dashboard_stats_json': mark_safe(json.dumps(dashboard_stats_data, default=str)),
     }
