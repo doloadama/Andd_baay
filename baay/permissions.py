@@ -1,7 +1,15 @@
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Ferme, MembreFerme, Projet, ProjetProduit, Tache
+from .models import (
+    Cooperative,
+    Ferme,
+    MembreCooperative,
+    MembreFerme,
+    Projet,
+    ProjetProduit,
+    Tache,
+)
 
 
 ROLE_PROPRIETAIRE = 'proprietaire'
@@ -17,6 +25,33 @@ ROLES_VISIBILITE_FERME = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN, ROLE
 ROLES_LECTURE_FINANCE = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_CONSULTANT}
 ROLES_COMMENTAIRE = {ROLE_PROPRIETAIRE, ROLE_MANAGER, ROLE_TECHNICIEN, ROLE_CONSULTANT}
 
+# ── Coopératives ──────────────────────────────────────────────────────────
+# Force relative des rôles ferme (pour retenir le rôle effectif le plus fort).
+_RANG_ROLE = {
+    None: 0,
+    ROLE_INVITE: 1,
+    ROLE_CONSULTANT: 2,
+    ROLE_OUVRIER: 3,
+    ROLE_TECHNICIEN: 4,
+    ROLE_MANAGER: 5,
+    ROLE_PROPRIETAIRE: 6,
+}
+
+# Rôle coop -> rôle ferme effectif sur les fermes affiliées.
+# Le propriétaire reste propriétaire : la coop ne dépasse jamais MANAGER
+# (pas de suppression de ferme, pas de finance ROI sensible — checks dédiés).
+_COOP_VERS_ROLE_FERME = {
+    MembreCooperative.ROLE_ADMIN: ROLE_MANAGER,
+    MembreCooperative.ROLE_GESTIONNAIRE: ROLE_MANAGER,
+    MembreCooperative.ROLE_TECHNICIEN: ROLE_TECHNICIEN,
+    MembreCooperative.ROLE_CONSULTANT: ROLE_CONSULTANT,
+    MembreCooperative.ROLE_FERMIER_AFFILIE: None,  # aucun droit sur les fermes des autres
+}
+# Rôles coop qui donnent accès aux fermes de la coopérative (pour les querysets).
+_ROLES_COOP_ACCES_FERMES = [
+    r for r, mapped in _COOP_VERS_ROLE_FERME.items() if mapped is not None
+]
+
 
 def _membres_actifs_qs():
     """MembreFerme whose access has not expired."""
@@ -26,13 +61,52 @@ def _membres_actifs_qs():
     )
 
 
+def _membres_coop_actifs_qs():
+    """MembreCooperative actifs et non expirés."""
+    now = timezone.now()
+    return MembreCooperative.objects.filter(
+        statut='actif',
+    ).filter(
+        Q(date_expiration__isnull=True) | Q(date_expiration__gt=now)
+    )
+
+
+def role_dans_cooperative(profile, cooperative):
+    """Rôle (actif) du profil dans une coopérative, ou None."""
+    if profile is None or cooperative is None:
+        return None
+    membre = _membres_coop_actifs_qs().filter(
+        cooperative=cooperative, utilisateur=profile,
+    ).only('role').first()
+    return membre.role if membre else None
+
+
+def _role_coop_pour_ferme(profile, ferme):
+    """Rôle ferme effectif dérivé de l'appartenance à la coopérative de la ferme."""
+    coop_id = getattr(ferme, 'cooperative_id', None)
+    if not coop_id or profile is None:
+        return None
+    membre = _membres_coop_actifs_qs().filter(
+        cooperative_id=coop_id, utilisateur=profile,
+    ).only('role').first()
+    if membre is None:
+        return None
+    return _COOP_VERS_ROLE_FERME.get(membre.role)
+
+
 def role_dans_ferme(profile, ferme):
     if profile is None or ferme is None:
         return None
     if ferme.proprietaire_id == profile.id:
         return ROLE_PROPRIETAIRE
     membre = _membres_actifs_qs().filter(ferme=ferme, utilisateur=profile).only('role').first()
-    return membre.role if membre else None
+    role_direct = membre.role if membre else None
+    # Rôle dérivé de la coopérative affiliée à la ferme
+    role_coop = _role_coop_pour_ferme(profile, ferme)
+    # On retient le rôle le plus fort entre l'accès direct et l'accès coop.
+    if _RANG_ROLE.get(role_coop, 0) > _RANG_ROLE.get(role_direct, 0):
+        return role_coop
+    return role_direct
 
 
 def membership_dans_ferme(profile, ferme):
@@ -41,10 +115,22 @@ def membership_dans_ferme(profile, ferme):
     return _membres_actifs_qs().filter(ferme=ferme, utilisateur=profile).first()
 
 
+def _coop_ids_acces_fermes(profile):
+    """IDs des coopératives où le profil a un rôle donnant accès aux fermes."""
+    if profile is None:
+        return []
+    return list(
+        _membres_coop_actifs_qs()
+        .filter(utilisateur=profile, role__in=_ROLES_COOP_ACCES_FERMES)
+        .values_list('cooperative_id', flat=True)
+    )
+
+
 def fermes_accessibles_qs(profile):
     if profile is None:
         return Ferme.objects.none()
     now = timezone.now()
+    coop_ids = _coop_ids_acces_fermes(profile)
     return Ferme.objects.filter(
         Q(proprietaire=profile)
         | Q(
@@ -55,15 +141,55 @@ def fermes_accessibles_qs(profile):
             membres__utilisateur=profile,
             membres__date_expiration__gt=now,
         )
+        | Q(cooperative_id__in=coop_ids)
     ).distinct()
 
 
 def projets_accessibles_qs(profile):
     if profile is None:
         return Projet.objects.none()
+    coop_ids = _coop_ids_acces_fermes(profile)
     return Projet.objects.filter(
-        Q(ferme__proprietaire=profile) | Q(ferme__membres__utilisateur=profile)
+        Q(ferme__proprietaire=profile)
+        | Q(ferme__membres__utilisateur=profile)
+        | Q(ferme__cooperative_id__in=coop_ids)
     ).distinct()
+
+
+def cooperatives_accessibles_qs(profile):
+    """Coopératives dont le profil est membre (actif)."""
+    if profile is None:
+        return Cooperative.objects.none()
+    coop_ids = _membres_coop_actifs_qs().filter(
+        utilisateur=profile,
+    ).values_list('cooperative_id', flat=True)
+    return Cooperative.objects.filter(id__in=coop_ids).distinct()
+
+
+def roles_coop_assignables_par(role):
+    """Qui peut assigner quels rôles dans une coopérative."""
+    return {
+        MembreCooperative.ROLE_ADMIN: [
+            MembreCooperative.ROLE_GESTIONNAIRE,
+            MembreCooperative.ROLE_TECHNICIEN,
+            MembreCooperative.ROLE_CONSULTANT,
+            MembreCooperative.ROLE_FERMIER_AFFILIE,
+        ],
+        MembreCooperative.ROLE_GESTIONNAIRE: [
+            MembreCooperative.ROLE_TECHNICIEN,
+            MembreCooperative.ROLE_CONSULTANT,
+            MembreCooperative.ROLE_FERMIER_AFFILIE,
+        ],
+        MembreCooperative.ROLE_TECHNICIEN: [],
+        MembreCooperative.ROLE_CONSULTANT: [],
+        MembreCooperative.ROLE_FERMIER_AFFILIE: [],
+        None: [],
+    }.get(role, [])
+
+
+def peut_gerer_cooperative(profile, cooperative):
+    """Gérer membres / fermes de la coop : admin (ou gestionnaire si autorisé)."""
+    return role_dans_cooperative(profile, cooperative) == MembreCooperative.ROLE_ADMIN
 
 
 def peut_voir_ferme(profile, ferme):

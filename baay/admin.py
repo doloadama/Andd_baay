@@ -26,6 +26,8 @@ from .models import (
     PrixMarche,
     Conversation,
     CampagneProjet,
+    Cooperative,
+    MembreCooperative,
     DemandeAccesFerme,
     Depense,
     Ferme,
@@ -548,3 +550,24 @@ class AlertePrixAdmin(ModelAdmin):
     def marquer_non_vues(self, request, queryset):
         nb = queryset.update(vue=False)
         self.message_user(request, f"{nb} alerte(s) marquée(s) comme non vues.")
+
+
+class MembreCooperativeInline(admin.TabularInline):
+    model = MembreCooperative
+    extra = 0
+    autocomplete_fields = ("utilisateur",)
+
+
+@admin.register(Cooperative)
+class CooperativeAdmin(ModelAdmin):
+    list_display = ("nom", "localite", "code_acces", "date_creation")
+    search_fields = ("nom", "code_acces")
+    inlines = (MembreCooperativeInline,)
+
+
+@admin.register(MembreCooperative)
+class MembreCooperativeAdmin(ModelAdmin):
+    list_display = ("utilisateur", "cooperative", "role", "statut", "date_adhesion")
+    list_filter = ("role", "statut")
+    search_fields = ("utilisateur__user__username", "cooperative__nom")
+    autocomplete_fields = ("utilisateur", "cooperative")
