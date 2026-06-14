@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ cooperative.nom }} — Coopérative | Andd Baay{% endblock %}
+
+{% block content %}
+<style>
+  body { background: #fff8f4; }
+  .co-wrap { max-width: 980px; margin: 0 auto; padding: 8px 16px 64px; font-family: 'Inter', sans-serif; color: #2A2117; }
+  .co-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .co-head h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #16241B; font-size: clamp(1.6rem,3vw,2.2rem); margin: 0; letter-spacing: -.02em; }
+  .co-role { display: inline-block; background: rgba(0,105,76,.10); color: #00694c; font-weight: 700; font-size: .78rem; padding: 5px 12px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
+  .co-code { background: #16241B; color: #fff; border-radius: 14px; padding: 14px 18px; display: inline-flex; align-items: center; gap: 12px; font-size: .9rem; }
+  .co-code b { font-family: 'Space Grotesk', sans-serif; letter-spacing: .15em; color: #F4A82C; font-size: 1.1rem; }
+  .co-card { background: #fffdfb; border: 1px solid rgba(8,80,65,.12); border-radius: 18px; padding: 22px; margin-top: 22px; }
+  .co-card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; color: #16241B; margin: 0 0 16px; display: flex; align-items: center; gap: 9px; }
+  .co-card h2 i { color: #00694c; }
+  table.co-tbl { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+  table.co-tbl td, table.co-tbl th { padding: 10px 12px; text-align: left; font-size: .9rem; }
+  table.co-tbl th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #6b6155; }
+  table.co-tbl tbody td { background: #fdf3ea; }
+  table.co-tbl tbody tr td:first-child { border-radius: 10px 0 0 10px; }
+  table.co-tbl tbody tr td:last-child { border-radius: 0 10px 10px 0; }
+  .co-empty { color: #6b6155; font-size: .9rem; padding: 8px 2px; }
+  .co-form-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  .co-form-inline select, .co-form-inline input { border: 1.5px solid rgba(8,80,65,.16); border-radius: 10px; padding: 8px 12px; background: #fff; font-family: inherit; }
+  .co-btn { background: #F4A82C; color: #2A2117; font-weight: 700; border: none; padding: 9px 18px; border-radius: 10px; cursor: pointer; }
+  .co-btn--ghost { background: transparent; border: 1.5px solid rgba(8,80,65,.2); color: #00694c; }
+  .co-btn--danger { background: transparent; border: 1.5px solid #e7b4b0; color: #b3261e; padding: 6px 12px; border-radius: 8px; font-size: .8rem; cursor: pointer; }
+  .co-you { font-size: .7rem; color: #00694c; font-weight: 700; margin-left: 6px; }
+</style>
+
+<div class="co-wrap">
+  <div class="co-head">
+    <div>
+      <h1>{{ cooperative.nom }}</h1>
+      <span class="co-role">{{ role }}</span>
+    </div>
+    {% if is_admin %}
+    <div class="co-code">
+      <span>Code d'adhésion</span> <b>{{ cooperative.code_acces }}</b>
+    </div>
+    {% endif %}
+  </div>
+  {% if cooperative.description %}<p style="color:#6b6155;max-width:640px;">{{ cooperative.description }}</p>{% endif %}
+
+  {% if messages %}{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} py-2 small">{{ message }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- Fermes affiliées -->
+  <div class="co-card">
+    <h2><i class="fas fa-warehouse"></i> Fermes affiliées ({{ fermes|length }})</h2>
+    {% if fermes %}
+    <table class="co-tbl">
+      <thead><tr><th>Ferme</th><th>Propriétaire</th><th></th></tr></thead>
+      <tbody>
+        {% for f in fermes %}
+        <tr>
+          <td><strong>{{ f.nom }}</strong></td>
+          <td>{{ f.proprietaire.user.username }}{% if f.proprietaire_id == mon_id %}<span class="co-you">vous</span>{% endif %}</td>
+          <td style="text-align:right;">
+            {% if f.proprietaire_id == mon_id %}
+            <form method="post" action="{% url 'detacher_ferme_cooperative' cooperative.id %}" style="display:inline;">
+              {% csrf_token %}<input type="hidden" name="ferme" value="{{ f.id }}">
+              <button class="co-btn--danger" type="submit">Retirer</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="co-empty">Aucune ferme affiliée pour le moment.</p>
+    {% endif %}
+
+    {% if mes_fermes_rattachables %}
+    <form method="post" action="{% url 'rattacher_ferme_cooperative' cooperative.id %}" class="co-form-inline">
+      {% csrf_token %}
+      <select name="ferme" required>
+        <option value="">— Rattacher une de mes fermes —</option>
+        {% for f in mes_fermes_rattachables %}<option value="{{ f.id }}">{{ f.nom }}</option>{% endfor %}
+      </select>
+      <button class="co-btn" type="submit">Rattacher</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Membres -->
+  <div class="co-card">
+    <h2><i class="fas fa-users"></i> Membres ({{ membres|length }})</h2>
+    <table class="co-tbl">
+      <thead><tr><th>Membre</th><th>Rôle</th>{% if is_admin %}<th></th>{% endif %}</tr></thead>
+      <tbody>
+        {% for m in membres %}
+        <tr>
+          <td><strong>{{ m.utilisateur.user.username }}</strong>{% if m.utilisateur_id == mon_id %}<span class="co-you">vous</span>{% endif %}
+            {% if m.statut == 'suspendu' %}<span class="co-empty">(suspendu)</span>{% endif %}
+          </td>
+          <td>
+            {% if is_admin and m.utilisateur_id != mon_id and roles_assignables %}
+            <form method="post" action="{% url 'cooperative_changer_role' cooperative.id m.id %}" class="co-form-inline" style="margin:0;">
+              {% csrf_token %}
+              <select name="role" onchange="this.form.submit()">
+                <option value="{{ m.role }}" selected>{{ m.get_role_display }}</option>
+                {% for val, label in role_choices %}{% if val in roles_assignables and val != m.role %}
+                <option value="{{ val }}">{{ label }}</option>
+                {% endif %}{% endfor %}
+              </select>
+            </form>
+            {% else %}
+              {{ m.get_role_display }}
+            {% endif %}
+          </td>
+          {% if is_admin %}
+          <td style="text-align:right;">
+            {% if m.utilisateur_id != mon_id %}
+            <form method="post" action="{% url 'cooperative_retirer_membre' cooperative.id m.id %}" style="display:inline;" onsubmit="return confirm('Retirer ce membre ?');">
+              {% csrf_token %}<button class="co-btn--danger" type="submit">Retirer</button>
+            </form>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if is_admin %}
+    <p class="co-empty" style="margin-top:12px;"><i class="fas fa-circle-info"></i> Partagez le code <strong>{{ cooperative.code_acces }}</strong> pour qu'un membre rejoigne la coopérative, puis attribuez-lui un rôle ici.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
