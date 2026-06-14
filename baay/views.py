@@ -394,7 +394,7 @@ def creer_cooperative_view(request):
             profile.onboarding_completed = True
             profile.save(update_fields=['onboarding_completed'])
             messages.success(request, f"Coopérative « {coop.nom} » créée. Vous en êtes l'administrateur.")
-            return redirect('dashboard')
+            return redirect('cooperative_detail', coop_id=coop.id)
 
     localites = Localite.objects.select_related('region').order_by('nom')
     return render(request, 'onboarding/creer_cooperative.html', {'localites': localites})
