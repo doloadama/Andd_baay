@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Votre profil — Andd Baay{% endblock %}
+
+{% block content %}
+<style>
+  body { background: #fff8f4; }
+  .ob-choix { max-width: 880px; margin: 0 auto; padding: 8px 16px 64px; font-family: 'Inter', sans-serif; }
+  .ob-choix__head { text-align: center; margin-bottom: 32px; }
+  .ob-choix__head h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #16241B; font-size: clamp(1.7rem, 3.4vw, 2.4rem); letter-spacing: -.02em; margin: 0; }
+  .ob-choix__head p { color: #6b6155; margin-top: 10px; }
+  .ob-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .ob-opt { position: relative; }
+  .ob-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .ob-opt__card {
+    height: 100%; border: 1.5px solid rgba(8,80,65,.12); background: #fffdfb; border-radius: 18px;
+    padding: 24px; cursor: pointer; transition: .2s; display: flex; gap: 16px; align-items: flex-start;
+  }
+  .ob-opt__card:hover { border-color: #9FE1CB; transform: translateY(-2px); box-shadow: 0 16px 30px -20px rgba(8,80,65,.4); }
+  .ob-opt input:checked + .ob-opt__card { border-color: #00694c; box-shadow: 0 0 0 3px rgba(0,105,76,.12); }
+  .ob-opt__ico { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 1.2rem; color: #fff; flex-shrink: 0; background: linear-gradient(135deg, #00694c, #085041); }
+  .ob-opt--coop .ob-opt__ico { background: linear-gradient(135deg, #F4A82C, #d6890f); color: #2A2117; }
+  .ob-opt__t { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #2A2117; margin: 0 0 4px; }
+  .ob-opt__d { color: #6b6155; font-size: .9rem; margin: 0; line-height: 1.5; }
+  .ob-choix__actions { text-align: center; margin-top: 28px; }
+  .ob-btn { display: inline-flex; align-items: center; gap: 9px; background: #F4A82C; color: #2A2117; font-weight: 700; border: none; padding: 14px 30px; border-radius: 14px; cursor: pointer; transition: .2s; font-size: .98rem; }
+  .ob-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -12px rgba(244,168,44,.6); }
+  @media (max-width: 640px) { .ob-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="ob-choix">
+  <div class="ob-choix__head">
+    <h1>Comment utilisez-vous Andd&nbsp;Baay&nbsp;?</h1>
+    <p>Cela nous aide à préparer le bon espace pour vous. Vous pourrez tout changer plus tard.</p>
+  </div>
+
+  <form method="post" action="{% url 'choix_profil' %}">
+    {% csrf_token %}
+    <div class="ob-grid">
+      <label class="ob-opt">
+        <input type="radio" name="account_type" value="fermier" required>
+        <div class="ob-opt__card">
+          <span class="ob-opt__ico"><i class="fas fa-seedling"></i></span>
+          <div>
+            <p class="ob-opt__t">Fermier indépendant</p>
+            <p class="ob-opt__d">Je gère ma ou mes propres exploitations.</p>
+          </div>
+        </div>
+      </label>
+
+      <label class="ob-opt ob-opt--coop">
+        <input type="radio" name="account_type" value="cooperative">
+        <div class="ob-opt__card">
+          <span class="ob-opt__ico"><i class="fas fa-people-group"></i></span>
+          <div>
+            <p class="ob-opt__t">Coopérative</p>
+            <p class="ob-opt__d">Je pilote plusieurs fermes et des membres avec des rôles.</p>
+          </div>
+        </div>
+      </label>
+
+      <label class="ob-opt">
+        <input type="radio" name="account_type" value="technicien">
+        <div class="ob-opt__card">
+          <span class="ob-opt__ico"><i class="fas fa-user-tie"></i></span>
+          <div>
+            <p class="ob-opt__t">Technicien agricole</p>
+            <p class="ob-opt__d">J'accompagne des fermes qui m'ajoutent à leur équipe.</p>
+          </div>
+        </div>
+      </label>
+
+      <label class="ob-opt">
+        <input type="radio" name="account_type" value="ouvrier">
+        <div class="ob-opt__card">
+          <span class="ob-opt__ico"><i class="fas fa-helmet-safety"></i></span>
+          <div>
+            <p class="ob-opt__t">Ouvrier agricole</p>
+            <p class="ob-opt__d">Je rejoins une ferme pour suivre et réaliser des tâches.</p>
+          </div>
+        </div>
+      </label>
+    </div>
+
+    <div class="ob-choix__actions">
+      <button type="submit" class="ob-btn">Continuer <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -89,6 +89,8 @@ from baay.models import (
     Investissement,
     Ferme,
     MembreFerme,
+    Cooperative,
+    MembreCooperative,
     DemandeAccesFerme,
     Tache,
     Conversation,
@@ -252,11 +254,43 @@ def confidentialite_view(request):
 
 @login_required
 def onboarding_wizard_view(request):
-    """Assistant première connexion : ferme (1) → projet (2) → diagnostic BaayVision (3)."""
+    """Routeur d'onboarding selon le type de compte.
+
+    - fermier      : assistant ferme (1) → projet (2) → diagnostic (3)
+    - cooperative  : création de la coopérative
+    - technicien / ouvrier : écran « rejoindre une ferme »
+    """
     profile = request.user.profile
     if profile.onboarding_completed:
         return redirect('dashboard')
 
+    # Pas encore choisi son type de compte → écran de choix
+    if not profile.account_type:
+        return redirect('choix_profil')
+
+    # Technicien / ouvrier : ne créent pas de ferme, ils en rejoignent une
+    if profile.account_type in (Profile.ACCOUNT_TYPE_TECHNICIEN, Profile.ACCOUNT_TYPE_OUVRIER):
+        # S'ils ont déjà rejoint une ferme, l'onboarding est terminé
+        if Ferme.objects.filter(membres__utilisateur=profile).exists():
+            profile.onboarding_completed = True
+            profile.save(update_fields=['onboarding_completed'])
+            return redirect('dashboard')
+        return render(request, 'onboarding/rejoindre.html', {
+            'account_type': profile.account_type,
+        })
+
+    # Coopérative : créer l'entité si ce n'est pas déjà fait
+    if profile.account_type == Profile.ACCOUNT_TYPE_COOPERATIVE:
+        a_une_coop = MembreCooperative.objects.filter(
+            utilisateur=profile, role=MembreCooperative.ROLE_ADMIN,
+        ).exists()
+        if not a_une_coop:
+            return redirect('creer_cooperative')
+        profile.onboarding_completed = True
+        profile.save(update_fields=['onboarding_completed'])
+        return redirect('dashboard')
+
+    # fermier (défaut) → assistant ferme → projet → diagnostic (logique existante)
     has_any_ferme = Ferme.objects.filter(
         Q(proprietaire=profile) | Q(membres__utilisateur=profile)
     ).exists()
@@ -302,6 +336,68 @@ def onboarding_complete_view(request):
     request.user.profile.save(update_fields=['onboarding_completed'])
     messages.success(request, "Bienvenue sur votre espace — vous pouvez créer d'autres fermes ou projets quand vous voulez.")
     return redirect('dashboard')
+
+
+@login_required
+def choix_profil_view(request):
+    """Écran « Comment utilisez-vous Andd Baay ? » — définit Profile.account_type.
+
+    Ne donne aucun droit : ne fait que router l'onboarding.
+    """
+    profile = request.user.profile
+    if profile.account_type:
+        return redirect('onboarding')
+
+    if request.method == 'POST':
+        choix = request.POST.get('account_type')
+        if choix in dict(Profile.ACCOUNT_TYPE_CHOICES):
+            profile.account_type = choix
+            profile.save(update_fields=['account_type'])
+            return redirect('onboarding')
+        messages.error(request, "Merci de choisir un type de profil.")
+
+    return render(request, 'onboarding/choix_profil.html', {
+        'choices': Profile.ACCOUNT_TYPE_CHOICES,
+    })
+
+
+@login_required
+def creer_cooperative_view(request):
+    """Création d'une coopérative. Le créateur en devient admin / président."""
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        nom = (request.POST.get('nom') or '').strip()
+        description = (request.POST.get('description') or '').strip()
+        localite_id = request.POST.get('localite') or None
+
+        if not nom:
+            messages.error(request, "Le nom de la coopérative est obligatoire.")
+        else:
+            coop = Cooperative(nom=nom, description=description)
+            if localite_id:
+                loc = Localite.objects.filter(id=localite_id).select_related('region').first()
+                if loc:
+                    coop.localite = loc
+                    coop.region = loc.region
+                    coop.pays = loc.pays or (loc.region.pays if loc.region_id else None)
+            coop.save()
+            MembreCooperative.objects.create(
+                cooperative=coop,
+                utilisateur=profile,
+                role=MembreCooperative.ROLE_ADMIN,
+                peut_gerer_membres=True,
+            )
+            if profile.account_type != Profile.ACCOUNT_TYPE_COOPERATIVE:
+                profile.account_type = Profile.ACCOUNT_TYPE_COOPERATIVE
+                profile.save(update_fields=['account_type'])
+            profile.onboarding_completed = True
+            profile.save(update_fields=['onboarding_completed'])
+            messages.success(request, f"Coopérative « {coop.nom} » créée. Vous en êtes l'administrateur.")
+            return redirect('dashboard')
+
+    localites = Localite.objects.select_related('region').order_by('nom')
+    return render(request, 'onboarding/creer_cooperative.html', {'localites': localites})
 
 
 def page_not_found_view(request, exception=None):
