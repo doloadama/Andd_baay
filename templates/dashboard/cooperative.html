@@ -1,205 +1,474 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
-{% block bootstrap_css %}{% endblock %}
-{% block bootstrap_js %}{% endblock %}
+{% block title %}Pôle Coopérative | Andd Baay{% endblock %}
 
-{% block title %}Dashboard Coopérative | Andd Baay{% endblock %}
+{% block extra_css %}
+<style>
+/* =====================================================================
+   ANDD BAAY — DASHBOARD COOPÉRATIVE (refonte, scoped under .coop)
+   Command-center multi-fermes : bande KPI + grille de cartes fermes.
+   Tokens locaux --c-* dérivés des tokens canoniques --ab-color-*.
+   ===================================================================== */
+.coop {
+    --c-primary: var(--ab-color-primary);        /* #1D9E75 */
+    --c-deep: var(--ab-color-primary-deep);      /* #085041 */
+    --c-night: #04241d;
+    --c-accent: var(--ab-color-accent);          /* #EF9F27 */
+    --c-pale: #9FE1CB;
+    --c-mist: #E1F5EE;
+    --c-ink: #0d1b16;
+    --c-muted: #5b6b64;
+    --c-card: #ffffff;
+    --c-soft: #f4faf7;
+    --c-line: rgba(8, 80, 65, 0.12);
+    --c-warn: #b45309;
+    --c-warn-bg: rgba(245, 158, 11, 0.14);
+    --c-danger: #dc2626;
+    --c-danger-bg: rgba(220, 38, 38, 0.1);
+    --c-r: 20px;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--c-ink);
+}
+html.dark-mode .coop {
+    --c-ink: #eaf6f0;
+    --c-muted: #9cb5ab;
+    --c-card: #0a2f26;
+    --c-soft: #08271f;
+    --c-line: rgba(159, 225, 203, 0.16);
+    --c-mist: rgba(159, 225, 203, 0.12);
+}
+.coop *, .coop *::before, .coop *::after { box-sizing: border-box; }
+.coop h1, .coop h2, .coop h3 { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; margin: 0; }
+.coop a { text-decoration: none; }
+.coop-wrap { max-width: 1240px; margin: 0 auto; padding: 4px 4px 40px; }
+
+/* === Bandeau d'en-tête === */
+.coop-hero {
+    position: relative; overflow: hidden; isolation: isolate;
+    border-radius: 28px; padding: clamp(24px, 4vw, 40px);
+    background: radial-gradient(circle at 82% 12%, #0a3a2e, var(--c-night) 64%);
+    color: #eafff6; margin-bottom: 22px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 18px;
+}
+.coop-hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background-image: radial-gradient(rgba(255,255,255,.1) 1px, transparent 1.4px);
+    background-size: 22px 22px; mask-image: radial-gradient(80% 80% at 80% 0%, #000, transparent 75%);
+}
+.coop-hero__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    padding: 6px 14px 6px 11px; border-radius: 999px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16);
+    color: #d9f5ea; font-size: .76rem; font-weight: 600;
+}
+.coop-hero__eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-pale); }
+.coop-hero h1 { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 700; color: #fff; }
+.coop-hero p { margin: 8px 0 0; color: #bfe9da; font-size: .96rem; }
+.coop-hero__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* === Boutons === */
+.coop-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: .88rem;
+    border: 1.5px solid transparent; cursor: pointer; white-space: nowrap;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+.coop-btn--solid { background: var(--c-primary); color: #fff; box-shadow: 0 8px 22px -8px rgba(29,158,117,.6); }
+.coop-btn--solid:hover { transform: translateY(-2px); color: #fff; box-shadow: 0 14px 30px -10px rgba(29,158,117,.7); }
+.coop-btn--glass { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.24); }
+.coop-btn--glass:hover { transform: translateY(-2px); background: rgba(255,255,255,.18); color: #fff; }
+.coop-btn--ghost { background: var(--c-card); color: var(--c-ink); border-color: var(--c-line); }
+.coop-btn--ghost:hover { transform: translateY(-2px); border-color: var(--c-primary); color: var(--c-primary); }
+.coop-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--c-card), 0 0 0 4px var(--c-primary); }
+
+/* === Bande KPI === */
+.coop-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+.coop-kpi {
+    background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--c-r);
+    padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 8px rgba(8,80,65,.05);
+}
+.coop-kpi__ico { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 1.15rem; color: #fff; flex-shrink: 0; }
+.coop-kpi__ico.is-primary { background: linear-gradient(135deg, var(--c-primary), var(--c-deep)); }
+.coop-kpi__ico.is-accent  { background: linear-gradient(135deg, var(--c-accent), #b45309); }
+.coop-kpi__ico.is-info    { background: linear-gradient(135deg, #14b8a6, #0f766e); }
+.coop-kpi__ico.is-alert   { background: linear-gradient(135deg, #f97316, var(--c-danger)); }
+.coop-kpi__num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.7rem; line-height: 1; color: var(--c-ink); }
+.coop-kpi__label { font-size: .8rem; color: var(--c-muted); margin-top: 4px; }
+.coop-kpi.is-flagged { border-color: rgba(249,115,22,.45); }
+
+/* === Toolbar === */
+.coop-toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+.coop-toolbar__group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.coop-toolbar__group.right { margin-left: auto; }
+.coop-field {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--c-card); border: 1px solid var(--c-line); border-radius: 12px;
+    padding: 0 12px; height: 42px; color: var(--c-muted);
+}
+.coop-field i { font-size: .82rem; }
+.coop-field input, .coop-field select {
+    border: 0; background: transparent; outline: none; color: var(--c-ink);
+    font-size: .88rem; font-family: inherit; min-width: 140px; height: 100%;
+}
+.coop-field select { cursor: pointer; padding-right: 4px; }
+.coop-reset { font-size: .82rem; color: var(--c-muted); display: inline-flex; align-items: center; gap: 6px; padding: 6px; }
+.coop-reset:hover { color: var(--c-primary); }
+
+/* === Grille de cartes === */
+.coop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+.coop-card {
+    position: relative; background: var(--c-card); border: 1px solid var(--c-line);
+    border-radius: var(--c-r); padding: 20px; overflow: hidden;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s;
+}
+.coop-card:hover { transform: translateY(-4px); box-shadow: 0 22px 44px -24px rgba(8,80,65,.4); border-color: var(--c-pale); }
+.coop-card.is-attention { border-color: rgba(249,115,22,.4); }
+.coop-card.is-attention::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--c-accent), var(--c-danger));
+}
+
+.coop-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.coop-card__name { font-size: 1.12rem; font-weight: 700; color: var(--c-ink); display: inline-flex; align-items: center; gap: 8px; }
+.coop-card__name:hover { color: var(--c-primary); }
+.coop-card__loc { display: flex; align-items: center; gap: 6px; color: var(--c-muted); font-size: .82rem; margin-top: 3px; }
+.coop-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: .72rem; font-weight: 700; flex-shrink: 0; }
+.coop-status.ok    { background: rgba(29,158,117,.12); color: var(--c-deep); }
+.coop-status.flag  { background: var(--c-warn-bg); color: var(--c-warn); }
+html.dark-mode .coop-status.ok { color: var(--c-pale); }
+html.dark-mode .coop-status.flag { color: #fbbf24; }
+.coop-status .pulse { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* Bloc prévision */
+.coop-yield { background: var(--c-soft); border: 1px solid var(--c-line); border-radius: 14px; padding: 14px; }
+.coop-yield__top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.coop-yield__label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--c-muted); }
+.coop-yield__val { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.25rem; color: var(--c-deep); }
+html.dark-mode .coop-yield__val { color: var(--c-pale); }
+.coop-yield__unit { font-size: .78rem; font-weight: 500; color: var(--c-muted); }
+.coop-meter { margin-top: 10px; }
+.coop-meter__track { height: 7px; border-radius: 999px; background: var(--c-line); overflow: hidden; }
+.coop-meter__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--c-accent), var(--c-primary)); }
+.coop-meter__cap { display: flex; justify-content: space-between; margin-top: 6px; font-size: .72rem; color: var(--c-muted); }
+.coop-yield.is-empty { display: flex; align-items: center; gap: 10px; color: var(--c-muted); font-size: .86rem; }
+.coop-yield.is-empty i { color: var(--c-muted); }
+
+/* Mini-stats */
+.coop-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.coop-metric { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--c-line); border-radius: 12px; }
+.coop-metric i { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: .8rem; color: #fff; flex-shrink: 0; }
+.coop-metric .m-ico-proj { background: linear-gradient(135deg, var(--c-primary), var(--c-deep)); }
+.coop-metric .m-ico-diag { background: linear-gradient(135deg, #65a30d, #3f6212); }
+.coop-metric__v { font-weight: 700; font-size: .92rem; color: var(--c-ink); line-height: 1.1; }
+.coop-metric__l { font-size: .72rem; color: var(--c-muted); }
+
+/* Tâches critiques */
+.coop-tasks { display: flex; flex-direction: column; gap: 7px; }
+.coop-tasks__title { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--c-muted); display: flex; align-items: center; gap: 7px; }
+.coop-task { display: flex; align-items: center; gap: 9px; font-size: .85rem; color: var(--c-ink); }
+.coop-task .tdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.coop-task .tdot.urgente { background: var(--c-danger); }
+.coop-task .tdot.haute { background: var(--c-accent); }
+.coop-task__txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coop-task__more { font-size: .78rem; color: var(--c-muted); padding-left: 16px; }
+.coop-tasks--ok { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--c-deep); font-weight: 600; }
+html.dark-mode .coop-tasks--ok { color: var(--c-pale); }
+
+/* Footer carte */
+.coop-card__foot { margin-top: auto; display: flex; align-items: center; gap: 8px; padding-top: 4px; }
+.coop-card__foot .coop-btn { padding: 8px 14px; font-size: .82rem; }
+.coop-invite { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.coop-invite select {
+    height: 36px; border: 1px solid var(--c-line); border-radius: 10px; background: var(--c-card);
+    color: var(--c-ink); font-size: .8rem; font-family: inherit; padding: 0 8px; cursor: pointer; outline: none;
+}
+.coop-invite select:focus-visible { border-color: var(--c-primary); }
+.coop-invite button {
+    height: 36px; padding: 0 12px; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--c-mist); color: var(--c-deep); font-size: .8rem; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: background .2s ease, color .2s ease;
+}
+.coop-invite button:hover { background: var(--c-primary); color: #fff; }
+html.dark-mode .coop-invite button { color: var(--c-pale); }
+html.dark-mode .coop-invite button:hover { color: #fff; }
+.coop-invite__result:not(:empty) { margin-top: 8px; }
+
+/* États vides */
+.coop-empty {
+    text-align: center; padding: 60px 24px; color: var(--c-muted);
+    background: var(--c-card); border: 1px dashed var(--c-line); border-radius: var(--c-r);
+}
+.coop-empty i { font-size: 2.2rem; color: var(--c-pale); margin-bottom: 12px; display: block; }
+.coop-empty h3 { font-size: 1.1rem; color: var(--c-ink); margin-bottom: 6px; }
+.coop-noresult { display: none; }
+
+/* Responsive */
+@media (max-width: 860px) {
+    .coop-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .coop-hero { flex-direction: column; align-items: flex-start; }
+    .coop-grid { grid-template-columns: 1fr; }
+    .coop-toolbar__group.right { margin-left: 0; width: 100%; }
+    .coop-field input { min-width: 0; width: 100%; }
+    .coop-field { flex: 1; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-    .coop-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-bottom: 24px;
-    }
-    .coop-title { font-family: var(--ab-font-display); font-weight: 800; font-size: 1.4rem; margin: 0; }
-    .coop-subtitle { color: var(--ab-text-muted); font-size: .9rem; margin: 4px 0 0; }
-    .coop-table-wrap {
-        background: var(--ab-card-bg);
-        border: 1px solid var(--ab-border-color);
-        border-radius: var(--ab-radius-card);
-        overflow: hidden;
-        box-shadow: var(--ab-shadow-sm);
-    }
-    .coop-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    .coop-table th {
-        background: var(--ab-accent-subtle);
-        padding: 11px 14px;
-        text-align: left;
-        font-weight: 700;
-        font-size: .78rem;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: var(--ab-text-secondary);
-        border-bottom: 1px solid var(--ab-border-color);
-        white-space: nowrap;
-    }
-    .coop-table td {
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--ab-border-color-subtle, rgba(0,0,0,.05));
-        vertical-align: middle;
-    }
-    .coop-table tr:last-child td { border-bottom: none; }
-    .coop-table tr:hover td { background: var(--ab-accent-subtle); }
-    .coop-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 8px;
-        border-radius: 999px;
-        font-size: .75rem;
-        font-weight: 600;
-    }
-    .coop-badge--ok { background: rgba(29,158,117,.12); color: #0d6e50; }
-    .coop-badge--warn { background: rgba(245,158,11,.12); color: #92400e; }
-    .coop-badge--none { background: var(--ab-border-color); color: var(--ab-text-muted); }
-    .dark-mode .coop-badge--ok { color: #6ee7b7; }
-    .dark-mode .coop-badge--warn { color: #fde68a; }
-    .coop-rendement { font-weight: 600; }
-    .coop-filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 18px;
-    }
-    .coop-empty {
-        text-align: center;
-        padding: 48px 24px;
-        color: var(--ab-text-muted);
-    }
-    @media (max-width: 640px) {
-        .coop-table th:nth-child(4),
-        .coop-table td:nth-child(4) { display: none; }
-    }
-</style>
+<div class="coop">
+  <div class="coop-wrap">
 
-<div class="max-w-7xl mx-auto px-3 md:px-4 py-4">
+    <!-- ============================ HERO ============================ -->
+    <header class="coop-hero">
+      <div>
+        <span class="coop-hero__eyebrow"><span class="dot"></span> Synthèse multi-fermes</span>
+        <h1><i class="fas fa-sitemap" style="margin-right:8px"></i>Pôle Coopérative</h1>
+        <p>{{ total_fermes }} ferme{{ total_fermes|pluralize }} sous gestion · pilotez prévisions, diagnostics et tâches critiques en un coup d'œil.</p>
+      </div>
+      <div class="coop-hero__actions">
+        <a href="?{% if ferme_filter %}ferme={{ ferme_filter }}&{% endif %}export=csv" class="coop-btn coop-btn--glass">
+          <i class="fas fa-file-csv"></i> Exporter CSV
+        </a>
+        <a href="{% url 'dashboard' %}" class="coop-btn coop-btn--glass">
+          <i class="fas fa-arrow-left"></i> Mon tableau de bord
+        </a>
+      </div>
+    </header>
 
-    <div class="coop-header">
+    <!-- ============================ KPIs ============================ -->
+    <section class="coop-kpis" aria-label="Indicateurs clés">
+      <div class="coop-kpi">
+        <span class="coop-kpi__ico is-primary"><i class="fas fa-warehouse"></i></span>
         <div>
-            <h1 class="coop-title"><i class="fas fa-sitemap text-emerald-600 mr-2"></i>Dashboard Coopérative</h1>
-            <p class="coop-subtitle">Vue synthèse — {{ total_fermes }} ferme{{ total_fermes|pluralize }} sous gestion</p>
+          <div class="coop-kpi__num">{{ summary.total_fermes }}</div>
+          <div class="coop-kpi__label">Ferme{{ summary.total_fermes|pluralize }} suivie{{ summary.total_fermes|pluralize }}</div>
         </div>
-        <div class="flex gap-2 flex-wrap">
-            <a href="?{% if ferme_filter %}ferme={{ ferme_filter }}&{% endif %}export=csv"
-               class="inline-flex items-center px-3 py-1.5 text-sm border border-emerald-600 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors">
-                <i class="fas fa-file-csv mr-1"></i> Exporter CSV
-            </a>
-            <a href="{% url 'dashboard' %}" class="inline-flex items-center px-3 py-1.5 text-sm border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-                <i class="fas fa-arrow-left mr-1"></i> Mon tableau de bord
-            </a>
+      </div>
+      <div class="coop-kpi">
+        <span class="coop-kpi__ico is-info"><i class="fas fa-folder-open"></i></span>
+        <div>
+          <div class="coop-kpi__num">{{ summary.projets_actifs }}</div>
+          <div class="coop-kpi__label">Projet{{ summary.projets_actifs|pluralize }} en cours</div>
         </div>
-    </div>
+      </div>
+      <div class="coop-kpi">
+        <span class="coop-kpi__ico is-accent"><i class="fas fa-chart-line"></i></span>
+        <div>
+          <div class="coop-kpi__num">{{ summary.fermes_prevision }}</div>
+          <div class="coop-kpi__label">Ferme{{ summary.fermes_prevision|pluralize }} avec prévision</div>
+        </div>
+      </div>
+      <div class="coop-kpi{% if summary.fermes_attention %} is-flagged{% endif %}">
+        <span class="coop-kpi__ico is-alert"><i class="fas fa-triangle-exclamation"></i></span>
+        <div>
+          <div class="coop-kpi__num">{{ summary.fermes_attention }}</div>
+          <div class="coop-kpi__label">À surveiller · {{ summary.taches_critiques }} tâche{{ summary.taches_critiques|pluralize }} critique{{ summary.taches_critiques|pluralize }}</div>
+        </div>
+      </div>
+    </section>
 
-    <!-- Filter -->
-    <form method="get" class="coop-filter-bar">
-        <label for="ferme-filter" class="text-gray-500 text-sm font-semibold">Filtrer :</label>
-        <select id="ferme-filter" name="ferme" class="block px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-auto min-w-[180px]" onchange="this.form.submit()">
+    <!-- ============================ TOOLBAR ============================ -->
+    <div class="coop-toolbar">
+      <form method="get" class="coop-toolbar__group" id="coop-filter-form">
+        <label class="coop-field" for="ferme-filter">
+          <i class="fas fa-filter"></i>
+          <select id="ferme-filter" name="ferme" onchange="this.form.submit()" aria-label="Filtrer par ferme">
             <option value="">Toutes les fermes</option>
             {% for f in all_fermes %}
             <option value="{{ f.id }}" {% if ferme_filter == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
             {% endfor %}
-        </select>
+          </select>
+        </label>
         {% if ferme_filter %}
-        <a href="?" class="inline-flex items-center px-3 py-1.5 text-sm border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">Réinitialiser</a>
+        <a href="?" class="coop-reset"><i class="fas fa-xmark"></i> Réinitialiser</a>
         {% endif %}
-    </form>
+      </form>
+
+      <div class="coop-toolbar__group right">
+        <label class="coop-field" for="coop-search">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="search" id="coop-search" placeholder="Rechercher une ferme…" aria-label="Rechercher une ferme" autocomplete="off">
+        </label>
+        <label class="coop-field" for="coop-sort">
+          <i class="fas fa-arrow-down-wide-short"></i>
+          <select id="coop-sort" aria-label="Trier les fermes">
+            <option value="attention">À surveiller d'abord</option>
+            <option value="name">Nom (A→Z)</option>
+            <option value="projets">Projets actifs</option>
+            <option value="yield">Rendement estimé</option>
+          </select>
+        </label>
+      </div>
+    </div>
 
     {% if rows %}
-    <div class="coop-table-wrap">
-        <table class="coop-table">
-            <thead>
-                <tr>
-                    <th>Ferme</th>
-                    <th>Rendement estimé</th>
-                    <th>Dernier diagnostic</th>
-                    <th>Projets actifs</th>
-                    <th>Tâches critiques</th>
-                    <th>Inviter</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for row in rows %}
-            <tr>
-                <td>
-                    <a href="{% url 'detail_ferme' row.ferme.id %}" class="font-semibold no-underline hover:underline">
-                        {{ row.ferme.nom }}
-                    </a>
-                    {% if row.ferme.localite %}
-                    <div class="text-gray-500 text-[.78rem]">{{ row.ferme.localite }}</div>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if row.prevision_min is not None %}
-                    <span class="coop-rendement">{{ row.prevision_min|floatformat:0 }}–{{ row.prevision_max|floatformat:0 }} kg/ha</span>
-                    {% if row.prevision_confiance %}
-                    <div class="text-gray-500 text-[.75rem]">Confiance {{ row.prevision_confiance|floatformat:0 }}%</div>
-                    {% endif %}
-                    {% else %}
-                    <span class="coop-badge coop-badge--none"><i class="fas fa-minus"></i> Aucune</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if row.diag_resume %}
-                    <span class="coop-badge coop-badge--ok"><i class="fas fa-check-circle"></i> Disponible</span>
-                    <div class="text-gray-500 mt-1 text-[.75rem]">{{ row.diag_date|date:"d/m/Y" }}</div>
-                    {% else %}
-                    <span class="coop-badge coop-badge--none"><i class="fas fa-minus"></i> Aucun</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if row.projets_actifs %}
-                    <span class="coop-badge coop-badge--ok">{{ row.projets_actifs }} en cours</span>
-                    {% else %}
-                    <span class="coop-badge coop-badge--none">—</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if row.taches_critiques %}
-                    <span class="coop-badge coop-badge--warn">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        {{ row.taches_critiques|length }} critique{{ row.taches_critiques|length|pluralize }}
-                    </span>
-                    {% else %}
-                    <span class="coop-badge coop-badge--ok"><i class="fas fa-check"></i> OK</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div hx-target="#invitation-result-{{ row.ferme.id }}" hx-swap="innerHTML">
-                        <form hx-post="{% url 'creer_invitation' row.ferme.id %}" class="inline-flex gap-1 items-center">
-                            {% csrf_token %}
-                            <select name="role_invite" class="px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
-                                <option value="technician">Technicien</option>
-                                <option value="worker">Ouvrier</option>
-                            </select>
-                            <button type="submit" class="inline-flex items-center px-2 py-1 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                                <i class="fas fa-link mr-[3px]"></i> Inviter
-                            </button>
-                        </form>
-                        <div id="invitation-result-{{ row.ferme.id }}"></div>
-                    </div>
-                </td>
-                <td>
-                    <a href="{% url 'detail_ferme' row.ferme.id %}" class="inline-flex items-center justify-center px-2 py-1 border border-emerald-600 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors">
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <!-- ============================ GRILLE FERMES ============================ -->
+    <section class="coop-grid" id="coop-grid" aria-label="Fermes de la coopérative">
+      {% for row in rows %}
+      <article class="coop-card{% if row.needs_attention %} is-attention{% endif %}"
+               data-name="{{ row.ferme.nom|lower }}"
+               data-attention="{% if row.needs_attention %}1{% else %}0{% endif %}"
+               data-projets="{{ row.projets_actifs }}"
+               data-yield="{{ row.prevision_max|default:0|floatformat:0 }}">
+
+        <div class="coop-card__head">
+          <div>
+            <a href="{% url 'detail_ferme' row.ferme.id %}" class="coop-card__name">{{ row.ferme.nom }}</a>
+            {% if row.ferme.localite %}
+            <div class="coop-card__loc"><i class="fas fa-location-dot"></i> {{ row.ferme.localite }}</div>
+            {% endif %}
+          </div>
+          {% if row.needs_attention %}
+          <span class="coop-status flag"><span class="pulse"></span> À surveiller</span>
+          {% else %}
+          <span class="coop-status ok"><span class="pulse"></span> OK</span>
+          {% endif %}
+        </div>
+
+        {% if row.prevision_min is not None %}
+        <div class="coop-yield">
+          <div class="coop-yield__top">
+            <span class="coop-yield__label">Rendement estimé</span>
+            <span class="coop-yield__val">{{ row.prevision_min|floatformat:0 }}–{{ row.prevision_max|floatformat:0 }} <span class="coop-yield__unit">kg/ha</span></span>
+          </div>
+          {% if row.prevision_confiance %}
+          <div class="coop-meter">
+            <div class="coop-meter__track"><div class="coop-meter__fill" style="width: {{ row.prevision_confiance|floatformat:0 }}%"></div></div>
+            <div class="coop-meter__cap"><span>Indice de confiance</span><span>{{ row.prevision_confiance|floatformat:0 }}%</span></div>
+          </div>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="coop-yield is-empty"><i class="fas fa-chart-line"></i> Aucune prévision disponible</div>
+        {% endif %}
+
+        <div class="coop-metrics">
+          <div class="coop-metric">
+            <i class="m-ico-proj fas fa-folder-open"></i>
+            <div>
+              <div class="coop-metric__v">{{ row.projets_actifs }}</div>
+              <div class="coop-metric__l">Projet{{ row.projets_actifs|pluralize }} actif{{ row.projets_actifs|pluralize }}</div>
+            </div>
+          </div>
+          <div class="coop-metric">
+            <i class="m-ico-diag fas fa-microscope"></i>
+            <div>
+              {% if row.diag_resume %}
+              <div class="coop-metric__v">Diagnostic</div>
+              <div class="coop-metric__l">{{ row.diag_date|date:"d/m/Y" }}</div>
+              {% else %}
+              <div class="coop-metric__v">—</div>
+              <div class="coop-metric__l">Aucun diagnostic</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if row.taches_critiques %}
+        <div class="coop-tasks">
+          <span class="coop-tasks__title"><i class="fas fa-triangle-exclamation" style="color:var(--c-warn)"></i> Tâches critiques</span>
+          {% for t in row.taches_critiques|slice:":2" %}
+          <div class="coop-task">
+            <span class="tdot {{ t.priorite }}"></span>
+            <span class="coop-task__txt">{{ t.titre }}</span>
+          </div>
+          {% endfor %}
+          {% if row.taches_critiques|length > 2 %}
+          <span class="coop-task__more">+{{ row.taches_critiques|length|add:"-2" }} autre{{ row.taches_critiques|length|add:"-2"|pluralize }}</span>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="coop-tasks--ok"><i class="fas fa-circle-check"></i> Aucune tâche critique</div>
+        {% endif %}
+
+        <div class="coop-card__foot">
+          <a href="{% url 'detail_ferme' row.ferme.id %}" class="coop-btn coop-btn--ghost"><i class="fas fa-arrow-right"></i> Voir la ferme</a>
+          <div class="coop-invite" hx-target="#invitation-result-{{ row.ferme.id }}" hx-swap="innerHTML">
+            <form hx-post="{% url 'creer_invitation' row.ferme.id %}" class="coop-invite">
+              {% csrf_token %}
+              <select name="role_invite" aria-label="Rôle de l'invitation">
+                <option value="technician">Technicien</option>
+                <option value="worker">Ouvrier</option>
+              </select>
+              <button type="submit"><i class="fas fa-link"></i> Inviter</button>
+            </form>
+          </div>
+        </div>
+        <div class="coop-invite__result" id="invitation-result-{{ row.ferme.id }}"></div>
+      </article>
+      {% endfor %}
+    </section>
+
+    <!-- Aucun résultat de recherche (client-side) -->
+    <div class="coop-empty coop-noresult" id="coop-noresult">
+      <i class="fas fa-magnifying-glass"></i>
+      <h3>Aucune ferme ne correspond</h3>
+      <p>Essayez un autre terme de recherche.</p>
     </div>
+
     {% else %}
     <div class="coop-empty">
-        <i class="fas fa-warehouse text-gray-400 text-3xl mb-3 block"></i>
-        <p>Aucune ferme correspondante.</p>
+      <i class="fas fa-warehouse"></i>
+      <h3>Aucune ferme correspondante</h3>
+      <p>Aucune ferme ne correspond à ce filtre.</p>
     </div>
     {% endif %}
 
+  </div>
 </div>
+
+<script>
+(function () {
+  var grid = document.getElementById('coop-grid');
+  if (!grid) return;
+  var search = document.getElementById('coop-search');
+  var sort = document.getElementById('coop-sort');
+  var noResult = document.getElementById('coop-noresult');
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.coop-card'));
+
+  function applySearch() {
+    var q = (search.value || '').trim().toLowerCase();
+    var visible = 0;
+    cards.forEach(function (c) {
+      var match = !q || c.getAttribute('data-name').indexOf(q) !== -1;
+      c.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    if (noResult) noResult.style.display = visible === 0 ? 'block' : 'none';
+  }
+
+  function applySort() {
+    var mode = sort.value;
+    var sorted = cards.slice().sort(function (a, b) {
+      if (mode === 'name') {
+        return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+      }
+      if (mode === 'projets') {
+        return (+b.getAttribute('data-projets')) - (+a.getAttribute('data-projets'));
+      }
+      if (mode === 'yield') {
+        return (+b.getAttribute('data-yield')) - (+a.getAttribute('data-yield'));
+      }
+      // attention: flagged first, then by name
+      var d = (+b.getAttribute('data-attention')) - (+a.getAttribute('data-attention'));
+      return d !== 0 ? d : a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+    });
+    sorted.forEach(function (c) { grid.appendChild(c); });
+  }
+
+  if (search) search.addEventListener('input', applySearch);
+  if (sort) sort.addEventListener('change', applySort);
+  applySort(); // tri initial : à surveiller d'abord
+})();
+</script>
 {% endblock %}
