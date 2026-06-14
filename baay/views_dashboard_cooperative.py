@@ -16,12 +16,18 @@ from baay.models import (
     Projet,
     Tache,
 )
+from baay.permissions import cooperatives_accessibles_qs
 
 
 @login_required
 def dashboard_cooperative(request):
     profile = request.user.profile
-    fermes_qs = Ferme.objects.filter(proprietaire=profile).order_by("nom")
+    # Fermes du périmètre : celles que le profil possède + celles des
+    # coopératives dont il est membre (gestionnaire/technicien/consultant/admin).
+    coop_ids = list(cooperatives_accessibles_qs(profile).values_list("id", flat=True))
+    fermes_qs = Ferme.objects.filter(
+        Q(proprietaire=profile) | Q(cooperative_id__in=coop_ids)
+    ).distinct().order_by("nom")
 
     # Optional filter
     ferme_filter = request.GET.get("ferme", "")
