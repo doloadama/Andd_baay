@@ -345,7 +345,9 @@ def choix_profil_view(request):
     Ne donne aucun droit : ne fait que router l'onboarding.
     """
     profile = request.user.profile
-    if profile.account_type:
+    # account_type déjà défini → on redirige, sauf si l'utilisateur veut
+    # explicitement re-choisir son profil (bouton « Retour »).
+    if profile.account_type and not request.GET.get('changer'):
         return redirect('onboarding')
 
     if request.method == 'POST':
