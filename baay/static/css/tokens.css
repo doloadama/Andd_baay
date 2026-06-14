@@ -28,6 +28,12 @@
   --ab-color-text-secondary: #374151;
   --ab-color-text-muted: #64748b;
 
+  /* Palette « terroir » (landing) — terre, soleil, heure dorée. */
+  --ab-color-soil: #16241b;       /* terre/vert profond (héros sombre) */
+  --ab-color-sun: #f4a82c;        /* soleil/or (accent chaud) */
+  --ab-color-ochre: #b5531b;      /* terracotta */
+  --ab-color-sand-ink: #2a2117;   /* encre chaude (texte sur fond clair, AA) */
+
   /* Spacing scale */
   --ab-space-1: 0.25rem;
   --ab-space-2: 0.5rem;
