@@ -14,20 +14,23 @@
        ANDD BAAY V3 - UNIFIED MULTI-TAB DASHBOARD (Premium Afro-Tech)
        ============================================================ */
     :root {
-        --ab-at-brand: var(--ab-color-primary);           /* #1D9E75 — alias token canonique */
-        --ab-at-brand-deep: var(--ab-color-primary-deep);  /* #085041 */
-        --ab-at-brand-night: var(--ab-color-primary-night); /* #04342c */
-        --ab-at-accent: var(--ab-color-accent);            /* #EF9F27 */
-        --ab-at-surface: var(--ab-color-surface);          /* #ffffff */
-        --ab-at-bg: #f8faf9;
-        --ab-at-text: #2C2C2A;
-        --ab-at-muted: #5c5c57;
-        --ab-at-border: rgba(8,80,65,0.08);
-        --ab-at-shadow: 0 4px 16px rgba(8,80,65,0.08);
+        /* Palette « Terroir » (mode clair) : creme chaud, vert profond, or soleil */
+        --ab-at-brand: #00694c;            /* vert profond Terroir */
+        --ab-at-brand-deep: #085041;       /* vert tres profond (valeurs KPI) */
+        --ab-at-brand-night: #16241B;      /* vert nuit (titres) */
+        --ab-at-accent: #F4A82C;           /* or soleil */
+        --ab-at-surface: #fffdfb;          /* blanc chaud (cartes) */
+        --ab-at-bg: #fdf3ea;               /* creme (tuiles internes) */
+        --ab-at-text: #2A2117;             /* encre chaude */
+        --ab-at-muted: #6b6155;            /* gris chaud */
+        --ab-at-border: rgba(8,80,65,0.10);
+        --ab-at-shadow: 0 6px 20px rgba(120,72,20,0.08);
         --ab-at-radius: 22px;
         --ab-at-radius-sm: 14px;
-        --ab-at-glass: rgba(255, 255, 255, 0.92);
+        --ab-at-glass: rgba(255, 253, 251, 0.92);
     }
+    /* Fond de page creme chaud sous le tableau de bord */
+    body:has(.at-dashboard) { background: #fff8f4; }
 
     /* Dark mode overrides */
     .dark-mode {
@@ -137,7 +140,7 @@
     .at-bento--cockpit .at-cockpit-map { grid-column: span 12; }
     .at-chart-wrap { height: 280px; position: relative; }
     .at-chart-wrap--compact { height: 220px; }
-    .at-map-canvas { height: 320px; border-radius: 14px; background: #e8eeeb; }
+    .at-map-canvas { height: 320px; border-radius: 14px; background: #efe7da; }
     .dark-mode .at-map-canvas { background: #1a2924; }
 
     .at-card-title {
@@ -167,7 +170,7 @@
         padding: 12px 16px; border-radius: 14px; background: var(--ab-at-bg); margin-bottom: 8px;
         transition: 0.2s; text-decoration: none; color: inherit;
     }
-    .at-project-row:hover { transform: translateX(5px); background: #f0f4f2; }
+    .at-project-row:hover { transform: translateX(5px); background: #f7eee2; }
     .dark-mode .at-project-row:hover { background: rgba(93,202,165,0.08); }
     .at-project-name { font-weight: 700; font-size: 14px; }
     .at-project-meta { font-size: 11px; color: var(--ab-at-muted); }
