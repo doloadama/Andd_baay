@@ -1,0 +1,164 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Andd Baay — Baay Simple (worker) premium layer
+   Higher opacity glass · large touch targets · outdoor contrast
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.simple-page {
+    position: relative;
+    min-height: 100dvh;
+    isolation: isolate;
+}
+
+.simple-page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(ellipse 90% 55% at 50% -10%, rgba(29, 158, 117, 0.20), transparent 55%),
+        radial-gradient(ellipse 70% 40% at 100% 80%, rgba(239, 159, 39, 0.10), transparent 50%),
+        var(--ab-bg);
+    pointer-events: none;
+}
+
+@keyframes simple-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .simple-grid > .simple-card {
+        animation: simple-rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .simple-grid > .simple-card:nth-child(1) { animation-delay: 0.06s; }
+    .simple-grid > .simple-card:nth-child(2) { animation-delay: 0.14s; }
+}
+
+/* Glass cards — mostly solid for sun readability */
+.simple-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1.5px solid rgba(29, 158, 117, 0.18);
+    border-radius: var(--ab-radius, 20px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.8) inset,
+        0 10px 28px rgba(8, 80, 65, 0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow: hidden;
+    transition:
+        transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.simple-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(145deg, rgba(29, 158, 117, 0.4), rgba(239, 159, 39, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+@media (hover: hover) {
+    .simple-card:hover {
+        transform: translateY(-3px) scale(1.008);
+        border-color: rgba(29, 158, 117, 0.35);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.9) inset,
+            0 14px 32px rgba(8, 80, 65, 0.14),
+            0 0 20px rgba(29, 158, 117, 0.08);
+    }
+
+    .simple-card:hover::before {
+        opacity: 0.85;
+    }
+}
+
+.dark-mode .simple-card {
+    background: rgba(8, 80, 65, 0.92);
+    border-color: rgba(93, 202, 165, 0.22);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.simple-header {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(29, 158, 117, 0.15);
+    box-shadow: 0 4px 20px rgba(8, 80, 65, 0.08);
+}
+
+.dark-mode .simple-header {
+    background: rgba(6, 56, 48, 0.92);
+}
+
+.simple-header__logo {
+    text-shadow: 0 2px 12px rgba(29, 158, 117, 0.2);
+}
+
+.simple-card__title i {
+    filter: drop-shadow(0 2px 8px rgba(29, 158, 117, 0.3));
+}
+
+.simple-card__badge {
+    background: linear-gradient(135deg, var(--ab-green), #16856a);
+    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.25);
+}
+
+.simple-ferme-badge {
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(8, 80, 65, 0.08);
+}
+
+.dark-mode .simple-ferme-badge {
+    background: rgba(8, 80, 65, 0.88);
+}
+
+.simple-nav {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(29, 158, 117, 0.12);
+    box-shadow: 0 -8px 24px rgba(8, 80, 65, 0.10);
+}
+
+.dark-mode .simple-nav {
+    background: rgba(6, 56, 48, 0.94);
+}
+
+/* Skeleton-style loading for simple cards */
+@keyframes simple-shimmer {
+    0% { opacity: 0.55; }
+    50% { opacity: 1; }
+    100% { opacity: 0.55; }
+}
+
+.simple-loading {
+    animation: simple-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .simple-card,
+    .simple-loading {
+        animation: none !important;
+        transition: none !important;
+    }
+}

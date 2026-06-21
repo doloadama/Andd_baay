@@ -1,188 +1,77 @@
-{% extends 'base.html' %}
+{% extends 'onboarding/_base.html' %}
 
-{% block bootstrap_css %}{% endblock %}
-{% block bootstrap_js %}{% endblock %}
+{% block title %}Vos premiers pas — Andd Baay{% endblock %}
 
-{% block title %}Bienvenue — Premiers pas | Andd Baay{% endblock %}
-
-{% block content %}
-<style>
-    .ob-wrap {
-        max-width: 640px;
-        margin: 0 auto;
-        padding: 32px 16px 56px;
-    }
-    .ob-card {
-        background: var(--ab-card-bg);
-        border: 1px solid var(--ab-border-color);
-        border-radius: calc(var(--ab-radius-card) + 2px);
-        padding: clamp(28px, 4vw, 40px);
-        box-shadow: var(--ab-shadow-md);
-    }
-    /* Progress bar */
-    .ob-progress {
-        display: flex;
-        align-items: center;
-        gap: 0;
-        margin-bottom: 32px;
-    }
-    .ob-step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex: 1;
-        position: relative;
-    }
-    .ob-step + .ob-step::before {
-        content: '';
-        position: absolute;
-        left: -50%;
-        top: 16px;
-        width: 100%;
-        height: 2px;
-        background: var(--ab-border-color);
-        z-index: 0;
-    }
-    .ob-step.is-done + .ob-step::before,
-    .ob-step.is-active + .ob-step::before {
-        background: rgba(29, 158, 117, 0.4);
-    }
-    .ob-step-circle {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 2px solid var(--ab-border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: .8rem;
-        font-weight: 700;
-        background: var(--ab-card-bg);
-        color: var(--ab-text-muted);
-        position: relative;
-        z-index: 1;
-        transition: all .2s;
-    }
-    .ob-step.is-done .ob-step-circle {
-        background: var(--ab-brand-deep);
-        border-color: var(--ab-brand-deep);
-        color: #fff;
-    }
-    .ob-step.is-active .ob-step-circle {
-        background: var(--ab-accent-subtle);
-        border-color: var(--ab-brand-deep);
-        color: var(--ab-brand-deep);
-    }
-    .ob-step-label {
-        font-size: .72rem;
-        font-weight: 600;
-        color: var(--ab-text-muted);
-        margin-top: 6px;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-    .ob-step.is-active .ob-step-label { color: var(--ab-brand-deep); }
-    .ob-step.is-done .ob-step-label { color: var(--ab-text-secondary); }
-    .dark-mode .ob-step.is-active .ob-step-label,
-    .dark-mode .ob-step.is-done .ob-step-label { color: var(--ab-brand-light); }
-    .ob-card h1 {
-        font-family: var(--ab-font-display);
-        font-weight: 800;
-        font-size: 1.45rem;
-        margin: 0 0 12px;
-        letter-spacing: -0.02em;
-        color: var(--ab-text-main);
-    }
-    .ob-card .ob-lede {
-        color: var(--ab-text-muted);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin: 0 0 24px;
-    }
-    .ob-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-    .ob-actions .btn-baay { justify-content: center; }
-    .ob-secondary {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        justify-content: center;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid var(--ab-border-color);
-    }
-</style>
-
-<div class="ob-wrap animate__animated animate__fadeIn">
-    <div class="ob-card">
-
-        <!-- Progress bar -->
-        <div class="ob-progress" role="progressbar" aria-valuenow="{{ onboarding_step }}" aria-valuemin="1" aria-valuemax="3">
-            <div class="ob-step {% if onboarding_step == 1 %}is-active{% elif onboarding_step > 1 %}is-done{% endif %}">
-                <div class="ob-step-circle">{% if onboarding_step > 1 %}<i class="fas fa-check text-[.7rem]"></i>{% else %}1{% endif %}</div>
-                <span class="ob-step-label">Ferme</span>
-            </div>
-            <div class="ob-step {% if onboarding_step == 2 %}is-active{% elif onboarding_step > 2 %}is-done{% endif %}">
-                <div class="ob-step-circle">{% if onboarding_step > 2 %}<i class="fas fa-check text-[.7rem]"></i>{% else %}2{% endif %}</div>
-                <span class="ob-step-label">Projet</span>
-            </div>
-            <div class="ob-step {% if onboarding_step == 3 %}is-active{% endif %}">
-                <div class="ob-step-circle">3</div>
-                <span class="ob-step-label">Diagnostic</span>
-            </div>
-        </div>
-
-        {% if onboarding_step == 1 %}
-        <h1>Créez votre première ferme</h1>
-        <p class="ob-lede">
-            Une ferme regroupe vos parcelles, votre équipe et vos projets. Vous pourrez ensuite lancer des campagnes
-            et obtenir des estimations de rendement adaptées à votre zone.
-        </p>
-        <div class="ob-actions">
-            <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'creer_ferme' %}">
-                <i class="fas fa-tractor mr-2"></i> Créer ma ferme
-            </a>
-            <a class="btn-baay btn-baay-outline tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'demander_acces_ferme' %}">
-                <i class="fas fa-key mr-2"></i> J'ai un code d'accès
-            </a>
-        </div>
-
-        {% elif onboarding_step == 2 %}
-        <h1>Lancez votre premier projet</h1>
-        <p class="ob-lede">
-            Ajoutez une culture, une superficie et une localité : le tableau de bord et les prédictions IA s'appuient sur ces informations.
-            {% if premiere_ferme %}La ferme <strong>{{ premiere_ferme.nom }}</strong> a été présélectionnée.{% endif %}
-        </p>
-        <div class="ob-actions">
-            <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{{ creer_projet_url }}">
-                <i class="fas fa-seedling mr-2"></i> Créer un projet
-            </a>
-        </div>
-
-        {% else %}
-        <h1>Lancez un diagnostic BaayVision</h1>
-        <p class="ob-lede">
-            Prenez une photo de vos cultures et obtenez en quelques secondes un diagnostic IA des maladies et ravageurs,
-            avec des recommandations adaptées au Sénégal.
-        </p>
-        <div class="ob-actions">
-            <a class="btn-baay btn-baay-primary tw-min-h-[48px] tw-inline-flex tw-items-center tw-px-5" href="{% url 'diagnostic_rapide' %}">
-                <i class="fas fa-microscope mr-2"></i> Lancer un diagnostic
-            </a>
-        </div>
-        {% endif %}
-
-        <div class="ob-secondary">
-            <form method="post" action="{% url 'onboarding_complete' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn-baay btn-baay-ghost tw-min-h-[44px]">
-                    {% if onboarding_step == 3 %}Terminer et aller au tableau de bord{% else %}Plus tard, accéder au tableau de bord{% endif %}
-                </button>
-            </form>
-        </div>
+{% block aside_context %}
+<span class="ob2-chip" style="margin-bottom:18px;"><i class="fas fa-seedling" style="font-size:.72rem;"></i> Fermier indépendant</span>
+<h2 style="margin-bottom:26px;">Vos premiers pas</h2>
+<div class="ob2-steps">
+  {# step 1 — Ferme #}
+  <div class="ob2-step">
+    <div class="ob2-step__rail">
+      {% if onboarding_step > 1 %}<span class="ob2-step__dot ob2-step__dot--done"><i class="fas fa-check"></i></span>
+      {% elif onboarding_step == 1 %}<span class="ob2-step__dot ob2-step__dot--active">1</span>
+      {% else %}<span class="ob2-step__dot ob2-step__dot--upcoming">1</span>{% endif %}
+      <span class="ob2-step__line"></span>
     </div>
+    <div style="padding-bottom:18px;"><div class="ob2-step__t">Ferme</div><div class="ob2-step__d">Créez votre exploitation</div></div>
+  </div>
+  {# step 2 — Projet #}
+  <div class="ob2-step">
+    <div class="ob2-step__rail">
+      {% if onboarding_step > 2 %}<span class="ob2-step__dot ob2-step__dot--done"><i class="fas fa-check"></i></span>
+      {% elif onboarding_step == 2 %}<span class="ob2-step__dot ob2-step__dot--active">2</span>
+      {% else %}<span class="ob2-step__dot ob2-step__dot--upcoming">2</span>{% endif %}
+      <span class="ob2-step__line"></span>
+    </div>
+    <div style="padding-bottom:18px;"><div class="ob2-step__t">Projet</div><div class="ob2-step__d">Lancez une culture</div></div>
+  </div>
+  {# step 3 — Diagnostic #}
+  <div class="ob2-step">
+    <div class="ob2-step__rail">
+      {% if onboarding_step == 3 %}<span class="ob2-step__dot ob2-step__dot--active">3</span>
+      {% else %}<span class="ob2-step__dot ob2-step__dot--upcoming">3</span>{% endif %}
+    </div>
+    <div><div class="ob2-step__t">Diagnostic</div><div class="ob2-step__d">Analysez vos cultures</div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block topbar_back %}<a href="{% url 'choix_profil' %}?changer=1" class="ob2-back"><i class="fas fa-arrow-left" style="font-size:.76rem;"></i> Retour</a>{% endblock %}
+{% block topbar_label %}<span class="ob2-steplabel">Premiers pas · Étape {{ onboarding_step }} sur 3</span>{% endblock %}
+
+{% block main %}
+{% if onboarding_step == 1 %}
+  <span class="ob2-icon"><i class="fas fa-tractor"></i></span>
+  <h1 class="ob2-h1">Créez votre première ferme</h1>
+  <p class="ob2-lead">Une ferme regroupe vos parcelles, votre équipe et vos projets. Vous pourrez ensuite lancer des campagnes et obtenir des estimations de rendement adaptées à votre zone.</p>
+  <div class="ob2-actions">
+    <a href="{% url 'creer_ferme' %}" class="ob2-btn"><i class="fas fa-tractor"></i> Créer ma ferme</a>
+    <a href="{% url 'demander_acces_ferme' %}" class="ob2-btn ob2-btn--outline"><i class="fas fa-key"></i> J'ai un code d'accès</a>
+  </div>
+{% elif onboarding_step == 2 %}
+  <span class="ob2-icon"><i class="fas fa-seedling"></i></span>
+  <h1 class="ob2-h1">Lancez votre premier projet</h1>
+  <p class="ob2-lead">Ajoutez une culture, une superficie et une localité&nbsp;: le tableau de bord et les prédictions IA s'appuient sur ces informations.{% if premiere_ferme %} La ferme <strong>{{ premiere_ferme.nom }}</strong> a été présélectionnée.{% endif %}</p>
+  <div class="ob2-actions">
+    <a href="{{ creer_projet_url }}" class="ob2-btn"><i class="fas fa-seedling"></i> Créer un projet</a>
+  </div>
+{% else %}
+  <span class="ob2-icon ob2-icon--gold"><i class="fas fa-microscope"></i></span>
+  <h1 class="ob2-h1">Lancez un diagnostic BaayVision</h1>
+  <p class="ob2-lead">Prenez une photo de vos cultures et obtenez en quelques secondes un diagnostic IA des maladies et ravageurs, avec des recommandations adaptées au Sénégal.</p>
+  <div class="ob2-actions">
+    <a href="{% url 'diagnostic_rapide' %}" class="ob2-btn ob2-btn--gold"><i class="fas fa-microscope"></i> Lancer un diagnostic</a>
+  </div>
+{% endif %}
+
+<div class="ob2-later">
+  <form method="post" action="{% url 'onboarding_complete' %}">
+    {% csrf_token %}
+    <button type="submit">
+      {% if onboarding_step == 3 %}Terminer et aller au tableau de bord{% else %}Plus tard, accéder au tableau de bord{% endif %}
+      <i class="fas fa-arrow-right" style="font-size:.76rem;"></i>
+    </button>
+  </form>
 </div>
 {% endblock %}

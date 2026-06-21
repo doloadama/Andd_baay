@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <meta name="theme-color" content="#1D9E75">
+<link rel="stylesheet" href="{% static 'css/bento-simple-premium.css' %}">
 <style>
 /* ============================================================
    BAAY SIMPLE — Dashboard Ouvrier
@@ -223,6 +224,7 @@ body {
 {% endblock %}
 
 {% block content %}
+<div class="simple-page">
 <!-- Barre hors-ligne -->
 <div class="offline-bar" id="offlineBar">
   <i class="fas fa-wifi-slash"></i> Hors connexion — vos actions seront sauvegardées dès le retour du réseau
@@ -296,6 +298,7 @@ body {
     <span>Messages</span>
   </a>
 </nav>
+</div><!-- /.simple-page -->
 {% endblock %}
 
 {% block extra_js %}
