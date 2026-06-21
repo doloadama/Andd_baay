@@ -90,3 +90,9 @@
 {"file":"baay/views.py","action":"Edit","timestamp":"2026-06-14T18:43:22Z","important":false}
 {"file":"templates/cooperatives/detail.html","action":"Write","timestamp":"2026-06-14T18:44:25Z","important":false}
 {"file":"templates/cooperatives/rejoindre.html","action":"Write","timestamp":"2026-06-14T18:44:50Z","important":false}
+{"file":"templates/onboarding/_base.html","action":"Write","timestamp":"2026-06-14T22:37:01Z","important":false}
+{"file":"templates/onboarding/choix_profil.html","action":"Write","timestamp":"2026-06-14T22:38:15Z","important":false}
+{"file":"templates/onboarding/wizard.html","action":"Write","timestamp":"2026-06-14T22:39:39Z","important":false}
+{"file":"templates/onboarding/creer_cooperative.html","action":"Write","timestamp":"2026-06-14T22:40:08Z","important":false}
+{"file":"templates/onboarding/rejoindre.html","action":"Write","timestamp":"2026-06-14T22:40:40Z","important":false}
+{"file":"baay/views.py","action":"Edit","timestamp":"2026-06-14T22:41:18Z","important":false}
