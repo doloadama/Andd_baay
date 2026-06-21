@@ -14,12 +14,13 @@
 <meta property="og:description"
     content="Prédiction IA, assistant vocal Wolof, prix du marché et gestion collaborative. Conçu pour le terrain, fonctionne hors-ligne." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="{% static 'images/og-cover.jpg' %}" />
+<meta property="og:image" content="{% static 'images/og-cover.webp' %}" />
+<meta property="og:image:type" content="image/webp" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Andd Baay — Intelligence agricole · Sahel" />
 <meta name="twitter:description"
     content="Prédiction IA, assistant vocal Wolof, prix du marché et gestion collaborative. Conçu pour le terrain, fonctionne hors-ligne." />
-<meta name="twitter:image" content="{% static 'images/og-cover.jpg' %}" />
+<meta name="twitter:image" content="{% static 'images/og-cover.webp' %}" />
 {% endblock %}
 
 {% block extra_head %}
@@ -46,16 +47,12 @@
             <a href="{% url 'dashboard' %}" class="lp-btn lp-btn--gold">
               Reprendre mon tableau de bord <i class="fas fa-arrow-right" aria-hidden="true"></i>
             </a>
-            {% if vocal_wolof_audio_enabled %}
             <a href="{% url 'assistant_vocal' %}" class="lp-btn lp-btn--glass"><i class="fas fa-microphone" aria-hidden="true"></i> Parler à Jëf Baay</a>
-            {% endif %}
           {% else %}
             <a href="{% url 'register' %}" class="lp-btn lp-btn--gold">
               Démarrer gratuitement <i class="fas fa-arrow-right" aria-hidden="true"></i>
             </a>
-            {% if vocal_wolof_audio_enabled %}
             <a href="{% url 'assistant_vocal' %}" class="lp-btn lp-btn--glass"><i class="fas fa-microphone" aria-hidden="true"></i> Essayer l'assistant vocal</a>
-            {% endif %}
           {% endif %}
         </div>
         <div class="lp-hero__meta lp-rv" style="--lp-d:.32s">
@@ -255,11 +252,7 @@
             <span class="lp-eyebrow lp-eyebrow--invert"><i class="fas fa-microphone" aria-hidden="true"></i> Jëf Baay</span>
             <h2>L'assistant qui parle votre langue</h2>
             <p>40 à 60&nbsp;% des agriculteurs du Sahel ne lisent pas couramment. Jëf Baay supprime la barrière&nbsp;: on parle, il répond en Wolof, à voix haute.</p>
-            {% if vocal_wolof_audio_enabled %}
             <a href="{% url 'assistant_vocal' %}" class="lp-btn lp-btn--gold"><i class="fas fa-microphone" aria-hidden="true"></i> Essayer maintenant</a>
-            {% else %}
-            <span class="lp-btn lp-btn--gold" style="opacity:.7;cursor:default"><i class="fas fa-microphone" aria-hidden="true"></i> Bientôt disponible</span>
-            {% endif %}
           </div>
           <div class="lp-spot__bubble">
             <div class="lp-spot__line">
@@ -311,8 +304,13 @@
   <section class="lp-section" id="preuve">
     <div class="lp-wrap">
       <div class="lp-proof lp-rv">
-        <div class="lp-proof__bg" aria-hidden="true">
-          <img src="{% static 'images/hero-farmers.jpg' %}" alt="" loading="lazy" decoding="async" width="1920" height="1280">
+        <div class="lp-proof__bg">
+          <picture>
+            <source type="image/webp" srcset="{% static 'images/hero-farmers.webp' %}">
+            <img src="{% static 'images/hero-farmers.jpg' %}"
+                 alt="Agriculteurs sahéliens travaillant en parcelle, récolte et suivi des cultures au soleil."
+                 loading="lazy" decoding="async" width="1920" height="1280">
+          </picture>
         </div>
         <div class="lp-head lp-rv">
           <span class="lp-eyebrow lp-eyebrow--invert"><i class="fas fa-seedling" aria-hidden="true"></i> Sur le terrain</span>

@@ -19,7 +19,6 @@
     --lp-font-display: var(--ab-font-display, 'Space Grotesk', sans-serif);
     --lp-font-body: var(--ab-font-sans, 'Inter', sans-serif);
     position: relative;
-    isolation: isolate;
     font-family: var(--lp-font-body);
     color: var(--lp-ink);
     overflow-x: clip;
@@ -39,11 +38,32 @@ main .container-modern:has(.lp-page) {
     padding: 0;
 }
 
+/* Footer global (base.html) — toujours visible sous la landing */
+body:has(.lp-page) footer {
+    display: block !important;
+    position: relative;
+    z-index: 2;
+    background: var(--ab-card-bg, #fff);
+    border-top: 1px solid var(--ab-border-color, rgba(8, 80, 65, 0.12));
+}
+
+@media (max-width: 767.98px) {
+    /* Pas de bottom nav sur la home visiteur : retirer le padding nav fantome */
+    body:has(.lp-page):not(:has(.mobile-bottom-nav)) {
+        padding-bottom: 0;
+    }
+
+    /* Home connectee : laisser de la place au bottom nav au-dessus du footer */
+    body:has(.lp-page):has(.mobile-bottom-nav) footer {
+        padding-bottom: calc(var(--ab-nav-total, 64px) + 12px);
+    }
+}
+
 .lp-page::before {
     content: "";
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: -2;
+    z-index: -1;
     background:
         radial-gradient(ellipse 70% 50% at 8% 0%, rgba(29, 158, 117, 0.14), transparent 55%),
         radial-gradient(ellipse 55% 40% at 95% 8%, rgba(239, 159, 39, 0.10), transparent 50%),
@@ -957,9 +977,14 @@ main .container-modern:has(.lp-page) {
     z-index: -2;
 }
 
+.lp-proof__bg picture,
 .lp-proof__bg img {
+    display: block;
     width: 100%;
     height: 100%;
+}
+
+.lp-proof__bg img {
     object-fit: cover;
 }
 
