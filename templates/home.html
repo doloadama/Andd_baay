@@ -424,9 +424,9 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
         <div class="ab-hero__meta ab-rv" style="--ab-d:.32s">
           {% if stats.show_trust_metrics %}
             <span><b>{{ stats.nb_users|intcomma }}+</b> agriculteurs</span>
-            <span class="s"></span>
+            <span class="ab-sep"></span>
             <span><b>{{ stats.nb_projets|intcomma }}</b> projets suivis</span>
-            <span class="s"></span>
+            <span class="ab-sep"></span>
             <span><b>{{ stats.nb_localites }}</b> localités</span>
           {% else %}
             <span><i class="fas fa-bolt" style="color:var(--ab-l-accent)"></i> &nbsp;Installation en 2 minutes</span>
@@ -749,23 +749,23 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
 
       <div class="ab-faq ab-rv">
         <details>
-          <summary>Andd Baay est-il gratuit&nbsp;? <i class="fas fa-plus"></i></summary>
+          <summary>Andd Baay est-il gratuit&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
           <div class="ab-faq__a">Oui. Créer un compte, gérer sa ferme, lancer des projets et consulter les prix du marché est gratuit. Vous démarrez en deux minutes, sans carte bancaire.</div>
         </details>
         <details>
-          <summary>Est-ce que ça fonctionne sans connexion&nbsp;? <i class="fas fa-plus"></i></summary>
+          <summary>Est-ce que ça fonctionne sans connexion&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
           <div class="ab-faq__a">Oui, c'est conçu pour. Vous saisissez vos tâches et vos dépenses hors-ligne&nbsp;; tout se synchronise automatiquement dès que le réseau revient, même en 2G.</div>
         </details>
         <details>
-          <summary>Faut-il savoir lire pour l'utiliser&nbsp;? <i class="fas fa-plus"></i></summary>
+          <summary>Faut-il savoir lire pour l'utiliser&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
           <div class="ab-faq__a">Non. L'assistant vocal Jëf Baay comprend le Wolof parlé et répond à voix haute. Vous pouvez poser vos questions agricoles et piloter l'application sans lire ni écrire.</div>
         </details>
         <details>
-          <summary>Puis-je gérer plusieurs fermes ou une coopérative&nbsp;? <i class="fas fa-plus"></i></summary>
+          <summary>Puis-je gérer plusieurs fermes ou une coopérative&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
           <div class="ab-faq__a">Oui. Chaque membre reçoit un rôle (propriétaire, manager, technicien, ouvrier) avec des accès adaptés. Une coopérative peut suivre des dizaines d'exploitations depuis un seul tableau de bord.</div>
         </details>
         <details>
-          <summary>Mes données sont-elles protégées&nbsp;? <i class="fas fa-plus"></i></summary>
+          <summary>Mes données sont-elles protégées&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
           <div class="ab-faq__a">Vos données d'exploitation vous appartiennent et ne sont jamais revendues. Consultez notre <a href="{% url 'confidentialite' %}">politique de confidentialité</a> pour le détail.</div>
         </details>
       </div>
