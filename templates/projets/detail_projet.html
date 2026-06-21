@@ -11,570 +11,80 @@
 
 {% block extra_head %}
 {% include "includes/_weather_assets.html" %}
-<link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}" />
-<style>
-    /* ============================================================
-       ANDD BAAY V2 - MODULAR PROJECT DETAIL (Premium Afro-Tech)
-       ============================================================ */
-    :root {
-        --ab-at-brand: var(--ab-color-primary);          /* #1D9E75 — alias token canonique */
-        --ab-at-brand-deep: var(--ab-color-primary-deep); /* #085041 */
-        --ab-at-brand-night: var(--ab-color-primary-night); /* #04342c */
-        --ab-at-accent: var(--ab-color-accent);           /* #EF9F27 */
-        --ab-at-gold: #D4AF37;
-        --ab-at-earth: #795548;
-        /* surface laissée littérale : ce sous-thème est light-only (pas de bloc
-           dark local) ; aliaser --ab-color-surface (qui a une surcharge .dark-mode)
-           casserait le contraste en mode sombre. */
-        --ab-at-surface: #ffffff;
-        --ab-at-bg: #f8faf9;
-        --ab-at-text: #2C2C2A;
-        --ab-at-muted: #5c5c57;
-        --ab-at-border: rgba(8,80,65,0.08);
-        --ab-at-shadow: 0 4px 16px rgba(8,80,65,0.08);
-        --ab-at-radius: 22px;
-        --ab-at-radius-sm: 14px;
-        --ab-at-glass: rgba(255, 255, 255, 0.92);
-    }
-
-    .at-layout {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 16px 80px;
-        font-family: 'Inter', sans-serif;
-        color: var(--ab-at-text);
-    }
-
-    /* --- HERO --- */
-    .at-hero {
-        background: linear-gradient(135deg, var(--ab-at-brand-night) 0%, var(--ab-at-brand-deep) 44%, var(--ab-at-brand) 100%);
-        border-radius: var(--ab-at-radius);
-        padding: clamp(20px, 5vw, 40px);
-        margin: 20px 0;
-        color: white;
-        position: relative;
-        overflow: hidden;
-        box-shadow: var(--ab-at-shadow);
-    }
-
-    .at-hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        opacity: 0.15;
-        background-image: radial-gradient(circle, #fff 1px, transparent 1px);
-        background-size: 24px 24px;
-        pointer-events: none;
-    }
-
-    .at-hero__nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .at-back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(10px);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 50px;
-        font-size: 14px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: 0.2s;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-    .at-back-btn:hover { background: rgba(255,255,255,0.25); transform: translateX(-3px); }
-
-    .at-hero__content {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        flex-wrap: wrap;
-        gap: 24px;
-    }
-
-    .at-hero__title-group { flex: 1; min-width: 300px; }
-    .at-hero__eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.7; margin-bottom: 8px; }
-    .at-hero__title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 800; margin: 0 0 16px; line-height: 1.1; }
-
-    .at-hero__meta { display: flex; flex-wrap: wrap; gap: 12px 24px; font-size: 14px; opacity: 0.9; }
-    .at-hero__meta-item { display: inline-flex; align-items: center; gap: 8px; }
-
-    .at-hero__widgets { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-
-    .at-status-badge {
-        padding: 6px 18px;
-        border-radius: 50px;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        background: var(--ab-at-brand);
-        color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .at-status-badge--en_pause { background: var(--ab-at-accent); }
-    .at-status-badge--fini { background: var(--ab-at-gold); }
-    .at-status-badge--cloture { background: #6c757d; }
-
-    /* --- TABS NAVIGATION --- */
-    .at-tabs-nav {
-        display: flex;
-        background: var(--ab-at-surface);
-        padding: 6px;
-        border-radius: 50px;
-        margin-bottom: 24px;
-        box-shadow: var(--ab-at-shadow);
-        overflow-x: auto;
-        scrollbar-width: none;
-        position: sticky;
-        top: 80px;
-        z-index: 100;
-        border: 1px solid var(--ab-at-border);
-    }
-    .at-tabs-nav::-webkit-scrollbar { display: none; }
-
-    .at-tab-btn {
-        flex: 1;
-        min-width: max-content;
-        padding: 12px 20px;
-        border-radius: 40px;
-        border: none;
-        background: transparent;
-        color: var(--ab-at-muted);
-        font-weight: 600;
-        font-size: 14px;
-        cursor: pointer;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        white-space: nowrap;
-    }
-    .at-tab-btn i { font-size: 16px; }
-    .at-tab-btn.active {
-        background: var(--ab-at-brand);
-        color: white;
-        box-shadow: 0 4px 12px rgba(29, 158, 117, 0.25);
-    }
-
-    /* --- TAB CONTENT --- */
-    .at-card {
-        background: var(--ab-at-surface);
-        border-radius: var(--ab-at-radius);
-        padding: 24px;
-        box-shadow: var(--ab-at-shadow);
-        border: 1px solid var(--ab-at-border);
-        margin-bottom: 24px;
-    }
-
-    .at-card-title {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 18px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--ab-at-brand-deep);
-    }
-    .at-card-title i { color: var(--ab-at-brand); }
-
-    /* Grid Layouts */
-    .at-grid-dashboard {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px;
-    }
-
-    /* KPI Stats */
-    .at-kpi {
-        background: var(--ab-at-bg);
-        padding: 20px;
-        border-radius: var(--ab-at-radius-sm);
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    .at-kpi__label { font-size: 12px; text-transform: uppercase; color: var(--ab-at-muted); font-weight: 700; letter-spacing: 0.5px; }
-    .at-kpi__value { font-size: 28px; font-weight: 800; font-family: 'Space Grotesk', sans-serif; color: var(--ab-at-brand-deep); }
-    .at-kpi__footer { font-size: 12px; font-weight: 600; margin-top: 4px; }
-
-    .at-campaign-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 16px;
-    }
-    .at-campaign-head .at-card-title { margin-bottom: 6px; }
-    .at-cycle-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: rgba(29, 158, 117, 0.1);
-        color: var(--ab-at-brand-deep);
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-    .at-campaign-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-    .at-campaign-table th {
-        padding: 11px 12px;
-        background: var(--ab-at-bg);
-        color: var(--ab-at-muted);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        white-space: nowrap;
-    }
-    .at-campaign-table td {
-        padding: 12px;
-        border-top: 1px solid var(--ab-at-border);
-        color: var(--ab-at-text);
-        vertical-align: middle;
-    }
-    .at-campaign-status {
-        display: inline-flex;
-        padding: 4px 9px;
-        border-radius: 999px;
-        background: rgba(29, 158, 117, 0.12);
-        color: var(--ab-at-brand-deep);
-        font-size: 11px;
-        font-weight: 800;
-    }
-    .at-campaign-status--fini { background: rgba(239, 159, 39, 0.14); color: #9a5a05; }
-    .at-campaign-status--preparation { background: rgba(100, 116, 139, 0.12); color: #475569; }
-
-    /* Progress Ring */
-    .at-progress-circle {
-        position: relative;
-        width: 120px;
-        height: 120px;
-    }
-    .at-progress-circle svg { transform: rotate(-90deg); }
-    .at-progress-circle__bg { fill: none; stroke: var(--ab-at-border); stroke-width: 8; }
-    .at-progress-circle__fill {
-        fill: none; stroke: var(--ab-at-brand); stroke-width: 8;
-        stroke-linecap: round; transition: stroke-dashoffset 1s ease-out;
-    }
-    .at-progress-circle__text {
-        position: absolute; inset: 0;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        font-family: 'Space Grotesk', sans-serif;
-    }
-    .at-progress-circle__val { font-size: 24px; font-weight: 800; color: var(--ab-at-brand-deep); }
-    .at-progress-circle__lbl { font-size: 10px; text-transform: uppercase; color: var(--ab-at-muted); font-weight: 700; }
-
-    /* Products Grid */
-    .at-products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 20px;
-    }
-    .at-product-card {
-        background: var(--ab-at-surface);
-        border-radius: var(--ab-at-radius-sm);
-        overflow: hidden;
-        border: 1px solid var(--ab-at-border);
-        transition: 0.3s;
-    }
-    .at-product-card:hover { transform: translateY(-5px); box-shadow: var(--ab-at-shadow); }
-    .at-product-img { width: 100%; height: 180px; object-fit: cover; background: #eee; }
-    .at-product-body { padding: 16px; }
-    .at-product-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-    .at-product-meta { font-size: 13px; color: var(--ab-at-muted); margin-bottom: 12px; }
-    .at-product-stats { display: flex; justify-content: space-between; border-top: 1px solid var(--ab-at-border); padding-top: 12px; }
-    .at-product-stat { display: flex; flex-direction: column; }
-    .at-product-stat__val { font-weight: 700; font-size: 14px; }
-    .at-product-stat__lbl { font-size: 10px; text-transform: uppercase; color: var(--ab-at-muted); }
-
-    /* Finance Ledger */
-    .at-ledger { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-    .at-ledger th { text-align: left; padding: 12px; font-size: 12px; text-transform: uppercase; color: var(--ab-at-muted); font-weight: 700; }
-    .at-ledger td { padding: 16px 12px; background: var(--ab-at-bg); }
-    .at-ledger tr td:first-child { border-radius: 12px 0 0 12px; }
-    .at-ledger tr td:last-child { border-radius: 0 12px 12px 0; text-align: right; }
-    .at-ledger__amount { font-weight: 800; color: var(--ab-at-brand-deep); }
-
-    /* Management tab */
-    .at-mgmt {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 24px;
-        align-items: start;
-    }
-    @media (min-width: 992px) {
-        .at-mgmt {
-            grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-        }
-    }
-    .at-mgmt__head {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-    .at-mgmt__head .at-card-title { margin-bottom: 0; }
-    .at-mgmt__footer {
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px solid var(--ab-at-border);
-        text-align: center;
-    }
-    .at-mgmt__footer a {
-        font-weight: 700;
-        font-size: 14px;
-        color: var(--ab-at-brand);
-        text-decoration: none;
-    }
-    .at-mgmt__footer a:hover { color: var(--ab-at-brand-deep); }
-
-    .at-task-list { display: flex; flex-direction: column; gap: 10px; }
-    .at-task-item {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 12px 16px;
-        align-items: center;
-        padding: 14px 16px;
-        background: var(--ab-at-bg);
-        border-radius: var(--ab-at-radius-sm);
-        border-left: 4px solid var(--ab-at-brand);
-        text-decoration: none;
-        color: inherit;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .at-task-item:hover {
-        transform: translateX(3px);
-        box-shadow: 0 4px 12px rgba(8, 80, 65, 0.08);
-        color: inherit;
-    }
-    .at-task-item--urgent { border-left-color: #ef4444; }
-    .at-task-item--done { opacity: 0.72; border-left-color: #94a3b8; }
-    .at-task-info { min-width: 0; }
-    .at-task-title {
-        font-weight: 700;
-        font-size: 15px;
-        margin: 0 0 6px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-    }
-    .at-task-meta {
-        font-size: 12px;
-        color: var(--ab-at-muted);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 16px;
-    }
-    .at-task-meta i { margin-right: 4px; color: var(--ab-at-brand); opacity: 0.85; }
-    .at-task-side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-    .at-task-badge {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-    .at-task-badge--a_faire { background: #fef3c7; color: #92400e; }
-    .at-task-badge--en_cours { background: #dbeafe; color: #1e40af; }
-    .at-task-badge--terminee { background: #d1fae5; color: #065f46; }
-    .at-task-badge--annulee { background: #e5e7eb; color: #374151; }
-    .at-task-badge--prio { background: rgba(29, 158, 117, 0.12); color: var(--ab-at-brand-deep); }
-    .at-task-badge--prio-urgente { background: #fee2e2; color: #991b1b; }
-    .at-task-due { font-size: 12px; color: var(--ab-at-muted); }
-    .at-task-due--late { color: #dc2626; font-weight: 700; }
-
-    .at-empty-tasks {
-        text-align: center;
-        padding: 32px 16px;
-        color: var(--ab-at-muted);
-    }
-    .at-empty-tasks i { font-size: 2.5rem; opacity: 0.25; margin-bottom: 12px; display: block; }
-
-    .at-team-list { display: flex; flex-direction: column; gap: 10px; }
-    .at-team-member {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 14px;
-        background: var(--ab-at-bg);
-        border-radius: var(--ab-at-radius-sm);
-        border: 1px solid var(--ab-at-border);
-    }
-    .at-team-member__info { flex: 1; min-width: 0; }
-    .at-team-member__name {
-        font-weight: 700;
-        font-size: 14px;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .at-team-member__role {
-        font-size: 12px;
-        color: var(--ab-at-muted);
-        margin: 2px 0 0;
-    }
-    .at-team-role-pill {
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 4px 8px;
-        border-radius: 6px;
-        background: rgba(29, 158, 117, 0.12);
-        color: var(--ab-at-brand-deep);
-        flex-shrink: 0;
-    }
-    .at-team-role-pill--owner {
-        background: rgba(8, 80, 65, 0.12);
-        color: var(--ab-at-brand-night);
-    }
-
-    /* Action Buttons */
-    .at-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 14px;
-        text-decoration: none;
-        transition: 0.3s;
-        border: none;
-        cursor: pointer;
-    }
-    .at-btn--primary { background: var(--ab-at-brand); color: white; }
-    .at-btn--primary:hover { background: var(--ab-at-brand-deep); transform: translateY(-2px); }
-    .at-btn--accent { background: var(--ab-at-accent); color: white; }
-    .at-btn--ghost { background: var(--ab-at-bg); color: var(--ab-at-text); }
-    .at-btn--sm { padding: 8px 16px; font-size: 13px; }
-    .at-btn--danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-    .at-btn--danger:hover { background: rgba(239, 68, 68, 0.2); }
-
-    /* Utility classes */
-    .text-at-brand { color: var(--ab-at-brand) !important; }
-    .hover-bg-light:hover { background: rgba(8, 80, 65, 0.05); }
-    .at-danger-card {
-        background: rgba(239, 68, 68, 0.05);
-        border: 1px solid rgba(239, 68, 68, 0.15);
-    }
-    .at-danger-card .at-card-title { color: #ef4444; }
-    .at-danger-card .at-btn--ghost { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
-    .at-danger-card .at-btn--ghost:hover { background: rgba(239, 68, 68, 0.1); }
-
-    /* Team Avatar */
-    .at-team-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--ab-at-brand);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-    .at-team-avatar--owner {
-        background: var(--ab-at-brand-deep);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .at-tabs-nav { top: 60px; }
-        .at-hero__content { flex-direction: column; align-items: flex-start; }
-        .at-hero__widgets { align-items: flex-start; width: 100%; }
-        .at-hero__widgets .pd-meteo-widget--pill { width: 100%; justify-content: center; }
-        .at-task-item {
-            grid-template-columns: 1fr;
-        }
-        .at-task-side {
-            flex-direction: row;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: flex-start;
-            text-align: left;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{% static 'vendor/leaflet-1.9.4.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/projet-detail-page.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="at-layout" x-data="projetDetailTabsData()">
+<div class="pd-page"
+     x-data="projetDetailTabsData()"
+     data-can-finance="{% if can_view_investissements %}1{% else %}0{% endif %}">
 
-    <!-- ═══════════ HERO ═══════════ -->
-    <header class="at-hero">
-        <div class="at-hero__nav">
-            <a href="{% url 'liste_projets' %}" class="at-back-btn">
-                <i class="fas fa-arrow-left"></i> Retour aux projets
-            </a>
-            <div class="d-flex gap-2">
-                {% if projet.statut != 'fini' and projet.statut != 'cloture' %}
-                <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="at-back-btn"
-                   style="background:#16a34a;color:#fff;border-color:#16a34a;font-weight:600;">
-                    <i class="fas fa-check-circle"></i> Terminer &amp; récolter
-                </a>
-                {% endif %}
-                <a href="{% url 'modifier_projet' projet.id %}" class="at-back-btn">
-                    <i class="fas fa-edit"></i> Modifier
-                </a>
-            </div>
+  <div class="pd-shell">
+
+    <nav class="pd-toolbar" aria-label="Navigation fiche projet">
+      <a href="{% url 'liste_projets' %}" class="pd-back">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Projets
+      </a>
+      <div class="pd-toolbar__actions">
+        {% if projet.statut != 'fini' and projet.statut != 'cloture' %}
+        <a href="{% url 'modifier_projet' projet.id %}?finish=1" class="pd-btn pd-btn--success">
+          <i class="fas fa-check-circle" aria-hidden="true"></i> Terminer
+        </a>
+        {% endif %}
+        <a href="{% url 'modifier_projet' projet.id %}" class="pd-btn pd-btn--ghost">
+          <i class="fas fa-edit" aria-hidden="true"></i> Modifier
+        </a>
+      </div>
+    </nav>
+
+    <header class="pd-hero">
+      <div class="pd-hero__grid">
+        <div>
+          <p class="pd-hero__label">Fiche projet</p>
+          <h1>{{ projet.nom }}</h1>
+          <ul class="pd-hero__meta">
+            <li><i class="fas fa-warehouse" aria-hidden="true"></i> {{ projet.ferme.nom }}</li>
+            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {{ projet.localite.nom|default:"Non spécifié" }}</li>
+            <li><i class="fas fa-calendar-alt" aria-hidden="true"></i> {{ projet.date_lancement|date:"d M Y" }}</li>
+          </ul>
         </div>
-
-        <div class="at-hero__content">
-            <div class="at-hero__title-group">
-                <div class="at-hero__eyebrow">Fiche Projet</div>
-                <h1 class="at-hero__title">{{ projet.nom }}</h1>
-                <div class="at-hero__meta">
-                    <span class="at-hero__meta-item">
-                        <i class="fas fa-warehouse"></i> {{ projet.ferme.nom }}
-                    </span>
-                    <span class="at-hero__meta-item">
-                        <i class="fas fa-map-marker-alt"></i> {{ projet.localite.nom|default:"Non spécifié" }}
-                    </span>
-                    <span class="at-hero__meta-item">
-                        <i class="fas fa-calendar-alt"></i> Lancé le {{ projet.date_lancement|date:"d M Y" }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="at-hero__widgets">
-                {% url 'api_projet_weather' projet.id as weather_api_url %}
-                {% include "partials/_weather_widget.html" with variant="pill" widget_id="atWeatherPill" fetch_url=weather_api_url show_meta=False show_credit=False %}
-                <div class="at-status-badge at-status-badge--{{ projet.statut }}">
-                    {{ projet.get_statut_display }}
-                </div>
-            </div>
+        <div class="pd-hero__aside">
+          {% url 'api_projet_weather' projet.id as weather_api_url %}
+          {% include "partials/_weather_widget.html" with variant="pill" widget_id="atWeatherPill" fetch_url=weather_api_url show_meta=False show_credit=False %}
+          <span class="pd-status pd-status--{{ projet.statut }}">{{ projet.get_statut_display }}</span>
         </div>
+      </div>
+
+      <div class="pd-metrics" aria-label="Indicateurs projet">
+        <div class="pd-metric">
+          <span class="pd-metric__val">{{ taux_avancement|default:0 }}%</span>
+          <span class="pd-metric__lbl">Avancement</span>
+        </div>
+        <div class="pd-metric">
+          <span class="pd-metric__val">{{ superficie_allouee_totale|floatformat:1 }}</span>
+          <span class="pd-metric__lbl">Hectares</span>
+        </div>
+        <div class="pd-metric">
+          <span class="pd-metric__val">{{ projet_produits|length }}</span>
+          <span class="pd-metric__lbl">Culture{{ projet_produits|length|pluralize }}</span>
+        </div>
+        {% if can_view_investissements %}
+        <div class="pd-metric">
+          <span class="pd-metric__val">{{ investissement_total_fcfa|floatformat:0|intcomma }}</span>
+          <span class="pd-metric__lbl">FCFA investis</span>
+        </div>
+        {% else %}
+        <div class="pd-metric">
+          <span class="pd-metric__val">{{ projet.get_type_cycle_display|truncatechars:12 }}</span>
+          <span class="pd-metric__lbl">Cycle</span>
+        </div>
+        {% endif %}
+      </div>
     </header>
 
-    <!-- ═══════════ TABS NAVIGATION (roulette mobile) ═══════════ -->
+    <!-- Onglets (roulette mobile) -->
+    <div class="pd-tabs-wrap">
     <div class="tab-roulette">
         <button type="button" class="tab-roulette__btn tab-roulette__btn--prev" @click="roulettePrev()" aria-label="Onglet précédent">
             <i class="fas fa-chevron-left" aria-hidden="true"></i>
@@ -607,7 +117,7 @@
                     @click="rouletteSelect('accompagnement')">
                 <i class="fas fa-stethoscope" aria-hidden="true"></i> Accompagnement
                 {% if nb_conseils_urgents and nb_conseils_urgents > 0 %}
-                <span style="background:var(--ab-color-danger);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;">{{ nb_conseils_urgents }}</span>
+                <span class="pd-tab-badge">{{ nb_conseils_urgents }}</span>
                 {% endif %}
             </button>
             <button type="button" class="at-tab-btn" data-tab-id="management" role="tab"
@@ -625,8 +135,9 @@
             </template>
         </div>
     </div>
+    </div>
 
-    <!-- ═══════════ TAB: DASHBOARD ═══════════ -->
+    <!-- TAB: DASHBOARD -->
     <div x-show="activeTab === 'dashboard'" x-transition>
         <div class="at-grid-dashboard">
             <!-- Progress Card -->
@@ -687,7 +198,12 @@
         <!-- Quick Map -->
         <div class="at-card">
             <h3 class="at-card-title"><i class="fas fa-map-marked-alt"></i> Localisation du site</h3>
-            <div id="projectMap" style="height: 300px; border-radius: 16px; border: 1px solid var(--ab-at-border);"></div>
+            <div id="projectMap"
+                 class="pd-map"
+                 data-lat="{{ map_latitude|unlocalize }}"
+                 data-lon="{{ map_longitude|unlocalize }}"
+                 data-ferme="{{ projet.ferme.nom|escapejs }}"
+                 data-projet="{{ projet.nom|escapejs }}"></div>
         </div>
 
         <div class="at-card">
@@ -804,9 +320,9 @@
 
                     {# Indicateur BaayVision #}
                     {% if pp.image %}
-                    <div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:#F5F3FF;border:1px solid #DDD6FE;display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-microscope" style="color:#7C3AED;font-size:13px;"></i>
-                        <span style="font-size:12px;color:#4C1D95;font-weight:600;">Diagnostic IA disponible</span>
+                    <div class="pd-vision-hint">
+                        <i class="fas fa-microscope" style="color:#7C3AED;font-size:13px;" aria-hidden="true"></i>
+                        Diagnostic IA disponible
                     </div>
                     {% endif %}
 
@@ -1122,75 +638,12 @@
         </div>
     </div>
 
-</div>
+  </div><!-- /.pd-shell -->
+</div><!-- /.pd-page -->
+{% endblock %}
 
+{% block extra_scripts %}
 <script src="{% static 'vendor/leaflet-1.9.4.min.js' %}"></script>
 <script src="{% static 'vendor/chartjs-4.4.0.umd.min.js' %}"></script>
-
-<script>
-function projetDetailTabsData() {
-    var order = ['dashboard', 'products'{% if can_view_investissements %}, 'finance'{% endif %}, 'expertise', 'accompagnement', 'management'];
-    var base = { activeTab: 'dashboard' };
-    var mixin = typeof tabRouletteMixin === 'function'
-        ? tabRouletteMixin({ order: order, select: function (tab) { this.activeTab = tab; } })
-        : {};
-    return Object.assign(base, mixin, {
-        init: function () {
-            if (typeof this.initTabRoulette === 'function') { this.initTabRoulette(); }
-            if (typeof this.initTabRouletteScrollSync === 'function') { this.initTabRouletteScrollSync(); }
-        }
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // ── Leaflet Map ──
-    const lat = {{ map_latitude|unlocalize }};
-    const lon = {{ map_longitude|unlocalize }};
-
-    var map = L.map('projectMap', {
-        zoomControl: false,
-        attributionControl: false
-    }).setView([lat, lon], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    L.marker([lat, lon]).addTo(map)
-        .bindPopup('<strong>{{ projet.ferme.nom|escapejs }}</strong><br>{{ projet.nom|escapejs }}')
-        .openPopup();
-
-    // ── Growth Chart ──
-    const ctx = document.getElementById('growthCurveChart').getContext('2d');
-    const brandColor = '#1D9E75';
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Semaine 1', 'Semaine 3', 'Semaine 5', 'Semaine 7', 'Semaine 9', 'Semaine 12'],
-            datasets: [{
-                label: 'Volume de biomasse',
-                data: [5, 12, 35, 68, 85, 95],
-                borderColor: brandColor,
-                backgroundColor: 'rgba(29, 158, 117, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                pointRadius: 4,
-                pointBackgroundColor: brandColor
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { display: false } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
-
-});
-</script>
+<script src="{% static 'js/projet-detail.js' %}"></script>
 {% endblock %}
