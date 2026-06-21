@@ -22,454 +22,87 @@
 <meta name="twitter:image" content="{% static 'images/og-cover.jpg' %}" />
 {% endblock %}
 
-{% block extra_css %}
-<style>
-/* =====================================================================
-   ANDD BAAY — LANDING 2026  (scoped under .ab-land)
-   Panneaux immersifs · phone mockup CSS · marquee · 100% CSS/SVG
-   Zéro image : compatible 3G. Thème clair/sombre via tokens locaux.
-   ===================================================================== */
-.ab-land {
-    /* Palette locale dérivée des tokens canoniques --ab-* */
-    --ab-l-primary: var(--ab-color-primary);      /* #1D9E75 */
-    --ab-l-deep: var(--ab-color-primary-deep);    /* #085041 */
-    --ab-l-night: #04241d;
-    --ab-l-light: #5DCAA5;
-    --ab-l-pale: #9FE1CB;
-    --ab-l-mist: #E1F5EE;
-    --ab-l-accent: var(--ab-color-accent);        /* #EF9F27 */
-    /* Surfaces adaptatives clair/sombre */
-    --ab-l-ink: #0d1b16;
-    --ab-l-muted: #5b6b64;
-    --ab-l-card: #ffffff;
-    --ab-l-card-soft: #f4faf7;
-    --ab-l-line: rgba(8, 80, 65, 0.12);
-    --ab-l-r: 22px;
-    font-family: 'Inter', system-ui, sans-serif;
-    color: var(--ab-l-ink);
-    overflow-x: clip;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.6;
-}
-html.dark-mode .ab-land {
-    --ab-l-ink: #eaf6f0;
-    --ab-l-muted: #9cb5ab;
-    --ab-l-card: #0a2f26;
-    --ab-l-card-soft: #08271f;
-    --ab-l-line: rgba(159, 225, 203, 0.16);
-}
-.ab-land *, .ab-land *::before, .ab-land *::after { box-sizing: border-box; }
-.ab-land h1, .ab-land h2, .ab-land h3, .ab-land h4 {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    letter-spacing: -0.03em; line-height: 1.05; margin: 0;
-}
-.ab-land a { text-decoration: none; }
-.ab-land section[id], .ab-land div[id] { scroll-margin-top: 110px; }
-.ab-wrap { max-width: 1180px; margin: 0 auto; }
-
-/* === Révélation au scroll (no-op sans JS : .ab-js requis) === */
-.ab-js .ab-rv { opacity: 0; transform: translateY(26px); transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); transition-delay: var(--ab-d, 0s); }
-.ab-js .ab-rv.is-in { opacity: 1; transform: none; }
-
-/* === Boutons === */
-.ab-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 15px 28px; border-radius: 999px; font-weight: 600; font-size: .97rem;
-    border: 1.5px solid transparent; cursor: pointer; white-space: nowrap;
-    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, background .25s, border-color .25s;
-}
-.ab-btn--primary { background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); color: #fff; box-shadow: 0 10px 30px -8px rgba(29,158,117,.55); }
-.ab-btn--primary:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -10px rgba(29,158,117,.65); color: #fff; }
-.ab-btn--ghost { background: transparent; color: var(--ab-l-ink); border-color: var(--ab-l-line); }
-.ab-btn--ghost:hover { transform: translateY(-3px); border-color: var(--ab-l-primary); color: var(--ab-l-primary); }
-.ab-btn--glass { background: rgba(255,255,255,.1); color: #fff !important; border-color: rgba(255,255,255,.22); backdrop-filter: blur(6px); }
-.ab-btn--glass:hover { transform: translateY(-3px); background: rgba(255,255,255,.18); color: #fff !important; }
-/* Boutons or pleins : texte sombre forcé (sinon écrasé par la couleur de lien globale) */
-.ab-btn--gold, .ab-btn--glow { background: var(--ab-l-accent); color: #3a2400 !important; box-shadow: 0 10px 30px -8px rgba(239,159,39,.6); }
-.ab-btn--gold:hover, .ab-btn--glow:hover { transform: translateY(-3px); color: #3a2400 !important; box-shadow: 0 16px 38px -10px rgba(239,159,39,.7); }
-.ab-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ab-l-primary); }
-
-/* === Eyebrow === */
-.ab-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 7px 16px 7px 12px; border-radius: 999px;
-    background: var(--ab-l-mist); border: 1px solid var(--ab-l-line);
-    color: var(--ab-l-deep); font-size: .8rem; font-weight: 600;
-}
-html.dark-mode .ab-land .ab-eyebrow { background: rgba(159,225,203,.1); color: var(--ab-l-pale); }
-.ab-eyebrow--invert { background: rgba(255,255,255,.08); color: #d9f5ea; border-color: rgba(255,255,255,.16); }
-html.dark-mode .ab-land .ab-eyebrow--invert { background: rgba(255,255,255,.08); color: #d9f5ea; }
-.ab-eyebrow .ab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ab-l-primary); animation: ab-pulse 2s infinite; }
-@keyframes ab-pulse { 0%{box-shadow:0 0 0 0 rgba(29,158,117,.55);} 70%{box-shadow:0 0 0 10px rgba(29,158,117,0);} 100%{box-shadow:0 0 0 0 rgba(29,158,117,0);} }
-
-/* === Têtes de section === */
-.ab-section { padding: 90px 0 0; }
-.ab-head { max-width: 720px; margin: 0 0 48px; }
-.ab-head--center { text-align: center; margin-inline: auto; }
-.ab-head .ab-eyebrow { margin-bottom: 18px; }
-.ab-head h2 { font-size: clamp(2rem, 3.8vw, 3.1rem); font-weight: 700; }
-.ab-head p { color: var(--ab-l-muted); font-size: 1.07rem; margin: 14px 0 0; line-height: 1.65; }
-
-/* ============================ HERO ============================ */
-.ab-hero {
-    position: relative; overflow: hidden; isolation: isolate;
-    border-radius: 36px; padding: clamp(56px, 7vw, 92px) clamp(24px, 5vw, 72px) 0;
-    background: var(--ab-l-night); color: #eefaf4;
-}
-.ab-hero::before { /* aurores */
-    content: ""; position: absolute; inset: -30%; z-index: -2;
-    background:
-        radial-gradient(38% 42% at 18% 24%, rgba(29,158,117,.55), transparent 70%),
-        radial-gradient(30% 36% at 84% 14%, rgba(239,159,39,.32), transparent 70%),
-        radial-gradient(42% 48% at 62% 88%, rgba(93,202,165,.3), transparent 70%);
-    filter: blur(50px); animation: ab-aurora 22s ease-in-out infinite alternate;
-}
-@keyframes ab-aurora { 0%{ transform: rotate(0) scale(1);} 100%{ transform: rotate(8deg) scale(1.12);} }
-.ab-hero::after { /* trame de points */
-    content: ""; position: absolute; inset: 0; z-index: -1;
-    background-image: radial-gradient(rgba(255,255,255,.14) 1px, transparent 1.4px);
-    background-size: 26px 26px;
-    mask-image: radial-gradient(75% 70% at 50% 20%, #000, transparent 80%);
-}
-.ab-hero__grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: clamp(32px, 5vw, 64px); align-items: end; }
-.ab-hero__copy { padding-bottom: clamp(56px, 7vw, 92px); }
-.ab-hero h1 { font-size: clamp(2.6rem, 5.6vw, 4.4rem); font-weight: 700; color: #fff; margin: 24px 0 18px; }
-.ab-hero .ab-grad {
-    background: linear-gradient(100deg, var(--ab-l-pale), var(--ab-l-accent));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.ab-hero__lead { font-size: clamp(1.05rem, 1.4vw, 1.18rem); color: #b9d8cc; max-width: 520px; line-height: 1.7; margin: 0; }
-.ab-hero__lead b { color: #fff; font-weight: 600; }
-.ab-hero__cta { display: flex; gap: 14px; flex-wrap: wrap; margin: 34px 0 30px; }
-.ab-hero__meta { display: flex; align-items: center; gap: 12px 22px; flex-wrap: wrap; color: #9fc3b5; font-size: .9rem; }
-.ab-hero__meta b { color: #fff; font-weight: 700; }
-.ab-hero__meta .ab-sep { width: 1px; height: 28px; background: rgba(255,255,255,.16); }
-
-/* === Phone mockup (pur CSS) === */
-.ab-device { position: relative; display: flex; justify-content: center; }
-.ab-phone {
-    position: relative; width: min(320px, 86vw);
-    border-radius: 44px 44px 0 0; padding: 16px 14px 0;
-    background: linear-gradient(180deg, #10362c, #07211a);
-    border: 1px solid rgba(255,255,255,.14); border-bottom: 0;
-    box-shadow: 0 -30px 80px -30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12);
-}
-.ab-phone__notch { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); width: 92px; height: 22px; border-radius: 999px; background: #04140f; z-index: 2; }
-.ab-phone__screen {
-    border-radius: 32px 32px 0 0; background: #f3faf7; color: #0d1b16;
-    padding: 58px 14px 18px; min-height: 460px;
-    display: flex; flex-direction: column; gap: 12px; overflow: hidden;
-}
-.ab-app__bar { display: flex; align-items: center; gap: 9px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: .95rem; }
-.ab-app__bar .ab-logo { width: 26px; height: 26px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); color: #fff; font-size: .75rem; }
-.ab-app__bar i.fa-bell { margin-left: auto; color: #8aa79b; font-size: .9rem; }
-.ab-app__card { background: #fff; border: 1px solid rgba(8,80,65,.1); border-radius: 18px; padding: 14px; }
-.ab-app__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.ab-app__title { font-weight: 700; font-size: .85rem; display: flex; align-items: center; gap: 7px; }
-.ab-app__title i { color: var(--ab-l-primary); }
-.ab-live { font-size: .62rem; font-weight: 700; letter-spacing: .04em; color: var(--ab-l-primary); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
-.ab-live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ab-l-primary); animation: ab-pulse 1.6s infinite; }
-.ab-gauge { display: flex; align-items: center; gap: 14px; }
-.ab-gauge svg { width: 92px; height: 92px; flex-shrink: 0; }
-.ab-gauge__ring { fill: none; stroke: var(--ab-l-mist); stroke-width: 11; }
-.ab-gauge__val { fill: none; stroke: url(#abgrad); stroke-width: 11; stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 314; transform: rotate(-90deg); transform-origin: 50% 50%; animation: ab-fill 2.2s cubic-bezier(.2,.8,.2,1) .5s forwards; }
-@keyframes ab-fill { to { stroke-dashoffset: 74; } }
-.ab-gauge__num small { display: block; color: #5b6b64; font-size: .68rem; font-weight: 500; }
-.ab-gauge__num span { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--ab-l-deep); }
-.ab-gauge__num .ab-trend { color: var(--ab-l-primary); font-weight: 700; font-size: .68rem; }
-.ab-bars { display: flex; align-items: flex-end; gap: 6px; height: 46px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(8,80,65,.14); }
-.ab-bars span { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(var(--ab-l-light), var(--ab-l-primary)); transform-origin: bottom; animation: ab-grow 1.1s cubic-bezier(.2,.8,.2,1) forwards; opacity: .92; }
-@keyframes ab-grow { from { transform: scaleY(0); } }
-.ab-app__row { display: flex; align-items: center; gap: 10px; font-size: .82rem; font-weight: 600; padding: 7px 2px; }
-.ab-app__row + .ab-app__row { border-top: 1px solid rgba(8,80,65,.08); }
-.ab-app__row i.ab-ri { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-size: .75rem; flex-shrink: 0; }
-.ab-app__row .ab-price { margin-left: auto; font-family: 'Space Grotesk', sans-serif; }
-.ab-app__row .ab-delta { font-size: .68rem; font-weight: 700; color: var(--ab-l-primary); }
-.ab-app__voice {
-    margin-top: auto; display: flex; align-items: center; gap: 10px;
-    background: linear-gradient(135deg, var(--ab-l-deep), var(--ab-l-night)); color: #dffaf0;
-    border-radius: 16px; padding: 12px 14px; font-size: .76rem;
-}
-.ab-app__voice i.fa-microphone-lines { font-size: 1rem; color: var(--ab-l-pale); }
-.ab-wave { display: flex; align-items: center; gap: 3px; margin-left: auto; }
-.ab-wave i { display: block; width: 3px; border-radius: 3px; background: var(--ab-l-light); animation: ab-eq 1s ease-in-out infinite; }
-.ab-wave i:nth-child(2){animation-delay:.15s}.ab-wave i:nth-child(3){animation-delay:.3s}.ab-wave i:nth-child(4){animation-delay:.45s}.ab-wave i:nth-child(5){animation-delay:.6s}
-@keyframes ab-eq { 0%,100%{height:7px} 50%{height:18px} }
-/* chips flottants autour du téléphone */
-.ab-chip {
-    position: absolute; z-index: 3; background: #fff; color: #0d1b16; border: 1px solid rgba(8,80,65,.12); border-radius: 14px;
-    padding: 10px 13px; font-size: .78rem; font-weight: 600; display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 16px 36px -16px rgba(0,0,0,.5); animation: ab-hover 6s ease-in-out infinite;
-}
-@keyframes ab-hover { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-12px);} }
-.ab-chip i { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-size: .85rem; flex-shrink: 0; }
-.ab-chip.c1 { top: 6%; right: -4%; animation-delay: -2s; }
-.ab-chip.c1 i { background: var(--ab-l-accent); }
-.ab-chip.c2 { bottom: 16%; left: -8%; animation-delay: -4s; }
-.ab-chip.c2 i { background: var(--ab-l-primary); }
-
-/* ============================ MARQUEE ============================ */
-.ab-marquee {
-    margin-top: 26px; overflow: hidden; border-block: 1px solid var(--ab-l-line);
-    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-    display: flex;
-}
-.ab-marquee__track { display: flex; flex-shrink: 0; align-items: center; gap: 0; padding: 16px 0; min-width: 100%; animation: ab-scroll 32s linear infinite; }
-@keyframes ab-scroll { to { transform: translateX(-100%); } }
-.ab-marquee:hover .ab-marquee__track { animation-play-state: paused; }
-.ab-marquee span { display: inline-flex; align-items: center; gap: 10px; padding: 0 26px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: .95rem; color: var(--ab-l-muted); white-space: nowrap; }
-.ab-marquee span i { color: var(--ab-l-primary); font-size: .8rem; }
-
-/* ============================ DÉFIS ============================ */
-.ab-defis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.ab-defi {
-    position: relative; border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r);
-    background: var(--ab-l-card); padding: 28px; overflow: hidden;
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
-}
-.ab-defi:hover { transform: translateY(-5px); border-color: var(--ab-l-pale); box-shadow: 0 26px 50px -26px rgba(8,80,65,.4); }
-.ab-defi__n {
-    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 2.6rem; line-height: 1;
-    background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-pale));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.ab-defi h3 { font-size: 1.2rem; margin: 16px 0 8px; }
-.ab-defi p { color: var(--ab-l-muted); font-size: .95rem; line-height: 1.65; margin: 0; }
-.ab-defi__a { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700; color: var(--ab-l-primary); }
-
-/* ============================ SOLUTION ============================ */
-.ab-sol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.ab-card {
-    position: relative; background: var(--ab-l-card); border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r);
-    padding: 28px; overflow: hidden;
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
-}
-.ab-card:hover { transform: translateY(-5px); border-color: var(--ab-l-pale); box-shadow: 0 26px 50px -26px rgba(8,80,65,.4); }
-.ab-card::after { content: ""; position: absolute; inset: 0; background: radial-gradient(420px circle at var(--ab-mx, 30%) var(--ab-my, 0%), rgba(29,158,117,.09), transparent 60%); opacity: 0; transition: opacity .35s; pointer-events: none; }
-.ab-card:hover::after { opacity: 1; }
-.ab-card__ico { width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center; font-size: 1.25rem; color: #fff; margin-bottom: 18px; }
-.ab-card h3 { font-size: 1.18rem; font-weight: 700; margin-bottom: 8px; }
-.ab-card p { color: var(--ab-l-muted); font-size: .95rem; line-height: 1.65; margin: 0; }
-.ab-card .ab-tag { margin-top: 14px; display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 700; color: var(--ab-l-primary); }
-.ab-card--feat { grid-column: span 3; display: grid; grid-template-columns: 1.1fr .9fr; gap: 36px; align-items: center; background: var(--ab-l-card-soft); }
-.ab-card--feat h3 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
-.ab-card--wide { grid-column: span 2; }
-.ab-mini { display: flex; align-items: flex-end; gap: 8px; height: 110px; padding: 14px; border: 1px solid var(--ab-l-line); border-radius: 16px; background: var(--ab-l-card); }
-.ab-mini span { flex: 1; border-radius: 5px 5px 0 0; background: linear-gradient(var(--ab-l-light), var(--ab-l-primary)); transform-origin: bottom; animation: ab-grow 1s cubic-bezier(.2,.8,.2,1) forwards; }
-.ico-ai { background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); }
-.ico-voice { background: linear-gradient(135deg, var(--ab-l-accent), #c2410c); }
-.ico-off { background: linear-gradient(135deg, var(--ab-l-light), var(--ab-l-deep)); }
-.ico-market { background: linear-gradient(135deg, var(--ab-l-accent), #b45309); }
-.ico-leaf { background: linear-gradient(135deg, #65a30d, #3f6212); }
-.ico-team { background: linear-gradient(135deg, #14b8a6, #0f766e); }
-
-/* ============================ SPOTLIGHT JËF BAAY ============================ */
-.ab-spot {
-    margin-top: 18px; background: radial-gradient(circle at 72% 18%, #0a3a2e, var(--ab-l-night) 62%);
-    color: #eafff6; border-radius: 34px; padding: clamp(40px, 5vw, 64px) clamp(26px, 5vw, 60px);
-    position: relative; overflow: hidden;
-}
-.ab-spot::before { content: ""; position: absolute; width: 420px; height: 420px; right: -110px; top: -130px; background: radial-gradient(circle, rgba(239,159,39,.26), transparent 70%); filter: blur(40px); }
-.ab-spot__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; position: relative; }
-.ab-spot h2 { font-size: clamp(1.9rem, 3.2vw, 2.7rem); color: #fff; margin-top: 18px; }
-.ab-spot p { color: #bfe9da; font-size: 1.05rem; line-height: 1.7; margin: 16px 0 26px; }
-.ab-spot__bubble { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 22px; padding: 24px; backdrop-filter: blur(8px); }
-.ab-spot__line { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
-.ab-spot__av { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: .9rem; }
-.ab-av-user { background: var(--ab-l-primary); color: #fff; }
-.ab-av-bot { background: var(--ab-l-accent); color: #3a2400; }
-.ab-spot__msg { background: rgba(255,255,255,.08); padding: 11px 15px; border-radius: 14px; font-size: .92rem; line-height: 1.5; }
-.ab-spot__msg.bot { background: rgba(159,225,203,.16); }
-.ab-bigwave { display: flex; align-items: center; gap: 5px; height: 46px; margin-top: 8px; }
-.ab-bigwave i { display: block; width: 5px; border-radius: 5px; background: linear-gradient(var(--ab-l-light), var(--ab-l-pale)); animation: ab-eq 1.1s ease-in-out infinite; }
-.ab-bigwave i:nth-child(odd){animation-delay:.2s}.ab-bigwave i:nth-child(3n){animation-delay:.4s}.ab-bigwave i:nth-child(4n){animation-delay:.6s}
-
-/* ============================ ÉTAPES ============================ */
-.ab-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; position: relative; }
-.ab-steps::before { content: ""; position: absolute; top: 52px; left: 8%; right: 8%; border-top: 2px dashed var(--ab-l-line); }
-.ab-step { position: relative; padding: 30px 26px; background: var(--ab-l-card); border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r); }
-.ab-step__n {
-    width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 18px;
-    background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep)); color: #fff;
-    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem;
-    box-shadow: 0 10px 24px -10px rgba(29,158,117,.6);
-}
-.ab-step h3 { font-size: 1.15rem; margin-bottom: 8px; }
-.ab-step p { color: var(--ab-l-muted); font-size: .95rem; line-height: 1.65; margin: 0; }
-
-/* ============================ PERSONAS (#temoignages) ============================ */
-.ab-pers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.ab-per { position: relative; background: var(--ab-l-card); border: 1px solid var(--ab-l-line); border-radius: var(--ab-l-r); padding: 28px; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s; }
-.ab-per:hover { transform: translateY(-5px); border-color: var(--ab-l-pale); box-shadow: 0 26px 50px -26px rgba(8,80,65,.4); }
-.ab-per__av { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 1.25rem; color: #fff; margin-bottom: 18px; }
-.ab-per h3 { font-size: 1.15rem; margin-bottom: 8px; }
-.ab-per blockquote { margin: 0 0 14px; color: var(--ab-l-ink); font-size: .97rem; line-height: 1.6; font-style: italic; }
-.ab-per p { color: var(--ab-l-muted); font-size: .9rem; line-height: 1.6; margin: 0; }
-.ab-per__tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
-.ab-per__tags span { font-size: .72rem; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--ab-l-mist); color: var(--ab-l-deep); }
-html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); color: var(--ab-l-pale); }
-
-/* ============================ FAQ ============================ */
-.ab-faq { max-width: 760px; margin: 0 auto; }
-.ab-faq details { border-bottom: 1px solid var(--ab-l-line); }
-.ab-faq summary {
-    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 16px;
-    padding: 22px 4px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.08rem;
-}
-.ab-faq summary::-webkit-details-marker { display: none; }
-.ab-faq summary i { margin-left: auto; color: var(--ab-l-primary); transition: transform .3s cubic-bezier(.2,.8,.2,1); flex-shrink: 0; }
-.ab-faq details[open] summary i { transform: rotate(45deg); }
-.ab-faq summary:focus-visible { outline: 2px solid var(--ab-l-primary); outline-offset: 4px; border-radius: 8px; }
-.ab-faq .ab-faq__a { padding: 0 36px 22px 4px; color: var(--ab-l-muted); line-height: 1.7; font-size: .97rem; }
-.ab-faq .ab-faq__a a { color: var(--ab-l-primary); font-weight: 600; }
-
-/* ============================ CTA FINAL ============================ */
-.ab-final { padding: 90px 0 40px; }
-.ab-final__box {
-    position: relative; overflow: hidden; text-align: center;
-    padding: clamp(56px, 7vw, 84px) 32px; border-radius: 36px;
-    background: linear-gradient(135deg, var(--ab-l-primary), var(--ab-l-deep) 70%);
-    color: #fff; box-shadow: 0 40px 80px -30px rgba(8,80,65,.6);
-}
-.ab-final__box::before { content: ""; position: absolute; inset: 0; background: radial-gradient(640px circle at 18% -20%, rgba(255,255,255,.2), transparent 60%); }
-.ab-final__box::after {
-    content: ""; position: absolute; inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,.16) 1px, transparent 1.4px);
-    background-size: 26px 26px; mask-image: radial-gradient(70% 90% at 50% 100%, #000, transparent 80%);
-}
-.ab-final h2 { font-size: clamp(2rem, 4vw, 3.1rem); color: #fff; position: relative; z-index: 1; }
-.ab-final p { position: relative; z-index: 1; color: rgba(255,255,255,.9); font-size: 1.1rem; margin: 16px auto 32px; max-width: 560px; line-height: 1.65; }
-.ab-final .ab-hero__cta { justify-content: center; margin: 0; position: relative; z-index: 1; }
-
-/* ============================ PREUVE TERRAIN ============================ */
-.ab-proof { position: relative; overflow: hidden; isolation: isolate; margin-top: 18px; border-radius: 34px; padding: clamp(44px, 6vw, 72px) clamp(26px, 5vw, 60px); color: #eefaf4; }
-.ab-proof__bg { position: absolute; inset: 0; z-index: -2; }
-.ab-proof__bg img { width: 100%; height: 100%; object-fit: cover; }
-.ab-proof::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(115deg, rgba(4,36,29,.94), rgba(4,36,29,.78) 48%, rgba(4,36,29,.55)); }
-.ab-proof__head { max-width: 560px; margin-bottom: 36px; }
-.ab-proof__head .ab-eyebrow { margin-bottom: 16px; }
-.ab-proof__head h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); color: #fff; }
-.ab-proof__head p { color: #bfe9da; margin-top: 12px; line-height: 1.65; }
-.ab-proof__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-.ab-proof__cell { padding: 4px 8px; }
-.ab-proof__cell + .ab-proof__cell { border-left: 1px solid rgba(255,255,255,.18); }
-.ab-proof__big { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; background: linear-gradient(100deg, var(--ab-l-pale), var(--ab-l-accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.ab-proof__lab { margin-top: 8px; font-size: .84rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: rgba(238,250,244,.82); }
-
-/* ============================ RESPONSIVE ============================ */
-@media (max-width: 991.98px) {
-    .ab-hero__grid { grid-template-columns: 1fr; gap: 44px; }
-    .ab-hero__copy { padding-bottom: 0; }
-    .ab-card--feat { grid-template-columns: 1fr; gap: 22px; }
-    .ab-spot__grid { grid-template-columns: 1fr; gap: 34px; }
-    .ab-defis, .ab-sol, .ab-pers { grid-template-columns: repeat(2, 1fr); }
-    .ab-card--feat { grid-column: span 2; }
-    .ab-card--wide { grid-column: span 2; }
-    .ab-steps { grid-template-columns: 1fr; }
-    .ab-steps::before { display: none; }
-}
-@media (max-width: 575.98px) {
-    .ab-section { padding: 64px 0 0; }
-    .ab-hero { border-radius: 26px; }
-    .ab-hero__cta .ab-btn { flex: 1 1 100%; }
-    .ab-defis, .ab-sol, .ab-pers { grid-template-columns: 1fr; }
-    .ab-card--feat, .ab-card--wide { grid-column: span 1; }
-    .ab-hero__meta .ab-sep { display: none; }
-    .ab-chip { display: none; } /* décoratif : évite le débordement en viewport étroit */
-    .ab-proof__grid { grid-template-columns: 1fr; gap: 8px; }
-    .ab-proof__cell + .ab-proof__cell { border-left: none; border-top: 1px solid rgba(255,255,255,.18); padding-top: 16px; margin-top: 8px; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .ab-land *, .ab-land *::before, .ab-land *::after { animation: none !important; }
-    .ab-js .ab-rv { opacity: 1; transform: none; transition: none; }
-    .ab-gauge__val { stroke-dashoffset: 74; }
-}
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="ab-land">
+<div class="lp-page">
 
-  <!-- ============================ HERO ============================ -->
-  <section class="ab-hero" id="accueil">
-    <div class="ab-hero__grid">
-
-      <div class="ab-hero__copy">
-        <span class="ab-eyebrow ab-eyebrow--invert ab-rv"><span class="ab-dot"></span> Andd Baay · l'intelligence agricole du Sahel</span>
-        <h1 class="ab-rv" style="--ab-d:.08s">Faites parler<br>votre <span class="ab-grad">terre.</span></h1>
-        <p class="ab-hero__lead ab-rv" style="--ab-d:.16s">
+  <!-- HERO -->
+  <section class="lp-hero" id="accueil">
+    <div class="lp-hero__bg" aria-hidden="true"></div>
+    <div class="lp-hero__inner">
+      <div class="lp-hero__copy">
+        <span class="lp-eyebrow lp-eyebrow--invert lp-rv"><span class="lp-dot"></span> Andd Baay · Sahel</span>
+        <h1 class="lp-rv" style="--lp-d:.08s">Faites parler<br>votre <span class="lp-grad">terre.</span></h1>
+        <p class="lp-hero__lead lp-rv" style="--lp-d:.16s">
           Prédiction de rendement par IA, assistant vocal en <b>Wolof</b>, prix du marché
-          en direct et gestion collaborative de votre exploitation. Pensé pour le terrain&nbsp;:
-          ça <b>fonctionne même sans réseau</b>.
+          en direct et gestion collaborative. Pensé pour le terrain&nbsp;: ça
+          <b>fonctionne même sans réseau</b>.
         </p>
-
-        <div class="ab-hero__cta ab-rv" style="--ab-d:.24s">
+        <div class="lp-hero__cta lp-rv" style="--lp-d:.24s">
           {% if request.user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--gold">
-              Reprendre mon tableau de bord <i class="fas fa-arrow-right"></i>
+            <a href="{% url 'dashboard' %}" class="lp-btn lp-btn--gold">
+              Reprendre mon tableau de bord <i class="fas fa-arrow-right" aria-hidden="true"></i>
             </a>
             {% if vocal_wolof_audio_enabled %}
-            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glass"><i class="fas fa-microphone"></i> Parler à Jëf Baay</a>
+            <a href="{% url 'assistant_vocal' %}" class="lp-btn lp-btn--glass"><i class="fas fa-microphone" aria-hidden="true"></i> Parler à Jëf Baay</a>
             {% endif %}
           {% else %}
-            <a href="{% url 'register' %}" class="ab-btn ab-btn--gold">
-              Démarrer gratuitement <i class="fas fa-arrow-right"></i>
+            <a href="{% url 'register' %}" class="lp-btn lp-btn--gold">
+              Démarrer gratuitement <i class="fas fa-arrow-right" aria-hidden="true"></i>
             </a>
             {% if vocal_wolof_audio_enabled %}
-            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glass"><i class="fas fa-microphone"></i> Essayer l'assistant vocal</a>
+            <a href="{% url 'assistant_vocal' %}" class="lp-btn lp-btn--glass"><i class="fas fa-microphone" aria-hidden="true"></i> Essayer l'assistant vocal</a>
             {% endif %}
           {% endif %}
         </div>
-
-        <div class="ab-hero__meta ab-rv" style="--ab-d:.32s">
+        <div class="lp-hero__meta lp-rv" style="--lp-d:.32s">
           {% if stats.show_trust_metrics %}
             <span><b>{{ stats.nb_users|intcomma }}+</b> agriculteurs</span>
-            <span class="ab-sep"></span>
+            <span class="lp-sep" aria-hidden="true"></span>
             <span><b>{{ stats.nb_projets|intcomma }}</b> projets suivis</span>
-            <span class="ab-sep"></span>
+            <span class="lp-sep" aria-hidden="true"></span>
             <span><b>{{ stats.nb_localites }}</b> localités</span>
           {% else %}
-            <span><i class="fas fa-bolt" style="color:var(--ab-l-accent)"></i> &nbsp;Installation en 2 minutes</span>
-            <span class="ab-sep"></span>
-            <span><i class="fas fa-wifi" style="color:var(--ab-l-pale)"></i> &nbsp;Mode hors-ligne natif</span>
+            <span><i class="fas fa-bolt" style="color:var(--lp-accent)" aria-hidden="true"></i> Installation en 2 minutes</span>
+            <span class="lp-sep" aria-hidden="true"></span>
+            <span><i class="fas fa-wifi" style="color:var(--lp-pale)" aria-hidden="true"></i> Mode hors-ligne natif</span>
           {% endif %}
         </div>
       </div>
-    </div>
-  </section>
 
-      <!-- Mockup téléphone : l'app vue du terrain -->
-      <div class="ab-device ab-rv" style="--ab-d:.2s">
-        <div class="ab-phone">
-          <span class="ab-phone__notch" aria-hidden="true"></span>
-          <div class="ab-phone__screen" aria-hidden="true">
-            <div class="ab-app__bar">
-              <span class="ab-logo"><i class="fas fa-seedling"></i></span> Andd Baay
-              <i class="fas fa-bell"></i>
+      <div class="lp-device lp-rv" style="--lp-d:.2s">
+        <div class="lp-phone">
+          <span class="lp-phone__notch" aria-hidden="true"></span>
+          <div class="lp-phone__screen" aria-hidden="true">
+            <div class="lp-app__bar">
+              <span class="lp-app__logo"><i class="fas fa-seedling" aria-hidden="true"></i></span> Andd Baay
+              <i class="fas fa-bell" style="margin-left:auto;color:#8aa79b;font-size:.9rem" aria-hidden="true"></i>
             </div>
-
-            <div class="ab-app__card">
-              <div class="ab-app__top">
-                <span class="ab-app__title"><i class="fas fa-seedling"></i> Mil · Parcelle Nord</span>
-                <span class="ab-live">EN DIRECT</span>
+            <div class="lp-app__card">
+              <div class="lp-app__top">
+                <span class="lp-app__title"><i class="fas fa-seedling" aria-hidden="true"></i> Mil · Parcelle Nord</span>
+                <span class="lp-live">EN DIRECT</span>
               </div>
-              <div class="ab-gauge">
-                <svg viewBox="0 0 120 120">
+              <div class="lp-gauge">
+                <svg viewBox="0 0 120 120" role="img" aria-label="Rendement prevu">
                   <defs>
-                    <linearGradient id="abgrad" x1="0" y1="0" x2="1" y2="1">
+                    <linearGradient id="lpgrad" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stop-color="#EF9F27"/><stop offset="100%" stop-color="#1D9E75"/>
                     </linearGradient>
                   </defs>
-                  <circle class="ab-gauge__ring" cx="60" cy="60" r="50"/>
-                  <circle class="ab-gauge__val" cx="60" cy="60" r="50"/>
+                  <circle class="lp-gauge__ring" cx="60" cy="60" r="50"/>
+                  <circle class="lp-gauge__val" cx="60" cy="60" r="50"/>
                 </svg>
-                <div class="ab-gauge__num">
+                <div class="lp-gauge__num">
                   <small>Rendement prévu</small>
                   <span>1,82 t/ha</span>
-                  <span class="ab-trend"><i class="fas fa-arrow-trend-up"></i> +23 % vs saison passée</span>
+                  <span class="lp-trend"><i class="fas fa-arrow-trend-up" aria-hidden="true"></i> +23 %</span>
                 </div>
               </div>
-              <div class="ab-bars">
+              <div class="lp-bars">
                 <span style="height:42%;animation-delay:.1s"></span>
                 <span style="height:58%;animation-delay:.2s"></span>
                 <span style="height:50%;animation-delay:.3s"></span>
@@ -479,129 +112,104 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
                 <span style="height:80%;animation-delay:.7s"></span>
               </div>
             </div>
-
-            <div class="ab-app__card">
-              <div class="ab-app__row">
-                <i class="ab-ri fas fa-coins" style="background:var(--ab-l-accent)"></i> Oignon
-                <span class="ab-price">425 F/kg <span class="ab-delta"><i class="fas fa-arrow-trend-up"></i></span></span>
+            <div class="lp-app__card">
+              <div class="lp-app__row">
+                <i class="lp-ri fas fa-coins" style="background:var(--lp-accent)" aria-hidden="true"></i> Oignon
+                <span class="lp-price">425 F/kg</span>
               </div>
-              <div class="ab-app__row">
-                <i class="ab-ri fas fa-wheat-awn" style="background:var(--ab-l-primary)"></i> Mil
-                <span class="ab-price">280 F/kg <span class="ab-delta">stable</span></span>
+              <div class="lp-app__row">
+                <i class="lp-ri fas fa-wheat-awn" style="background:var(--lp-brand)" aria-hidden="true"></i> Mil
+                <span class="lp-price">280 F/kg</span>
               </div>
             </div>
-
-            <div class="ab-app__voice">
-              <i class="fas fa-microphone-lines"></i>
-              <span><span lang="wo">« Kañ laa wara ji suuf si&nbsp;? »</span></span>
-              <span class="ab-wave"><i style="height:10px"></i><i style="height:16px"></i><i style="height:8px"></i><i style="height:18px"></i><i style="height:11px"></i></span>
+            <div class="lp-app__voice">
+              <i class="fas fa-microphone-lines" aria-hidden="true"></i>
+              <span lang="wo">« Kañ laa wara ji suuf si ? »</span>
+              <span class="lp-wave" aria-hidden="true">
+                <i style="height:10px"></i><i style="height:16px"></i><i style="height:8px"></i><i style="height:18px"></i><i style="height:11px"></i>
+              </span>
             </div>
           </div>
         </div>
-        <span class="ab-chip c1" aria-hidden="true"><i class="fas fa-cloud-sun-rain"></i> Pluie dans 3 j</span>
-        <span class="ab-chip c2" aria-hidden="true"><i class="fas fa-rotate"></i> Synchronisé hors-ligne</span>
+        <span class="lp-chip c1" aria-hidden="true"><i class="fas fa-cloud-sun-rain" aria-hidden="true"></i> Pluie dans 3 j</span>
+        <span class="lp-chip c2" aria-hidden="true"><i class="fas fa-rotate" aria-hidden="true"></i> Sync hors-ligne</span>
       </div>
-    </div>{# /ab-hero__grid #}
-
-      <!-- Acte 2 — Jëf Baay -->
-      <div class="lp-act lp-act--rev lp-reveal">
-        <div class="lp-act__copy">
-          <span class="lp-act__kicker">Assistant vocal Wolof</span>
-          <h3>Posez vos questions à voix haute</h3>
-          <p>Jëf Baay répond en Wolof, sans lecture ni écriture. La technologie s'efface ; il reste un conseil agricole dans votre langue.</p>
-          <span class="lp-act__note"><i class="fas fa-microphone-lines"></i> Sans inscription</span>
-        </div>
-        <div class="lp-act__art" aria-hidden="true">
-          <svg viewBox="0 0 520 360" role="img"><title>Onde vocale de l'assistant Jëf Baay</title>
-            <rect width="520" height="360" rx="20" fill="#0f3a2b"/>
-            <circle cx="100" cy="180" r="42" fill="#f4a82c"/>
-            <path d="M88 162 h24 v36 h-24 z M100 198 v16 M86 214 h28" stroke="#0f3a2b" stroke-width="5" fill="none" stroke-linecap="round"/>
-            <g fill="#5dcaa5">
-              <rect x="180" y="150" width="9" height="60" rx="4"/><rect x="202" y="120" width="9" height="120" rx="4"/>
-              <rect x="224" y="160" width="9" height="40" rx="4"/><rect x="246" y="96" width="9" height="168" rx="4"/>
-              <rect x="268" y="140" width="9" height="80" rx="4"/><rect x="290" y="116" width="9" height="128" rx="4"/>
-              <rect x="312" y="158" width="9" height="44" rx="4"/><rect x="334" y="104" width="9" height="152" rx="4"/>
-              <rect x="356" y="150" width="9" height="60" rx="4"/><rect x="378" y="128" width="9" height="104" rx="4"/>
-              <rect x="400" y="162" width="9" height="36" rx="4"/><rect x="422" y="138" width="9" height="84" rx="4"/>
-            </g>
-          </svg>
-        </div>
-      </div>
-
-  <!-- ============================ MARQUEE ============================ -->
-  <div class="ab-marquee" aria-hidden="true">
-    <div class="ab-marquee__track">
-      <span><i class="fas fa-brain"></i> Prédiction IA</span>
-      <span><i class="fas fa-microphone-lines"></i> Vocal Wolof</span>
-      <span><i class="fas fa-wifi"></i> Hors-ligne natif</span>
-      <span><i class="fas fa-coins"></i> Prix du marché</span>
-      <span><i class="fas fa-camera-retro"></i> Diagnostic photo</span>
-      <span><i class="fas fa-people-group"></i> Coopératives</span>
-      <span><i class="fas fa-mobile-screen"></i> Appli installable</span>
-      <span><i class="fas fa-hand-holding-heart"></i> Gratuit pour démarrer</span>
     </div>
-    <div class="ab-marquee__track">
-      <span><i class="fas fa-brain"></i> Prédiction IA</span>
-      <span><i class="fas fa-microphone-lines"></i> Vocal Wolof</span>
-      <span><i class="fas fa-wifi"></i> Hors-ligne natif</span>
-      <span><i class="fas fa-coins"></i> Prix du marché</span>
-      <span><i class="fas fa-camera-retro"></i> Diagnostic photo</span>
-      <span><i class="fas fa-people-group"></i> Coopératives</span>
-      <span><i class="fas fa-mobile-screen"></i> Appli installable</span>
-      <span><i class="fas fa-hand-holding-heart"></i> Gratuit pour démarrer</span>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="lp-marquee" aria-hidden="true">
+    <div class="lp-marquee__track">
+      <span><i class="fas fa-brain" aria-hidden="true"></i> Prédiction IA</span>
+      <span><i class="fas fa-microphone-lines" aria-hidden="true"></i> Vocal Wolof</span>
+      <span><i class="fas fa-wifi" aria-hidden="true"></i> Hors-ligne natif</span>
+      <span><i class="fas fa-coins" aria-hidden="true"></i> Prix du marché</span>
+      <span><i class="fas fa-camera-retro" aria-hidden="true"></i> Diagnostic photo</span>
+      <span><i class="fas fa-people-group" aria-hidden="true"></i> Coopératives</span>
+      <span><i class="fas fa-mobile-screen" aria-hidden="true"></i> Appli installable</span>
+      <span><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> Gratuit pour démarrer</span>
+    </div>
+    <div class="lp-marquee__track">
+      <span><i class="fas fa-brain" aria-hidden="true"></i> Prédiction IA</span>
+      <span><i class="fas fa-microphone-lines" aria-hidden="true"></i> Vocal Wolof</span>
+      <span><i class="fas fa-wifi" aria-hidden="true"></i> Hors-ligne natif</span>
+      <span><i class="fas fa-coins" aria-hidden="true"></i> Prix du marché</span>
+      <span><i class="fas fa-camera-retro" aria-hidden="true"></i> Diagnostic photo</span>
+      <span><i class="fas fa-people-group" aria-hidden="true"></i> Coopératives</span>
+      <span><i class="fas fa-mobile-screen" aria-hidden="true"></i> Appli installable</span>
+      <span><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> Gratuit pour démarrer</span>
     </div>
   </div>
 
-  <!-- ============================ DÉFIS ============================ -->
-  <section class="ab-section" id="defis">
-    <div class="ab-wrap">
-      <div class="ab-head ab-rv">
-        <span class="ab-eyebrow"><i class="fas fa-mountain-sun"></i> Le terrain d'abord</span>
+  <!-- DÉFIS -->
+  <section class="lp-section" id="defis">
+    <div class="lp-wrap">
+      <div class="lp-head lp-rv">
+        <span class="lp-eyebrow"><i class="fas fa-mountain-sun" aria-hidden="true"></i> Le terrain d'abord</span>
         <h2>Trois réalités du Sahel,<br>trois réponses concrètes</h2>
-        <p>Andd Baay n'est pas une appli agricole générique traduite en français. Chaque choix de conception part d'une contrainte vécue sur le terrain.</p>
+        <p>Andd Baay n'est pas une appli agricole générique. Chaque choix part d'une contrainte vécue sur le terrain.</p>
       </div>
-
-      <div class="ab-defis">
-        <article class="ab-defi ab-rv">
-          <span class="ab-defi__n">01</span>
+      <div class="lp-defis">
+        <article class="lp-defi lp-glass lp-rv">
+          <span class="lp-defi__n">01</span>
           <h3>Lire n'est pas un prérequis</h3>
-          <p>40 à 60&nbsp;% des agriculteurs de la région ne lisent pas couramment. L'écrit ne peut pas être la seule porte d'entrée.</p>
-          <span class="ab-defi__a"><i class="fas fa-microphone"></i> On parle à l'appli, en Wolof</span>
+          <p>40 à 60&nbsp;% des agriculteurs ne lisent pas couramment. L'écrit ne peut pas être la seule porte d'entrée.</p>
+          <span class="lp-defi__a"><i class="fas fa-microphone" aria-hidden="true"></i> On parle à l'appli, en Wolof</span>
         </article>
-        <article class="ab-defi ab-rv" style="--ab-d:.1s">
-          <span class="ab-defi__n">02</span>
+        <article class="lp-defi lp-glass lp-rv" style="--lp-d:.1s">
+          <span class="lp-defi__n">02</span>
           <h3>Le réseau ne suit pas</h3>
           <p>Entre deux parcelles, la connexion va et vient. Une appli qui exige du réseau en permanence est inutilisable au champ.</p>
-          <span class="ab-defi__a"><i class="fas fa-wifi"></i> Hors-ligne natif, sync auto</span>
+          <span class="lp-defi__a"><i class="fas fa-wifi" aria-hidden="true"></i> Hors-ligne natif, sync auto</span>
         </article>
-        <article class="ab-defi ab-rv" style="--ab-d:.2s">
-          <span class="ab-defi__n">03</span>
+        <article class="lp-defi lp-glass lp-rv" style="--lp-d:.2s">
+          <span class="lp-defi__n">03</span>
           <h3>Vendre au bon prix</h3>
-          <p>Sans visibilité sur les cours, on vend trop tôt, trop bas. L'information de marché reste l'apanage des intermédiaires.</p>
-          <span class="ab-defi__a"><i class="fas fa-coins"></i> Cours en direct + alertes</span>
+          <p>Sans visibilité sur les cours, on vend trop tôt, trop bas. L'information reste l'apanage des intermédiaires.</p>
+          <span class="lp-defi__a"><i class="fas fa-coins" aria-hidden="true"></i> Cours en direct + alertes</span>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- ============================ SOLUTION ============================ -->
-  <section class="ab-section" id="solution">
-    <div class="ab-wrap">
-      <div class="ab-head ab-head--center ab-rv">
-        <span class="ab-eyebrow"><i class="fas fa-wand-magic-sparkles"></i> La solution</span>
+  <!-- SOLUTION -->
+  <section class="lp-section" id="solution">
+    <div class="lp-wrap">
+      <div class="lp-head lp-head--center lp-rv">
+        <span class="lp-eyebrow"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> La solution</span>
         <h2>Une seule appli, du semis à la vente</h2>
         <p>Chaque fonctionnalité est pensée pour un agriculteur sur le terrain, avec un téléphone modeste et un réseau capricieux.</p>
       </div>
 
-      <div class="ab-sol">
-        <article class="ab-card ab-card--feat ab-rv">
+      <div class="lp-bento">
+        <article class="lp-feat lp-feat--hero lp-glass lp-rv">
           <div>
-            <div class="ab-card__ico ico-ai"><i class="fas fa-brain"></i></div>
+            <div class="lp-feat__ico ico-ai"><i class="fas fa-brain" aria-hidden="true"></i></div>
             <h3>Prédiction de rendement par IA</h3>
-            <p>Notre modèle apprend de chaque saison et de votre parcelle pour estimer votre récolte avant le semis, et s'affine avec le temps. Vous décidez avec des données, pas à l'aveugle.</p>
-            <span class="ab-tag">Dès le premier projet <i class="fas fa-arrow-right"></i></span>
+            <p>Notre modèle apprend de chaque saison et de votre parcelle pour estimer votre récolte avant le semis. Vous décidez avec des données, pas à l'aveugle.</p>
+            <span class="lp-tag">Dès le premier projet <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
           </div>
-          <div class="ab-mini" aria-hidden="true">
+          <div class="lp-mini" aria-hidden="true">
             <span style="height:40%;animation-delay:.1s"></span><span style="height:55%;animation-delay:.2s"></span>
             <span style="height:48%;animation-delay:.3s"></span><span style="height:70%;animation-delay:.4s"></span>
             <span style="height:62%;animation-delay:.5s"></span><span style="height:85%;animation-delay:.6s"></span>
@@ -609,65 +217,62 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
           </div>
         </article>
 
-        <article class="ab-card ab-rv">
-          <div class="ab-card__ico ico-voice"><i class="fas fa-microphone-lines"></i></div>
+        <article class="lp-feat lp-glass lp-rv">
+          <div class="lp-feat__ico ico-voice"><i class="fas fa-microphone-lines" aria-hidden="true"></i></div>
           <h3>Jëf Baay · vocal Wolof</h3>
           <p>Posez vos questions agricoles à voix haute, en Wolof. Aucune lecture requise.</p>
-          <span class="ab-tag">Sans inscription <i class="fas fa-arrow-right"></i></span>
+          <span class="lp-tag">Sans inscription <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
         </article>
 
-        <article class="ab-card ab-rv" style="--ab-d:.1s">
-          <div class="ab-card__ico ico-off"><i class="fas fa-wifi"></i></div>
+        <article class="lp-feat lp-glass lp-rv" style="--lp-d:.1s">
+          <div class="lp-feat__ico ico-off"><i class="fas fa-wifi" aria-hidden="true"></i></div>
           <h3>Hors-ligne natif</h3>
           <p>Saisissez vos tâches sans réseau&nbsp;: tout se synchronise au retour de la connexion.</p>
         </article>
 
-        <article class="ab-card ab-rv" style="--ab-d:.2s">
-          <div class="ab-card__ico ico-market"><i class="fas fa-coins"></i></div>
+        <article class="lp-feat lp-glass lp-rv" style="--lp-d:.2s">
+          <div class="lp-feat__ico ico-market"><i class="fas fa-coins" aria-hidden="true"></i></div>
           <h3>Prix du marché</h3>
           <p>Suivez les cours et recevez une alerte quand le prix de votre culture bouge.</p>
         </article>
 
-        <article class="ab-card ab-rv">
-          <div class="ab-card__ico ico-leaf"><i class="fas fa-camera-retro"></i></div>
+        <article class="lp-feat lp-glass lp-rv">
+          <div class="lp-feat__ico ico-leaf"><i class="fas fa-camera-retro" aria-hidden="true"></i></div>
           <h3>Diagnostic photo</h3>
           <p>Photographiez une feuille malade&nbsp;: l'IA identifie le ravageur et conseille un traitement.</p>
-          <span class="ab-tag">Vision IA <i class="fas fa-arrow-right"></i></span>
         </article>
 
-        <article class="ab-card ab-card--wide ab-rv" style="--ab-d:.1s">
-          <div class="ab-card__ico ico-team"><i class="fas fa-people-group"></i></div>
+        <article class="lp-feat lp-feat--wide lp-glass lp-rv" style="--lp-d:.1s">
+          <div class="lp-feat__ico ico-team"><i class="fas fa-people-group" aria-hidden="true"></i></div>
           <h3>Gestion collaborative & coopératives</h3>
-          <p>Propriétaire, manager, technicien, ouvrier&nbsp;: chacun son rôle et ses accès. Idéal pour les coopératives qui pilotent des dizaines d'exploitations depuis un seul tableau de bord.</p>
+          <p>Propriétaire, manager, technicien, ouvrier&nbsp;: chacun son rôle. Idéal pour piloter des dizaines d'exploitations depuis un seul tableau de bord.</p>
         </article>
       </div>
 
-      <!-- Spotlight Jëf Baay -->
-      <div class="ab-spot ab-rv">
-        <div class="ab-spot__grid">
+      <div class="lp-spot lp-rv">
+        <div class="lp-spot__grid">
           <div>
-            <span class="ab-eyebrow ab-eyebrow--invert"><i class="fas fa-microphone"></i> Jëf Baay</span>
+            <span class="lp-eyebrow lp-eyebrow--invert"><i class="fas fa-microphone" aria-hidden="true"></i> Jëf Baay</span>
             <h2>L'assistant qui parle votre langue</h2>
             <p>40 à 60&nbsp;% des agriculteurs du Sahel ne lisent pas couramment. Jëf Baay supprime la barrière&nbsp;: on parle, il répond en Wolof, à voix haute.</p>
             {% if vocal_wolof_audio_enabled %}
-            <a href="{% url 'assistant_vocal' %}" class="ab-btn ab-btn--glow"><i class="fas fa-microphone"></i> Essayer maintenant</a>
+            <a href="{% url 'assistant_vocal' %}" class="lp-btn lp-btn--gold"><i class="fas fa-microphone" aria-hidden="true"></i> Essayer maintenant</a>
             {% else %}
-            <span class="ab-btn ab-btn--glow" style="opacity:.7;cursor:default"><i class="fas fa-microphone"></i> Bientôt disponible</span>
+            <span class="lp-btn lp-btn--gold" style="opacity:.7;cursor:default"><i class="fas fa-microphone" aria-hidden="true"></i> Bientôt disponible</span>
             {% endif %}
           </div>
-          <div class="ab-spot__bubble">
-            <div class="ab-spot__line">
-              <div class="ab-spot__av ab-av-user"><i class="fas fa-user"></i></div>
-              <div class="ab-spot__msg"><span lang="wo">« Kañ laa wara ji dugub&nbsp;? »</span> <br><small style="opacity:.6">(Quand dois-je semer le mil&nbsp;?)</small></div>
+          <div class="lp-spot__bubble">
+            <div class="lp-spot__line">
+              <div class="lp-spot__av lp-av-user"><i class="fas fa-user" aria-hidden="true"></i></div>
+              <div class="lp-spot__msg"><span lang="wo">« Kañ laa wara ji dugub ? »</span><br><small style="opacity:.6">(Quand dois-je semer le mil ?)</small></div>
             </div>
-            <div class="ab-spot__line">
-              <div class="ab-spot__av ab-av-bot"><i class="fas fa-seedling"></i></div>
-              <div class="ab-spot__msg bot" lang="wo">« Su naka tey, ji ci diggante 15 ak 25 juin, bu taw bi agsi… »</div>
+            <div class="lp-spot__line">
+              <div class="lp-spot__av lp-av-bot"><i class="fas fa-seedling" aria-hidden="true"></i></div>
+              <div class="lp-spot__msg bot" lang="wo">« Su naka tey, ji ci diggante 15 ak 25 juin, bu taw bi agsi… »</div>
             </div>
-            <div class="ab-bigwave" aria-hidden="true">
+            <div class="lp-bigwave" aria-hidden="true">
               <i style="height:14px"></i><i style="height:28px"></i><i style="height:18px"></i><i style="height:38px"></i><i style="height:22px"></i>
-              <i style="height:32px"></i><i style="height:16px"></i><i style="height:40px"></i><i style="height:24px"></i><i style="height:30px"></i>
-              <i style="height:18px"></i><i style="height:34px"></i><i style="height:14px"></i><i style="height:26px"></i>
+              <i style="height:32px"></i><i style="height:16px"></i><i style="height:40px"></i><i style="height:24px"></i>
             </div>
           </div>
         </div>
@@ -675,26 +280,26 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
     </div>
   </section>
 
-  <!-- ============================ ÉTAPES ============================ -->
-  <section class="ab-section" id="etapes">
-    <div class="ab-wrap">
-      <div class="ab-head ab-head--center ab-rv">
-        <span class="ab-eyebrow"><i class="fas fa-route"></i> Comment ça marche</span>
+  <!-- ÉTAPES -->
+  <section class="lp-section" id="etapes">
+    <div class="lp-wrap">
+      <div class="lp-head lp-head--center lp-rv">
+        <span class="lp-eyebrow"><i class="fas fa-route" aria-hidden="true"></i> Comment ça marche</span>
         <h2>Opérationnel en 3 étapes</h2>
       </div>
-      <div class="ab-steps">
-        <div class="ab-step ab-rv">
-          <div class="ab-step__n">1</div>
+      <div class="lp-steps">
+        <div class="lp-step lp-glass lp-rv">
+          <div class="lp-step__n">1</div>
           <h3>Créez votre ferme</h3>
           <p>Nom, localité, superficie. Quelques champs suffisent, même sur un téléphone d'entrée de gamme.</p>
         </div>
-        <div class="ab-step ab-rv" style="--ab-d:.1s">
-          <div class="ab-step__n">2</div>
+        <div class="lp-step lp-glass lp-rv" style="--lp-d:.1s">
+          <div class="lp-step__n">2</div>
           <h3>Lancez un projet</h3>
           <p>Choisissez votre culture. L'IA estime aussitôt le rendement attendu et le calendrier de la saison.</p>
         </div>
-        <div class="ab-step ab-rv" style="--ab-d:.2s">
-          <div class="ab-step__n">3</div>
+        <div class="lp-step lp-glass lp-rv" style="--lp-d:.2s">
+          <div class="lp-step__n">3</div>
           <h3>Pilotez & récoltez</h3>
           <p>Tâches, dépenses, prix du marché, diagnostic photo&nbsp;: tout est centralisé, en ligne comme hors-ligne.</p>
         </div>
@@ -702,146 +307,118 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
     </div>
   </section>
 
-  <!-- ============================ PREUVE TERRAIN ============================ -->
-  <section class="ab-section" id="preuve">
-    <div class="ab-wrap">
-      <div class="ab-proof ab-rv">
-        <div class="ab-proof__bg" aria-hidden="true">
-          <img src="{% static 'images/hero-farmers.jpg' %}" alt="" loading="lazy" decoding="async" width="1920" height="1280" />
+  <!-- PREUVE -->
+  <section class="lp-section" id="preuve">
+    <div class="lp-wrap">
+      <div class="lp-proof lp-rv">
+        <div class="lp-proof__bg" aria-hidden="true">
+          <img src="{% static 'images/hero-farmers.jpg' %}" alt="" loading="lazy" decoding="async" width="1920" height="1280">
         </div>
-        <div class="ab-proof__head">
-          <span class="ab-eyebrow ab-eyebrow--invert"><i class="fas fa-seedling"></i> Sur le terrain</span>
-          <h2>Déjà au champ, déjà au travail</h2>
-          <p>Des exploitations qui décident avec des données, dans les conditions réelles du Sahel.</p>
+        <div class="lp-head lp-rv">
+          <span class="lp-eyebrow lp-eyebrow--invert"><i class="fas fa-seedling" aria-hidden="true"></i> Sur le terrain</span>
+          <h2 style="color:#fff">Déjà au champ, déjà au travail</h2>
+          <p style="color:#bfe9da">Des exploitations qui décident avec des données, dans les conditions réelles du Sahel.</p>
         </div>
-        <div class="ab-proof__grid">
+        <div class="lp-proof__grid">
           {% if stats.show_trust_metrics %}
-            <div class="ab-proof__cell"><div class="ab-proof__big">{{ stats.nb_users|intcomma }}+</div><div class="ab-proof__lab">Agriculteurs connectés</div></div>
-            <div class="ab-proof__cell"><div class="ab-proof__big">{{ stats.nb_projets|intcomma }}</div><div class="ab-proof__lab">Projets agricoles suivis</div></div>
-            <div class="ab-proof__cell"><div class="ab-proof__big">{{ stats.nb_localites }}</div><div class="ab-proof__lab">Localités couvertes</div></div>
+            <div class="lp-proof__cell"><div class="lp-proof__big">{{ stats.nb_users|intcomma }}+</div><div class="lp-proof__lab">Agriculteurs connectés</div></div>
+            <div class="lp-proof__cell"><div class="lp-proof__big">{{ stats.nb_projets|intcomma }}</div><div class="lp-proof__lab">Projets suivis</div></div>
+            <div class="lp-proof__cell"><div class="lp-proof__big">{{ stats.nb_localites }}</div><div class="lp-proof__lab">Localités couvertes</div></div>
           {% else %}
-            <div class="ab-proof__cell"><div class="ab-proof__big">IA</div><div class="ab-proof__lab">Prédiction de rendement</div></div>
-            <div class="ab-proof__cell"><div class="ab-proof__big">Wolof</div><div class="ab-proof__lab">Assistant vocal natif</div></div>
-            <div class="ab-proof__cell"><div class="ab-proof__big">2G</div><div class="ab-proof__lab">Fonctionne en zone blanche</div></div>
+            <div class="lp-proof__cell"><div class="lp-proof__big">IA</div><div class="lp-proof__lab">Prédiction de rendement</div></div>
+            <div class="lp-proof__cell"><div class="lp-proof__big">Wolof</div><div class="lp-proof__lab">Assistant vocal natif</div></div>
+            <div class="lp-proof__cell"><div class="lp-proof__big">2G</div><div class="lp-proof__lab">Fonctionne en zone blanche</div></div>
           {% endif %}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============================ POUR QUI (#temoignages) ============================ -->
-  <section class="ab-section" id="temoignages">
-    <div class="ab-wrap">
-      <div class="ab-head ab-head--center ab-rv">
-        <span class="ab-eyebrow"><i class="fas fa-users"></i> Pour qui&nbsp;?</span>
+  <!-- PERSONAS -->
+  <section class="lp-section" id="temoignages">
+    <div class="lp-wrap">
+      <div class="lp-head lp-head--center lp-rv">
+        <span class="lp-eyebrow"><i class="fas fa-users" aria-hidden="true"></i> Pour qui ?</span>
         <h2>Pensé pour tout l'écosystème agricole</h2>
         <p>De la parcelle familiale à la coopérative régionale, chacun y trouve son tableau de bord.</p>
       </div>
-
-      <div class="ab-pers">
-        <article class="ab-per ab-rv">
-          <div class="ab-per__av ico-ai"><i class="fas fa-user"></i></div>
+      <div class="lp-pers">
+        <article class="lp-per lp-glass lp-rv">
+          <div class="lp-per__av ico-ai"><i class="fas fa-user" aria-hidden="true"></i></div>
           <h3>L'agriculteur indépendant</h3>
-          <blockquote>«&nbsp;Je demande à Jëf Baay quand semer, je note mes dépenses à la voix, et je vends quand le prix est bon.&nbsp;»</blockquote>
+          <blockquote>« Je demande à Jëf Baay quand semer, je note mes dépenses à la voix, et je vends quand le prix est bon. »</blockquote>
           <p>Pilote sa parcelle depuis son téléphone, même sans réseau, sans avoir besoin de lire.</p>
-          <div class="ab-per__tags"><span>Vocal Wolof</span><span>Hors-ligne</span><span>Prix marché</span></div>
+          <div class="lp-per__tags"><span>Vocal Wolof</span><span>Hors-ligne</span><span>Prix marché</span></div>
         </article>
-        <article class="ab-per ab-rv" style="--ab-d:.1s">
-          <div class="ab-per__av ico-team"><i class="fas fa-sitemap"></i></div>
+        <article class="lp-per lp-glass lp-rv" style="--lp-d:.1s">
+          <div class="lp-per__av ico-team"><i class="fas fa-sitemap" aria-hidden="true"></i></div>
           <h3>La coopérative</h3>
-          <blockquote>«&nbsp;Quarante exploitations, un seul tableau de bord. Chaque membre a son rôle et ses accès.&nbsp;»</blockquote>
+          <blockquote>« Quarante exploitations, un seul tableau de bord. Chaque membre a son rôle et ses accès. »</blockquote>
           <p>Agrège les rendements, répartit les tâches et suit les finances de tous ses membres.</p>
-          <div class="ab-per__tags"><span>Multi-fermes</span><span>Rôles & accès</span><span>Finance</span></div>
+          <div class="lp-per__tags"><span>Multi-fermes</span><span>Rôles & accès</span><span>Finance</span></div>
         </article>
-        <article class="ab-per ab-rv" style="--ab-d:.2s">
-          <div class="ab-per__av ico-leaf"><i class="fas fa-user-doctor"></i></div>
+        <article class="lp-per lp-glass lp-rv" style="--lp-d:.2s">
+          <div class="lp-per__av ico-leaf"><i class="fas fa-user-doctor" aria-hidden="true"></i></div>
           <h3>Le technicien agricole</h3>
-          <blockquote>«&nbsp;Une photo de la feuille malade et j'ai un pré-diagnostic avant même d'arriver sur place.&nbsp;»</blockquote>
+          <blockquote>« Une photo de la feuille malade et j'ai un pré-diagnostic avant même d'arriver sur place. »</blockquote>
           <p>Suit plusieurs exploitations à distance, priorise ses visites et trace ses interventions.</p>
-          <div class="ab-per__tags"><span>Diagnostic photo</span><span>Suivi à distance</span></div>
+          <div class="lp-per__tags"><span>Diagnostic photo</span><span>Suivi à distance</span></div>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- ============================ FAQ ============================ -->
-  <section class="ab-section" id="faq">
-    <div class="ab-wrap">
-      <div class="ab-head ab-head--center ab-rv">
-        <span class="ab-eyebrow"><i class="fas fa-circle-question"></i> FAQ</span>
+  <!-- FAQ -->
+  <section class="lp-section" id="faq">
+    <div class="lp-wrap">
+      <div class="lp-head lp-head--center lp-rv">
+        <span class="lp-eyebrow"><i class="fas fa-circle-question" aria-hidden="true"></i> FAQ</span>
         <h2>Questions fréquentes</h2>
       </div>
-
-      <div class="ab-faq ab-rv">
+      <div class="lp-faq lp-rv">
         <details>
-          <summary>Andd Baay est-il gratuit&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
-          <div class="ab-faq__a">Oui. Créer un compte, gérer sa ferme, lancer des projets et consulter les prix du marché est gratuit. Vous démarrez en deux minutes, sans carte bancaire.</div>
+          <summary>Andd Baay est-il gratuit ? <i class="fas fa-plus" aria-hidden="true"></i></summary>
+          <div class="lp-faq__a">Oui. Créer un compte, gérer sa ferme, lancer des projets et consulter les prix du marché est gratuit. Sans carte bancaire.</div>
         </details>
         <details>
-          <summary>Est-ce que ça fonctionne sans connexion&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
-          <div class="ab-faq__a">Oui, c'est conçu pour. Vous saisissez vos tâches et vos dépenses hors-ligne&nbsp;; tout se synchronise automatiquement dès que le réseau revient, même en 2G.</div>
+          <summary>Est-ce que ça fonctionne sans connexion ? <i class="fas fa-plus" aria-hidden="true"></i></summary>
+          <div class="lp-faq__a">Oui. Vous saisissez vos tâches et dépenses hors-ligne&nbsp;; tout se synchronise dès que le réseau revient, même en 2G.</div>
         </details>
         <details>
-          <summary>Faut-il savoir lire pour l'utiliser&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
-          <div class="ab-faq__a">Non. L'assistant vocal Jëf Baay comprend le Wolof parlé et répond à voix haute. Vous pouvez poser vos questions agricoles et piloter l'application sans lire ni écrire.</div>
+          <summary>Faut-il savoir lire pour l'utiliser ? <i class="fas fa-plus" aria-hidden="true"></i></summary>
+          <div class="lp-faq__a">Non. Jëf Baay comprend le Wolof parlé et répond à voix haute. Vous pilotez l'application sans lire ni écrire.</div>
         </details>
         <details>
-          <summary>Puis-je gérer plusieurs fermes ou une coopérative&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
-          <div class="ab-faq__a">Oui. Chaque membre reçoit un rôle (propriétaire, manager, technicien, ouvrier) avec des accès adaptés. Une coopérative peut suivre des dizaines d'exploitations depuis un seul tableau de bord.</div>
+          <summary>Puis-je gérer plusieurs fermes ou une coopérative ? <i class="fas fa-plus" aria-hidden="true"></i></summary>
+          <div class="lp-faq__a">Oui. Chaque membre reçoit un rôle (propriétaire, manager, technicien, ouvrier) avec des accès adaptés.</div>
         </details>
         <details>
-          <summary>Mes données sont-elles protégées&nbsp;? <i class="fas fa-plus" aria-hidden="true"></i></summary>
-          <div class="ab-faq__a">Vos données d'exploitation vous appartiennent et ne sont jamais revendues. Consultez notre <a href="{% url 'confidentialite' %}">politique de confidentialité</a> pour le détail.</div>
+          <summary>Mes données sont-elles protégées ? <i class="fas fa-plus" aria-hidden="true"></i></summary>
+          <div class="lp-faq__a">Vos données d'exploitation vous appartiennent. Consultez notre <a href="{% url 'confidentialite' %}">politique de confidentialité</a>.</div>
         </details>
       </div>
     </div>
   </section>
 
-  <!-- ============================ CTA FINAL ============================ -->
-  <section class="ab-final">
-    <div class="ab-final__box ab-rv">
+  <!-- CTA FINAL -->
+  <section class="lp-final">
+    <div class="lp-final__box lp-rv">
       <h2>La prochaine saison<br>se prépare maintenant.</h2>
       <p>Rejoignez les agriculteurs qui décident avec des données plutôt qu'à l'aveugle. Gratuit pour démarrer.</p>
-      <div class="ab-hero__cta">
+      <div class="lp-hero__cta">
         {% if request.user.is_authenticated %}
-          <a href="{% url 'dashboard' %}" class="ab-btn ab-btn--glow">Aller au tableau de bord <i class="fas fa-arrow-right"></i></a>
+          <a href="{% url 'dashboard' %}" class="lp-btn lp-btn--gold">Aller au tableau de bord <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
         {% else %}
-          <a href="{% url 'register' %}" class="ab-btn ab-btn--glow">Créer mon compte gratuit <i class="fas fa-arrow-right"></i></a>
-          <a href="{% url 'login' %}" class="ab-btn ab-btn--glass">J'ai déjà un compte</a>
+          <a href="{% url 'register' %}" class="lp-btn lp-btn--gold">Créer mon compte gratuit <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          <a href="{% url 'login' %}" class="lp-btn lp-btn--glass">J'ai déjà un compte</a>
         {% endif %}
       </div>
     </div>
   </section>
 
 </div>
+{% endblock %}
 
-<script>
-(function () {
-  var root = document.querySelector('.ab-land');
-  if (!root) return;
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* Révélation au scroll (progressive enhancement : sans JS tout reste visible) */
-  if (!reduced && 'IntersectionObserver' in window) {
-    root.classList.add('ab-js');
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    root.querySelectorAll('.ab-rv').forEach(function (el) { io.observe(el); });
-  }
-
-  /* Halo qui suit le pointeur sur les cartes */
-  if (!reduced) {
-    root.querySelectorAll('.ab-card').forEach(function (c) {
-      c.addEventListener('pointermove', function (e) {
-        var r = c.getBoundingClientRect();
-        c.style.setProperty('--ab-mx', (e.clientX - r.left) + 'px');
-        c.style.setProperty('--ab-my', (e.clientY - r.top) + 'px');
-      });
-    });
-  }
-})();
-</script>
+{% block extra_scripts %}
+<script src="{% static 'js/landing.js' %}"></script>
 {% endblock %}
