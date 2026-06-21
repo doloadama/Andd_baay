@@ -51,7 +51,7 @@
         </div>
         <div class="pd-hero__aside">
           {% url 'api_projet_weather' projet.id as weather_api_url %}
-          {% include "partials/_weather_widget.html" with variant="pill" widget_id="atWeatherPill" fetch_url=weather_api_url show_meta=False show_credit=False %}
+          {% include "partials/_weather_widget.html" with variant="pill" widget_id="atWeatherPill" fetch_url=weather_api_url show_meta=False show_credit=False extra_class="pd-meteo-widget--on-hero" %}
           <span class="pd-status pd-status--{{ projet.statut }}">{{ projet.get_statut_display }}</span>
         </div>
       </div>
@@ -247,22 +247,22 @@
                                 <div class="at-muted small">Depuis {{ campagne.campagne_precedente.nom }}</div>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td data-label="Dates">
                                 {{ campagne.date_debut|date:"d/m/Y" }}
                                 {% if campagne.date_fin %}- {{ campagne.date_fin|date:"d/m/Y" }}{% endif %}
                             </td>
-                            <td>
+                            <td data-label="Statut">
                                 <span class="at-campaign-status at-campaign-status--{{ campagne.statut }}">
                                     {{ campagne.get_statut_display }}
                                 </span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" data-label="Rendement">
                                 {% if campagne.rendement_total %}{{ campagne.rendement_total|floatformat:0|intcomma }} kg{% else %}--{% endif %}
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" data-label="Kg/ha">
                                 {% if campagne.rendement_par_hectare %}{{ campagne.rendement_par_hectare|floatformat:1 }}{% else %}--{% endif %}
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" data-label="Benefice">
                                 {% if campagne.benefice != None %}{{ campagne.benefice|floatformat:0|intcomma }} FCFA{% else %}--{% endif %}
                             </td>
                         </tr>
@@ -385,10 +385,10 @@
                     <tbody>
                         {% for inv in investissements %}
                         <tr>
-                            <td>{{ inv.libelle_affichage }}</td>
-                            <td><span class="badge bg-light text-dark">{{ inv.get_categorie_display }}</span></td>
-                            <td>{{ inv.date_creation|date:"d/m/Y" }}</td>
-                            <td class="at-ledger__amount">{{ inv.calculer_investissement_total|floatformat:0|intcomma }} F</td>
+                            <td data-label="Libelle">{{ inv.libelle_affichage }}</td>
+                            <td data-label="Categorie"><span class="badge bg-light text-dark">{{ inv.get_categorie_display }}</span></td>
+                            <td data-label="Date">{{ inv.date_creation|date:"d/m/Y" }}</td>
+                            <td class="at-ledger__amount" data-label="Montant">{{ inv.calculer_investissement_total|floatformat:0|intcomma }} F</td>
                         </tr>
                         {% empty %}
                         <tr>
@@ -480,16 +480,12 @@
     <div x-show="activeTab === 'accompagnement'" x-transition>
 
         {# ── En-tête ── #}
-        <div class="at-card" style="background: linear-gradient(135deg, var(--ab-color-primary-night), var(--ab-color-primary)); color: white; border: none; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <div style="width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">
-                    🌿
-                </div>
+        <div class="at-card pd-accomp-header">
+            <div class="pd-accomp-header__row">
+                <div class="pd-accomp-header__icon" aria-hidden="true">🌿</div>
                 <div>
-                    <h2 style="margin:0 0 4px;font-size:20px;font-weight:800;">Accompagnement & Diagnostic</h2>
-                    <p style="margin:0;opacity:0.85;font-size:14px;">
-                        Conseils agronomiques personnalisés et diagnostic photo BaayVision pour chaque culture du projet.
-                    </p>
+                    <h2>Accompagnement &amp; Diagnostic</h2>
+                    <p>Conseils agronomiques personnalisés et diagnostic photo BaayVision pour chaque culture du projet.</p>
                 </div>
             </div>
         </div>
@@ -500,110 +496,85 @@
             {% for item in accompagnement_cultures %}
             <div class="at-card">
                 {# En-tête culture #}
-                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-                    <div style="display:flex; align-items:center; gap:14px;">
+                <div class="pd-accomp-culture">
+                    <div class="pd-accomp-culture__id">
                         {% if item.pp.image %}
-                        <img src="{{ item.pp.image.url }}" alt="{{ item.pp.produit.nom }}"
-                             style="width:52px;height:52px;border-radius:14px;object-fit:cover;border:2px solid #E5E7EB;">
+                        <img src="{{ item.pp.image.url }}" alt="{{ item.pp.produit.nom }}" class="pd-accomp-culture__img">
                         {% else %}
-                        <div style="width:52px;height:52px;border-radius:14px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #BBF7D0;">🌱</div>
+                        <div class="pd-accomp-culture__ph" aria-hidden="true">🌱</div>
                         {% endif %}
                         <div>
-                            <h3 style="margin:0 0 3px;font-size:17px;font-weight:800;color:var(--ab-color-primary-night);">{{ item.pp.produit.nom }}</h3>
-                            <p style="margin:0;font-size:12px;color:#6B7280;">
+                            <h3 class="pd-accomp-culture__name">{{ item.pp.produit.nom }}</h3>
+                            <p class="pd-accomp-culture__meta">
                                 {% if item.pp.superficie_allouee %}{{ item.pp.superficie_allouee|floatformat:2 }} ha{% endif %}
                                 {% if item.pp.date_semis %} · Semis : {{ item.pp.date_semis|date:"d/m/Y" }}{% endif %}
-                                {% if item.stade_label %} · <strong style="color:var(--ab-color-primary);">{{ item.stade_label }}</strong>{% endif %}
+                                {% if item.stade_label %} · <strong>{{ item.stade_label }}</strong>{% endif %}
                             </p>
                         </div>
                     </div>
                     <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
-                        <i class="fas fa-external-link-alt"></i> Voir détails
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> Voir détails
                     </a>
                 </div>
 
                 {# ── Conseils agronomiques ── #}
                 {% if item.conseils %}
-                <div style="margin-bottom:16px;">
-                    <h4 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
-                        <i class="fas fa-lightbulb" style="color:var(--ab-color-primary);"></i> Conseils agronomiques ({{ item.conseils|length }})
-                    </h4>
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        {% for conseil in item.conseils %}
-                        <div style="border-radius:10px;padding:11px 14px;border-left:4px solid
-                            {% if conseil.priorite == 'critique' %}var(--ab-color-danger){% elif conseil.priorite == 'haute' %}#F5A623{% elif conseil.priorite == 'normale' %}var(--ab-color-primary){% else %}#3B82F6{% endif %};
-                            background:
-                            {% if conseil.priorite == 'critique' %}#FEF2F2{% elif conseil.priorite == 'haute' %}#FFFBEB{% elif conseil.priorite == 'normale' %}#F0FDF4{% else %}#EFF6FF{% endif %};">
-                            <div style="display:flex;align-items:flex-start;gap:8px;">
-                                <i class="{{ conseil.icone }}" style="color:{{ conseil.couleur }};margin-top:2px;flex-shrink:0;" aria-hidden="true"></i>
-                                <div>
-                                    <p style="margin:0 0 3px;font-size:13px;font-weight:700;color:#111827;">{{ conseil.titre }}</p>
-                                    <p style="margin:0;font-size:12px;color:#374151;line-height:1.5;">{{ conseil.message|truncatewords:25 }}</p>
-                                </div>
-                            </div>
+                <h4 class="pd-accomp-section">
+                    <i class="fas fa-lightbulb" aria-hidden="true"></i> Conseils agronomiques ({{ item.conseils|length }})
+                </h4>
+                <div class="pd-accomp-conseils">
+                    {% for conseil in item.conseils %}
+                    <div class="pd-accomp-card pd-accomp-card--{% if conseil.priorite == 'critique' %}error{% elif conseil.priorite == 'haute' %}pending{% elif conseil.priorite == 'normale' %}success{% else %}info{% endif %} pd-accomp-conseil">
+                        <i class="{{ conseil.icone }} pd-accomp-conseil__ico" style="color:{{ conseil.couleur }};" aria-hidden="true"></i>
+                        <div>
+                            <p class="pd-accomp-title">{{ conseil.titre }}</p>
+                            <p class="pd-accomp-msg">{{ conseil.message|truncatewords:25 }}</p>
                         </div>
-                        {% endfor %}
                     </div>
-                    <div style="margin-top:10px;">
-                        <a href="{% url 'detail_semis' item.pp.id %}" style="font-size:12px;color:var(--ab-color-primary);font-weight:600;text-decoration:none;">
-                            Voir tous les conseils détaillés →
-                        </a>
-                    </div>
+                    {% endfor %}
                 </div>
+                <a href="{% url 'detail_semis' item.pp.id %}" class="pd-accomp-link">Voir tous les conseils détaillés →</a>
                 {% endif %}
 
                 {# ── Diagnostic BaayVision ── #}
-                <div style="border-top:1px solid #E5E7EB;padding-top:16px;">
-                    <h4 style="font-size:13px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
-                        <i class="fas fa-microscope" style="color:#7C3AED;"></i> Diagnostic photo BaayVision
+                <div class="pd-accomp-diag">
+                    <h4 class="pd-accomp-section pd-accomp-section--vision">
+                        <i class="fas fa-microscope" aria-hidden="true"></i> Diagnostic photo BaayVision
                     </h4>
 
                     {% if item.derniere_analyse %}
                     {# Afficher résultat de la dernière analyse #}
-                    <div style="border-radius:10px;padding:12px 14px;border:1px solid
-                        {% if item.derniere_analyse.statut == 'terminee' %}#BBF7D0{% elif item.derniere_analyse.statut == 'echec' %}#FCA5A5{% else %}#FDE68A{% endif %};
-                        background:
-                        {% if item.derniere_analyse.statut == 'terminee' %}#F0FDF4{% elif item.derniere_analyse.statut == 'echec' %}#FEF2F2{% else %}#FFFBEB{% endif %};">
-                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                    <div class="pd-accomp-card pd-accomp-card--{% if item.derniere_analyse.statut == 'terminee' %}success{% elif item.derniere_analyse.statut == 'echec' %}error{% else %}pending{% endif %}">
+                        <div class="pd-accomp-diag__row">
                             <div>
                                 {% if item.derniere_analyse.statut == 'terminee' and item.derniere_analyse.resultat %}
                                 {% with det=item.derniere_analyse.resultat.detections|length %}
-                                <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#166534;">
-                                    ✅ Analyse terminée — {{ det }} problème{{ det|pluralize }} détecté{{ det|pluralize }}
-                                </p>
+                                <p class="pd-accomp-title">✅ Analyse terminée — {{ det }} problème{{ det|pluralize }} détecté{{ det|pluralize }}</p>
                                 {% endwith %}
                                 {% elif item.derniere_analyse.statut == 'echec' %}
-                                <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#991B1B;">
-                                    ❌ Analyse échouée
-                                </p>
+                                <p class="pd-accomp-title">❌ Analyse échouée</p>
                                 {% elif item.derniere_analyse.statut == 'en_attente' or item.derniere_analyse.statut == 'en_cours' %}
-                                <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#92400E;">
-                                    ⏳ Analyse en cours…
-                                </p>
+                                <p class="pd-accomp-title">⏳ Analyse en cours…</p>
                                 {% endif %}
-                                <p style="margin:0;font-size:11px;color:#6B7280;">{{ item.derniere_analyse.date_creation|date:"d/m/Y H:i" }}</p>
+                                <p class="pd-accomp-meta">{{ item.derniere_analyse.date_creation|date:"d/m/Y H:i" }}</p>
                             </div>
                             <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
-                                <i class="fas fa-eye"></i> Voir résultat
+                                <i class="fas fa-eye" aria-hidden="true"></i> Voir résultat
                             </a>
                         </div>
                     </div>
                     {% elif item.pp.image %}
-                    <div style="border-radius:10px;padding:12px 14px;background:#F5F3FF;border:1px solid #DDD6FE;">
-                        <p style="margin:0 0 8px;font-size:13px;color:#4C1D95;font-weight:600;">
-                            📸 Photo disponible — Diagnostic non encore lancé
-                        </p>
+                    <div class="pd-accomp-card pd-accomp-card--vision">
+                        <p class="pd-accomp-title" style="margin-bottom:8px;">📸 Photo disponible — Diagnostic non encore lancé</p>
                         <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
-                            <i class="fas fa-wand-magic-sparkles"></i> Lancer le diagnostic
+                            <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Lancer le diagnostic
                         </a>
                     </div>
                     {% else %}
-                    <div style="border-radius:10px;padding:12px 14px;background:#F9FAFB;border:1px dashed #D1D5DB;">
-                        <p style="margin:0 0 8px;font-size:13px;color:#6B7280;">
-                            📷 Ajoutez une photo pour activer le diagnostic IA (maladies, ravageurs)
-                        </p>
+                    <div class="pd-accomp-card pd-accomp-card--empty">
+                        <p class="pd-accomp-msg" style="margin-bottom:8px;">📷 Ajoutez une photo pour activer le diagnostic IA (maladies, ravageurs)</p>
                         <a href="{% url 'modifier_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
-                            <i class="fas fa-camera"></i> Ajouter une photo
+                            <i class="fas fa-camera" aria-hidden="true"></i> Ajouter une photo
                         </a>
                     </div>
                     {% endif %}

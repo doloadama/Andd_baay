@@ -304,6 +304,27 @@ main .container-modern:has(.pd-page) {
     }
 }
 
+/* Variante hero : pill météo en verre (lisible sur le panneau sombre) */
+.pd-hero .pd-meteo-widget--on-hero {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    --ab-pd-meteo-ink: #ffffff;
+    --ab-pd-meteo-ink-sub: #eafff6;
+    --ab-pd-meteo-muted: #a9ccc0;
+}
+
+.pd-hero .pd-meteo-widget--on-hero .pd-meteo-temp {
+    color: #fff;
+    text-shadow: none;
+}
+
+.pd-hero .pd-meteo-widget--on-hero .pd-meteo-desc {
+    color: #cfeee2;
+}
+
 /* ── Metrics (chips de verre sur le hero) ──────────────────────────────────── */
 .pd-metrics {
     display: grid;
@@ -348,7 +369,7 @@ main .container-modern:has(.pd-page) {
 /* ── Tabs (segmented sticky · tactile) ─────────────────────────────────────── */
 .pd-tabs-wrap {
     position: sticky;
-    top: 0;
+    top: calc(56px + env(safe-area-inset-top, 0px));
     z-index: 90;
     margin: clamp(16px, 3vw, 24px) 0 24px;
     padding: 10px 0;
@@ -1065,15 +1086,138 @@ main .container-modern:has(.pd-page) {
 .pd-accomp-card--vision { background: #f5f3ff; border-color: #ddd6fe; }
 .pd-accomp-card--empty { background: var(--ab-at-bg); border-style: dashed; }
 
-.dark-mode .pd-accomp-card--success { background: rgba(22, 101, 52, 0.15); }
-.dark-mode .pd-accomp-card--error { background: rgba(153, 27, 27, 0.15); }
-.dark-mode .pd-accomp-card--pending { background: rgba(146, 64, 14, 0.15); }
-.dark-mode .pd-accomp-card--vision { background: rgba(76, 29, 149, 0.15); }
+.pd-accomp-card--info { background: #eff6ff; border-color: #bfdbfe; }
+
+.dark-mode .pd-accomp-card--success { background: rgba(22, 101, 52, 0.15); border-color: rgba(34, 197, 94, 0.25); }
+.dark-mode .pd-accomp-card--error { background: rgba(153, 27, 27, 0.15); border-color: rgba(239, 68, 68, 0.25); }
+.dark-mode .pd-accomp-card--pending { background: rgba(146, 64, 14, 0.15); border-color: rgba(245, 158, 11, 0.25); }
+.dark-mode .pd-accomp-card--vision { background: rgba(76, 29, 149, 0.15); border-color: rgba(139, 92, 246, 0.25); }
+.dark-mode .pd-accomp-card--info { background: rgba(30, 64, 175, 0.15); border-color: rgba(59, 130, 246, 0.25); }
+
+/* En-tête de l'onglet accompagnement */
+.pd-accomp-header {
+    background: linear-gradient(135deg, var(--ab-color-primary-night, #04342c), var(--pd-brand));
+    color: #fff;
+    border: none;
+}
+
+.pd-accomp-header__row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+.pd-accomp-header__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+}
+
+.pd-accomp-header h2 { margin: 0 0 4px; font-size: 1.25rem; color: #fff; }
+.pd-accomp-header p { margin: 0; opacity: 0.88; font-size: 0.875rem; }
+
+/* En-tête culture */
+.pd-accomp-culture {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.pd-accomp-culture__id { display: flex; align-items: center; gap: 14px; min-width: 0; }
+
+.pd-accomp-culture__img {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 2px solid var(--pd-border);
+    flex-shrink: 0;
+}
+
+.pd-accomp-culture__ph {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--pd-brand-soft);
+    border: 2px solid var(--pd-brand-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.pd-accomp-culture__name { margin: 0 0 3px; font-size: 1.0625rem; font-weight: 700; color: var(--pd-text); }
+.pd-accomp-culture__meta { margin: 0; font-size: 0.75rem; color: var(--pd-muted); }
+.pd-accomp-culture__meta strong { color: var(--pd-brand); }
+
+/* Titres de section */
+.pd-accomp-section {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--pd-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pd-accomp-section i { color: var(--pd-brand); }
+.pd-accomp-section--vision i { color: #7c3aed; }
+
+.dark-mode .pd-accomp-section--vision i { color: #c4b5fd; }
+
+/* Liste de conseils */
+.pd-accomp-conseils { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.pd-accomp-conseil { display: flex; align-items: flex-start; gap: 8px; }
+.pd-accomp-conseil__ico { margin-top: 2px; flex-shrink: 0; }
+
+.pd-accomp-card--success { border-left: 4px solid var(--pd-brand); }
+.pd-accomp-card--error { border-left: 4px solid var(--ab-color-danger, #dc2626); }
+.pd-accomp-card--pending { border-left: 4px solid #f5a623; }
+.pd-accomp-card--info { border-left: 4px solid #3b82f6; }
+
+.pd-accomp-diag { border-top: 1px solid var(--pd-border); padding-top: 16px; }
+
+.pd-accomp-diag__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pd-accomp-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--pd-brand);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pd-accomp-link:hover { color: var(--pd-brand-deep); }
 
 .pd-accomp-title {
     margin: 0 0 2px;
     font-size: 0.8125rem;
     font-weight: 700;
+    color: var(--pd-text);
+}
+
+.pd-accomp-msg {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--pd-muted);
+    line-height: 1.5;
 }
 
 .pd-accomp-meta {
@@ -1102,13 +1246,28 @@ main .container-modern:has(.pd-page) {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
+    .pd-shell {
+        padding-left: max(14px, env(safe-area-inset-left, 0px));
+        padding-right: max(14px, env(safe-area-inset-right, 0px));
+    }
+
     .pd-hero__aside {
         width: 100%;
     }
 
     .pd-hero__aside .pd-meteo-widget--pill {
         justify-content: center;
+        flex: 1 1 auto;
+    }
+
+    .at-kpi__value {
+        font-size: 1.5rem;
+    }
+
+    .at-card--interactive::after {
+        opacity: 0.5;
+        transform: none;
     }
 
     .at-task-item {
