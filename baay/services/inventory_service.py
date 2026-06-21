@@ -10,6 +10,7 @@ from typing import Optional
 
 from django.db import transaction
 from django.db.models import Sum, F, DecimalField
+from django.utils import timezone
 
 from baay.models import (
     Ferme,
@@ -91,6 +92,68 @@ def ajuster_stock_recolte(
         utilisateur=utilisateur,
     )
     return stock
+
+
+@transaction.atomic
+def synchroniser_recoltes_projet(projet, utilisateur: Optional[Profile] = None) -> list[StockRecolte]:
+    """
+    Alimente l'inventaire de récoltes à partir des rendements finaux saisis
+    lorsqu'un projet est terminé.
+
+    Pour chaque produit du projet ayant un ``rendement_final`` > 0, crée (ou met
+    à jour) un StockRecolte rattaché à la ferme + projet + produit. La fonction
+    est idempotente : re-saisir un rendement ajuste la quantité et enregistre
+    l'écart comme MouvementStock, sans créer de doublon.
+
+    :param projet: instance Projet terminé.
+    :param utilisateur: Profile auteur de l'opération (optionnel).
+    :return: liste des StockRecolte créés ou mis à jour.
+    """
+    ferme = projet.ferme
+    resultats: list[StockRecolte] = []
+
+    for pp in projet.projet_produits.select_related("produit").all():
+        rendement = pp.rendement_final
+        if rendement is None or rendement <= 0:
+            continue
+
+        date_recolte = pp.date_recolte_effective or timezone.localdate()
+        stock, cree = StockRecolte.objects.get_or_create(
+            ferme=ferme,
+            projet=projet,
+            produit=pp.produit,
+            defaults={
+                "quantite": Decimal("0.00"),
+                "unite": StockRecolte.UNITE_KG,
+                "date_recolte": date_recolte,
+            },
+        )
+
+        delta = Decimal(rendement) - stock.quantite
+        if delta == 0 and not cree:
+            if stock.date_recolte != date_recolte:
+                stock.date_recolte = date_recolte
+                stock.save(update_fields=["date_recolte", "date_modification"])
+            resultats.append(stock)
+            continue
+
+        stock.quantite = Decimal(rendement)
+        stock.date_recolte = date_recolte
+        stock.save(update_fields=["quantite", "date_recolte", "date_modification"])
+
+        if delta != 0:
+            MouvementStock.objects.create(
+                ferme=ferme,
+                type=MouvementStock.TYPE_ENTREE if delta > 0 else MouvementStock.TYPE_SORTIE,
+                stock_recolte=stock,
+                quantite=abs(delta),
+                raison=f"Récolte du projet « {projet.nom} »",
+                utilisateur=utilisateur,
+            )
+
+        resultats.append(stock)
+
+    return resultats
 
 
 def stocks_en_alerte(ferme: Ferme) -> list[StockIntrant]:
