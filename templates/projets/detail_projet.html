@@ -247,22 +247,22 @@
                                 <div class="at-muted small">Depuis {{ campagne.campagne_precedente.nom }}</div>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td data-label="Dates">
                                 {{ campagne.date_debut|date:"d/m/Y" }}
                                 {% if campagne.date_fin %}- {{ campagne.date_fin|date:"d/m/Y" }}{% endif %}
                             </td>
-                            <td>
+                            <td data-label="Statut">
                                 <span class="at-campaign-status at-campaign-status--{{ campagne.statut }}">
                                     {{ campagne.get_statut_display }}
                                 </span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" data-label="Rendement">
                                 {% if campagne.rendement_total %}{{ campagne.rendement_total|floatformat:0|intcomma }} kg{% else %}--{% endif %}
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" data-label="Kg/ha">
                                 {% if campagne.rendement_par_hectare %}{{ campagne.rendement_par_hectare|floatformat:1 }}{% else %}--{% endif %}
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" data-label="Benefice">
                                 {% if campagne.benefice != None %}{{ campagne.benefice|floatformat:0|intcomma }} FCFA{% else %}--{% endif %}
                             </td>
                         </tr>
@@ -385,10 +385,10 @@
                     <tbody>
                         {% for inv in investissements %}
                         <tr>
-                            <td>{{ inv.libelle_affichage }}</td>
-                            <td><span class="badge bg-light text-dark">{{ inv.get_categorie_display }}</span></td>
-                            <td>{{ inv.date_creation|date:"d/m/Y" }}</td>
-                            <td class="at-ledger__amount">{{ inv.calculer_investissement_total|floatformat:0|intcomma }} F</td>
+                            <td data-label="Libelle">{{ inv.libelle_affichage }}</td>
+                            <td data-label="Categorie"><span class="badge bg-light text-dark">{{ inv.get_categorie_display }}</span></td>
+                            <td data-label="Date">{{ inv.date_creation|date:"d/m/Y" }}</td>
+                            <td class="at-ledger__amount" data-label="Montant">{{ inv.calculer_investissement_total|floatformat:0|intcomma }} F</td>
                         </tr>
                         {% empty %}
                         <tr>

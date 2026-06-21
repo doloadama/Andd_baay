@@ -348,7 +348,7 @@ main .container-modern:has(.pd-page) {
 /* ── Tabs (segmented sticky · tactile) ─────────────────────────────────────── */
 .pd-tabs-wrap {
     position: sticky;
-    top: 0;
+    top: calc(56px + env(safe-area-inset-top, 0px));
     z-index: 90;
     margin: clamp(16px, 3vw, 24px) 0 24px;
     padding: 10px 0;
@@ -1102,13 +1102,27 @@ main .container-modern:has(.pd-page) {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
+    .pd-shell {
+        padding-left: max(14px, env(safe-area-inset-left, 0px));
+        padding-right: max(14px, env(safe-area-inset-right, 0px));
+    }
+
     .pd-hero__aside {
         width: 100%;
     }
 
     .pd-hero__aside .pd-meteo-widget--pill {
         justify-content: center;
+        flex: 1 1 auto;
+    }
+
+    .at-kpi__value {
+        font-size: 1.5rem;
+    }
+
+    .at-card--interactive::after {
+        display: none;
     }
 
     .at-task-item {

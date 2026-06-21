@@ -18,7 +18,7 @@
     --pl-font: var(--ab-font-sans, 'Inter', system-ui, sans-serif);
     --pl-display: var(--ab-font-display, 'Space Grotesk', system-ui, sans-serif);
     --pl-max: 1120px;
-    --pl-sticky-top: 0px;
+    --pl-sticky-top: calc(56px + env(safe-area-inset-top, 0px));
     font-family: var(--pl-font);
     color: var(--pl-text);
     padding-bottom: 48px;
@@ -242,7 +242,7 @@ main .container-modern:has(.pl-page) {
     border: 1px solid var(--pl-border);
     background: var(--pl-surface);
     color: var(--pl-text);
-    font-size: 0.9375rem;
+    font-size: 16px;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
