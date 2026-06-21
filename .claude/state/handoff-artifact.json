@@ -2,15 +2,15 @@
   "version": "2.0.0",
   "legacy_version": "1.0.0",
   "artifactType": "structured-handoff",
-  "timestamp": "2026-06-21T08:16:34Z",
+  "timestamp": "2026-06-21T10:47:59Z",
   "sessionId": "",
   "previous_state": {
-    "summary": "Before compaction: 6 recent edit(s)",
+    "summary": "Before compaction: 1 recent edit(s)",
     "plan_counts": {
       "total": 10,
       "wip": 0,
       "blocked": 0,
-      "recent_edits": 6
+      "recent_edits": 1
     }
   },
   "next_action": {
@@ -27,26 +27,26 @@
     {
       "severity": "medium",
       "kind": "verification",
-      "summary": "6 recent edit(s) should be re-validated after resume",
-      "detail": ".claude/state/instructions-loaded.jsonl, baay/static/css/dashboard_cockpit.css, templates/dashboard/bento_base.html, templates/dashboard/bento_base_simple.html, baay/static/css/bento-dashboard.css"
+      "summary": "1 recent edit(s) should be re-validated after resume",
+      "detail": ".claude/state/session.events.jsonl"
     }
   ],
   "failed_checks": null,
   "decision_log": [
     {
-      "timestamp": "2026-06-21T08:16:34Z",
+      "timestamp": "2026-06-21T10:47:59Z",
       "actor": "pre-compact-save",
       "decision": "canonical_handoff_artifact_written",
       "rationale": "Persist a stable JSON artifact in .claude/state for long-running session handoff."
     },
     {
-      "timestamp": "2026-06-21T08:16:34Z",
+      "timestamp": "2026-06-21T10:47:59Z",
       "actor": "pre-compact-save",
       "decision": "legacy_snapshot_mirrored",
       "rationale": "Keep precompact-snapshot.json for backward compatibility with older hooks."
     },
     {
-      "timestamp": "2026-06-21T08:16:34Z",
+      "timestamp": "2026-06-21T10:47:59Z",
       "actor": "pre-compact-save",
       "decision": "next_action_selected",
       "rationale": "Continue 6.1 **Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence. (source: Plans.md)"
@@ -85,7 +85,7 @@
       {
         "key": "recent_edits",
         "label": "recent edit count",
-        "actual": 6,
+        "actual": 1,
         "threshold": 8,
         "triggered": false
       },
@@ -107,7 +107,7 @@
     "counters": {
       "wipTasks": 0,
       "blockedTasks": 0,
-      "recentEdits": 6,
+      "recentEdits": 1,
       "failedChecks": 0,
       "sessionAgeMinutes": null
     }
@@ -253,11 +253,6 @@
     "**API mobile `/api/mobile/prix/`** — Endpoint GET : `?produit=mil\u0026region=Kaolack\u0026periode=30` → liste `PrixMarche` paginée (20/page). Endpoint GET `/api/mobile/prix/alertes/` : alertes actives (niveau ≥ warning, ≤ 30 j), triées par `variation_pct` desc. Serializers dans `serializers_mobile.py`. URLs dans `urls_api_mobile.py`."
   ],
   "recentEdits": [
-    ".claude/state/instructions-loaded.jsonl",
-    "baay/static/css/dashboard_cockpit.css",
-    "templates/dashboard/bento_base.html",
-    "templates/dashboard/bento_base_simple.html",
-    "baay/static/css/bento-dashboard.css",
-    "baay/static/css/bento-simple-premium.css"
+    ".claude/state/session.events.jsonl"
   ]
 }

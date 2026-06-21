@@ -33,7 +33,7 @@
       {
         "key": "recent_edits",
         "label": "recent edit count",
-        "actual": 6,
+        "actual": 1,
         "threshold": 8,
         "triggered": false
       },
@@ -55,7 +55,7 @@
     "counters": {
       "wipTasks": 0,
       "blockedTasks": 0,
-      "recentEdits": 6,
+      "recentEdits": 1,
       "failedChecks": 0,
       "sessionAgeMinutes": null
     }
@@ -69,15 +69,10 @@
   "legacy_version": "1.0.0",
   "metrics": null,
   "recentEdits": [
-    ".claude/state/instructions-loaded.jsonl",
-    "baay/static/css/dashboard_cockpit.css",
-    "templates/dashboard/bento_base.html",
-    "templates/dashboard/bento_base_simple.html",
-    "baay/static/css/bento-dashboard.css",
-    "baay/static/css/bento-simple-premium.css"
+    ".claude/state/session.events.jsonl"
   ],
   "sessionId": "",
-  "timestamp": "2026-06-21T08:16:34Z",
+  "timestamp": "2026-06-21T10:47:59Z",
   "version": "1.0.0",
   "wipTasks": [
     "**Modèles `PrixMarche` + `AlertePrix` + migrations** — `PrixMarche` : produit_nom, marche_nom, region, prix_unitaire, unite (FCFA/kg), source (fao_fpma | oma | autre), date_relevee, source_id. `AlertePrix` : produit_nom, marche_nom, variation_pct, prix_actuel, prix_reference, periode_jours, niveau (info|warning|critique), vue (bool). `unique_together` sur (produit, marche, date, source) pour idempotence.",

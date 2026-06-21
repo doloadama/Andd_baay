@@ -17,3 +17,7 @@
 {"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:12:01Z","state":"stopped"}
 {"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:30:45Z","state":"stopped"}
 {"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:35:09Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:42:13Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:52:19Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:55:16Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:56:30Z","state":"stopped"}
