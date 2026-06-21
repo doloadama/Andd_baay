@@ -38,6 +38,7 @@
         {% endif %}
 
         <div class="fd-hero__body">
+            <p class="fd-hero__eyebrow">Fiche ferme</p>
             <!-- role badge -->
             {% if is_proprietaire %}
             <span class="fd-hero__badge fd-hero__badge--owner">
@@ -83,10 +84,10 @@
             <div class="fd-kpi__body">
                 <div class="fd-kpi__value">{{ projets_count }}</div>
                 <div class="fd-kpi__label">Projet{{ projets_count|pluralize }}</div>
+                {% if projets_en_cours %}
+                <span class="fd-kpi__chip fd-kpi__chip--green">{{ projets_en_cours }} actif{{ projets_en_cours|pluralize }}</span>
+                {% endif %}
             </div>
-            {% if projets_en_cours %}
-            <span class="fd-kpi__chip fd-kpi__chip--green">{{ projets_en_cours }} actif{{ projets_en_cours|pluralize }}</span>
-            {% endif %}
         </div>
 
         <div class="fd-kpi">

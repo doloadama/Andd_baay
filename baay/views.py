@@ -933,6 +933,20 @@ def modifier_projet(request, projet_id):
                                 "Capture features ML impossible pour %s : %s", pp, exc
                             )
                     pp.save()   # déclenche le signal valider_label_ml_a_cloture
+
+                # Les rendements saisis alimentent l'inventaire de récoltes de
+                # la ferme (création/mise à jour idempotente du stock).
+                try:
+                    from baay.services.inventory_service import synchroniser_recoltes_projet
+                    synchroniser_recoltes_projet(
+                        projet, utilisateur=getattr(request.user, "profile", None)
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "Synchronisation des récoltes vers l'inventaire impossible pour %s : %s",
+                        projet, exc,
+                    )
+
                 if projet.statut != "fini":
                     projet.statut = "fini"
                     projet.save(update_fields=["statut"])
