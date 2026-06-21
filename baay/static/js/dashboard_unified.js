@@ -56,12 +56,14 @@
     }
 
     function initWeather() {
-        var w = document.getElementById('atWeatherWidget');
-        if (!w || !window.WeatherWidget) return;
-        var fermeId = w.getAttribute('data-weather-ferme') || '';
-        if (!fermeId && !w.getAttribute('data-weather-fetch')) {
-            WeatherWidget.setError(w, 'Aucune ferme geolocalisee');
-        }
+        if (!window.WeatherWidget) return;
+        document.querySelectorAll('[data-weather-widget]').forEach(function (w) {
+            var fermeId = w.getAttribute('data-weather-ferme') || '';
+            var fetchUrl = w.getAttribute('data-weather-fetch') || '';
+            if (!fermeId && !fetchUrl) {
+                WeatherWidget.setError(w, 'Aucune ferme geolocalisee');
+            }
+        });
     }
 
     function doughnutOptions() {

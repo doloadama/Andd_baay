@@ -17,27 +17,27 @@
      x-data="dashboardUnifiedTabsData()"
      x-init="init()">
 
-    {# ── Hero ─────────────────────────────────────────────────────────────── #}
-    <header class="db-hero">
-        <div class="db-hero__inner">
-            <div>
-                <p class="db-hero__eyebrow">Tableau de bord</p>
-                <h1 class="db-hero__title">
+    {# ── Command bar ──────────────────────────────────────────────────────── #}
+    <header class="db-command">
+        <div class="db-command__inner">
+            <div class="db-command__brand">
+                <p class="db-command__eyebrow">Poste de pilotage</p>
+                <h1 class="db-command__title">
                     {% if selected_ferme %}{{ selected_ferme.nom }}{% else %}Bonjour, {{ user.first_name|default:user.username }}{% endif %}
                 </h1>
-                <div class="db-hero__meta">
-                    <span><i class="fas fa-seedling" aria-hidden="true"></i> {{ projets_en_cours }} projet(s) actif(s)</span>
+                <div class="db-command__meta">
+                    <span><i class="fas fa-seedling" aria-hidden="true"></i> {{ projets_en_cours }} actif(s)</span>
                     <span><i class="fas fa-ruler-combined" aria-hidden="true"></i> {{ superficie_totale|floatformat:1 }} ha</span>
                     {% if nombre_fermes > 1 %}
                     <span><i class="fas fa-warehouse" aria-hidden="true"></i> {{ nombre_fermes }} exploitation(s)</span>
                     {% endif %}
                 </div>
             </div>
-            <div class="db-hero__actions">
+            <div class="db-command__controls">
                 <div class="dropdown">
-                    <button class="db-hero__select dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-warehouse me-2" aria-hidden="true"></i>
-                        {% if selected_ferme %}{{ selected_ferme.nom|truncatechars:22 }}{% else %}Toutes les fermes{% endif %}
+                    <button class="db-farm-select dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Choisir une ferme">
+                        <i class="fas fa-warehouse" aria-hidden="true"></i>
+                        {% if selected_ferme %}{{ selected_ferme.nom|truncatechars:24 }}{% else %}Toutes les fermes{% endif %}
                     </button>
                     <ul class="dropdown-menu shadow-lg border-0 rounded-4">
                         <li><a class="dropdown-item" href="?tab={{ request.GET.tab|default:'overview' }}">Toutes les fermes</a></li>
@@ -46,408 +46,494 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <a href="{% url 'creer_projet' %}" class="db-hero__btn d-none d-md-inline-flex">
+                <a href="{% url 'creer_projet' %}" class="db-btn db-btn--gold d-none d-md-inline-flex">
                     <i class="fas fa-plus" aria-hidden="true"></i> Nouveau projet
+                </a>
+                <a href="{% url 'liste_projets' %}" class="db-btn db-btn--ghost d-none d-lg-inline-flex">
+                    <i class="fas fa-list" aria-hidden="true"></i> Projets
                 </a>
             </div>
         </div>
     </header>
 
-    {# ── KPI rail ─────────────────────────────────────────────────────────── #}
-    <section class="db-kpi-rail" aria-label="Indicateurs clés">
-        <div class="db-kpi">
-            <span class="db-kpi__label">Projets actifs</span>
-            <span class="db-kpi__value">{{ projets_en_cours }}</span>
-            <span class="db-kpi__hint">Sur {{ projets.count }} total</span>
-        </div>
-        <div class="db-kpi">
-            <span class="db-kpi__label">Surface</span>
-            <span class="db-kpi__value">{{ superficie_totale|floatformat:1 }} <small>ha</small></span>
-            <span class="db-kpi__hint">{{ ferme_utilisation|default:"0" }}% utilisé</span>
-        </div>
-        <div class="db-kpi">
-            <span class="db-kpi__label">Récolte</span>
-            {% if prochaine_recolte %}
-            <span class="db-kpi__value" style="font-size:1.25rem;">{{ prochaine_recolte.date_recolte_prevue|date:"d M" }}</span>
-            <span class="db-kpi__hint">{{ prochaine_recolte.produit.nom }}</span>
-            {% else %}
-            <span class="db-kpi__value">--</span>
-            <span class="db-kpi__hint">Aucune planifiée</span>
-            {% endif %}
-        </div>
-        <button type="button" class="db-kpi db-kpi--danger db-kpi--link" style="border:none;text-align:left;" @click="updateTab('activities')">
-            <span class="db-kpi__label">Tâches critiques</span>
-            <span class="db-kpi__value">{{ cockpit.quick_stats.taches_critiques_retard|default:0 }}</span>
-            <span class="db-kpi__hint">En retard / urgentes</span>
+    {# ── Mobile tabs ──────────────────────────────────────────────────────── #}
+    <nav class="db-mtabs" role="tablist" aria-label="Sections du tableau de bord">
+        <button type="button" class="db-mtab" role="tab"
+                :class="{ 'is-active': activeTab === 'overview' }"
+                :aria-selected="activeTab === 'overview'"
+                @click="updateTab('overview')">
+            <i class="fas fa-compass" aria-hidden="true"></i> Vue d'ensemble
         </button>
-        <div class="db-kpi">
-            <span class="db-kpi__label">Complétion</span>
-            <span class="db-kpi__value">{{ completion_rate }}%</span>
-            <span class="db-kpi__hint">{{ projets_finis }} terminé(s)</span>
-        </div>
-        {% if can_view_investissements and cockpit.quick_stats.show_financial_kpis %}
-        <a href="{% url 'finance_hub' %}" class="db-kpi db-kpi--link">
-            <span class="db-kpi__label">Bénéfice net</span>
-            <span class="db-kpi__value" style="font-size:1.125rem;">{{ cockpit.quick_stats.benefice_net_total|fcfa }}</span>
-            <span class="db-kpi__hint">ROI {% if cockpit.quick_stats.roi_moyen_pct is not None %}{{ cockpit.quick_stats.roi_moyen_pct|floatformat:1 }}%{% else %}--{% endif %}</span>
-        </a>
-        {% elif can_view_investissements %}
-        <a href="{% url 'finance_hub' %}" class="db-kpi db-kpi--link">
-            <span class="db-kpi__label">Finances</span>
-            <span class="db-kpi__value" style="font-size:1.125rem;">Hub</span>
-            <span class="db-kpi__hint">Voir selon droits</span>
-        </a>
-        {% endif %}
-    </section>
+        <button type="button" class="db-mtab" role="tab"
+                :class="{ 'is-active': activeTab === 'performance' }"
+                :aria-selected="activeTab === 'performance'"
+                @click="updateTab('performance')">
+            <i class="fas fa-chart-line" aria-hidden="true"></i> Performance
+        </button>
+        <button type="button" class="db-mtab" role="tab"
+                :class="{ 'is-active': activeTab === 'activities' }"
+                :aria-selected="activeTab === 'activities'"
+                @click="updateTab('activities')">
+            <i class="fas fa-list-check" aria-hidden="true"></i> Activités
+        </button>
+    </nav>
 
-    {# ── Tabs ─────────────────────────────────────────────────────────────── #}
-    <div class="db-tabs-wrap tab-roulette">
-        <button type="button" class="tab-roulette__btn tab-roulette__btn--prev d-md-none" @click="roulettePrev()" aria-label="Onglet precedent">
-            <i class="fas fa-chevron-left" aria-hidden="true"></i>
-        </button>
-        <nav class="db-tabs tab-roulette__track" x-ref="tabRouletteNav" role="tablist" aria-label="Sections du tableau de bord">
-            <button type="button" class="db-tab" data-tab-id="overview" role="tab"
-                    :class="{ 'is-active': activeTab === 'overview' }" :aria-selected="activeTab === 'overview'"
-                    @click="rouletteSelect('overview')">
+    <div class="db-shell">
+
+        {# ── Sidebar (desktop) ────────────────────────────────────────────── #}
+        <aside class="db-nav" aria-label="Navigation du tableau de bord">
+            <span class="db-nav__label">Sections</span>
+            <button type="button" class="db-nav__tab" role="tab"
+                    :class="{ 'is-active': activeTab === 'overview' }"
+                    @click="updateTab('overview')">
                 <i class="fas fa-compass" aria-hidden="true"></i> Vue d'ensemble
             </button>
-            <button type="button" class="db-tab" data-tab-id="performance" role="tab"
-                    :class="{ 'is-active': activeTab === 'performance' }" :aria-selected="activeTab === 'performance'"
-                    @click="rouletteSelect('performance')">
+            <button type="button" class="db-nav__tab" role="tab"
+                    :class="{ 'is-active': activeTab === 'performance' }"
+                    @click="updateTab('performance')">
                 <i class="fas fa-chart-line" aria-hidden="true"></i> Performance
             </button>
-            <button type="button" class="db-tab" data-tab-id="activities" role="tab"
-                    :class="{ 'is-active': activeTab === 'activities' }" :aria-selected="activeTab === 'activities'"
-                    @click="rouletteSelect('activities')">
+            <button type="button" class="db-nav__tab" role="tab"
+                    :class="{ 'is-active': activeTab === 'activities' }"
+                    @click="updateTab('activities')">
                 <i class="fas fa-list-check" aria-hidden="true"></i> Activités
             </button>
-        </nav>
-        <button type="button" class="tab-roulette__btn tab-roulette__btn--next d-md-none" @click="rouletteNext()" aria-label="Onglet suivant">
-            <i class="fas fa-chevron-right" aria-hidden="true"></i>
-        </button>
-        <div class="tab-roulette__dots d-md-none" aria-hidden="true">
-            <template x-for="tabId in tabRouletteOrder" :key="tabId">
-                <span class="tab-roulette__dot" :class="{ 'is-active': activeTab === tabId }"></span>
-            </template>
-        </div>
-    </div>
-
-    {# ═══════════ TAB: VUE D'ENSEMBLE ═══════════ #}
-    <div x-show="activeTab === 'overview'" x-transition.opacity.duration.200ms class="db-grid" role="tabpanel">
-
-        {% if can_view_investissements %}
-        <div class="db-card db-card--8">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-coins" aria-hidden="true"></i> Flux de trésorerie (12 mois)</h2>
-            </div>
-            <div class="db-chart"><canvas id="cashflowChart"></canvas></div>
-        </div>
-        <div class="db-card db-card--4">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-tags" aria-hidden="true"></i> Investissements</h2>
-            </div>
-            <div class="db-chart db-chart--sm"><canvas id="investCatChart"></canvas></div>
-        </div>
-        {% endif %}
-
-        <div class="db-card db-card--4">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Météo locale</h2>
-            </div>
-            {% if dashboard_weather_ferme_id %}
-            {% include "partials/_weather_widget.html" with variant="card" widget_id="atWeatherWidget" fetch_url="/api/dashboard/weather/?ferme="|add:dashboard_weather_ferme_id show_credit=True show_meta=True %}
-            {% else %}
-            {% include "partials/_weather_widget.html" with variant="card" widget_id="atWeatherWidget" show_meta=True %}
+            <div class="db-nav__divider"></div>
+            <span class="db-nav__label">Raccourcis</span>
+            <a href="{% url 'creer_projet' %}" class="db-nav__link"><i class="fas fa-plus" aria-hidden="true"></i> Nouveau projet</a>
+            <a href="{% url 'creer_tache' %}" class="db-nav__link"><i class="fas fa-tasks" aria-hidden="true"></i> Nouvelle tâche</a>
+            <a href="{% url 'liste_projets' %}" class="db-nav__link"><i class="fas fa-seedling" aria-hidden="true"></i> Tous les projets</a>
+            {% if can_view_investissements %}
+            <a href="{% url 'finance_hub' %}" class="db-nav__link"><i class="fas fa-wallet" aria-hidden="true"></i> Finances</a>
             {% endif %}
-        </div>
+        </aside>
 
-        <div class="db-card db-card--{% if can_view_investissements %}8{% else %}12{% endif %}">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-leaf" aria-hidden="true"></i> Projets récents</h2>
-                <a href="{% url 'liste_projets' %}" class="db-badge db-badge--ok">Voir tout</a>
-            </div>
-            {% for p in projets|slice:":6" %}
-            <a href="{% url 'detail_projet' p.id %}" class="db-proj">
-                <div>
-                    <div class="db-proj__name">{{ p.nom }}</div>
-                    <div class="db-proj__meta">{% if p.culture %}{{ p.culture.nom }}{% else %}--{% endif %} &middot; {{ p.superficie }} ha</div>
+        {# ── Main content ─────────────────────────────────────────────────── #}
+        <div class="db-main">
+
+            {# KPI pulse strip #}
+            <section class="db-pulse" aria-label="Indicateurs clés">
+                <div class="db-pulse__card">
+                    <span class="db-pulse__label">Projets actifs</span>
+                    <span class="db-pulse__value">{{ projets_en_cours }}</span>
+                    <span class="db-pulse__hint">Sur {{ projets.count }} total</span>
                 </div>
-                <div class="text-end">
-                    <div class="db-proj__pct">{{ p.taux_avancement }}%</div>
-                    <div style="font-size:0.6875rem;color:var(--db-muted);">Avancement</div>
+                <div class="db-pulse__card">
+                    <span class="db-pulse__label">Surface</span>
+                    <span class="db-pulse__value">{{ superficie_totale|floatformat:1 }} <small>ha</small></span>
+                    <span class="db-pulse__hint">{{ ferme_utilisation|default:"0" }}% utilisé</span>
                 </div>
-            </a>
-            {% empty %}
-            <div class="db-empty">
-                <i class="fas fa-seedling" aria-hidden="true"></i>
-                <p>Aucun projet pour le moment.</p>
-                <a href="{% url 'creer_projet' %}" class="db-hero__btn"><i class="fas fa-plus" aria-hidden="true"></i> Créer un projet</a>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="db-card">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-map-marked-alt" aria-hidden="true"></i> Sites d'exploitation</h2>
-            </div>
-            <div id="dashboardMap" class="db-map"></div>
-            <div id="dashboardMapEmpty" class="db-empty d-none">
-                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                <p>Aucune coordonnée GPS enregistrée.</p>
-                <a href="{% url 'liste_fermes' %}" class="db-hero__btn"><i class="fas fa-cog" aria-hidden="true"></i> Configurer</a>
-            </div>
-        </div>
-    </div>
-
-    {# ═══════════ TAB: PERFORMANCE ═══════════ #}
-    <div x-show="activeTab === 'performance'" x-transition.opacity.duration.200ms class="db-grid" role="tabpanel">
-
-        <div class="db-card db-card--8">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-chart-bar" aria-hidden="true"></i> Production par culture</h2>
-            </div>
-            <div class="db-chart"><canvas id="yieldChart"></canvas></div>
-        </div>
-
-        <div class="db-card db-card--4">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-chart-pie" aria-hidden="true"></i> Mix cultural</h2>
-            </div>
-            <div class="db-chart db-chart--sm"><canvas id="cultureChart"></canvas></div>
-        </div>
-
-        <div class="db-card db-card--4">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-tasks" aria-hidden="true"></i> États des projets</h2>
-            </div>
-            <div class="db-chart db-chart--sm"><canvas id="statusChart"></canvas></div>
-        </div>
-
-        <div class="db-card db-card--8">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-users" aria-hidden="true"></i> Productivité des agents</h2>
-            </div>
-            <div class="db-table-wrap">
-                <table class="db-table db-table--responsive">
-                    <thead>
-                        <tr>
-                            <th>Agent</th>
-                            <th class="text-center">Taches</th>
-                            <th class="text-center">Score</th>
-                            <th class="text-end">Completion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for agent in agents_performance %}
-                        <tr>
-                            <td data-label="Agent">
-                                <strong>{{ agent.nom }}</strong>
-                                <span class="d-block" style="font-size:0.75rem;color:var(--db-muted);">@{{ agent.username }}</span>
-                            </td>
-                            <td data-label="Taches" class="text-center">{{ agent.total_taches }}</td>
-                            <td data-label="Score" class="text-center">
-                                <span class="db-badge {% if agent.score_global > 80 %}db-badge--ok{% else %}db-badge--warn{% endif %}">{{ agent.score_global }}</span>
-                            </td>
-                            <td data-label="Completion" class="text-end"><strong>{{ agent.taux_completion|floatformat:0 }}%</strong></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="db-empty">Aucune donnée d'agent.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="db-card db-card--4">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Efficacité sols</h2>
-            </div>
-            {% for cd in cultures_data|slice:":5" %}
-            <div class="db-eff-row">
-                <div class="db-eff-row__head">
-                    <span>{{ cd.culture.nom }}</span>
-                    <span style="color:var(--db-brand);">{{ cd.efficiency_score }}%</span>
+                <div class="db-pulse__card db-pulse__card--gold">
+                    <span class="db-pulse__label">Récolte</span>
+                    {% if prochaine_recolte %}
+                    <span class="db-pulse__value" style="font-size:1.2rem;">{{ prochaine_recolte.date_recolte_prevue|date:"d M" }}</span>
+                    <span class="db-pulse__hint">{{ prochaine_recolte.produit.nom }}</span>
+                    {% else %}
+                    <span class="db-pulse__value">--</span>
+                    <span class="db-pulse__hint">Aucune planifiée</span>
+                    {% endif %}
                 </div>
-                <div class="db-bar"><div class="db-bar__fill" style="width:{{ cd.efficiency_score }}%;"></div></div>
-            </div>
-            {% empty %}
-            <p class="db-empty">Pas de données culture.</p>
-            {% endfor %}
-        </div>
-
-        <div class="db-card">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-seedling" aria-hidden="true"></i> Détail par culture</h2>
-            </div>
-            <div class="db-table-wrap">
-                <table class="db-table db-table--responsive">
-                    <thead>
-                        <tr>
-                            <th>Culture</th>
-                            <th class="text-end">Superficie</th>
-                            <th class="text-end">Rendement</th>
-                            <th class="text-end">kg/ha</th>
-                            <th class="text-end">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cd in cultures_data %}
-                        <tr>
-                            <td data-label="Culture"><strong>{{ cd.culture.nom }}</strong></td>
-                            <td data-label="Superficie" class="text-end">{{ cd.superficie|floatformat:1 }} ha</td>
-                            <td data-label="Rendement" class="text-end">{{ cd.rendement_total|floatformat:0 }} kg</td>
-                            <td data-label="kg/ha" class="text-end">{{ cd.rendement_par_ha|floatformat:1 }}</td>
-                            <td data-label="Score" class="text-end">
-                                <span class="db-badge {% if cd.efficiency_score >= 100 %}db-badge--ok{% else %}db-badge--warn{% endif %}">{{ cd.efficiency_score }}%</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {% if can_view_investissements %}
-        <div class="db-card db-card--6">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-fire" aria-hidden="true"></i> Burn rate budgétaire</h2>
-            </div>
-            <div class="db-burn-grid">
-                {% for br in burn_rates %}
-                <div class="db-burn">
-                    <div class="db-burn__label">{{ br.projet.nom|truncatechars:18 }}</div>
-                    <div class="db-burn__value">{{ br.burn_rate|floatformat:0|intcomma }} <small>F/j</small></div>
+                <button type="button" class="db-pulse__card db-pulse__card--danger"
+                        @click="updateTab('activities')" aria-label="Voir les tâches critiques">
+                    <span class="db-pulse__label">Tâches critiques</span>
+                    <span class="db-pulse__value">{{ cockpit.quick_stats.taches_critiques_retard|default:0 }}</span>
+                    <span class="db-pulse__hint">En retard / urgentes</span>
+                </button>
+                <div class="db-pulse__card">
+                    <span class="db-pulse__label">Complétion</span>
+                    <span class="db-pulse__value">{{ completion_rate }}%</span>
+                    <span class="db-pulse__hint">{{ projets_finis }} terminé(s)</span>
                 </div>
-                {% empty %}
-                <p class="db-empty">Données insuffisantes.</p>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
+                {% if can_view_investissements and cockpit.quick_stats.show_financial_kpis %}
+                <a href="{% url 'finance_hub' %}" class="db-pulse__card db-pulse__card--warn">
+                    <span class="db-pulse__label">Bénéfice net</span>
+                    <span class="db-pulse__value" style="font-size:1rem;">{{ cockpit.quick_stats.benefice_net_total|fcfa }}</span>
+                    <span class="db-pulse__hint">ROI {% if cockpit.quick_stats.roi_moyen_pct is not None %}{{ cockpit.quick_stats.roi_moyen_pct|floatformat:1 }}%{% else %}--{% endif %}</span>
+                </a>
+                {% elif can_view_investissements %}
+                <a href="{% url 'finance_hub' %}" class="db-pulse__card db-pulse__card--warn">
+                    <span class="db-pulse__label">Finances</span>
+                    <span class="db-pulse__value" style="font-size:1rem;">Hub</span>
+                    <span class="db-pulse__hint">Voir selon droits</span>
+                </a>
+                {% endif %}
+            </section>
 
-        <div class="db-card {% if can_view_investissements %}db-card--6{% endif %}">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-warehouse" aria-hidden="true"></i> Exploitations</h2>
-            </div>
-            <div class="db-farm-grid">
-                {% for fp in fermes_performance %}
-                <div class="db-farm">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <strong style="color:var(--db-brand);">{{ fp.ferme.nom }}</strong>
-                        <span class="db-badge db-badge--ok">{{ fp.projets_actifs }} actifs</span>
+            {# ═══════════ TAB: VUE D'ENSEMBLE ═══════════ #}
+            <div x-show="activeTab === 'overview'" x-transition.opacity.duration.200ms class="db-panel" role="tabpanel">
+
+                <div class="db-grid">
+                    {% if can_view_investissements %}
+                    <div class="db-card db-span-8">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-coins" aria-hidden="true"></i> Flux de trésorerie (12 mois)</h2>
+                        </div>
+                        <div class="db-chart"><canvas id="cashflowChart"></canvas></div>
                     </div>
-                    <div class="db-bar mb-2"><div class="db-bar__fill" style="width:{{ fp.taux_utilisation }}%;"></div></div>
-                    <div class="d-flex justify-content-between" style="font-size:0.75rem;color:var(--db-muted);">
-                        <span>{{ fp.taux_utilisation }}% utilisé</span>
-                        <span>{{ fp.rendement_total|floatformat:0 }} kg</span>
+                    <div class="db-card db-span-4">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-tags" aria-hidden="true"></i> Investissements</h2>
+                        </div>
+                        <div class="db-chart db-chart--sm"><canvas id="investCatChart"></canvas></div>
+                    </div>
+                    {% endif %}
+
+                    <div class="db-card db-span-{% if can_view_investissements %}8{% else %}12{% endif %}">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-leaf" aria-hidden="true"></i> Projets récents</h2>
+                            <a href="{% url 'liste_projets' %}" class="db-badge db-badge--ok">Voir tout</a>
+                        </div>
+                        <div class="db-card__body--flush">
+                            {% for p in projets|slice:":6" %}
+                            <a href="{% url 'detail_projet' p.id %}" class="db-proj">
+                                <div class="db-proj__ring" style="--pct: {{ p.taux_avancement }};">
+                                    <span>{{ p.taux_avancement }}%</span>
+                                </div>
+                                <div class="db-proj__info">
+                                    <div class="db-proj__name">{{ p.nom }}</div>
+                                    <div class="db-proj__meta">{% if p.culture %}{{ p.culture.nom }}{% else %}--{% endif %} &middot; {{ p.superficie }} ha</div>
+                                </div>
+                                <i class="fas fa-chevron-right" style="color:var(--db-muted);font-size:0.75rem;" aria-hidden="true"></i>
+                            </a>
+                            {% empty %}
+                            <div class="db-empty">
+                                <i class="fas fa-seedling" aria-hidden="true"></i>
+                                <p>Aucun projet pour le moment.</p>
+                                <a href="{% url 'creer_projet' %}" class="db-btn db-btn--gold"><i class="fas fa-plus" aria-hidden="true"></i> Créer un projet</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-4 d-lg-none">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Météo</h2>
+                        </div>
+                        <div class="db-card__body">
+                            {% if dashboard_weather_ferme_id %}
+                            {% include "partials/_weather_widget.html" with variant="card" widget_id="atWeatherWidgetMobile" fetch_url="/api/dashboard/weather/?ferme="|add:dashboard_weather_ferme_id show_credit=True show_meta=True %}
+                            {% else %}
+                            {% include "partials/_weather_widget.html" with variant="card" widget_id="atWeatherWidgetMobile" show_meta=True %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-12">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-map-marked-alt" aria-hidden="true"></i> Sites d'exploitation</h2>
+                        </div>
+                        <div id="dashboardMap" class="db-map"></div>
+                        <div id="dashboardMapEmpty" class="db-empty d-none">
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <p>Aucune coordonnée GPS enregistrée.</p>
+                            <a href="{% url 'liste_fermes' %}" class="db-btn db-btn--gold"><i class="fas fa-cog" aria-hidden="true"></i> Configurer</a>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+
+            {# ═══════════ TAB: PERFORMANCE ═══════════ #}
+            <div x-show="activeTab === 'performance'" x-transition.opacity.duration.200ms class="db-panel" role="tabpanel">
+
+                <div class="db-grid">
+                    <div class="db-card db-span-8">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-chart-bar" aria-hidden="true"></i> Production par culture</h2>
+                        </div>
+                        <div class="db-chart"><canvas id="yieldChart"></canvas></div>
+                    </div>
+
+                    <div class="db-card db-span-4">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-chart-pie" aria-hidden="true"></i> Mix cultural</h2>
+                        </div>
+                        <div class="db-chart db-chart--sm"><canvas id="cultureChart"></canvas></div>
+                    </div>
+
+                    <div class="db-card db-span-4">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-tasks" aria-hidden="true"></i> États des projets</h2>
+                        </div>
+                        <div class="db-chart db-chart--sm"><canvas id="statusChart"></canvas></div>
+                    </div>
+
+                    <div class="db-card db-span-8">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-users" aria-hidden="true"></i> Productivité des agents</h2>
+                        </div>
+                        <div class="db-table-wrap">
+                            <table class="db-table db-table--responsive">
+                                <thead>
+                                    <tr>
+                                        <th>Agent</th>
+                                        <th class="text-center">Tâches</th>
+                                        <th class="text-center">Score</th>
+                                        <th class="text-end">Complétion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for agent in agents_performance %}
+                                    <tr>
+                                        <td data-label="Agent">
+                                            <strong>{{ agent.nom }}</strong>
+                                            <span class="d-block" style="font-size:0.75rem;color:var(--db-muted);">@{{ agent.username }}</span>
+                                        </td>
+                                        <td data-label="Tâches" class="text-center">{{ agent.total_taches }}</td>
+                                        <td data-label="Score" class="text-center">
+                                            <span class="db-badge {% if agent.score_global > 80 %}db-badge--ok{% else %}db-badge--warn{% endif %}">{{ agent.score_global }}</span>
+                                        </td>
+                                        <td data-label="Complétion" class="text-end"><strong>{{ agent.taux_completion|floatformat:0 }}%</strong></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="db-empty">Aucune donnée d'agent.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-4">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Efficacité sols</h2>
+                        </div>
+                        <div class="db-card__body">
+                            {% for cd in cultures_data|slice:":5" %}
+                            <div class="db-eff-row">
+                                <div class="db-eff-row__head">
+                                    <span>{{ cd.culture.nom }}</span>
+                                    <span style="color:var(--db-brand);">{{ cd.efficiency_score }}%</span>
+                                </div>
+                                <div class="db-bar"><div class="db-bar__fill" style="width:{{ cd.efficiency_score }}%;"></div></div>
+                            </div>
+                            {% empty %}
+                            <p class="db-empty">Pas de données culture.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-12">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-seedling" aria-hidden="true"></i> Détail par culture</h2>
+                        </div>
+                        <div class="db-table-wrap">
+                            <table class="db-table db-table--responsive">
+                                <thead>
+                                    <tr>
+                                        <th>Culture</th>
+                                        <th class="text-end">Superficie</th>
+                                        <th class="text-end">Rendement</th>
+                                        <th class="text-end">kg/ha</th>
+                                        <th class="text-end">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cd in cultures_data %}
+                                    <tr>
+                                        <td data-label="Culture"><strong>{{ cd.culture.nom }}</strong></td>
+                                        <td data-label="Superficie" class="text-end">{{ cd.superficie|floatformat:1 }} ha</td>
+                                        <td data-label="Rendement" class="text-end">{{ cd.rendement_total|floatformat:0 }} kg</td>
+                                        <td data-label="kg/ha" class="text-end">{{ cd.rendement_par_ha|floatformat:1 }}</td>
+                                        <td data-label="Score" class="text-end">
+                                            <span class="db-badge {% if cd.efficiency_score >= 100 %}db-badge--ok{% else %}db-badge--warn{% endif %}">{{ cd.efficiency_score }}%</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if can_view_investissements %}
+                    <div class="db-card db-span-6">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-fire" aria-hidden="true"></i> Burn rate budgétaire</h2>
+                        </div>
+                        <div class="db-burn-grid">
+                            {% for br in burn_rates %}
+                            <div class="db-burn">
+                                <div class="db-burn__label">{{ br.projet.nom|truncatechars:18 }}</div>
+                                <div class="db-burn__value">{{ br.burn_rate|floatformat:0|intcomma }} <small>F/j</small></div>
+                            </div>
+                            {% empty %}
+                            <p class="db-empty">Données insuffisantes.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="db-card db-span-{% if can_view_investissements %}6{% else %}12{% endif %}">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-warehouse" aria-hidden="true"></i> Exploitations</h2>
+                        </div>
+                        <div class="db-farm-grid">
+                            {% for fp in fermes_performance %}
+                            <div class="db-farm">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong style="color:var(--db-brand);">{{ fp.ferme.nom }}</strong>
+                                    <span class="db-badge db-badge--ok">{{ fp.projets_actifs }} actifs</span>
+                                </div>
+                                <div class="db-bar mb-2"><div class="db-bar__fill" style="width:{{ fp.taux_utilisation }}%;"></div></div>
+                                <div class="d-flex justify-content-between" style="font-size:0.75rem;color:var(--db-muted);">
+                                    <span>{{ fp.taux_utilisation }}% utilisé</span>
+                                    <span>{{ fp.rendement_total|floatformat:0 }} kg</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ═══════════ TAB: ACTIVITÉS ═══════════ #}
+            <div x-show="activeTab === 'activities'" x-transition.opacity.duration.200ms class="db-panel" role="tabpanel">
+
+                <div class="db-grid">
+                    <div class="db-card db-span-8">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Interventions critiques</h2>
+                            <span class="db-badge db-badge--danger">{{ stats_taches.en_retard }} en retard</span>
+                        </div>
+                        <div class="db-card__body--flush">
+                            {% for t in taches_retard %}
+                            <div class="db-task db-task--urgent">
+                                <div style="flex:1;">
+                                    <div class="db-task__title">{{ t.titre }}</div>
+                                    <div class="db-task__meta">{{ t.projet.nom }} &middot; {{ t.date_echeance|date:"d M" }} &middot; {{ t.assigne_a.user.username }}</div>
+                                </div>
+                                <a href="{% url 'tache_detail' t.id %}" class="db-task__link" aria-label="Voir la tâche"><i class="fas fa-chevron-right" aria-hidden="true"></i></a>
+                            </div>
+                            {% empty %}
+                            <div class="db-empty">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                                <p>Aucune tâche en retard.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-4 d-lg-none">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-calendar-day" aria-hidden="true"></i> Prochaine récolte</h2>
+                        </div>
+                        <div class="db-card__body">
+                            <div class="db-harvest-ring">
+                                {% if prochaine_recolte %}
+                                <div class="db-harvest-ring__num">{{ jours_avant_recolte }}</div>
+                                <div class="db-harvest-ring__unit">jours</div>
+                                <p>Avant la récolte{% if prochaine_recolte.produit %} de {{ prochaine_recolte.produit.nom }}{% endif %} &middot; {{ prochaine_recolte.date_recolte_prevue|date:"d M" }}</p>
+                                {% else %}
+                                <div class="db-harvest-ring__num">--</div>
+                                <p>Aucune récolte planifiée</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-6">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-calendar-check" aria-hidden="true"></i> À venir (7 jours)</h2>
+                        </div>
+                        <div class="db-card__body--flush">
+                            {% for t in taches_urgentes %}
+                            <div class="db-task">
+                                <div>
+                                    <div class="db-task__title">{{ t.titre }}</div>
+                                    <div class="db-task__meta">{{ t.projet.nom }} &middot; {{ t.date_echeance|date:"d M" }}</div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="db-empty">Rien à signaler cette semaine.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-6">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-bolt" aria-hidden="true"></i> Vélocité équipe</h2>
+                        </div>
+                        <div class="db-velocity">
+                            <div class="db-velocity__num">{{ tasks_velocity }}</div>
+                            <div style="font-size:0.8125rem;color:var(--db-muted);">tâches terminées<br>cette semaine</div>
+                        </div>
+                        <div class="db-card__body">
+                            <p style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--db-muted);margin:0 0 6px;">Progression projets &middot; {{ completion_rate }}%</p>
+                            <div class="db-bar"><div class="db-bar__fill" style="width:{{ completion_rate }}%;"></div></div>
+                            {% if alertes_projets %}
+                            <div style="margin-top:16px;">
+                                {% for alerte in alertes_projets %}
+                                <div class="db-alert-pill"><i class="fas fa-pause-circle" aria-hidden="true"></i> {{ alerte.message }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="db-card db-span-12">
+                        <div class="db-card__head">
+                            <h2 class="db-card__title"><i class="fas fa-comments" aria-hidden="true"></i> Flux d'activité</h2>
+                        </div>
+                        <div class="db-feed">
+                            {% for msg in messages_recents %}
+                            <div class="db-feed__item">
+                                <div class="db-feed__icon"><i class="fas fa-comment-dots" aria-hidden="true"></i></div>
+                                <div>
+                                    <div style="font-size:0.875rem;"><strong>{{ msg.expediteur.user.username }}</strong> dans <em>{{ msg.conversation.sujet|default:"Groupe" }}</em></div>
+                                    <div class="db-feed__time">{{ msg.date_envoi|naturaltime }}</div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="db-empty">Calme plat sur la ferme.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    {# ═══════════ TAB: ACTIVITES ═══════════ #}
-    <div x-show="activeTab === 'activities'" x-transition.opacity.duration.200ms class="db-grid" role="tabpanel">
-
-        <div class="db-card db-card--8">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Interventions critiques</h2>
-                <span class="db-badge db-badge--danger">{{ stats_taches.en_retard }} en retard</span>
-            </div>
-            {% for t in taches_retard %}
-            <div class="db-task db-task--urgent">
-                <div style="flex:1;">
-                    <div class="db-task__title">{{ t.titre }}</div>
-                    <div class="db-task__meta">{{ t.projet.nom }} &middot; {{ t.date_echeance|date:"d M" }} &middot; {{ t.assigne_a.user.username }}</div>
-                </div>
-                <a href="{% url 'tache_detail' t.id %}" class="db-task__link" aria-label="Voir la tache"><i class="fas fa-chevron-right" aria-hidden="true"></i></a>
-            </div>
-            {% empty %}
-            <div class="db-empty">
-                <i class="fas fa-check-circle" aria-hidden="true"></i>
-                <p>Aucune tâche en retard.</p>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="db-card db-card--4">
-            <div class="db-harvest">
-                <i class="fas fa-seedling" style="font-size:1.375rem;color:var(--db-accent);" aria-hidden="true"></i>
-                {% if prochaine_recolte %}
-                <div>
-                    <div class="db-harvest__num">{{ jours_avant_recolte }}</div>
-                    <div class="db-harvest__unit">jours</div>
-                    <p style="margin:10px 0 0;font-size:0.875rem;opacity:0.92;">
-                        Avant la récolte{% if prochaine_recolte.produit %} de {{ prochaine_recolte.produit.nom }}{% endif %}
-                        &middot; {{ prochaine_recolte.date_recolte_prevue|date:"d M" }}
-                    </p>
-                </div>
+        {# ── Right rail (desktop) ───────────────────────────────────────────── #}
+        <aside class="db-rail" aria-label="Contexte terrain">
+            <div class="db-rail__block">
+                <h3><i class="fas fa-cloud-sun" aria-hidden="true"></i> Météo locale</h3>
+                {% if dashboard_weather_ferme_id %}
+                {% include "partials/_weather_widget.html" with variant="card" widget_id="atWeatherWidget" fetch_url="/api/dashboard/weather/?ferme="|add:dashboard_weather_ferme_id show_credit=True show_meta=True %}
                 {% else %}
-                <div>
-                    <div class="db-harvest__num">--</div>
-                    <p style="margin:10px 0 0;font-size:0.875rem;opacity:0.92;">Aucune récolte planifiée</p>
-                </div>
+                {% include "partials/_weather_widget.html" with variant="card" widget_id="atWeatherWidget" show_meta=True %}
                 {% endif %}
             </div>
-        </div>
 
-        <div class="db-card db-card--6">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-calendar-check" aria-hidden="true"></i> À venir (7 jours)</h2>
-            </div>
-            {% for t in taches_urgentes %}
-            <div class="db-task">
-                <div>
-                    <div class="db-task__title">{{ t.titre }}</div>
-                    <div class="db-task__meta">{{ t.projet.nom }} &middot; {{ t.date_echeance|date:"d M" }}</div>
+            <div class="db-rail__block">
+                <h3><i class="fas fa-calendar-day" aria-hidden="true"></i> Prochaine récolte</h3>
+                <div class="db-harvest-ring">
+                    {% if prochaine_recolte %}
+                    <div class="db-harvest-ring__num">{{ jours_avant_recolte }}</div>
+                    <div class="db-harvest-ring__unit">jours restants</div>
+                    <p>Avant la récolte{% if prochaine_recolte.produit %} de {{ prochaine_recolte.produit.nom }}{% endif %}<br>{{ prochaine_recolte.date_recolte_prevue|date:"l d F" }}</p>
+                    {% else %}
+                    <div class="db-harvest-ring__num">--</div>
+                    <p>Aucune récolte planifiée pour l'instant.</p>
+                    {% endif %}
                 </div>
             </div>
-            {% empty %}
-            <p class="db-empty">Rien a signaler cette semaine.</p>
-            {% endfor %}
-        </div>
 
-        <div class="db-card db-card--6">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-bolt" aria-hidden="true"></i> Vélocité équipe</h2>
-            </div>
-            <div class="db-velocity">
-                <div class="db-velocity__num">{{ tasks_velocity }}</div>
-                <div style="font-size:0.8125rem;color:var(--db-muted);">tâches terminées<br>cette semaine</div>
-            </div>
-            <p style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--db-muted);margin:20px 0 6px;">Progression projets &middot; {{ completion_rate }}%</p>
-            <div class="db-bar"><div class="db-bar__fill" style="width:{{ completion_rate }}%;"></div></div>
-            {% if alertes_projets %}
-            <div style="margin-top:20px;">
-                {% for alerte in alertes_projets %}
-                <div class="db-alert-pill"><i class="fas fa-pause-circle" aria-hidden="true"></i> {{ alerte.message }}</div>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="db-card">
-            <div class="db-card__head">
-                <h2 class="db-card__title"><i class="fas fa-comments" aria-hidden="true"></i> Flux d'activité</h2>
-            </div>
-            <div class="db-feed">
-                {% for msg in messages_recents %}
-                <div class="db-feed__item">
-                    <div class="db-feed__icon"><i class="fas fa-comment-dots" aria-hidden="true"></i></div>
-                    <div>
-                        <div style="font-size:0.875rem;"><strong>{{ msg.expediteur.user.username }}</strong> dans <em>{{ msg.conversation.sujet|default:"Groupe" }}</em></div>
-                        <div class="db-feed__time">{{ msg.date_envoi|naturaltime }}</div>
-                    </div>
+            <div class="db-rail__block">
+                <h3><i class="fas fa-bell" aria-hidden="true"></i> Alertes</h3>
+                <div class="db-rail-stat">
+                    <span>Tâches en retard</span>
+                    <span class="db-rail-stat__val db-rail-stat__val--danger">{{ stats_taches.en_retard }}</span>
                 </div>
-                {% empty %}
-                <p class="db-empty">Calme plat sur la ferme.</p>
-                {% endfor %}
+                <div class="db-rail-stat">
+                    <span>À faire cette semaine</span>
+                    <span class="db-rail-stat__val">{{ stats_taches.a_venir }}</span>
+                </div>
+                <div class="db-rail-stat">
+                    <span>Projets en pause</span>
+                    <span class="db-rail-stat__val">{{ projets_en_pause }}</span>
+                </div>
             </div>
-        </div>
+        </aside>
     </div>
 
-    {# ── FAB (desktop) ────────────────────────────────────────────────────── #}
+    {# ── FAB ──────────────────────────────────────────────────────────────── #}
     <div class="db-fab-hub">
         <div class="db-fab-menu" :class="{ 'is-open': fabActive }">
             <a href="{% url 'creer_projet' %}" class="db-fab-item"><i class="fas fa-seedling" aria-hidden="true"></i> Nouveau projet</a>
