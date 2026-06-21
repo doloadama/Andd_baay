@@ -24,9 +24,9 @@
                 if (typeof this.initTabRoulette === 'function') {
                     this.initTabRoulette();
                 }
-                if (typeof this.initTabRouletteScrollSync === 'function') {
-                    this.initTabRouletteScrollSync();
-                }
+                // Navigation au tap uniquement : pas de scroll-spy (il changeait
+                // l'onglet actif pendant le défilement vertical, ce qui désoriente
+                // sur mobile). Voir audit UX mobile.
             }
         });
     }
