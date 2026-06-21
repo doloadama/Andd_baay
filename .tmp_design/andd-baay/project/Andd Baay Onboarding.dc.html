@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#F4F8F5;font-family:'Inter',system-ui,sans-serif;}
+  @keyframes obfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  @keyframes obpop{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;align-items:stretch;background:#F4F8F5;color:#0B2620;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;">
+
+  <!-- ===================== LEFT · BRAND PANEL ===================== -->
+  <aside style="flex:1 1 300px;position:relative;background:linear-gradient(160deg,#085041,#04342C);color:#eafff6;padding:clamp(32px,4vw,48px) clamp(28px,3.4vw,46px);display:flex;flex-direction:column;overflow:hidden;">
+    <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.10) 1px,transparent 1.4px);background-size:26px 26px;-webkit-mask-image:radial-gradient(80% 70% at 30% 16%,#000,transparent 78%);mask-image:radial-gradient(80% 70% at 30% 16%,#000,transparent 78%);"></div>
+    <div aria-hidden="true" style="position:absolute;top:-12%;right:-16%;width:60%;height:42%;background:radial-gradient(circle,rgba(239,159,39,.22),transparent 70%);filter:blur(40px);"></div>
+    <div aria-hidden="true" style="position:absolute;bottom:-14%;left:-12%;width:54%;height:42%;background:radial-gradient(circle,rgba(29,158,117,.34),transparent 70%);filter:blur(44px);"></div>
+
+    <!-- logo -->
+    <div style="position:relative;display:flex;align-items:center;gap:12px;">
+      <span style="width:42px;height:42px;border-radius:13px;background:#E1F5EE;display:grid;place-items:center;flex-shrink:0;">
+        <svg width="26" height="26" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path fill="#9FE1CB" d="M32 9C23 11 15 18 14 27c-1 9 4 17 18 21 14-4 19-12 18-21C49 18 41 11 32 9z"/>
+          <path fill="none" stroke="#04342C" stroke-width="1.85" d="M32 41V27m0 0h-11v10m11-10h13V17"/>
+          <path fill="none" stroke="#1D9E75" stroke-width="1.65" d="M26 21h13v9h-9"/>
+          <circle cx="32" cy="41" r="2.5" fill="#04342C"/><circle cx="32" cy="27" r="2.5" fill="#04342C"/><circle cx="21" cy="37" r="2.5" fill="#04342C"/><circle cx="45" cy="17" r="2.5" fill="#04342C"/>
+        </svg>
+      </span>
+      <span style="display:flex;flex-direction:column;line-height:1;">
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.12rem;letter-spacing:-.02em;color:#fff;">Andd Baay</span>
+        <span style="font-size:.64rem;font-weight:500;letter-spacing:.07em;color:#9FE1CB;margin-top:4px;">INTELLIGENCE AGRICOLE</span>
+      </span>
+    </div>
+
+    <!-- contextual block -->
+    <div style="position:relative;margin-top:auto;padding-top:40px;">
+
+      <sc-if value="{{ isChoix }}" hint-placeholder-val="{{ true }}">
+        <div style="">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.6vw,2.2rem);letter-spacing:-.025em;line-height:1.12;margin:0;color:#fff;">Bienvenue 👋<br>Préparons votre espace.</h2>
+          <p style="color:#bfe9da;font-size:1rem;line-height:1.6;margin:16px 0 26px;max-width:340px;">Deux minutes suffisent. Choisissez votre profil — vous pourrez tout ajuster plus tard.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <span style="display:flex;align-items:center;gap:11px;font-size:.92rem;color:#eafff6;"><span style="width:26px;height:26px;border-radius:8px;background:rgba(159,225,203,.16);display:grid;place-items:center;color:#9FE1CB;font-size:.74rem;flex-shrink:0;"><i class="fas fa-brain"></i></span> Prédiction de rendement par IA</span>
+            <span style="display:flex;align-items:center;gap:11px;font-size:.92rem;color:#eafff6;"><span style="width:26px;height:26px;border-radius:8px;background:rgba(159,225,203,.16);display:grid;place-items:center;color:#9FE1CB;font-size:.74rem;flex-shrink:0;"><i class="fas fa-microphone-lines"></i></span> Assistant vocal en Wolof</span>
+            <span style="display:flex;align-items:center;gap:11px;font-size:.92rem;color:#eafff6;"><span style="width:26px;height:26px;border-radius:8px;background:rgba(159,225,203,.16);display:grid;place-items:center;color:#9FE1CB;font-size:.74rem;flex-shrink:0;"><i class="fas fa-wifi"></i></span> Fonctionne même hors-ligne</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isWizard }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#d9f5ea;font-size:.76rem;font-weight:600;margin-bottom:18px;"><i class="fas fa-seedling" style="font-size:.72rem;"></i> Fermier indépendant</span>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.5rem,2.4vw,2rem);letter-spacing:-.025em;line-height:1.14;margin:0 0 26px;color:#fff;">Vos premiers pas</h2>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <sc-for list="{{ wizardSteps }}" as="st" hint-placeholder-count="3">
+              <div style="display:flex;gap:14px;align-items:flex-start;">
+                <div style="display:flex;flex-direction:column;align-items:center;align-self:stretch;">
+                  <sc-if value="{{ st.isDone }}" hint-placeholder-val="{{ false }}"><span style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#1D9E75;color:#fff;display:grid;place-items:center;font-size:.8rem;font-weight:700;"><i class="fas fa-check"></i></span></sc-if>
+                  <sc-if value="{{ st.isActive }}" hint-placeholder-val="{{ true }}"><span style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:#EF9F27;color:#3a2400;display:grid;place-items:center;font-size:.86rem;font-weight:700;box-shadow:0 0 0 4px rgba(239,159,39,.22);">{{ st.n }}</span></sc-if>
+                  <sc-if value="{{ st.isUpcoming }}" hint-placeholder-val="{{ false }}"><span style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#9fc3b5;display:grid;place-items:center;font-size:.86rem;font-weight:700;">{{ st.n }}</span></sc-if>
+                  <sc-if value="{{ st.showLine }}" hint-placeholder-val="{{ true }}"><span style="width:2px;flex:1;min-height:20px;background:rgba(255,255,255,.16);margin:4px 0;"></span></sc-if>
+                </div>
+                <div style="padding-bottom:18px;">
+                  <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.98rem;color:#fff;">{{ st.label }}</div>
+                  <div style="font-size:.82rem;color:#9fc3b5;margin-top:2px;">{{ st.desc }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCoop }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:rgba(239,159,39,.16);border:1px solid rgba(239,159,39,.3);color:#f7d59a;font-size:.76rem;font-weight:600;margin-bottom:18px;"><i class="fas fa-people-group" style="font-size:.72rem;"></i> Coopérative</span>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.5rem,2.4vw,2rem);letter-spacing:-.025em;line-height:1.14;margin:0 0 16px;color:#fff;">Pilotez vos membres<br>par rôle</h2>
+          <p style="color:#bfe9da;font-size:.95rem;line-height:1.6;margin:0 0 22px;max-width:320px;">Vous en serez l'administrateur. Chaque membre reçoit un rôle et des accès adaptés.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:.78rem;font-weight:600;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#eafff6;">Admin / Président</span>
+            <span style="font-size:.78rem;font-weight:600;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#eafff6;">Gestionnaire</span>
+            <span style="font-size:.78rem;font-weight:600;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#eafff6;">Technicien</span>
+            <span style="font-size:.78rem;font-weight:600;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#eafff6;">Fermier affilié</span>
+          </div>
+          <div style="display:flex;gap:11px;margin-top:24px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);">
+            <i class="fas fa-shield-halved" style="color:#9FE1CB;margin-top:2px;"></i>
+            <span style="font-size:.84rem;color:#bfe9da;line-height:1.55;">Les fermes affiliées restent la propriété de leurs fermiers.</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isRejoindre }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.5rem,2.4vw,2rem);letter-spacing:-.025em;line-height:1.14;margin:0 0 24px;color:#fff;">Comment ça marche</h2>
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div style="display:flex;gap:14px;align-items:flex-start;"><span style="width:30px;height:30px;border-radius:9px;flex-shrink:0;background:rgba(159,225,203,.16);color:#9FE1CB;display:grid;place-items:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.84rem;">1</span><div><div style="font-weight:600;color:#fff;font-size:.95rem;">Récupérez le code</div><div style="font-size:.84rem;color:#9fc3b5;margin-top:2px;">Transmis par la ferme ou la coopérative.</div></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start;"><span style="width:30px;height:30px;border-radius:9px;flex-shrink:0;background:rgba(159,225,203,.16);color:#9FE1CB;display:grid;place-items:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.84rem;">2</span><div><div style="font-weight:600;color:#fff;font-size:.95rem;">Demandez l'accès</div><div style="font-size:.84rem;color:#9fc3b5;margin-top:2px;">Votre demande part au propriétaire.</div></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start;"><span style="width:30px;height:30px;border-radius:9px;flex-shrink:0;background:rgba(159,225,203,.16);color:#9FE1CB;display:grid;place-items:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.84rem;">3</span><div><div style="font-weight:600;color:#fff;font-size:.95rem;">C'est validé</div><div style="font-size:.84rem;color:#9fc3b5;margin-top:2px;">Votre tableau de bord se remplit.</div></div></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.6vw,2.2rem);letter-spacing:-.025em;line-height:1.12;margin:0;color:#fff;">Tout est prêt.</h2>
+          <p style="color:#bfe9da;font-size:1rem;line-height:1.6;margin:16px 0 0;max-width:320px;">Votre espace Andd Baay vous attend. Bonne saison&nbsp;!</p>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <div style="position:relative;margin-top:40px;display:flex;align-items:center;gap:16px;font-size:.8rem;color:#9fc3b5;flex-wrap:wrap;">
+      <span style="display:flex;align-items:center;gap:7px;"><i class="fas fa-gift" style="color:#9FE1CB;"></i> Gratuit</span>
+      <span style="display:flex;align-items:center;gap:7px;"><i class="fas fa-bolt" style="color:#9FE1CB;"></i> 2 minutes</span>
+      <span style="display:flex;align-items:center;gap:7px;"><i class="fas fa-wifi" style="color:#9FE1CB;"></i> Hors-ligne</span>
+    </div>
+  </aside>
+
+  <!-- ===================== RIGHT · CONTENT ===================== -->
+  <main style="flex:1.7 1 440px;display:flex;flex-direction:column;padding:clamp(28px,3.4vw,52px) clamp(24px,4vw,64px);">
+
+    <!-- top bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:40px;margin-bottom:clamp(20px,3vw,40px);">
+      <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ goChoix }}" style="display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid rgba(8,80,65,.12);color:#0B2620;font-size:.86rem;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;font-family:inherit;" style-hover="border-color:#1D9E75;color:#1D9E75;"><i class="fas fa-arrow-left" style="font-size:.76rem;"></i> Retour</button>
+      </sc-if>
+      <sc-if value="{{ isChoix }}" hint-placeholder-val="{{ true }}"><span style="font-size:.78rem;font-weight:600;letter-spacing:.06em;color:#86968f;text-transform:uppercase;">Étape 1 · Votre profil</span></sc-if>
+      <sc-if value="{{ isWizard }}" hint-placeholder-val="{{ false }}"><span style="font-size:.78rem;font-weight:600;letter-spacing:.06em;color:#86968f;text-transform:uppercase;">Premiers pas · Étape {{ step }} sur 3</span></sc-if>
+      <span style="font-size:.82rem;color:#a7b3ad;">Besoin d'aide&nbsp;? <a href="#" style="color:#1D9E75;font-weight:600;text-decoration:none;">Support</a></span>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:600px;width:100%;margin:0 auto;">
+
+      <!-- ===== CHOIX DU PROFIL ===== -->
+      <sc-if value="{{ isChoix }}" hint-placeholder-val="{{ true }}">
+        <div style="">
+          <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.7rem,3vw,2.4rem);letter-spacing:-.025em;line-height:1.08;margin:0;color:#0B2620;">Comment utilisez-vous<br>Andd Baay&nbsp;?</h1>
+          <p style="color:#51635B;font-size:1.02rem;line-height:1.6;margin:14px 0 28px;">Cela nous aide à préparer le bon espace pour vous.</p>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;" data-profilegrid>
+            <sc-for list="{{ profiles }}" as="p" hint-placeholder-count="4">
+              <label onClick="{{ p.onSelect }}" style="position:relative;display:flex;gap:14px;align-items:flex-start;background:#fff;border:1.5px solid rgba(8,80,65,.12);border-radius:18px;padding:20px;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;" style-hover="transform:translateY(-2px);border-color:#9FE1CB;box-shadow:0 16px 30px -20px rgba(8,80,65,.4);">
+                <span style="width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:1.18rem;color:#fff;flex-shrink:0;background:{{ p.iconBg }};"><i class="{{ p.icon }}"></i></span>
+                <div>
+                  <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1rem;color:#0B2620;margin-bottom:4px;">{{ p.title }}</div>
+                  <div style="color:#6a7a72;font-size:.86rem;line-height:1.5;">{{ p.desc }}</div>
+                </div>
+                <sc-if value="{{ p.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute;inset:-1.5px;border:2px solid #1D9E75;border-radius:18px;box-shadow:0 0 0 3px rgba(29,158,117,.12);pointer-events:none;"></span>
+                  <span style="position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:#1D9E75;color:#fff;display:grid;place-items:center;font-size:.62rem;"><i class="fas fa-check"></i></span>
+                </sc-if>
+              </label>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:28px;">
+            <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ continueChoix }}" style="display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:.98rem;font-weight:600;padding:14px 28px;border:none;border-radius:999px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease,box-shadow .2s ease;" style-hover="transform:translateY(-2px);box-shadow:0 18px 36px -14px rgba(29,158,117,.7);">Continuer <i class="fas fa-arrow-right" style="font-size:.82rem;"></i></button>
+            </sc-if>
+            <sc-if value="{{ notCanContinue }}" hint-placeholder-val="{{ true }}">
+              <button disabled style="display:inline-flex;align-items:center;gap:9px;background:#e7eeea;color:#a7b3ad;font-size:.98rem;font-weight:600;padding:14px 28px;border:none;border-radius:999px;cursor:not-allowed;font-family:inherit;">Continuer <i class="fas fa-arrow-right" style="font-size:.82rem;"></i></button>
+              <span style="font-size:.86rem;color:#a7b3ad;">Choisissez une option pour continuer</span>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== WIZARD FERMIER ===== -->
+      <sc-if value="{{ isWizard }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+            <div style="">
+              <span style="display:inline-grid;place-items:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1.3rem;margin-bottom:20px;"><i class="fas fa-tractor"></i></span>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.8vw,2.2rem);letter-spacing:-.025em;line-height:1.1;margin:0;color:#0B2620;">Créez votre première ferme</h1>
+              <p style="color:#51635B;font-size:1.02rem;line-height:1.65;margin:14px 0 28px;max-width:480px;">Une ferme regroupe vos parcelles, votre équipe et vos projets. Vous pourrez ensuite lancer des campagnes et obtenir des estimations de rendement adaptées à votre zone.</p>
+              <div style="display:flex;flex-direction:column;gap:12px;max-width:420px;">
+                <button onClick="{{ wizardNext }}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1rem;font-weight:600;padding:15px 24px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease;" style-hover="transform:translateY(-2px);"><i class="fas fa-tractor"></i> Créer ma ferme</button>
+                <button onClick="{{ goRejoindreFromWizard }}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#0B2620;font-size:1rem;font-weight:600;padding:15px 24px;border:1.5px solid rgba(8,80,65,.14);border-radius:14px;cursor:pointer;font-family:inherit;transition:border-color .2s ease;" style-hover="border-color:#1D9E75;color:#1D9E75;"><i class="fas fa-key"></i> J'ai un code d'accès</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+            <div style="">
+              <span style="display:inline-grid;place-items:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1.3rem;margin-bottom:20px;"><i class="fas fa-seedling"></i></span>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.8vw,2.2rem);letter-spacing:-.025em;line-height:1.1;margin:0;color:#0B2620;">Lancez votre premier projet</h1>
+              <p style="color:#51635B;font-size:1.02rem;line-height:1.65;margin:14px 0 28px;max-width:480px;">Ajoutez une culture, une superficie et une localité&nbsp;: le tableau de bord et les prédictions IA s'appuient sur ces informations. La ferme <strong style="color:#0B2620;">Parcelle Nord</strong> a été présélectionnée.</p>
+              <div style="display:flex;flex-direction:column;gap:12px;max-width:420px;">
+                <button onClick="{{ wizardNext }}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1rem;font-weight:600;padding:15px 24px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease;" style-hover="transform:translateY(-2px);"><i class="fas fa-seedling"></i> Créer un projet</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+            <div style="">
+              <span style="display:inline-grid;place-items:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#EF9F27,#b45309);color:#fff;font-size:1.3rem;margin-bottom:20px;"><i class="fas fa-microscope"></i></span>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.8vw,2.2rem);letter-spacing:-.025em;line-height:1.1;margin:0;color:#0B2620;">Lancez un diagnostic BaayVision</h1>
+              <p style="color:#51635B;font-size:1.02rem;line-height:1.65;margin:14px 0 28px;max-width:480px;">Prenez une photo de vos cultures et obtenez en quelques secondes un diagnostic IA des maladies et ravageurs, avec des recommandations adaptées au Sénégal.</p>
+              <div style="display:flex;flex-direction:column;gap:12px;max-width:420px;">
+                <button onClick="{{ wizardNext }}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#EF9F27,#b45309);color:#fff;font-size:1rem;font-weight:600;padding:15px 24px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(239,159,39,.55);transition:transform .2s ease;" style-hover="transform:translateY(-2px);"><i class="fas fa-microscope"></i> Lancer un diagnostic</button>
+              </div>
+            </div>
+          </sc-if>
+          <div style="margin-top:26px;padding-top:22px;border-top:1px solid rgba(8,80,65,.1);">
+            <button onClick="{{ wizardLater }}" style="background:none;border:none;color:#6a7a72;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;" style-hover="color:#1D9E75;">
+              <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">Terminer et aller au tableau de bord</sc-if>
+              <sc-if value="{{ notStep3 }}" hint-placeholder-val="{{ true }}">Plus tard, accéder au tableau de bord</sc-if>
+              <i class="fas fa-arrow-right" style="font-size:.76rem;"></i>
+            </button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== CRÉER COOPÉRATIVE ===== -->
+      <sc-if value="{{ isCoop }}" hint-placeholder-val="{{ false }}">
+        <div style="">
+          <span style="display:inline-grid;place-items:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#EF9F27,#b45309);color:#fff;font-size:1.3rem;margin-bottom:20px;"><i class="fas fa-people-group"></i></span>
+          <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.8vw,2.2rem);letter-spacing:-.025em;line-height:1.1;margin:0;color:#0B2620;">Créez votre coopérative</h1>
+          <p style="color:#51635B;font-size:1.02rem;line-height:1.65;margin:14px 0 26px;max-width:480px;">Vous en serez l'administrateur. Vous pourrez ensuite rattacher des fermes et inviter des membres.</p>
+          <div style="display:flex;flex-direction:column;gap:18px;max-width:480px;">
+            <div>
+              <label style="display:block;font-weight:600;color:#0B2620;font-size:.9rem;margin-bottom:7px;">Nom de la coopérative</label>
+              <input type="text" placeholder="Ex. Coopérative des Niayes" style="width:100%;border:1.5px solid rgba(8,80,65,.16);border-radius:12px;padding:13px 15px;font-size:1rem;background:#fff;font-family:inherit;color:#0B2620;" style-focus="outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,.12);" />
+            </div>
+            <div>
+              <label style="display:block;font-weight:600;color:#0B2620;font-size:.9rem;margin-bottom:7px;">Localité <span style="font-weight:400;color:#86968f;">(facultatif)</span></label>
+              <select style="width:100%;border:1.5px solid rgba(8,80,65,.16);border-radius:12px;padding:13px 15px;font-size:1rem;background:#fff;font-family:inherit;color:#0B2620;" style-focus="outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,.12);">
+                <option value="">— Sélectionner —</option>
+                <sc-for list="{{ localites }}" as="loc" hint-placeholder-count="3"><option value="{{ loc.id }}">{{ loc.nom }}</option></sc-for>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-weight:600;color:#0B2620;font-size:.9rem;margin-bottom:7px;">Description <span style="font-weight:400;color:#86968f;">(facultatif)</span></label>
+              <textarea rows="3" placeholder="Objet, zone d'activité…" style="width:100%;border:1.5px solid rgba(8,80,65,.16);border-radius:12px;padding:13px 15px;font-size:1rem;background:#fff;font-family:inherit;color:#0B2620;resize:vertical;" style-focus="outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,.12);"></textarea>
+            </div>
+            <button onClick="{{ coopSubmit }}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1rem;font-weight:600;padding:15px 24px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease;margin-top:4px;" style-hover="transform:translateY(-2px);">Créer la coopérative <i class="fas fa-arrow-right" style="font-size:.82rem;"></i></button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== REJOINDRE UNE FERME ===== -->
+      <sc-if value="{{ isRejoindre }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <sc-if value="{{ notRequested }}" hint-placeholder-val="{{ true }}">
+            <div style="">
+              <span style="display:inline-grid;place-items:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1.3rem;margin-bottom:20px;"><i class="fas fa-key"></i></span>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.8vw,2.2rem);letter-spacing:-.025em;line-height:1.1;margin:0;color:#0B2620;">Rejoignez une ferme</h1>
+              <p style="color:#51635B;font-size:1.02rem;line-height:1.65;margin:14px 0 26px;max-width:480px;">En tant que <strong style="color:#0B2620;">{{ roleLabel }}</strong>, vous travaillez sur les fermes qui vous ajoutent. Saisissez le code transmis par la ferme ou la coopérative.</p>
+              <div style="max-width:420px;">
+                <label style="display:block;font-weight:600;color:#0B2620;font-size:.9rem;margin-bottom:7px;">Code de la ferme</label>
+                <input type="text" placeholder="EX. A1B2C3D4" maxlength="12" style="width:100%;border:1.5px solid rgba(8,80,65,.16);border-radius:12px;padding:14px 16px;font-size:1.1rem;background:#fff;font-family:'Space Grotesk',sans-serif;color:#0B2620;letter-spacing:.16em;text-transform:uppercase;" style-focus="outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,.12);" />
+                <button onClick="{{ rejoindreRequest }}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1rem;font-weight:600;padding:15px 24px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease;margin-top:16px;width:100%;" style-hover="transform:translateY(-2px);">Demander l'accès <i class="fas fa-arrow-right" style="font-size:.82rem;"></i></button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ requested }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:460px;">
+              <span style="display:inline-grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#E1F5EE;color:#1D9E75;font-size:1.7rem;margin-bottom:22px;"><i class="fas fa-paper-plane"></i></span>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.6rem,2.8vw,2.1rem);letter-spacing:-.025em;line-height:1.1;margin:0;color:#0B2620;">Demande envoyée&nbsp;!</h1>
+              <p style="color:#51635B;font-size:1.02rem;line-height:1.65;margin:14px 0 26px;">Votre demande a été transmise au propriétaire de la ferme. Une fois acceptée, votre tableau de bord se remplit automatiquement.</p>
+              <button onClick="{{ restart }}" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1rem;font-weight:600;padding:14px 26px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease;" style-hover="transform:translateY(-2px);">Aller au tableau de bord <i class="fas fa-arrow-right" style="font-size:.82rem;"></i></button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== DONE ===== -->
+      <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;max-width:460px;margin:0 auto;">
+          <span style="display:inline-grid;place-items:center;width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:2rem;margin-bottom:24px;box-shadow:0 16px 36px -14px rgba(29,158,117,.6);"><i class="fas fa-check"></i></span>
+          <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.8rem,3vw,2.4rem);letter-spacing:-.025em;line-height:1.08;margin:0;color:#0B2620;">Bienvenue sur Andd Baay&nbsp;!</h1>
+          <p style="color:#51635B;font-size:1.04rem;line-height:1.65;margin:14px 0 28px;">Votre espace est prêt. Vous pouvez créer d'autres fermes ou projets quand vous voulez.</p>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button onClick="{{ restart }}" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1D9E75,#085041);color:#fff;font-size:1rem;font-weight:600;padding:14px 28px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;box-shadow:0 12px 28px -12px rgba(29,158,117,.6);transition:transform .2s ease;" style-hover="transform:translateY(-2px);">Aller au tableau de bord <i class="fas fa-arrow-right" style="font-size:.82rem;"></i></button>
+            <button onClick="{{ restart }}" style="display:inline-flex;align-items:center;gap:10px;background:#fff;color:#0B2620;font-size:1rem;font-weight:600;padding:14px 24px;border:1.5px solid rgba(8,80,65,.14);border-radius:14px;cursor:pointer;font-family:inherit;" style-hover="border-color:#1D9E75;color:#1D9E75;"><i class="fas fa-rotate-left" style="font-size:.82rem;"></i> Recommencer la démo</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:760}}">
+class Component extends DCLogic {
+  state = { screen: 'choix', profile: null, step: 1, requested: false };
+
+  renderVals() {
+    const s = this.state;
+    const select = (k) => () => this.setState({ profile: k });
+    const profiles = [
+      { key: 'fermier', title: 'Fermier indépendant', desc: 'Je gère ma ou mes propres exploitations.', icon: 'fas fa-seedling', iconBg: 'linear-gradient(135deg,#1D9E75,#085041)' },
+      { key: 'cooperative', title: 'Coopérative', desc: 'Je pilote plusieurs fermes et des membres avec des rôles.', icon: 'fas fa-people-group', iconBg: 'linear-gradient(135deg,#EF9F27,#b45309)' },
+      { key: 'technicien', title: 'Technicien agricole', desc: "J'accompagne des fermes qui m'ajoutent à leur équipe.", icon: 'fas fa-user-tie', iconBg: 'linear-gradient(135deg,#14b8a6,#0f766e)' },
+      { key: 'ouvrier', title: 'Ouvrier agricole', desc: 'Je rejoins une ferme pour suivre et réaliser des tâches.', icon: 'fas fa-helmet-safety', iconBg: 'linear-gradient(135deg,#65a30d,#3f6212)' },
+    ].map(p => ({ ...p, selected: s.profile === p.key, onSelect: select(p.key) }));
+
+    const wizardSteps = [
+      { n: 1, label: 'Ferme', desc: 'Créez votre exploitation', showLine: true },
+      { n: 2, label: 'Projet', desc: 'Lancez une culture', showLine: true },
+      { n: 3, label: 'Diagnostic', desc: 'Analysez vos cultures', showLine: false },
+    ].map(st => ({ ...st, isDone: s.step > st.n, isActive: s.step === st.n, isUpcoming: s.step < st.n }));
+
+    const localites = [
+      { id: 1, nom: 'Niayes · Thiès' }, { id: 2, nom: 'Vallée du fleuve · Saint-Louis' },
+      { id: 3, nom: 'Bassin arachidier · Kaolack' }, { id: 4, nom: 'Casamance · Ziguinchor' },
+    ];
+
+    const continueChoix = () => {
+      const p = s.profile;
+      if (p === 'fermier') this.setState({ screen: 'wizard', step: 1 });
+      else if (p === 'cooperative') this.setState({ screen: 'coop' });
+      else if (p === 'technicien' || p === 'ouvrier') this.setState({ screen: 'rejoindre', requested: false });
+    };
+    const wizardNext = () => this.setState(st => st.step < 3 ? { step: st.step + 1 } : { screen: 'done' });
+
+    return {
+      isChoix: s.screen === 'choix',
+      isWizard: s.screen === 'wizard',
+      isCoop: s.screen === 'coop',
+      isRejoindre: s.screen === 'rejoindre',
+      isDone: s.screen === 'done',
+      showBack: s.screen !== 'choix' && s.screen !== 'done',
+      step: s.step,
+      isStep1: s.screen === 'wizard' && s.step === 1,
+      isStep2: s.screen === 'wizard' && s.step === 2,
+      isStep3: s.screen === 'wizard' && s.step === 3,
+      notStep3: !(s.screen === 'wizard' && s.step === 3),
+      requested: s.requested,
+      notRequested: !s.requested,
+      canContinue: !!s.profile,
+      notCanContinue: !s.profile,
+      roleLabel: s.profile === 'technicien' ? 'technicien' : 'ouvrier',
+      profiles, wizardSteps, localites,
+      continueChoix, wizardNext,
+      goChoix: () => this.setState({ screen: 'choix' }),
+      goRejoindreFromWizard: () => this.setState({ screen: 'rejoindre', profile: 'ouvrier', requested: false }),
+      wizardLater: () => this.setState({ screen: 'done' }),
+      coopSubmit: () => this.setState({ screen: 'done' }),
+      rejoindreRequest: () => this.setState({ requested: true }),
+      restart: () => this.setState({ screen: 'choix', profile: null, step: 1, requested: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

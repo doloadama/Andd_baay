@@ -96,3 +96,4 @@
 {"file":"templates/onboarding/creer_cooperative.html","action":"Write","timestamp":"2026-06-14T22:40:08Z","important":false}
 {"file":"templates/onboarding/rejoindre.html","action":"Write","timestamp":"2026-06-14T22:40:40Z","important":false}
 {"file":"baay/views.py","action":"Edit","timestamp":"2026-06-14T22:41:18Z","important":false}
+{"file":"templates/home.html","action":"Edit","timestamp":"2026-06-21T10:03:21Z","important":false}

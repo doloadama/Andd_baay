@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 226 46" fill="none" role="img" aria-labelledby="wmTitle">
+  <title id="wmTitle">Andd Baay — Intelligence agricole</title>
+  <g transform="translate(0,3) scale(0.5)">
+    <rect width="64" height="64" rx="14" fill="#E1F5EE"></rect>
+    <path fill="#9FE1CB" d="M32 9C23 11 15 18 14 27c-1 9 4 17 18 21 14-4 19-12 18-21C49 18 41 11 32 9z"></path>
+    <path fill="none" stroke="#04342C" stroke-width="1.85" stroke-linecap="square" stroke-linejoin="miter" d="M32 41V27m0 0h-11v10m11-10h13V17"></path>
+    <path fill="none" stroke="#1D9E75" stroke-width="1.65" stroke-linecap="square" stroke-linejoin="miter" d="M26 21h13v9h-9"></path>
+    <circle cx="32" cy="41" r="2.5" fill="#04342C"></circle>
+    <circle cx="32" cy="27" r="2.5" fill="#04342C"></circle>
+    <circle cx="21" cy="37" r="2.5" fill="#04342C"></circle>
+    <circle cx="45" cy="17" r="2.5" fill="#04342C"></circle>
+    <circle cx="26" cy="21" r="2.35" fill="#04342C"></circle>
+    <circle cx="39" cy="30" r="2.35" fill="#04342C"></circle>
+  </g>
+  <text x="40" y="23" font-family="&#39;Plus Jakarta Sans&#39;,system-ui,sans-serif" font-weight="700" font-size="16px" letter-spacing="-0.04em" fill="#04342C">Andd Baay</text>
+  <text x="40" y="37" font-family="&#39;Plus Jakarta Sans&#39;,system-ui,sans-serif" font-weight="400" font-size="9.75px" letter-spacing="0.05em" fill="#1D9E75">Intelligence agricole</text>
+</svg>

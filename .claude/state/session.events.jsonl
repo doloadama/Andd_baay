@@ -13,3 +13,7 @@
 {"id":"event-000001","type":"session.stop","ts":"2026-06-21T09:22:15Z","state":"stopped"}
 {"id":"event-000001","type":"session.stop","ts":"2026-06-21T09:22:56Z","state":"stopped"}
 {"id":"event-000001","type":"session.stop","ts":"2026-06-21T09:24:07Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:00:33Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:12:01Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:30:45Z","state":"stopped"}
+{"id":"event-000001","type":"session.stop","ts":"2026-06-21T10:35:09Z","state":"stopped"}
