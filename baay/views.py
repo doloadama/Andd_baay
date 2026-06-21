@@ -1513,8 +1513,9 @@ def detail_projet(request, projet_id):
 
 @login_required
 def liste_projets(request):
-    projets_list = (
-        projets_accessibles_qs(request.user.profile)
+    utilisateur = request.user.profile
+    base_qs = (
+        projets_accessibles_qs(utilisateur)
         .select_related(
             'culture',
             'localite',
@@ -1525,18 +1526,56 @@ def liste_projets(request):
         )
         .prefetch_related(
             'projet_produits__produit',
-            'taches',
+            Prefetch(
+                'taches',
+                queryset=Tache.objects.exclude(statut='annulee'),
+            ),
             Prefetch(
                 'ferme__membres',
                 queryset=MembreFerme.objects.select_related('utilisateur__user'),
             ),
         )
-        .order_by('-date_lancement')
     )
-    paginator = Paginator(projets_list, 10)  # Affichez 10 projets par page
+
+    stats = base_qs.aggregate(
+        total=Count('id'),
+        en_cours=Count('id', filter=Q(statut='en_cours')),
+        en_pause=Count('id', filter=Q(statut='en_pause')),
+        termines=Count('id', filter=Q(statut__in=('fini', Projet.STATUT_CLOTURE))),
+        superficie=Coalesce(Sum('superficie'), Value(Decimal('0'))),
+    )
+
+    statut_filter = (request.GET.get('statut') or 'all').strip()
+    search_q = (request.GET.get('q') or '').strip()
+
+    projets_qs = base_qs
+    if statut_filter == 'termines':
+        projets_qs = projets_qs.filter(statut__in=('fini', Projet.STATUT_CLOTURE))
+    elif statut_filter in ('en_cours', 'en_pause', 'fini', Projet.STATUT_CLOTURE):
+        projets_qs = projets_qs.filter(statut=statut_filter)
+
+    if search_q:
+        projets_qs = projets_qs.filter(
+            Q(nom__icontains=search_q)
+            | Q(culture__nom__icontains=search_q)
+            | Q(ferme__nom__icontains=search_q)
+            | Q(localite__nom__icontains=search_q)
+        )
+
+    paginator = Paginator(projets_qs.order_by('-date_lancement'), 12)
     page_number = request.GET.get('page')
     projets = paginator.get_page(page_number)
-    return render(request, 'projets/liste_projets.html', {'projets': projets})
+
+    return render(
+        request,
+        'projets/liste_projets.html',
+        {
+            'projets': projets,
+            'stats': stats,
+            'statut_filter': statut_filter,
+            'search_q': search_q,
+        },
+    )
 
 
 @login_required

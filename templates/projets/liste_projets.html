@@ -1,902 +1,191 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Mes Projets | Andd Baay{% endblock %}
+{% block title %}Projets | Andd Baay{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Gérez vos projets agricoles avec Andd Baay. Suivez l'avancement, la superficie et les rendements de chaque parcelle." />
+<meta name="description" content="Pilotez vos projets agricoles : cultures, surfaces, avancement et statuts en un coup d'oeil." />
 {% endblock %}
 
-{% block extra_css %}
-<style>
-/* Mobile-first Project List Design */
-.projects-page {
-    --primary-green: #3d8b5a;
-    --dark-green: #1e4a2e;
-    --light-green: #4a9c5d;
-    --ab-bg-light: #f5f5f5;
-    --ab-card-bg: #ffffff;
-    --ab-text-dark: #1a1a1a;
-    --ab-text-muted: #666;
-    --ab-border-light: #e0e0e0;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    min-width: 0;
-    overflow-x: clip;
-}
-
-/* Hero Header Section */
-.projects-hero {
-    background: linear-gradient(
-        135deg,
-        var(--ab-brand-night) 0%,
-        var(--ab-brand-deep) 44%,
-        var(--ab-brand-primary) 100%
-    );
-    border-radius: 16px;
-    padding: clamp(16px, 4vw, 24px);
-    margin: clamp(8px, 2.5vw, 16px);
-    color: white;
-    position: relative;
-    overflow: hidden;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-.projects-hero__label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    opacity: 0.7;
-    margin-bottom: 8px;
-}
-
-.projects-hero__title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: white;
-}
-
-.projects-hero__desc {
-    font-size: 14px;
-    opacity: 0.85;
-    line-height: 1.5;
-    max-width: min(36rem, 100%);
-    margin-bottom: 20px;
-}
-
-.projects-hero__actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.btn-primary {
-    background: white;
-    color: var(--ab-brand-deep);
-    border: none;
-    padding: 10px 18px;
-    border-radius: 24px;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.btn-outline {
-    background: transparent;
-    color: white;
-    border: 1px solid rgba(255,255,255,0.4);
-    padding: 10px 18px;
-    border-radius: 24px;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-}
-
-/* Hero Stats Cards (Right side) — désactivé si non présent dans le DOM */
-.hero-stats {
-    position: absolute;
-    right: 24px;
-    top: 24px;
-    bottom: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 12px;
-}
-
-@media (max-width: 900px) {
-    .hero-stats {
-        position: static;
-        margin-top: 16px;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-}
-
-.hero-stat-card {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 12px 16px;
-    min-width: 110px;
-}
-
-.hero-stat-card__label {
-    font-size: 10px;
-    text-transform: uppercase;
-    opacity: 0.8;
-    letter-spacing: 0.5px;
-}
-
-.hero-stat-card__value {
-    font-size: 24px;
-    font-weight: 700;
-    display: block;
-    margin: 4px 0;
-}
-
-.hero-stat-card__suffix {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-/* Stats Row */
-.stats-row {
-    display: flex;
-    gap: 12px;
-    margin: clamp(8px, 2.5vw, 16px);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-    scroll-snap-type: x proximity;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-.stat-box {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    min-width: 100px;
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.stat-box__value {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--ab-text-dark);
-    display: block;
-}
-
-.stat-box__label {
-    font-size: 11px;
-    color: var(--ab-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 4px;
-}
-
-/* Search Bar */
-.search-container {
-    margin: clamp(8px, 2.5vw, 16px);
-    position: relative;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-.search-input {
-    width: 100%;
-    background: white;
-    border: 1px solid var(--ab-border-light);
-    border-radius: 28px;
-    padding: 14px 20px 14px 48px;
-    font-size: 15px;
-    outline: none;
-}
-
-.search-input::placeholder {
-    color: #999;
-}
-
-.search-icon {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #999;
-}
-
-/* Filter Chips */
-.filters-container {
-    margin: clamp(8px, 2.5vw, 16px);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-@media (max-width: 576px) {
-    .filters-container {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .filters-container .view-toggle {
-        margin-left: 0;
-        align-self: flex-end;
-    }
-}
-
-.filter-chip {
-    background: white;
-    border: 1px solid var(--ab-border-light);
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 13px;
-    color: var(--ab-text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.filter-chip.active {
-    background: var(--dark-green);
-    color: white;
-    border-color: var(--dark-green);
-}
-
-.view-toggle {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-}
-
-.view-btn {
-    background: white;
-    border: 1px solid var(--ab-border-light);
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ab-text-muted);
-    cursor: pointer;
-}
-
-.view-btn.active {
-    background: var(--dark-green);
-    color: white;
-    border-color: var(--dark-green);
-}
-
-/* Project Cards */
-.projects-list {
-    margin: clamp(8px, 2.5vw, 16px);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
-/* Vue Grille */
-.projects-list.view-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-    gap: clamp(12px, 2vw, 20px);
-}
-
-/* Vue Liste */
-.projects-list.view-list {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-.projects-list.view-list .project-card {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding: 20px 24px;
-    min-height: 90px;
-    width: 100%;
-    flex-shrink: 0;
-}
-
-.projects-list.view-list .project-card__header {
-    flex: 0 0 220px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 0;
-}
-
-.projects-list.view-list .project-card__title {
-    font-size: 17px;
-    margin: 0;
-    font-weight: 700;
-}
-
-.projects-list.view-list .project-card__culture {
-    margin-bottom: 0;
-    min-width: 120px;
-    flex: 0 0 120px;
-}
-
-.projects-list.view-list .progress-section {
-    flex: 0 0 180px;
-    max-width: 180px;
-    margin-bottom: 0;
-}
-
-.projects-list.view-list .project-stats {
-    flex: 1;
-    border-top: none;
-    padding-top: 0;
-    gap: clamp(12px, 3vw, 32px);
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    min-width: 0;
-}
-
-.projects-list.view-list .project-stat {
-    text-align: center;
-}
-
-.projects-list.view-list .project-stat__value {
-    font-size: 16px;
-}
-
-.projects-list.view-list .project-stat__label {
-    font-size: 11px;
-}
-
-.project-card {
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    position: relative;
-}
-
-.project-card__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-}
-
-.project-card__title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--ab-text-dark);
-    margin: 0;
-}
-
-.project-card__status {
-    background: var(--light-green);
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-}
-
-.project-card__status--pause {
-    background: #f59e0b;
-}
-
-.project-card__status--done {
-    background: #6b7280;
-}
-
-.project-card__culture {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    color: var(--ab-text-dark);
-}
-
-.culture-emoji {
-    font-size: 18px;
-}
-
-/* Progress Bar */
-.progress-section {
-    margin-bottom: 16px;
-}
-
-.progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.progress-label {
-    font-size: 13px;
-    color: var(--ab-text-muted);
-}
-
-.progress-value {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--light-green);
-}
-
-.progress-bar {
-    height: 6px;
-    background: #e8f5e9;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-bar__fill {
-    height: 100%;
-    background: var(--light-green);
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
-
-/* Project Stats */
-.project-stats {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 16px;
-    border-top: 1px solid var(--ab-border-light);
-}
-
-.project-stat {
-    text-align: center;
-}
-
-.project-stat__value {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--ab-text-dark);
-    display: block;
-}
-
-.project-stat__label {
-    font-size: 11px;
-    color: var(--ab-text-muted);
-    margin-top: 2px;
-}
-
-/* Responsive adjustments */
-@media (min-width: 768px) {
-    .projects-hero__desc {
-        max-width: min(28rem, 55%);
-    }
-
-    .stats-row {
-        justify-content: center;
-    }
-
-    /* Grille uniquement en vue « grille » — ne pas écraser la vue liste */
-    .projects-list.view-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-        gap: 20px;
-    }
-}
-
-/* Vue liste : passe en colonne sous largeur tablette */
-@media (max-width: 991px) {
-    .projects-list.view-list .project-card {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
-        padding: 16px 18px;
-    }
-    .projects-list.view-list .project-card__header {
-        flex: none;
-        width: 100%;
-    }
-    .projects-list.view-list .project-card__culture {
-        flex: none;
-        min-width: 0;
-    }
-    .projects-list.view-list .progress-section {
-        flex: none;
-        max-width: none;
-        width: 100%;
-    }
-    .projects-list.view-list .project-stats {
-        width: 100%;
-        justify-content: space-between;
-        border-top: 1px solid var(--ab-border-light);
-        padding-top: 14px;
-    }
-}
-
-@media (max-width: 576px) {
-    .hero-stats {
-        position: static;
-        transform: none;
-        margin-top: 20px;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .hero-stat-card {
-        flex: 1;
-        min-width: 90px;
-        padding: 10px 12px;
-    }
-
-    .hero-stat-card__value {
-        font-size: 18px;
-    }
-
-    .hero-stat-card__label {
-        font-size: 10px;
-    }
-
-    .projects-hero__desc {
-        max-width: 100%;
-        font-size: 13px;
-    }
-
-    .projects-hero__title {
-        font-size: 24px;
-    }
-
-    /* Mobile filter chips */
-    .filter-chips {
-        gap: 8px;
-        padding: 0 12px;
-    }
-
-    .filter-chip {
-        padding: 8px 14px;
-        font-size: 12px;
-        min-height: 36px;
-    }
-
-    /* Mobile search */
-    .search-box {
-        margin: 0 12px 16px;
-    }
-
-    .search-box input {
-        padding: 14px 16px;
-        font-size: 16px;
-        min-height: 48px;
-    }
-
-    /* Mobile project cards */
-    .projects-list.view-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 0 12px;
-    }
-
-    .project-card {
-        padding: 16px;
-    }
-
-    .project-card__header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
-    }
-
-    .project-card__title {
-        font-size: 16px;
-    }
-
-    .project-card__culture {
-        font-size: 12px;
-    }
-
-    .progress-section {
-        width: 100%;
-    }
-
-    .project-card__footer {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
-
-    .project-card__meta {
-        justify-content: space-between;
-    }
-
-    .project-card__actions {
-        width: 100%;
-    }
-
-    .project-card__actions .btn {
-        flex: 1;
-        justify-content: center;
-        min-height: 44px;
-    }
-
-    /* Mobile empty state */
-    .empty-state {
-        padding: 40px 20px;
-    }
-
-    .empty-state__icon {
-        font-size: 48px;
-    }
-
-    .empty-state__title {
-        font-size: 18px;
-    }
-
-    /* Mobile stats row */
-    .stats-row {
-        gap: 10px;
-        padding: 0 12px;
-    }
-
-    .stat-item {
-        padding: 14px 12px;
-        min-width: 80px;
-    }
-
-    .stat-item__value {
-        font-size: 20px;
-    }
-
-    .stat-item__label {
-        font-size: 10px;
-    }
-}
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/projets-list.css' %}">
 {% endblock %}
 
 {% block content %}
-<section class="projects-page">
-    <!-- Hero Header -->
-    <div class="projects-hero">
-        <div class="projects-hero__label">Gestion agricole</div>
-        <h1 class="projects-hero__title">Mes projets</h1>
-        <p class="projects-hero__desc">
-            Retrouvez toutes vos parcelles dans une interface plus claire, plus rapide à filtrer et plus simple à piloter.
-        </p>
-        <div class="projects-hero__actions">
-            <a href="{% url 'creer_projet' %}" class="btn-primary">
-                <i class="fas fa-plus"></i> Nouveau projet
-            </a>
-            <button type="button" class="btn-outline" id="refreshBtn">
-                <i class="fas fa-sync-alt"></i> Rafraîchir
-            </button>
+<div class="pl-page">
+
+  <div class="pl-shell">
+
+    <header class="pl-hero">
+      <div class="pl-hero__grid">
+        <div>
+          <p class="pl-hero__label">Portfolio agricole</p>
+          <h1>Vos projets</h1>
+          <p class="pl-hero__lead">
+            Suivez chaque parcelle, filtrez par statut et accédez au détail en un clic.
+          </p>
         </div>
+        <div class="pl-hero__actions d-none d-md-flex">
+          <a href="{% url 'dashboard' %}" class="pl-btn pl-btn--outline">Tableau de bord</a>
+          <a href="{% url 'creer_projet' %}" class="pl-btn pl-btn--solid">
+            <i class="fas fa-plus" aria-hidden="true"></i> Nouveau projet
+          </a>
+        </div>
+      </div>
+
+      <div class="pl-metrics" aria-label="Indicateurs">
+        <div class="pl-metric">
+          <span class="pl-metric__val">{{ stats.total|default:0 }}</span>
+          <span class="pl-metric__lbl">Projets</span>
+        </div>
+        <div class="pl-metric">
+          <span class="pl-metric__val">{{ stats.en_cours|default:0 }}</span>
+          <span class="pl-metric__lbl">En cours</span>
+        </div>
+        <div class="pl-metric">
+          <span class="pl-metric__val">{{ stats.superficie|floatformat:1 }}</span>
+          <span class="pl-metric__lbl">Hectares</span>
+        </div>
+        <div class="pl-metric">
+          <span class="pl-metric__val">{{ stats.termines|default:0 }}</span>
+          <span class="pl-metric__lbl">Terminés</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="pl-controls" id="plControls">
+      <div class="pl-controls__inner">
+        <form method="get" class="pl-search" id="plSearchForm" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="search"
+                 name="q"
+                 id="plSearchInput"
+                 value="{{ search_q }}"
+                 placeholder="Rechercher un projet, une culture, une ferme…"
+                 autocomplete="off"
+                 aria-label="Rechercher">
+          {% if statut_filter != 'all' %}
+          <input type="hidden" name="statut" value="{{ statut_filter }}">
+          {% endif %}
+        </form>
+
+        <nav class="pl-tabs" aria-label="Filtrer par statut">
+          <a href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}statut=all"
+             class="pl-tab{% if statut_filter == 'all' %} is-active{% endif %}">Tous</a>
+          <a href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}statut=en_cours"
+             class="pl-tab{% if statut_filter == 'en_cours' %} is-active{% endif %}">En cours</a>
+          <a href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}statut=en_pause"
+             class="pl-tab{% if statut_filter == 'en_pause' %} is-active{% endif %}">En pause</a>
+          <a href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}statut=termines"
+             class="pl-tab{% if statut_filter == 'termines' %} is-active{% endif %}">Terminés</a>
+        </nav>
+      </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-box">
-            <span class="stat-box__value" id="projectsTotalCount">{{ projets|length }}</span>
-            <span class="stat-box__label">Total projets</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-box__value" id="projectsEnCoursCount">{{ projets_en_cours|default:projets|length }}</span>
-            <span class="stat-box__label">En cours</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-box__value" id="projectsTerminesCount">{{ projets_termines|default:0 }}</span>
-            <span class="stat-box__label">Terminés</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-box__value" id="projectsSurfaceTotal">{{ superficie_totale|default:"5" }} ha</span>
-            <span class="stat-box__label">Surface totale</span>
-        </div>
-    </div>
-
-    <!-- Search -->
-    <div class="search-container">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un projet, une culture ou un produit...">
-    </div>
-
-    <!-- Filters -->
-    <div class="filters-container">
-        <button type="button" class="filter-chip active" data-filter="all">Tous</button>
-        <button type="button" class="filter-chip" data-filter="en_cours">En cours</button>
-        <button type="button" class="filter-chip" data-filter="en_pause">En pause</button>
-        <button type="button" class="filter-chip" data-filter="fini">Terminés</button>
-        
-        <div class="view-toggle">
-            <button type="button" class="view-btn active" data-view="list" title="Vue liste">
-                <i class="fas fa-list"></i>
-            </button>
-            <button type="button" class="view-btn" data-view="grid" title="Vue grille">
-                <i class="fas fa-th-large"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Projects List -->
     {% if projets %}
-    <div class="projects-list" id="projectsList">
-        {% for projet in projets %}
-        <article class="project-card" 
-                 data-id="{{ projet.id }}"
-                 data-name="{{ projet.nom|lower }}"
-                 data-status="{{ projet.statut }}"
-                 data-culture="{{ projet.culture.nom|lower|default:'' }}"
-                 data-superficie="{{ projet.superficie }}">
-            <div class="project-card__header">
-                <h3 class="project-card__title">{{ projet.nom }}</h3>
-                <span class="project-card__status project-card__status--{{ projet.statut }}">
-                    {% if projet.statut == 'en_cours' %}En cours
-                    {% elif projet.statut == 'en_pause' %}En pause
-                    {% elif projet.statut == 'fini' %}Terminé
-                    {% elif projet.statut == 'cloture' %}Clôturé
-                    {% else %}En cours{% endif %}
-                </span>
-            </div>
-            
-            <div class="project-card__culture">
-                <span class="culture-emoji">
-                    {% if projet.culture.nom|lower == 'riz' %}🌾
-                    {% elif projet.culture.nom|lower == 'maïs' or projet.culture.nom|lower == 'mais' %}🌽
-                    {% elif projet.culture.nom|lower == 'tomate' %}🍅
-                    {% elif projet.culture.nom|lower == 'piment' %}🌶️
-                    {% elif projet.culture.nom|lower == 'manioc' %}🥔
-                    {% elif projet.culture.nom|lower == 'arachide' %}🥜
-                    {% elif projet.culture.nom|lower == 'coton' %}☁️
-                    {% else %}🌱{% endif %}
-                </span>
-                <span>{{ projet.culture.nom|default:"Culture non définie" }}</span>
-            </div>
-            
-            <div class="progress-section">
-                <div class="progress-header">
-                    <span class="progress-label">Avancement</span>
-                    <span class="progress-value">{{ projet.taux_avancement }}%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-bar__fill" data-progress="{{ projet.taux_avancement }}"></div>
-                </div>
-            </div>
-            
-            <div class="project-stats">
-                <div class="project-stat">
-                    <span class="project-stat__value">{{ projet.localite|default:"Satuate" }}</span>
-                    <span class="project-stat__label">Status en fntre</span>
-                </div>
-                <div class="project-stat">
-                    <span class="project-stat__value">{{ projet.superficie|default:"5,00" }} ha</span>
-                    <span class="project-stat__label">Surface</span>
-                </div>
-                <div class="project-stat">
-                    <span class="project-stat__value">{{ projet.date_lancement|date:"d/m/Y"|default:"09/05/2026" }}</span>
-                    <span class="project-stat__label">Date de projet</span>
-                </div>
-            </div>
-            
-            <a href="{% url 'detail_projet' projet.id %}" class="project-card__link" style="position:absolute;inset:0;z-index:1;"></a>
-        </article>
-        {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="projects-list">
-        <div class="project-card" style="text-align:center;padding:40px;">
-            <div style="font-size:48px;margin-bottom:16px;">🌱</div>
-            <h3 style="margin-bottom:8px;">Aucun projet pour le moment</h3>
-            <p style="color:var(--ab-text-muted);margin-bottom:24px;">Créez votre premier projet agricole pour commencer à suivre vos cultures.</p>
-            <a href="{% url 'creer_projet' %}" class="btn-primary">
-                <i class="fas fa-plus"></i> Créer mon premier projet
-            </a>
+    <p class="pl-count">
+      {{ projets.paginator.count }} projet{{ projets.paginator.count|pluralize }}
+      {% if search_q %} · « {{ search_q }} »{% endif %}
+    </p>
+
+    <ul class="pl-grid">
+      {% for projet in projets %}
+      <li class="pl-card pl-card--{{ projet.statut }}">
+        <a href="{% url 'detail_projet' projet.id %}" class="pl-card__link" aria-label="Ouvrir {{ projet.nom }}"></a>
+
+        <div class="pl-card__head">
+          <span class="pl-chip">{{ projet.ferme.nom }}</span>
+          <span class="pl-pill">
+            {% if projet.statut == 'en_cours' %}En cours
+            {% elif projet.statut == 'en_pause' %}Pause
+            {% elif projet.statut == 'fini' %}Terminé
+            {% elif projet.statut == 'cloture' %}Clôturé
+            {% else %}{{ projet.get_statut_display }}{% endif %}
+          </span>
         </div>
+
+        <h2 class="pl-card__title">{{ projet.nom }}</h2>
+        <p class="pl-card__culture">{{ projet.culture.nom|default:"Culture non définie" }} · {{ projet.localite.nom|default:"—" }}</p>
+
+        <div class="pl-card__facts">
+          <div>
+            <span class="pl-fact__val">{{ projet.superficie|floatformat:1 }} ha</span>
+            <span class="pl-fact__lbl">Surface</span>
+          </div>
+          <div>
+            <span class="pl-fact__val">{{ projet.date_lancement|date:"M Y" }}</span>
+            <span class="pl-fact__lbl">Lancement</span>
+          </div>
+          <div>
+            <span class="pl-fact__val">{{ projet.taux_avancement }}%</span>
+            <span class="pl-fact__lbl">Avancement</span>
+          </div>
+        </div>
+
+        <div class="pl-card__track">
+          <div class="pl-card__track-top">
+            <span>Progression</span>
+            <strong>{{ projet.taux_avancement }}%</strong>
+          </div>
+          <div class="pl-track" role="progressbar" aria-valuenow="{{ projet.taux_avancement }}" aria-valuemin="0" aria-valuemax="100">
+            <span style="width: {{ projet.taux_avancement }}%;"></span>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if projets.has_other_pages %}
+    <nav class="pl-pager" aria-label="Pagination">
+      {% if projets.has_previous %}
+      <a class="pl-pager__btn" href="?page={{ projets.previous_page_number }}{% if statut_filter != 'all' %}&statut={{ statut_filter }}{% endif %}{% if search_q %}&q={{ search_q|urlencode }}{% endif %}" aria-label="Page précédente">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+      </a>
+      {% else %}
+      <span class="pl-pager__btn is-disabled" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+      {% endif %}
+
+      <span class="pl-pager__meta">Page {{ projets.number }} sur {{ projets.paginator.num_pages }}</span>
+
+      {% if projets.has_next %}
+      <a class="pl-pager__btn" href="?page={{ projets.next_page_number }}{% if statut_filter != 'all' %}&statut={{ statut_filter }}{% endif %}{% if search_q %}&q={{ search_q|urlencode }}{% endif %}" aria-label="Page suivante">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+      </a>
+      {% else %}
+      <span class="pl-pager__btn is-disabled" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="pl-empty">
+      <div class="pl-empty__icon" aria-hidden="true"><i class="fas fa-seedling"></i></div>
+      <h2>{% if search_q or statut_filter != 'all' %}Aucun projet trouvé{% else %}Commencez votre premier projet{% endif %}</h2>
+      <p>
+        {% if search_q or statut_filter != 'all' %}
+          Ajustez vos filtres ou effacez la recherche pour voir plus de résultats.
+        {% else %}
+          Créez un projet pour planifier vos cultures, tâches et rendements au même endroit.
+        {% endif %}
+      </p>
+      {% if search_q or statut_filter != 'all' %}
+      <a href="{% url 'liste_projets' %}" class="pl-btn pl-btn--outline">Tout afficher</a>
+      {% else %}
+      <a href="{% url 'creer_projet' %}" class="pl-btn pl-btn--solid">
+        <i class="fas fa-plus" aria-hidden="true"></i> Créer un projet
+      </a>
+      {% endif %}
     </div>
     {% endif %}
-</section>
 
-<script>
-// Simple filter functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const filterChips = document.querySelectorAll('.filter-chip');
-    const projectCards = document.querySelectorAll('.project-card');
-    const searchInput = document.getElementById('searchInput');
-    
-    // Filter chips
-    filterChips.forEach(chip => {
-        chip.addEventListener('click', function() {
-            filterChips.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            
-            const filter = this.dataset.filter;
-            filterProjects(filter, searchInput.value.toLowerCase());
-        });
-    });
-    
-    // Search
-    searchInput.addEventListener('input', function() {
-        const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
-        filterProjects(activeFilter, this.value.toLowerCase());
-    });
-    
-    function filterProjects(statusFilter, searchTerm) {
-        projectCards.forEach(card => {
-            const cardStatus = card.dataset.status;
-            const cardName = card.dataset.name;
-            const cardCulture = card.dataset.culture;
-            
-            const matchesStatus = statusFilter === 'all' || cardStatus === statusFilter;
-            const matchesSearch = !searchTerm || 
-                cardName.includes(searchTerm) || 
-                cardCulture.includes(searchTerm);
-            
-            card.style.display = matchesStatus && matchesSearch ? 'block' : 'none';
-        });
-        
-        // Update visible count
-        const visibleCount = Array.from(projectCards).filter(c => c.style.display !== 'none').length;
-        const visEl = document.getElementById('projectsVisibleCount');
-        if (visEl) visEl.textContent = visibleCount;
-    }
-    
-    // Refresh button
-    document.getElementById('refreshBtn').addEventListener('click', function() {
-        location.reload();
-    });
-    
-    // Initialize progress bars
-    document.querySelectorAll('.progress-bar__fill').forEach(bar => {
-        const progress = bar.dataset.progress;
-        if (progress) {
-            bar.style.width = progress + '%';
-        }
-    });
-    
-    // View toggle (list/grid)
-    const viewBtns = document.querySelectorAll('.view-btn');
-    const projectsList = document.getElementById('projectsList');
-    
-    viewBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const view = this.dataset.view;
-            
-            // Update active button
-            viewBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Update list view
-            if (view === 'grid') {
-                projectsList.classList.remove('view-list');
-                projectsList.classList.add('view-grid');
-            } else {
-                projectsList.classList.remove('view-grid');
-                projectsList.classList.add('view-list');
-            }
-            
-            // Save preference
-            localStorage.setItem('projectsView', view);
-        });
-    });
-    
-    // Restore saved view preference
-    const savedView = localStorage.getItem('projectsView') || 'list';
-    const savedBtn = document.querySelector(`.view-btn[data-view="${savedView}"]`);
-    if (savedBtn) {
-        savedBtn.click();
-    }
-});
-</script>
+  </div>
+
+  <a href="{% url 'creer_projet' %}" class="pl-fab d-md-none" aria-label="Nouveau projet">
+    <i class="fas fa-plus" aria-hidden="true"></i>
+  </a>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/projets-list.js' %}"></script>
 {% endblock %}
