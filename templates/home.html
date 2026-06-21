@@ -424,9 +424,9 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
         <div class="ab-hero__meta ab-rv" style="--ab-d:.32s">
           {% if stats.show_trust_metrics %}
             <span><b>{{ stats.nb_users|intcomma }}+</b> agriculteurs</span>
-            <span class="ab-sep"></span>
+            <span class="s"></span>
             <span><b>{{ stats.nb_projets|intcomma }}</b> projets suivis</span>
-            <span class="ab-sep"></span>
+            <span class="s"></span>
             <span><b>{{ stats.nb_localites }}</b> localités</span>
           {% else %}
             <span><i class="fas fa-bolt" style="color:var(--ab-l-accent)"></i> &nbsp;Installation en 2 minutes</span>
@@ -435,6 +435,8 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
           {% endif %}
         </div>
       </div>
+    </div>
+  </section>
 
       <!-- Mockup téléphone : l'app vue du terrain -->
       <div class="ab-device ab-rv" style="--ab-d:.2s">
@@ -501,7 +503,30 @@ html.dark-mode .ab-land .ab-per__tags span { background: rgba(159,225,203,.12); 
       </div>
     </div>{# /ab-hero__grid #}
 
-  </section>{# /ab-hero #}
+      <!-- Acte 2 — Jëf Baay -->
+      <div class="lp-act lp-act--rev lp-reveal">
+        <div class="lp-act__copy">
+          <span class="lp-act__kicker">Assistant vocal Wolof</span>
+          <h3>Posez vos questions à voix haute</h3>
+          <p>Jëf Baay répond en Wolof, sans lecture ni écriture. La technologie s'efface ; il reste un conseil agricole dans votre langue.</p>
+          <span class="lp-act__note"><i class="fas fa-microphone-lines"></i> Sans inscription</span>
+        </div>
+        <div class="lp-act__art" aria-hidden="true">
+          <svg viewBox="0 0 520 360" role="img"><title>Onde vocale de l'assistant Jëf Baay</title>
+            <rect width="520" height="360" rx="20" fill="#0f3a2b"/>
+            <circle cx="100" cy="180" r="42" fill="#f4a82c"/>
+            <path d="M88 162 h24 v36 h-24 z M100 198 v16 M86 214 h28" stroke="#0f3a2b" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <g fill="#5dcaa5">
+              <rect x="180" y="150" width="9" height="60" rx="4"/><rect x="202" y="120" width="9" height="120" rx="4"/>
+              <rect x="224" y="160" width="9" height="40" rx="4"/><rect x="246" y="96" width="9" height="168" rx="4"/>
+              <rect x="268" y="140" width="9" height="80" rx="4"/><rect x="290" y="116" width="9" height="128" rx="4"/>
+              <rect x="312" y="158" width="9" height="44" rx="4"/><rect x="334" y="104" width="9" height="152" rx="4"/>
+              <rect x="356" y="150" width="9" height="60" rx="4"/><rect x="378" y="128" width="9" height="104" rx="4"/>
+              <rect x="400" y="162" width="9" height="36" rx="4"/><rect x="422" y="138" width="9" height="84" rx="4"/>
+            </g>
+          </svg>
+        </div>
+      </div>
 
   <!-- ============================ MARQUEE ============================ -->
   <div class="ab-marquee" aria-hidden="true">
