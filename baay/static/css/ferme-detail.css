@@ -34,7 +34,8 @@
    ============================================================ */
 .fd-hero {
     position: relative;
-    border-radius: 24px;
+    isolation: isolate;
+    border-radius: clamp(20px, 3vw, 28px);
     overflow: hidden;
     min-height: 360px;
     display: flex;
@@ -42,15 +43,41 @@
     justify-content: flex-end;
     color: #fff;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, var(--ab-color-primary-night), var(--ab-color-primary-deep) 55%, var(--ab-color-primary));
-    box-shadow: 0 20px 60px rgba(4, 52, 44, 0.18);
+    background: var(--ab-color-primary-night, #04241d);
+    box-shadow: 0 24px 60px rgba(4, 36, 29, 0.28);
 }
 
-@media (max-width: 600px) { .fd-hero { min-height: 280px; } }
+@media (max-width: 600px) { .fd-hero { min-height: 300px; } }
+
+/* Aurore (fallback sans photo · signature cockpit) */
+.fd-hero::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    z-index: 0;
+    background:
+        radial-gradient(36% 44% at 16% 22%, rgba(29, 158, 117, 0.6), transparent 70%),
+        radial-gradient(30% 38% at 86% 10%, rgba(239, 159, 39, 0.32), transparent 70%),
+        radial-gradient(42% 48% at 70% 92%, rgba(93, 202, 165, 0.3), transparent 72%);
+    filter: blur(48px);
+}
+
+/* Trame de points (fallback sans photo) */
+.fd-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.4px);
+    background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(80% 80% at 50% 10%, #000, transparent 82%);
+    mask-image: radial-gradient(80% 80% at 50% 10%, #000, transparent 82%);
+}
 
 .fd-hero__cover {
     position: absolute;
     inset: 0;
+    z-index: 1;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -60,11 +87,12 @@
 .fd-hero__overlay {
     position: absolute;
     inset: 0;
+    z-index: 1;
     background: linear-gradient(
         180deg,
-        rgba(4, 52, 44, 0.08) 0%,
-        rgba(4, 52, 44, 0.45) 40%,
-        rgba(4, 52, 44, 0.95) 100%
+        rgba(4, 36, 29, 0.05) 0%,
+        rgba(4, 36, 29, 0.45) 42%,
+        rgba(4, 36, 29, 0.95) 100%
     );
     pointer-events: none;
 }
@@ -135,6 +163,26 @@
     padding: clamp(20px, 4vw, 36px);
 }
 
+.fd-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9fe1cb;
+    margin: 0 0 12px;
+}
+.fd-hero__eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ab-color-accent, #ef9f27);
+    box-shadow: 0 0 0 4px rgba(239, 159, 39, 0.25);
+}
+
 .fd-hero__badge {
     display: inline-flex;
     align-items: center;
@@ -172,13 +220,13 @@
 
 .fd-hero__title {
     font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
-    font-size: clamp(1.8rem, 5vw, 2.6rem);
-    font-weight: 800;
+    font-size: clamp(1.95rem, 5.4vw, 2.9rem);
+    font-weight: 700;
     margin: 0 0 10px;
     color: #fff;
-    letter-spacing: -0.025em;
-    line-height: 1.1;
-    text-shadow: 0 2px 12px rgba(4, 52, 44, 0.4);
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    text-shadow: 0 2px 18px rgba(4, 36, 29, 0.5);
 }
 
 .fd-hero__desc {
@@ -282,7 +330,13 @@
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 12px rgba(8, 80, 65, 0.04);
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+}
+.fd-kpi:hover {
+    transform: translateY(-3px);
+    border-color: rgba(var(--ab-color-primary-rgb), 0.3);
+    box-shadow: 0 14px 30px rgba(8, 80, 65, 0.1);
 }
 .fd-kpi::before {
     content: '';
@@ -321,9 +375,11 @@
 .fd-kpi__value {
     font-family: var(--ab-font-display, 'Space Grotesk', sans-serif);
     font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 700;
     color: var(--ab-text-main);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
 }
 
 .fd-kpi__label {
@@ -336,13 +392,13 @@
 }
 
 .fd-kpi__chip {
+    display: inline-flex;
+    align-items: center;
     font-size: 0.65rem;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 999px;
-    position: absolute;
-    top: 12px;
-    right: 12px;
+    margin-top: 7px;
 }
 .fd-kpi__chip--green { background: rgba(var(--ab-color-primary-rgb),0.12); color: var(--ab-color-primary-deep); }
 
@@ -368,7 +424,7 @@
 .fd-panel {
     background: var(--ab-color-surface);
     border: 1px solid var(--ab-color-border);
-    border-radius: 20px;
+    border-radius: clamp(16px, 2.5vw, 20px);
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(8,80,65,0.04);
 }
@@ -381,6 +437,14 @@
     padding: 16px 20px;
     border-bottom: 1px solid var(--ab-color-border);
     background: linear-gradient(135deg, rgba(var(--ab-color-primary-rgb),0.05), rgba(239,159,39,0.02));
+}
+
+/* Affordance tactile : sur mobile, pas de :hover → footer carte toujours visible */
+@media (hover: none) {
+    .fd-projet-card__footer {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .fd-panel__title-wrap {
