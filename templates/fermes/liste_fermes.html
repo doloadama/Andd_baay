@@ -43,106 +43,121 @@
      }"
      x-init="$watch('query', () => applyFilters()); $watch('filter', () => applyFilters())">
 
-    <header class="fl-hero">
-        <div class="fl-hero__inner">
-            <div>
-                <p class="fl-hero__eyebrow">Exploitations</p>
-                <h1 class="fl-hero__title">Mes fermes</h1>
-                <p class="fl-hero__desc">
-                    Centralisez vos sites, équipes et projets. Chaque ferme regroupe parcelles, membres et données terrain.
-                </p>
-            </div>
-            <div class="fl-hero__actions">
-                <a href="{% url 'creer_ferme' %}" class="fl-btn fl-btn--primary">
-                    <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle ferme
-                </a>
-                <a href="{% url 'demander_acces_ferme' %}" class="fl-btn fl-btn--ghost">
-                    <i class="fas fa-key" aria-hidden="true"></i> Rejoindre une ferme
-                </a>
-            </div>
-        </div>
-    </header>
+  <div class="fl-shell">
 
-    {% with total=fermes_proprietaire|length|add:fermes_membre|length %}
-    <div class="fl-stats" role="group" aria-label="Statistiques">
+    <header class="fl-hero">
+      <div class="fl-hero__grid">
+        <div>
+          <p class="fl-hero__label">Exploitations</p>
+          <h1>Mes fermes</h1>
+          <p class="fl-hero__lead">
+            Centralisez vos sites, équipes et projets. Chaque ferme regroupe parcelles, membres et données terrain.
+          </p>
+        </div>
+        <div class="fl-hero__actions d-none d-md-flex">
+          <a href="{% url 'creer_ferme' %}" class="fl-btn fl-btn--primary">
+            <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle ferme
+          </a>
+          <a href="{% url 'demander_acces_ferme' %}" class="fl-btn fl-btn--ghost">
+            <i class="fas fa-key" aria-hidden="true"></i> Rejoindre
+          </a>
+        </div>
+      </div>
+
+      <div class="fl-hero__actions fl-hero__actions--mobile d-md-none">
+        <a href="{% url 'creer_ferme' %}" class="fl-btn fl-btn--primary">
+          <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle
+        </a>
+        <a href="{% url 'demander_acces_ferme' %}" class="fl-btn fl-btn--ghost">
+          <i class="fas fa-key" aria-hidden="true"></i> Rejoindre
+        </a>
+      </div>
+
+      {% with total=fermes_proprietaire|length|add:fermes_membre|length %}
+      <div class="fl-stats" role="group" aria-label="Statistiques">
         <div class="fl-stat">
-            <div class="fl-stat__value">{{ total }}</div>
-            <div class="fl-stat__label">Total</div>
+          <div class="fl-stat__value">{{ total }}</div>
+          <div class="fl-stat__label">Total</div>
         </div>
         <div class="fl-stat fl-stat--owned">
-            <div class="fl-stat__value">{{ fermes_proprietaire|length }}</div>
-            <div class="fl-stat__label">Propriétaire</div>
+          <div class="fl-stat__value">{{ fermes_proprietaire|length }}</div>
+          <div class="fl-stat__label">Propriétaire</div>
         </div>
         <div class="fl-stat fl-stat--member">
-            <div class="fl-stat__value">{{ fermes_membre|length }}</div>
-            <div class="fl-stat__label">Membre</div>
+          <div class="fl-stat__value">{{ fermes_membre|length }}</div>
+          <div class="fl-stat__label">Membre</div>
         </div>
-    </div>
-    {% endwith %}
+      </div>
+      {% endwith %}
+    </header>
 
     {% if fermes_proprietaire or fermes_membre %}
-    <div class="fl-toolbar">
+    <div class="fl-toolbar-wrap" id="flToolbar">
+      <div class="fl-toolbar">
         <div class="fl-search">
-            <i class="fas fa-search fl-search__icon" aria-hidden="true"></i>
-            <input type="search"
-                   class="fl-search__input"
-                   placeholder="Rechercher par nom ou localisation…"
-                   x-model.debounce.200ms="query"
-                   aria-label="Rechercher une ferme">
+          <i class="fas fa-search fl-search__icon" aria-hidden="true"></i>
+          <input type="search"
+                 class="fl-search__input"
+                 placeholder="Rechercher par nom ou localisation…"
+                 x-model.debounce.200ms="query"
+                 aria-label="Rechercher une ferme">
         </div>
         <div class="fl-filters" role="tablist" aria-label="Filtrer par rôle">
-            <button type="button" class="fl-filter" :class="{ 'is-active': filter === 'all' }" @click="filter = 'all'" role="tab" :aria-selected="filter === 'all'">Toutes</button>
-            <button type="button" class="fl-filter" :class="{ 'is-active': filter === 'owned' }" @click="filter = 'owned'" role="tab" :aria-selected="filter === 'owned'">Mes fermes</button>
-            <button type="button" class="fl-filter" :class="{ 'is-active': filter === 'member' }" @click="filter = 'member'" role="tab" :aria-selected="filter === 'member'">Membre</button>
+          <button type="button" class="fl-filter" :class="{ 'is-active': filter === 'all' }" @click="filter = 'all'" role="tab" :aria-selected="filter === 'all'">Toutes</button>
+          <button type="button" class="fl-filter" :class="{ 'is-active': filter === 'owned' }" @click="filter = 'owned'" role="tab" :aria-selected="filter === 'owned'">Mes fermes</button>
+          <button type="button" class="fl-filter" :class="{ 'is-active': filter === 'member' }" @click="filter = 'member'" role="tab" :aria-selected="filter === 'member'">Membre</button>
         </div>
+      </div>
     </div>
 
     <p id="flNoResults" class="fl-no-results" hidden>Aucune ferme ne correspond à votre recherche.</p>
 
     {% if fermes_proprietaire %}
     <section class="fl-section" data-fl-section aria-labelledby="fl-owned-heading">
-        <div class="fl-section__head">
-            <h2 id="fl-owned-heading" class="fl-section__title">Fermes que je possède</h2>
-            <span class="fl-section__count">{{ fermes_proprietaire|length }}</span>
-        </div>
-        <div class="fl-grid">
-            {% for ferme in fermes_proprietaire %}
-            {% include 'fermes/_ferme_card.html' with ferme=ferme role='owner' %}
-            {% endfor %}
-        </div>
+      <div class="fl-section__head">
+        <h2 id="fl-owned-heading" class="fl-section__title">Fermes que je possède</h2>
+        <span class="fl-section__count">{{ fermes_proprietaire|length }}</span>
+      </div>
+      <div class="fl-grid">
+        {% for ferme in fermes_proprietaire %}
+        {% include 'fermes/_ferme_card.html' with ferme=ferme role='owner' %}
+        {% endfor %}
+      </div>
     </section>
     {% endif %}
 
     {% if fermes_membre %}
     <section class="fl-section fl-section--member" data-fl-section aria-labelledby="fl-member-heading">
-        <div class="fl-section__head">
-            <h2 id="fl-member-heading" class="fl-section__title">Fermes dont je suis membre</h2>
-            <span class="fl-section__count">{{ fermes_membre|length }}</span>
-        </div>
-        <div class="fl-grid">
-            {% for ferme in fermes_membre %}
-            {% include 'fermes/_ferme_card.html' with ferme=ferme role='member' %}
-            {% endfor %}
-        </div>
+      <div class="fl-section__head">
+        <h2 id="fl-member-heading" class="fl-section__title">Fermes dont je suis membre</h2>
+        <span class="fl-section__count">{{ fermes_membre|length }}</span>
+      </div>
+      <div class="fl-grid">
+        {% for ferme in fermes_membre %}
+        {% include 'fermes/_ferme_card.html' with ferme=ferme role='member' %}
+        {% endfor %}
+      </div>
     </section>
     {% endif %}
 
     {% else %}
     <div class="fl-empty">
-        <div class="fl-empty__icon" aria-hidden="true"><i class="fas fa-warehouse"></i></div>
-        <h2 class="fl-empty__title">Aucune ferme pour l'instant</h2>
-        <p class="fl-empty__text">
-            Créez votre première exploitation ou demandez l'accès à une ferme existante avec un code d'invitation.
-        </p>
-        <div class="fl-empty__actions">
-            <a href="{% url 'creer_ferme' %}" class="fl-btn fl-btn--brand">
-                <i class="fas fa-plus" aria-hidden="true"></i> Créer ma première ferme
-            </a>
-            <a href="{% url 'demander_acces_ferme' %}" class="fl-btn fl-btn--surface">
-                <i class="fas fa-key" aria-hidden="true"></i> Rejoindre une ferme
-            </a>
-        </div>
+      <div class="fl-empty__icon" aria-hidden="true"><i class="fas fa-warehouse"></i></div>
+      <h2 class="fl-empty__title">Aucune ferme pour l'instant</h2>
+      <p class="fl-empty__text">
+        Créez votre première exploitation ou demandez l'accès à une ferme existante avec un code d'invitation.
+      </p>
+      <div class="fl-empty__actions">
+        <a href="{% url 'creer_ferme' %}" class="fl-btn fl-btn--brand">
+          <i class="fas fa-plus" aria-hidden="true"></i> Créer ma première ferme
+        </a>
+        <a href="{% url 'demander_acces_ferme' %}" class="fl-btn fl-btn--surface">
+          <i class="fas fa-key" aria-hidden="true"></i> Rejoindre une ferme
+        </a>
+      </div>
     </div>
     {% endif %}
+
+  </div>
 </div>
 {% endblock %}

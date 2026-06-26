@@ -1096,18 +1096,16 @@ main .container-modern:has(.pd-page) {
 
 /* En-tête de l'onglet accompagnement */
 .pd-accomp-header {
-    background: linear-gradient(135deg, var(--ab-color-primary-night, #04342c), var(--pd-brand));
-    color: #fff;
-    border: none;
+    background: var(--pd-surface);
+    color: var(--pd-text);
+    border: 1px solid var(--pd-border);
 }
-
-.pd-accomp-header__row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
 .pd-accomp-header__icon {
     width: 56px;
     height: 56px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--pd-brand-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1115,8 +1113,21 @@ main .container-modern:has(.pd-page) {
     flex-shrink: 0;
 }
 
-.pd-accomp-header h2 { margin: 0 0 4px; font-size: 1.25rem; color: #fff; }
-.pd-accomp-header p { margin: 0; opacity: 0.88; font-size: 0.875rem; }
+.pd-accomp-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.25rem;
+    color: var(--pd-text);
+}
+
+.pd-accomp-header p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--pd-muted);
+}
+
+.pd-accomp-grid {
+    grid-template-columns: 1fr;
+}
 
 /* En-tête culture */
 .pd-accomp-culture {
@@ -1212,6 +1223,13 @@ main .container-modern:has(.pd-page) {
     font-weight: 700;
     color: var(--pd-text);
 }
+
+.pd-accomp-title--block,
+.pd-accomp-msg--block {
+    margin-bottom: 8px;
+}
+
+.pd-accomp-header__row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
 .pd-accomp-msg {
     margin: 0;

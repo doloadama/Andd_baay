@@ -4,36 +4,8 @@
  */
 
 @media (max-width: 767.98px) {
-    /* ─── Projet détail ─── */
-    .projet-detail-page .project-hero-bg {
-        min-height: 38vh;
-        max-height: 420px;
-    }
-
-    .projet-detail-page .projet-hero-title {
-        font-size: clamp(1.35rem, 6vw, 2rem) !important;
-        line-height: 1.15;
-        padding: 0 8px;
-    }
-
-    .projet-detail-page .projet-hero-subtitle {
-        font-size: 0.88rem !important;
-        line-height: 1.45;
-        padding: 0 10px;
-        max-width: 100%;
-    }
-
-    .projet-detail-page .projet-hero-product-list {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
-        overflow: hidden;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        text-align: left;
-    }
-
-    .projet-detail-page #photoCarousel .carousel-caption {
+    /* ─── Détail projet (pd-page) — carousel photos legacy ─── */
+    .pd-page #photoCarousel .carousel-caption {
         display: block !important;
         font-size: 0.8rem;
         padding: 6px 10px !important;
@@ -42,20 +14,20 @@
         border-radius: var(--ab-radius-sm) !important;
     }
 
-    .projet-detail-page #photoCarousel .carousel-caption h6 {
+    .pd-page #photoCarousel .carousel-caption h6 {
         color: #fff !important;
     }
 
-    .projet-detail-page #photoCarousel .projet-carousel-caption-sub {
+    .pd-page #photoCarousel .projet-carousel-caption-sub {
         color: rgba(255, 255, 255, 0.92) !important;
     }
 
-    .dark-mode .projet-detail-page #photoCarousel .carousel-caption {
+    .dark-mode .pd-page #photoCarousel .carousel-caption {
         background: rgba(15, 23, 42, 0.88) !important;
     }
 
-    .projet-detail-page #photoCarousel .carousel-control-prev,
-    .projet-detail-page #photoCarousel .carousel-control-next {
+    .pd-page #photoCarousel .carousel-control-prev,
+    .pd-page #photoCarousel .carousel-control-next {
         min-width: 44px;
         min-height: 44px;
         width: 44px;
@@ -63,65 +35,14 @@
         padding: 0;
     }
 
-    .projet-detail-page .project-content-wrapper {
-        padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
-        padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
-        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
-    }
-
-    .projet-detail-page .project-content-wrapper > .animate__fadeInUp:first-of-type {
-        margin-top: -18px !important;
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    .projet-detail-page .projet-quick-stats {
-        gap: 10px;
-    }
-
-    .projet-detail-page .projet-actions-toolbar {
-        flex-direction: column;
-        align-items: stretch !important;
-        padding: 12px;
-    }
-
-    .projet-detail-page .projet-action-btn {
-        width: 100%;
-        flex: 1 1 auto !important;
-    }
-
-    .projet-detail-page .projet-actions-toolbar .projet-action-dropdown {
-        width: 100%;
-    }
-
-    .projet-detail-page #photoCarousel .carousel-item img {
+    .pd-page #photoCarousel .carousel-item img {
         height: 220px !important;
         object-fit: cover;
     }
 
-    .projet-detail-page #photoCarousel .carousel-caption {
-        display: block !important;
-        font-size: 0.8rem;
-        padding: 6px 10px !important;
-        bottom: 8px !important;
-    }
-
-    .projet-detail-page #map {
+    .pd-page #map {
         height: 200px !important;
         min-height: 180px;
-    }
-
-    .projet-detail-page .info-block {
-        gap: 10px;
-    }
-
-    .projet-detail-page .prediction-card .display-5 {
-        font-size: 1.65rem !important;
-    }
-
-    /* Masqué sur mobile : déjà dans les tuiles KPI (superficie, lancement) */
-    .projet-detail-page .projet-apercu-skip-mobile {
-        display: none !important;
     }
 
     /* ─── Liste semis ─── */
@@ -222,7 +143,7 @@
         padding: 16px !important;
     }
 
-    .projet-detail-page .projet-semis-widget .semis-card-footer .btn-card {
+    .pd-page .projet-semis-widget .semis-card-footer .btn-card {
         min-height: 44px;
     }
 
@@ -261,9 +182,77 @@
     /* Pas de double marge avec container-modern */
     main .container-modern:has(.pl-page),
     main .container-modern:has(.pd-page),
-    main .container-modern:has(.db-page) {
+    main .container-modern:has(.db-page),
+    main .container-modern:has(.fl-page),
+    main .container-modern:has(.tl-page) {
         padding-left: 0 !important;
         padding-right: 0 !important;
+    }
+
+    .fl-shell,
+    .tl-shell {
+        padding-left: max(14px, env(safe-area-inset-left, 0px));
+        padding-right: max(14px, env(safe-area-inset-right, 0px));
+    }
+
+    /* ── Liste fermes (fl-*) ── */
+    .fl-page {
+        --fl-sticky-top: var(--ab-mobile-nav-h);
+    }
+
+    .fl-hero h1 {
+        font-size: clamp(1.35rem, 6.5vw, 1.75rem) !important;
+    }
+
+    .fl-hero__actions--mobile {
+        display: flex;
+    }
+
+    .fl-toolbar-wrap {
+        margin-left: calc(-1 * max(14px, env(safe-area-inset-left, 0px)));
+        margin-right: calc(-1 * max(14px, env(safe-area-inset-right, 0px)));
+        padding-left: max(14px, env(safe-area-inset-left, 0px));
+        padding-right: max(14px, env(safe-area-inset-right, 0px));
+    }
+
+    .fl-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .fl-card__cta {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* ── Liste tâches (tl-*) ── */
+    .tl-hero {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tl-hero h1 {
+        font-size: clamp(1.35rem, 6vw, 1.65rem) !important;
+    }
+
+    .pd-accomp-culture {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pd-accomp-culture .at-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pd-accomp-diag__row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pd-accomp-diag__row .at-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     /* ── Liste projets (pl-*) ── */

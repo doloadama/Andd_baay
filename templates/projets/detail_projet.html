@@ -492,7 +492,7 @@
 
         {# ── Boucle sur chaque culture ── #}
         {% if accompagnement_cultures %}
-        <div class="at-grid-dashboard" style="grid-template-columns: 1fr;">
+        <div class="at-grid-dashboard pd-accomp-grid">
             {% for item in accompagnement_cultures %}
             <div class="at-card">
                 {# En-tête culture #}
@@ -565,14 +565,14 @@
                     </div>
                     {% elif item.pp.image %}
                     <div class="pd-accomp-card pd-accomp-card--vision">
-                        <p class="pd-accomp-title" style="margin-bottom:8px;">📸 Photo disponible — Diagnostic non encore lancé</p>
+                        <p class="pd-accomp-title pd-accomp-title--block">Photo disponible — Diagnostic non encore lancé</p>
                         <a href="{% url 'detail_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
                             <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Lancer le diagnostic
                         </a>
                     </div>
                     {% else %}
                     <div class="pd-accomp-card pd-accomp-card--empty">
-                        <p class="pd-accomp-msg" style="margin-bottom:8px;">📷 Ajoutez une photo pour activer le diagnostic IA (maladies, ravageurs)</p>
+                        <p class="pd-accomp-msg pd-accomp-msg--block">Ajoutez une photo pour activer le diagnostic IA (maladies, ravageurs)</p>
                         <a href="{% url 'modifier_semis' item.pp.id %}" class="at-btn at-btn--ghost at-btn--sm">
                             <i class="fas fa-camera" aria-hidden="true"></i> Ajouter une photo
                         </a>

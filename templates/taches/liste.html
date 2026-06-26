@@ -1,174 +1,144 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tâches | Andd Baay{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/taches-list.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-    .taches-page { padding: 2.5rem 0; }
-    .taches-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
-    .taches-header h1 { font-size:1.6rem; font-weight:700; margin:0; color:var(--ab-text-main); }
-    .taches-header p { margin:.25rem 0 0; color:var(--ab-text-muted); font-size:.95rem; }
-    .stat-cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:1rem; margin-bottom:1.75rem; }
-    .stat-card { background:var(--ab-card-bg); border:1px solid var(--ab-border-color); border-radius:var(--ab-radius-tight); padding:1rem 1.1rem; transition:transform .15s ease; }
-    .stat-card:hover { transform:translateY(-2px); }
-    .stat-card .label { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ab-text-muted); }
-    .stat-card .value { font-size:1.7rem; font-weight:700; color:var(--ab-text-main); margin-top:.2rem; }
-    .stat-card.afaire { border-left:4px solid #f59e0b; }
-    .stat-card.encours { border-left:4px solid #3b82f6; }
-    .stat-card.terminee { border-left:4px solid #10b981; }
-    .stat-card.annulee { border-left:4px solid #6b7280; }
+<div class="tl-page">
+  <div class="tl-shell">
 
-    .filters-bar { background:var(--ab-card-bg); border:1px solid var(--ab-border-color); border-radius:var(--ab-radius-input); padding:1rem; margin-bottom:1.5rem; display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end; }
-    .filters-bar .form-control { min-width:160px; }
-
-    .tache-row { background:var(--ab-card-bg); border:1px solid var(--ab-border-color); border-radius:var(--ab-radius-input); padding:1rem 1.25rem; display:grid; grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.2fr) minmax(0, 1fr) auto; gap:1rem; align-items:center; transition:border-color .15s ease, transform .1s ease; text-decoration:none; color:inherit; margin-bottom:.6rem; }
-    .tache-row:hover { border-color:var(--accent); transform:translateX(2px); color:inherit; text-decoration:none; }
-    .tache-titre { font-weight:600; color:var(--ab-text-main); margin:0 0 .15rem; }
-    .tache-meta { font-size:.85rem; color:var(--ab-text-muted); display:flex; gap:.85rem; flex-wrap:wrap; }
-    .tache-meta i { margin-right:.2rem; }
-    .badge-prio { font-size:.7rem; padding:.2rem .55rem; border-radius:999px; font-weight:600; text-transform:uppercase; letter-spacing:.03em; }
-    .prio-basse { background:#e5e7eb; color:#374151; }
-    .prio-normale { background:#dbeafe; color:#1e40af; }
-    .prio-haute { background:#fed7aa; color:#9a3412; }
-    .prio-urgente { background:#fee2e2; color:#991b1b; }
-    .badge-statut { font-size:.72rem; padding:.25rem .65rem; border-radius:999px; font-weight:600; }
-    .stat-a_faire { background:#fef3c7; color:#92400e; }
-    .stat-en_cours { background:#dbeafe; color:#1e40af; }
-    .stat-terminee { background:#d1fae5; color:#065f46; }
-    .stat-annulee { background:#e5e7eb; color:#374151; }
-    .retard { color:#dc2626; font-weight:600; }
-
-    .empty-state { background:var(--ab-card-bg); border:1px dashed var(--ab-border-color); border-radius:var(--ab-radius-tight); padding:2.5rem; text-align:center; color:var(--ab-text-muted); }
-    .empty-state i { font-size:2.5rem; color:var(--accent); margin-bottom:1rem; }
-
-    @media (max-width:780px){ .tache-row { grid-template-columns:1fr; } }
-</style>
-
-<div class="container taches-page">
-    <div class="taches-header">
-        <div>
-            <h1><i class="fas fa-list-check text-accent me-2"></i>Tâches</h1>
-            <p>
-                {% if est_uniquement_ouvrier %}
-                    Voici les tâches qui vous sont assignées.
-                {% else %}
-                    Toutes les tâches des fermes où vous êtes membre.
-                {% endif %}
-            </p>
-        </div>
-        {% if peut_creer %}
-        <a href="{% url 'creer_tache' %}" class="btn-baay btn-baay-primary">
-            <i class="fas fa-plus me-1"></i> Nouvelle tâche
-        </a>
-        {% endif %}
-    </div>
+    <header class="tl-hero">
+      <div>
+        <h1><i class="fas fa-list-check" aria-hidden="true"></i> Tâches</h1>
+        <p class="tl-hero__lead">
+          {% if est_uniquement_ouvrier %}
+            Voici les tâches qui vous sont assignées.
+          {% else %}
+            Toutes les tâches des fermes où vous êtes membre.
+          {% endif %}
+        </p>
+      </div>
+      {% if peut_creer %}
+      <a href="{% url 'creer_tache' %}" class="tl-btn tl-btn--primary d-none d-md-inline-flex">
+        <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle tâche
+      </a>
+      {% endif %}
+    </header>
 
     {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+      </div>
+      {% endfor %}
     {% endif %}
 
-    <div class="stat-cards">
-        <div class="stat-card afaire">
-            <div class="label">À faire</div>
-            <div class="value">{{ compteurs.a_faire }}</div>
-        </div>
-        <div class="stat-card encours">
-            <div class="label">En cours</div>
-            <div class="value">{{ compteurs.en_cours }}</div>
-        </div>
-        <div class="stat-card terminee">
-            <div class="label">Terminées</div>
-            <div class="value">{{ compteurs.terminee }}</div>
-        </div>
-        <div class="stat-card annulee">
-            <div class="label">Annulées</div>
-            <div class="value">{{ compteurs.annulee }}</div>
-        </div>
+    <div class="tl-stats" aria-label="Compteurs par statut">
+      <div class="tl-stat tl-stat--afaire">
+        <span class="tl-stat__label">À faire</span>
+        <span class="tl-stat__val">{{ compteurs.a_faire }}</span>
+      </div>
+      <div class="tl-stat tl-stat--encours">
+        <span class="tl-stat__label">En cours</span>
+        <span class="tl-stat__val">{{ compteurs.en_cours }}</span>
+      </div>
+      <div class="tl-stat tl-stat--terminee">
+        <span class="tl-stat__label">Terminées</span>
+        <span class="tl-stat__val">{{ compteurs.terminee }}</span>
+      </div>
+      <div class="tl-stat tl-stat--annulee">
+        <span class="tl-stat__label">Annulées</span>
+        <span class="tl-stat__val">{{ compteurs.annulee }}</span>
+      </div>
     </div>
 
-    <form method="get" class="filters-bar">
-        {% if not est_uniquement_ouvrier and fermes %}
-        <div>
-            <label class="form-label-modern small mb-1">Ferme</label>
-            <select name="ferme" class="form-control" onchange="this.form.submit()">
-                <option value="">Toutes les fermes</option>
-                {% for f in fermes %}
-                <option value="{{ f.id }}" {% if filtre_ferme == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        {% endif %}
-        <div>
-            <label class="form-label-modern small mb-1">Statut</label>
-            <select name="statut" class="form-control" onchange="this.form.submit()">
-                <option value="">Tous</option>
-                {% for code, label in STATUT_CHOICES %}
-                <option value="{{ code }}" {% if filtre_statut == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        {% if not est_uniquement_ouvrier %}
-        <div>
-            <label class="form-label-modern small mb-1">Affichage</label>
-            <select name="assigne" class="form-control" onchange="this.form.submit()">
-                <option value="" {% if not filtre_assigne %}selected{% endif %}>Toutes</option>
-                <option value="mes" {% if filtre_assigne == 'mes' %}selected{% endif %}>Tâches qui me sont assignées</option>
-                <option value="recues" {% if filtre_assigne == 'recues' %}selected{% endif %}>Tâches que j'ai créées</option>
-            </select>
-        </div>
-        {% endif %}
-        <a href="{% url 'taches_liste' %}" class="btn btn-outline-secondary">Réinitialiser</a>
+    <form method="get" class="tl-filters">
+      {% if not est_uniquement_ouvrier and fermes %}
+      <div class="tl-field">
+        <label for="tlFerme">Ferme</label>
+        <select name="ferme" id="tlFerme" class="form-control" onchange="this.form.submit()">
+          <option value="">Toutes les fermes</option>
+          {% for f in fermes %}
+          <option value="{{ f.id }}" {% if filtre_ferme == f.id|stringformat:"s" %}selected{% endif %}>{{ f.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="tl-field">
+        <label for="tlStatut">Statut</label>
+        <select name="statut" id="tlStatut" class="form-control" onchange="this.form.submit()">
+          <option value="">Tous</option>
+          {% for code, label in STATUT_CHOICES %}
+          <option value="{{ code }}" {% if filtre_statut == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if not est_uniquement_ouvrier %}
+      <div class="tl-field">
+        <label for="tlAssigne">Affichage</label>
+        <select name="assigne" id="tlAssigne" class="form-control" onchange="this.form.submit()">
+          <option value="" {% if not filtre_assigne %}selected{% endif %}>Toutes</option>
+          <option value="mes" {% if filtre_assigne == 'mes' %}selected{% endif %}>Assignées à moi</option>
+          <option value="recues" {% if filtre_assigne == 'recues' %}selected{% endif %}>Créées par moi</option>
+        </select>
+      </div>
+      {% endif %}
+      <a href="{% url 'taches_liste' %}" class="tl-btn tl-btn--outline tl-filters__reset">Réinitialiser</a>
     </form>
 
     {% if taches %}
-        {% for tache in taches %}
-        <a href="{% url 'tache_detail' tache.id %}" class="tache-row">
-            <div>
-                <div class="tache-titre">
-                    {{ tache.titre }}
-                    <span class="badge-prio prio-{{ tache.priorite }} ms-2">{{ tache.get_priorite_display }}</span>
-                </div>
-                <div class="tache-meta">
-                    <span><i class="fas fa-warehouse"></i>{{ tache.ferme.nom }}</span>
-                    {% if tache.projet %}<span><i class="fas fa-folder"></i>{{ tache.projet.nom }}</span>{% endif %}
-                    <span><i class="fas fa-user"></i>{{ tache.assigne_a.user.username }}</span>
-                </div>
-            </div>
-            <div class="tache-meta">
-                {% if tache.date_echeance %}
-                    <span class="{% if tache.est_en_retard %}retard{% endif %}">
-                        <i class="fas fa-calendar"></i>
-                        {{ tache.date_echeance|date:"d M Y" }}
-                        {% if tache.est_en_retard %}(en retard){% endif %}
-                    </span>
-                {% else %}
-                    <span class="text-muted">— Sans échéance —</span>
-                {% endif %}
-            </div>
-            <div>
-                <span class="badge-statut stat-{{ tache.statut }}">{{ tache.get_statut_display }}</span>
-            </div>
-            <div class="text-muted small text-end">
-                par {{ tache.assigne_par.user.username|default:"—" }}<br>
-                <span class="small">{{ tache.date_creation|date:"d M" }}</span>
-            </div>
-        </a>
-        {% endfor %}
-    {% else %}
-        <div class="empty-state">
-            <i class="fas fa-clipboard-list"></i>
-            <h5>Aucune tâche pour le moment</h5>
-            {% if peut_creer %}
-                <p>Créez votre première tâche pour assigner du travail à votre équipe.</p>
-                <a href="{% url 'creer_tache' %}" class="btn-baay btn-baay-primary mt-2">
-                    <i class="fas fa-plus me-1"></i> Créer une tâche
-                </a>
-            {% else %}
-                <p>Vous n'avez encore aucune tâche assignée.</p>
-            {% endif %}
+    <div class="tl-list">
+      {% for tache in taches %}
+      <a href="{% url 'tache_detail' tache.id %}" class="tl-task">
+        <div class="tl-task__head">
+          <p class="tl-task__title">{{ tache.titre }}</p>
+          <span class="tl-badge tl-badge--prio-{{ tache.priorite }}">{{ tache.get_priorite_display }}</span>
         </div>
+        <div class="tl-task__meta">
+          <span><i class="fas fa-warehouse" aria-hidden="true"></i>{{ tache.ferme.nom }}</span>
+          {% if tache.projet %}<span><i class="fas fa-folder" aria-hidden="true"></i>{{ tache.projet.nom }}</span>{% endif %}
+          <span><i class="fas fa-user" aria-hidden="true"></i>{{ tache.assigne_a.user.username }}</span>
+        </div>
+        <div class="tl-task__foot">
+          <span class="{% if tache.est_en_retard %}tl-late{% endif %}">
+            {% if tache.date_echeance %}
+              <i class="fas fa-calendar" aria-hidden="true"></i>
+              {{ tache.date_echeance|date:"d M Y" }}{% if tache.est_en_retard %} · en retard{% endif %}
+            {% else %}
+              Sans échéance
+            {% endif %}
+          </span>
+          <span class="tl-badge tl-badge--stat-{{ tache.statut }}">{{ tache.get_statut_display }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="tl-empty">
+      <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+      <h2>Aucune tâche pour le moment</h2>
+      {% if peut_creer %}
+      <p>Créez votre première tâche pour assigner du travail à votre équipe.</p>
+      <a href="{% url 'creer_tache' %}" class="tl-btn tl-btn--primary mt-3">
+        <i class="fas fa-plus" aria-hidden="true"></i> Créer une tâche
+      </a>
+      {% else %}
+      <p>Vous n'avez encore aucune tâche assignée.</p>
+      {% endif %}
+    </div>
     {% endif %}
+
+  </div>
+
+  {% if peut_creer %}
+  <a href="{% url 'creer_tache' %}" class="tl-fab d-md-none" aria-label="Nouvelle tâche">
+    <i class="fas fa-plus" aria-hidden="true"></i>
+  </a>
+  {% endif %}
 </div>
 {% endblock %}
