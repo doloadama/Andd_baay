@@ -53,6 +53,17 @@
                     <i class="fas fa-list" aria-hidden="true"></i> Projets
                 </a>
             </div>
+            <div class="db-command__actions-mobile" aria-label="Actions rapides">
+                <a href="{% url 'creer_projet' %}" class="db-btn db-btn--gold">
+                    <i class="fas fa-plus" aria-hidden="true"></i> Nouveau projet
+                </a>
+                <a href="{% url 'liste_projets' %}" class="db-btn db-btn--ghost">
+                    <i class="fas fa-list" aria-hidden="true"></i> Projets
+                </a>
+                <a href="{% url 'creer_tache' %}" class="db-btn db-btn--ghost">
+                    <i class="fas fa-tasks" aria-hidden="true"></i> Tâche
+                </a>
+            </div>
         </div>
     </header>
 
