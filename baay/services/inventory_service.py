@@ -5,11 +5,12 @@ Gère les mouvements de stock, les alertes de seuil et le lien automatique
 avec les investissements de type 'intrant'.
 """
 
+import unicodedata
 from decimal import Decimal
 from typing import Optional
 
 from django.db import transaction
-from django.db.models import Sum, F, DecimalField
+from django.db.models import Case, DecimalField, F, Sum, Value, When
 from django.utils import timezone
 
 from baay.models import (
@@ -22,11 +23,45 @@ from baay.models import (
 )
 
 
+RAISON_RECOLTE_PROJET_PREFIX = "Récolte du projet"
+
+
 def _normaliser_nom(nom: str) -> str:
     """Normalise un nom d'intrant pour le matching fuzzy."""
-    import unicodedata
     nettoye = unicodedata.normalize('NFKD', nom).encode('ASCII', 'ignore').decode('ASCII')
     return nettoye.lower().strip()
+
+
+def _raison_recolte_projet(projet) -> str:
+    return f"{RAISON_RECOLTE_PROJET_PREFIX} « {projet.nom} »"
+
+
+def _quantite_recolte_deja_synchro(stock: StockRecolte) -> Optional[Decimal]:
+    """
+    Retourne le cumul net déjà synchronisé par le projet pour ce stock.
+
+    Les mouvements manuels (vente, perte, correction terrain...) doivent rester
+    dans le stock courant ; seuls les mouvements créés par la synchro projet
+    servent de base au recalcul idempotent.
+    """
+    mouvements = stock.mouvements.filter(raison__startswith=RAISON_RECOLTE_PROJET_PREFIX)
+    if not mouvements.exists():
+        return None
+
+    total = mouvements.aggregate(
+        total=Sum(
+            Case(
+                When(type=MouvementStock.TYPE_ENTREE, then=F("quantite")),
+                When(
+                    type=MouvementStock.TYPE_SORTIE,
+                    then=F("quantite") * Value(Decimal("-1.00")),
+                ),
+                default=Value(Decimal("0.00")),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
+        )
+    )["total"]
+    return total or Decimal("0.00")
 
 
 @transaction.atomic
@@ -47,7 +82,6 @@ def ajuster_stock_intrant(
     :raises StockIntrant.DoesNotExist: Si le stock n'existe pas.
     """
     stock = StockIntrant.objects.select_for_update().get(pk=stock_id)
-    ancienne_qte = stock.quantite
     stock.quantite = max(Decimal('0.00'), stock.quantite + delta)
     stock.save(update_fields=["quantite", "date_modification"])
 
@@ -102,34 +136,58 @@ def synchroniser_recoltes_projet(projet, utilisateur: Optional[Profile] = None) 
 
     Pour chaque produit du projet ayant un ``rendement_final`` > 0, crée (ou met
     à jour) un StockRecolte rattaché à la ferme + projet + produit. La fonction
-    est idempotente : re-saisir un rendement ajuste la quantité et enregistre
-    l'écart comme MouvementStock, sans créer de doublon.
+    est idempotente : re-saisir un rendement ajuste uniquement l'écart de
+    récolte projet déjà synchronisé, sans écraser les mouvements de stock
+    ultérieurs (vente, perte, correction terrain).
 
     :param projet: instance Projet terminé.
     :param utilisateur: Profile auteur de l'opération (optionnel).
     :return: liste des StockRecolte créés ou mis à jour.
     """
+    projet = (
+        type(projet).objects.select_for_update()
+        .select_related("ferme")
+        .get(pk=projet.pk)
+    )
     ferme = projet.ferme
     resultats: list[StockRecolte] = []
 
     for pp in projet.projet_produits.select_related("produit").all():
-        rendement = pp.rendement_final
-        if rendement is None or rendement <= 0:
-            continue
-
-        date_recolte = pp.date_recolte_effective or timezone.localdate()
-        stock, cree = StockRecolte.objects.get_or_create(
-            ferme=ferme,
-            projet=projet,
-            produit=pp.produit,
-            defaults={
-                "quantite": Decimal("0.00"),
-                "unite": StockRecolte.UNITE_KG,
-                "date_recolte": date_recolte,
-            },
+        rendement = (
+            Decimal(pp.rendement_final)
+            if pp.rendement_final and pp.rendement_final > 0
+            else Decimal("0.00")
         )
+        date_recolte = pp.date_recolte_effective or timezone.localdate()
+        stock = (
+            StockRecolte.objects.select_for_update()
+            .filter(ferme=ferme, projet=projet, produit=pp.produit)
+            .order_by("date_creation", "id")
+            .first()
+        )
+        cree = stock is None
+        if cree and rendement <= 0:
+            continue
+        if cree:
+            stock = StockRecolte.objects.create(
+                ferme=ferme,
+                projet=projet,
+                produit=pp.produit,
+                quantite=Decimal("0.00"),
+                unite=StockRecolte.UNITE_KG,
+                date_recolte=date_recolte,
+            )
 
-        delta = Decimal(rendement) - stock.quantite
+        quantite_deja_synchro = (
+            Decimal("0.00") if cree else _quantite_recolte_deja_synchro(stock)
+        )
+        if quantite_deja_synchro is None:
+            if rendement <= 0:
+                resultats.append(stock)
+                continue
+            quantite_deja_synchro = stock.quantite
+
+        delta = rendement - quantite_deja_synchro
         if delta == 0 and not cree:
             if stock.date_recolte != date_recolte:
                 stock.date_recolte = date_recolte
@@ -137,7 +195,7 @@ def synchroniser_recoltes_projet(projet, utilisateur: Optional[Profile] = None) 
             resultats.append(stock)
             continue
 
-        stock.quantite = Decimal(rendement)
+        stock.quantite = max(Decimal("0.00"), stock.quantite + delta)
         stock.date_recolte = date_recolte
         stock.save(update_fields=["quantite", "date_recolte", "date_modification"])
 
@@ -147,7 +205,7 @@ def synchroniser_recoltes_projet(projet, utilisateur: Optional[Profile] = None) 
                 type=MouvementStock.TYPE_ENTREE if delta > 0 else MouvementStock.TYPE_SORTIE,
                 stock_recolte=stock,
                 quantite=abs(delta),
-                raison=f"Récolte du projet « {projet.nom} »",
+                raison=_raison_recolte_projet(projet),
                 utilisateur=utilisateur,
             )
 
@@ -172,8 +230,6 @@ def volume_total_recoltes(ferme: Ferme) -> Decimal:
     """
     Retourne la somme totale des quantités de récoltes (en kg, conversion approximative).
     """
-    from django.db.models import Case, Value, When
-
     total = StockRecolte.objects.filter(ferme=ferme).aggregate(
         total=Sum(
             Case(
