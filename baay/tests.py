@@ -12,11 +12,14 @@ from baay.models import (
     Ferme,
     Localite,
     MembreFerme,
+    MouvementStock,
     Pays,
     ProduitAgricole,
     Projet,
+    ProjetProduit,
     Message,
     ParticipationConversation,
+    StockRecolte,
     Tache,
 )
 from baay.permissions import (
@@ -24,6 +27,10 @@ from baay.permissions import (
     peut_supprimer_projet,
     role_dans_ferme,
     roles_assignables_par,
+)
+from baay.services.inventory_service import (
+    ajuster_stock_recolte,
+    synchroniser_recoltes_projet,
 )
 
 
@@ -784,6 +791,27 @@ class InventaireTests(TestCase):
         self.owner = _create_user('owner_inv', 'owner_inv@x.test')
         self.ferme = Ferme.objects.create(nom='Ferme Inv', proprietaire=self.owner.profile)
         self.produit = ProduitAgricole.objects.create(nom='Maïs')
+        self.pays = Pays.objects.create(nom='Sénégal', code_iso='SN')
+        self.localite = Localite.objects.create(nom='Thiès', pays=self.pays)
+
+    def _creer_projet_avec_rendement(self, rendement=Decimal('1000.00')):
+        projet = Projet.objects.create(
+            nom='Projet Récolte',
+            ferme=self.ferme,
+            utilisateur=self.owner.profile,
+            localite=self.localite,
+            superficie=Decimal('1.00'),
+            date_lancement=timezone.localdate(),
+            statut='fini',
+        )
+        projet_produit = ProjetProduit.objects.create(
+            projet=projet,
+            produit=self.produit,
+            superficie_allouee=Decimal('1.00'),
+            rendement_final=rendement,
+            date_recolte_effective=timezone.localdate(),
+        )
+        return projet, projet_produit
 
     def test_stock_intrant_creation(self):
         from baay.models import StockIntrant
@@ -799,7 +827,6 @@ class InventaireTests(TestCase):
         self.assertEqual(stock.ferme, self.ferme)
 
     def test_stock_recolte_creation(self):
-        from baay.models import StockRecolte
         recolte = StockRecolte.objects.create(
             ferme=self.ferme,
             produit=self.produit,
@@ -812,7 +839,7 @@ class InventaireTests(TestCase):
         self.assertEqual(recolte.qualite, 'A')
 
     def test_mouvement_stock_creation(self):
-        from baay.models import StockIntrant, MouvementStock
+        from baay.models import StockIntrant
         stock = StockIntrant.objects.create(
             ferme=self.ferme,
             nom='Semences',
@@ -844,7 +871,6 @@ class InventaireTests(TestCase):
         self.assertEqual(alertes[0].nom, 'Pesticide')
 
     def test_service_volume_total_recoltes(self):
-        from baay.models import StockRecolte
         from baay.services.inventory_service import volume_total_recoltes
         StockRecolte.objects.create(
             ferme=self.ferme,
@@ -869,6 +895,56 @@ class InventaireTests(TestCase):
         stock.refresh_from_db()
         self.assertEqual(stock.quantite, Decimal('40.00'))
         self.assertEqual(MouvementStock.objects.filter(stock_intrant=stock).count(), 1)
+
+    def test_synchroniser_recoltes_preserve_stock_movements(self):
+        projet, projet_produit = self._creer_projet_avec_rendement()
+        stock = synchroniser_recoltes_projet(projet, utilisateur=self.owner.profile)[0]
+        self.assertEqual(stock.quantite, Decimal('1000.00'))
+
+        ajuster_stock_recolte(
+            str(stock.id),
+            Decimal('-400.00'),
+            'Vente au marché',
+            self.owner.profile,
+        )
+        stock.refresh_from_db()
+        self.assertEqual(stock.quantite, Decimal('600.00'))
+
+        synchroniser_recoltes_projet(projet, utilisateur=self.owner.profile)
+        stock.refresh_from_db()
+        self.assertEqual(stock.quantite, Decimal('600.00'))
+
+        projet_produit.rendement_final = Decimal('1200.00')
+        projet_produit.save(update_fields=['rendement_final'])
+        synchroniser_recoltes_projet(projet, utilisateur=self.owner.profile)
+        stock.refresh_from_db()
+        self.assertEqual(stock.quantite, Decimal('800.00'))
+        self.assertEqual(
+            MouvementStock.objects.filter(
+                stock_recolte=stock,
+                raison__startswith='Récolte du projet',
+            ).count(),
+            2,
+        )
+
+    def test_synchroniser_recoltes_zero_clears_previous_project_harvest(self):
+        projet, projet_produit = self._creer_projet_avec_rendement()
+        stock = synchroniser_recoltes_projet(projet, utilisateur=self.owner.profile)[0]
+        self.assertEqual(stock.quantite, Decimal('1000.00'))
+
+        projet_produit.rendement_final = Decimal('0.00')
+        projet_produit.save(update_fields=['rendement_final'])
+        synchroniser_recoltes_projet(projet, utilisateur=self.owner.profile)
+
+        stock.refresh_from_db()
+        self.assertEqual(stock.quantite, Decimal('0.00'))
+        self.assertEqual(
+            MouvementStock.objects.filter(
+                stock_recolte=stock,
+                raison__startswith='Récolte du projet',
+            ).count(),
+            2,
+        )
 
     def test_url_inventaire_existe(self):
         url = reverse('liste_inventaire', args=[self.ferme.id])
